@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <array>
@@ -124,9 +125,13 @@ struct KmerAlphabet
      */
     static inline uint8_t char_to_rank( char c, bool throw_if_invalid = false )
     {
-        // Basic checks on the input.
-        c = utils::to_upper( c );
-        if(( c != 'A' ) && ( c != 'C' ) && ( c != 'G' ) && ( c != 'T' )) {
+        // Basic input checks. Checking upper and lower case in one condition is faster in our tests
+        // than turning it into one case and doing fewer checks - likely due to branch prediction.
+        // c = utils::to_upper( c );
+        if(
+            ( c != 'A' ) && ( c != 'C' ) && ( c != 'G' ) && ( c != 'T' ) &&
+            ( c != 'a' ) && ( c != 'c' ) && ( c != 'g' ) && ( c != 't' )
+        ) GENESIS_CPP_UNLIKELY {
             if( throw_if_invalid ) {
                 throw std::invalid_argument(
                     "Cannot use char " + utils::char_to_hex( c ) + " to construct ACGT k-mer"
@@ -136,9 +141,32 @@ struct KmerAlphabet
             }
         }
 
-        // The following seems to be the fastest, see https://github.com/seqan/seqan3/issues/1970
-        // Alternatively, the table, or a switch could be used.
-        return 0 * ( c == 'A' ) + 1 * ( c == 'C' ) + 2 * ( c == 'G' ) + 3 * ( c == 'T' );
+        // We need ASCII for the following to work. Probably fine, but doesn't hurt to check.
+        static_assert( static_cast<int>('A') == 65, "Non-ASCII char set" );
+        static_assert( static_cast<int>('C') == 67, "Non-ASCII char set" );
+        static_assert( static_cast<int>('G') == 71, "Non-ASCII char set" );
+        static_assert( static_cast<int>('T') == 84, "Non-ASCII char set" );
+
+        // For extra speed, we exploit the ASCII code of the characters. We already checked above
+        // that we are dealing with valid ones, so this is fine. The lower halves of each byte are:
+        // A 0001
+        // C 0011
+        // G 0111
+        // T 0100
+        //   -^^-
+        // These have a pattern in the middle bits (marked) that we use; doing a single right shift
+        // puts those into the two rightmost bits of the result. The first of them (the left one)
+        // is already what we want (A=C=0 and G=T=1), but the other (the right one) is not
+        // (A=T=0 and C=G=1, but we want A=G=0 and C=T=1 for that bit). We xor with the other bit
+        // to get our result, as that has a 1 for the G and the T, and gives us the encoding that
+        // we want. This works for upper and lower case, as the case bit is in the higher four bits,
+        // which are ignored here anyway. In our tests, this is the fastest method.
+        unsigned char const u = c;
+        return ((u >> 1) ^ (u >> 2)) & 3;
+
+        // The following is another fast solution, see https://github.com/seqan/seqan3/issues/1970
+        // Alternatively, a lookup table, or a switch could be used, but those are way slower.
+        // return 0 * ( c == 'A' ) + 1 * ( c == 'C' ) + 2 * ( c == 'G' ) + 3 * ( c == 'T' );
     }
 
     /**

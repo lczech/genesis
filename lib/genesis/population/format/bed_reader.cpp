@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -32,6 +32,8 @@
 
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
+#include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -59,11 +61,92 @@ std::vector<BedReader::Feature> BedReader::read(
 GenomeLocusSet BedReader::read_as_genome_locus_set(
     std::shared_ptr< utils::BaseInputSource > source
 ) const {
+    using namespace genesis::utils;
+
+    // Get the source into a genome region list.
     GenomeLocusSet result;
     read_( source, [&]( Feature&& feat ){
         result.add( feat.chrom, feat.chrom_start, feat.chrom_end );
     });
+
+    // The above will allocate more positions in the bitvector than needed, for speed.
+    // We truncate this here again. To this end, we create a new shorter bitvector. Could be
+    // optimized by offering a shrink function of sorts in the Bitvector. But good enough for now.
+    auto const chr_names = result.chromosome_names();
+    for( auto const& chr_name : chr_names ) {
+        auto& bv = result.chromosome_positions( chr_name );
+        auto const last_bit_idx = find_last_set( bv );
+        if( last_bit_idx == Bitvector::npos ) {
+            bv = Bitvector( 1 );
+        } else {
+            auto bv_truncated = Bitvector( last_bit_idx + 1, bv );
+            bv = std::move( bv_truncated );
+        }
+    }
     return result;
+}
+
+GenomeLocusSet BedReader::read_as_genome_locus_set(
+    std::shared_ptr< utils::BaseInputSource > source,
+    sequence::SequenceDict const& sequence_dict
+) const {
+    using namespace genesis::utils;
+
+    // Get the source into a genome region list.
+    GenomeLocusSet result;
+    read_( source, [&]( Feature&& feat ){
+        result.add( feat.chrom, feat.chrom_start, feat.chrom_end );
+    });
+
+    // Now set the lengths of the bitvectors according to the dict, throwing exceptions
+    // if there is a misfit between that and the given input data.
+    auto const chr_names = result.chromosome_names();
+    for( auto const& chr_name : chr_names ) {
+        if( !sequence_dict.contains( chr_name )) {
+            throw std::runtime_error(
+                "Cannot read BED input for chromosome \"" + chr_name +
+                "\", as the given sequence dictionary (such as from a .dict or .fai file, or from "
+                "a reference genome .fasta file) does not contain an entry for that chromosome"
+            );
+        }
+        auto const& seq_entry = sequence_dict.get( chr_name );
+
+        // Use the seq dict to resize the bitvector to the desired length.
+        auto& bv = result.chromosome_positions( chr_name );
+        auto const last_bit_idx = find_last_set( bv );
+        if( last_bit_idx == Bitvector::npos ) {
+            // Empty chr in bed. Should not really be able to happen, as that means there was not
+            // an entry in the input to begin with, but let's catch it anyway.
+            // We create a bitvector of the size of the chr plus 1 for the zero-th bit of the set.
+            bv = Bitvector( seq_entry.size() + 1 );
+        } else if( last_bit_idx <= seq_entry.size() ) {
+            // Standard case: Last bit is somewhere before the end of the seq dict,
+            // so we use that length to set the values. Cannot self-assign here.
+            auto bv_chr_len = Bitvector( seq_entry.size() + 1, bv );
+            bv = std::move( bv_chr_len );
+        } else {
+            // Error case: there is data after the end of the chr.
+            throw std::runtime_error(
+                "Inconsistent BED input for chromosome \"" + chr_name +
+                "\", as the given sequence dictionary (such as from a .dict or .fai file, or from "
+                "a reference genome .fasta file) indicates a length of " +
+                std::to_string( seq_entry.size() ) + " for the chromosome, while the BED input " +
+                "contains intervals up to position " + std::to_string( last_bit_idx )
+            );
+        }
+    }
+    return result;
+}
+
+GenomeLocusSet BedReader::read_as_genome_locus_set(
+    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< sequence::SequenceDict > sequence_dict
+) const {
+    if( sequence_dict ) {
+        return read_as_genome_locus_set( source, *sequence_dict );
+    } else {
+        return read_as_genome_locus_set( source );
+    }
 }
 
 GenomeRegionList BedReader::read_as_genome_region_list(

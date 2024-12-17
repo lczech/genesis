@@ -33,6 +33,10 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/taxonomy/accession_lookup.hpp"
+#include "genesis/taxonomy/formats/accession_lookup_reader.hpp"
+#include "genesis/taxonomy/formats/json_reader.hpp"
+#include "genesis/taxonomy/formats/json_writer.hpp"
 #include "genesis/taxonomy/formats/ncbi.hpp"
 #include "genesis/taxonomy/formats/taxonomy_reader.hpp"
 #include "genesis/taxonomy/formats/taxonomy_writer.hpp"
@@ -40,6 +44,8 @@
 #include "genesis/taxonomy/formats/taxopath_parser.hpp"
 #include "genesis/taxonomy/functions/entropy_data.hpp"
 #include "genesis/taxonomy/functions/entropy.hpp"
+#include "genesis/taxonomy/functions/kmer_data.hpp"
+#include "genesis/taxonomy/functions/kmer.hpp"
 #include "genesis/taxonomy/functions/operators.hpp"
 #include "genesis/taxonomy/functions/ranks.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"

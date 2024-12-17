@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -32,6 +32,8 @@
 
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxon.hpp"
+#include "genesis/taxonomy/functions/taxonomy.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <sstream>
 
@@ -47,7 +49,7 @@ void PrinterNested::print(
     Taxonomy const& tax
 ) const {
     size_t lines = 0;
-    print_to_ostream( out, tax, 0, lines );
+    print_to_ostream_( out, tax, 0, lines );
 }
 
 std::string PrinterNested::print(
@@ -64,7 +66,7 @@ std::string PrinterNested::operator() (
     return print( tax );
 }
 
-bool PrinterNested::print_to_ostream(
+bool PrinterNested::print_to_ostream_(
     std::ostream&   out,
     Taxonomy const& tax,
     size_t          depth,
@@ -76,7 +78,7 @@ bool PrinterNested::print_to_ostream(
     }
 
     // Indent string.
-    auto in = std::string( depth, '\t' );
+    auto in = utils::repeat( indent_string_, depth );
 
     bool finished = true;
     for( auto const& t : tax ) {
@@ -86,26 +88,32 @@ bool PrinterNested::print_to_ostream(
 
         // Print and count.
         out << in << t.name();
-        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != "" )) {
+        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != 0 ) || print_sizes_ ) {
             out << " (";
         }
         if( print_ranks_ && t.rank() != "" ) {
             out << t.rank();
         }
-        if( print_ids_ && t.id() != "" ) {
+        if( print_ids_ && t.id() != 0 ) {
             if( print_ranks_ && t.rank() != "" ) {
                 out << ", ";
             }
-            out << t.id();
+            out << "id=" << t.id();
         }
-        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != "" )) {
+        if( print_sizes_ ) {
+            if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != 0 )) {
+                out << ", ";
+            }
+            out << "size=" << total_taxa_count( t );
+        }
+        if(( print_ranks_ && t.rank() != "" ) || ( print_ids_ && t.id() != 0 ) || print_sizes_ ) {
             out << ")";
         }
         out << "\n";
         ++lines;
 
         // Recurse.
-        finished &= print_to_ostream( out, t, depth + 1, lines );
+        finished &= print_to_ostream_( out, t, depth + 1, lines );
     }
 
     if( depth == 0 && ! finished ) {
@@ -140,6 +148,17 @@ int PrinterNested::depth_limit() const
     return depth_limit_;
 }
 
+PrinterNested& PrinterNested::indent_string( std::string value )
+{
+    indent_string_ = value;
+    return *this;
+}
+
+std::string PrinterNested::indent_string() const
+{
+    return indent_string_;
+}
+
 PrinterNested& PrinterNested::print_ranks( bool value )
 {
     print_ranks_ = value;
@@ -160,6 +179,17 @@ PrinterNested& PrinterNested::print_ids( bool value )
 bool PrinterNested::print_ids() const
 {
     return print_ids_;
+}
+
+PrinterNested& PrinterNested::print_sizes( bool value )
+{
+    print_sizes_ = value;
+    return *this;
+}
+
+bool PrinterNested::print_sizes() const
+{
+    return print_sizes_;
 }
 
 } // namespace taxonomy

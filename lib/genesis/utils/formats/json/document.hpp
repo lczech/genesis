@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /*
@@ -71,10 +71,11 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
-#include <stdexcept>
-#include <string>
 #include <map>
 #include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -1038,7 +1039,13 @@ private:
             alloc.deallocate( obj, 1 );
         };
         std::unique_ptr<T, decltype(deleter)> obj( alloc.allocate(1), deleter );
-        alloc.construct( obj.get(), std::forward<Args>(args)... );
+
+        // Adapted from C++11 to C++17 and beyond. Original code firs,t then the adaptation:
+        // alloc.construct( obj.get(), std::forward<Args>(args)... );
+        std::allocator_traits<decltype(alloc)>::construct(
+            alloc, obj.get(), std::forward<Args>(args)...
+        );
+
         assert( obj != nullptr );
         return obj.release();
 
@@ -1051,9 +1058,12 @@ private:
     static void destroy( T* ptr )
     {
         std::allocator<T> alloc;
-        alloc.destroy(ptr);
-        alloc.deallocate(ptr, 1);
 
+        // Similar to the above create(), we need to adapt for C++17 and later:
+        // alloc.destroy(ptr);
+        std::allocator_traits<decltype(alloc)>::destroy(alloc, ptr);
+
+        alloc.deallocate(ptr, 1);
         // delete ptr;
     }
 

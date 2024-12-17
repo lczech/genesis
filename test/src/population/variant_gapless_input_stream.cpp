@@ -43,6 +43,8 @@
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -311,7 +313,7 @@ std::map<std::string, Bitvector> test_gapless_input_stream_make_ramdom_bitvector
         for( auto s : selection ) {
             bv.set(s);
         }
-        EXPECT_EQ( filled, bv.count() );
+        EXPECT_EQ( filled, pop_count( bv ));
         result[std::string( 1, 'A' + i )] = bv;
     }
     return result;
@@ -326,7 +328,7 @@ std::vector<Variant> test_gapless_input_stream_make_variants_(
     std::vector<Variant> result;
     size_t total_variants = 0;
     for( auto const& bv : bitvectors ) {
-        total_variants += bv.second.count();
+        total_variants += pop_count( bv.second );
 
         for( size_t i = 0; i < bv.second.size(); ++i ) {
             if( !bv.second.get(i) ) {
@@ -417,7 +419,7 @@ void test_gapless_input_stream_random_()
     }
     LOG_DBG << "var_bvs";
     for( auto const& fp : var_bvs ) {
-        LOG_DBG1 << fp.first << ":" << fp.second.dump();
+        LOG_DBG1 << fp.first << ":" << to_bit_string( fp.second );
     }
     LOG_DBG << "vars";
     for( auto const& var : vars ) {
@@ -497,7 +499,7 @@ void test_gapless_input_stream_random_()
     }
     EXPECT_EQ( total_variants, present_variants + missing_variants );
     for( auto const& fp : found_positions ) {
-        EXPECT_GT( fp.second.count(), 0 );
+        EXPECT_GT( pop_count( fp.second ), 0 );
     }
 
     // Check found positions
@@ -515,7 +517,7 @@ void test_gapless_input_stream_random_()
             EXPECT_EQ( num_reg_chrs * 10, total_variants );
         }
         for( auto const& fp : found_positions ) {
-            EXPECT_EQ( 10, fp.second.count() );
+            EXPECT_EQ( 10, pop_count( fp.second ));
         }
     } else {
         // Without ref genome or seq dict, we only see the positions up until the last in the
@@ -526,7 +528,7 @@ void test_gapless_input_stream_random_()
             auto const past_last = find_position_past_last_true_(bv.second);
             exp_total_variants += past_last;
             EXPECT_TRUE( found_positions.count(bv.first) > 0 );
-            EXPECT_EQ( past_last, found_positions[bv.first].count() );
+            EXPECT_EQ( past_last, pop_count( found_positions[bv.first] ));
 
             // Now scan the positions. All before the last need to true, all after false.
             EXPECT_LE( past_last, 10 );
@@ -543,7 +545,7 @@ void test_gapless_input_stream_random_()
     // Count up all the set positions in the original bitvectors to get the present variant count.
     size_t exp_present_variants = 0;
     for( auto const& bv : var_bvs ) {
-        exp_present_variants += bv.second.count();
+        exp_present_variants += pop_count( bv.second );
     }
     EXPECT_EQ( exp_present_variants, present_variants );
 }

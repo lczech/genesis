@@ -35,6 +35,7 @@
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/random.hpp"
 
 #include <algorithm>
@@ -48,10 +49,13 @@ using namespace genesis;
 using namespace genesis::sequence;
 using namespace genesis::utils;
 
-template<typename Tag>
-Kmer<Tag> make_random_kmer()
+// =================================================================================================
+//     Helper Functions
+// =================================================================================================
+
+Kmer make_random_kmer( uint8_t k )
 {
-    using Bitfield = typename Kmer<Tag>::Bitfield;
+    using Bitfield = typename Kmer::Bitfield;
     using WordType = typename Bitfield::WordType;
     static_assert( Bitfield::BIT_WIDTH == 64, "Bitfield::BIT_WIDTH != 64" );
 
@@ -62,15 +66,15 @@ Kmer<Tag> make_random_kmer()
     WordType const h = permuted_congruential_generator();
     WordType const l = permuted_congruential_generator();
     WordType const w = ( h << 32 ) | l;
-    WordType const s = w & Bitfield::ones_mask[ Kmer<Tag>::k() ];
-    auto const k = Kmer<Tag>( s );
-    validate( k );
-    return k;
+    WordType const s = w & Bitfield::ones_mask[ k ];
+    auto const kmer = Kmer( k, s );
+    validate( kmer );
+    return kmer;
 }
 
 std::string make_random_kmer_sequence( size_t length )
 {
-    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+    using Alphabet = Kmer::Alphabet;
 
     // Make a string of length i with random valid chars.
     auto sequence = std::string( length, '-' );
@@ -116,23 +120,72 @@ std::string string_rev_comp( std::string const& str )
 }
 
 // =================================================================================================
-//     Basics
+//     Alphabet
+// =================================================================================================
+
+TEST( Kmer, AlphabetBasics )
+{
+    using Alphabet = Kmer::Alphabet;
+    for( int i = 0; i < 128; ++i ) {
+        char c = i;
+        switch( c ) {
+            case 'a':
+            case 'A': {
+                EXPECT_EQ( 0, Alphabet::char_to_rank(c) );
+                break;
+            }
+            case 'c':
+            case 'C': {
+                EXPECT_EQ( 1, Alphabet::char_to_rank(c) );
+                break;
+            }
+            case 'g':
+            case 'G': {
+                EXPECT_EQ( 2, Alphabet::char_to_rank(c) );
+                break;
+            }
+            case 't':
+            case 'T': {
+                EXPECT_EQ( 3, Alphabet::char_to_rank(c) );
+                break;
+            }
+            default: {
+                EXPECT_EQ( 255, Alphabet::char_to_rank(c) );
+            }
+        }
+    }
+}
+
+// TEST( Kmer, AlphabetSpeed )
+// {
+//     using Alphabet = Kmer::Alphabet;
+//     auto const seq = make_random_kmer_sequence( 1000000000 );
+//     LOG_TIME << "start";
+//     size_t sum = 0;
+//     for( auto c : seq ) {
+//         sum += Alphabet::char_to_rank( c );
+//     }
+//     LOG_TIME << "finish: " << sum;
+// }
+
+// =================================================================================================
+//     Kmer Basics
 // =================================================================================================
 
 TEST( Kmer, Basics )
 {
-    Kmer<KmerTagDefault>::reset_k( 7 );
+    int const k = 7;
 
     // GATACAC = 0b 10 00 11 00 01 00 01 = 0x2311
-    auto const k1 = Kmer<KmerTagDefault>( 0x2311 );
+    auto const k1 = Kmer( k, 0x2311 );
     auto const k2 = reverse_complement( k1 );
 
     // LOG_DBG << "k1 " << k1 << " from " << k1.value;
     // LOG_DBG << "k2 " << k2 << " from " << k2.value;
 
     // Basic string operators
-    EXPECT_EQ( k1, kmer_from_string<KmerTagDefault>( "GATACAC" ));
-    EXPECT_EQ( k2, kmer_from_string<KmerTagDefault>( "GTGTATC" ));
+    EXPECT_EQ( k1, kmer_from_string( "GATACAC" ));
+    EXPECT_EQ( k2, kmer_from_string( "GTGTATC" ));
     EXPECT_EQ( "GATACAC", kmer_to_string( k1 ));
     EXPECT_EQ( "GTGTATC", kmer_to_string( k2 ));
     // LOG_DBG << "GATACAC: " << kmer_bits_to_string( k1 );
@@ -150,13 +203,12 @@ TEST( Kmer, Lengths )
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
 
-    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
-    using Bitfield = Kmer<KmerTagDefault>::Bitfield;
+    using Alphabet = Kmer::Alphabet;
+    using Bitfield = Kmer::Bitfield;
 
     for( size_t k = 1; k <= Bitfield::MAX_CHARS_PER_KMER; ++k ) {
-        Kmer<KmerTagDefault>::reset_k( k );
         auto seq = make_random_kmer_sequence( k );
-        auto kmer = kmer_from_string<KmerTagDefault>( seq );
+        auto kmer = kmer_from_string( seq );
         EXPECT_TRUE( validate( kmer ));
         EXPECT_EQ( kmer_to_string( kmer ), seq );
         for( size_t i = 0; i < k; ++i ) {
@@ -176,9 +228,9 @@ TEST( Kmer, CanonicalRepresentation )
     // Test that we still get what we expect. Needs to be the case, as we are comparing a string
     // to its reverse-ish, so the direction of comparison should not matter.
 
-    auto run_test_ = []( size_t v )
+    auto run_test_ = []( uint8_t k, size_t v )
     {
-        auto const km = Kmer<KmerTagDefault>( v );
+        auto const km = Kmer( k, v );
         auto const rc = reverse_complement( km );
         // LOG_DBG1 << km << " <-> " << rc << " --> " << canonical_representation( km );
         EXPECT_EQ( 0, km.rev_comp );
@@ -191,7 +243,7 @@ TEST( Kmer, CanonicalRepresentation )
 
         // Test that the rc of the rc is the original again.
         // We make a copy of the rc here, to ensure that we are testing the value.
-        auto rcrc = reverse_complement( Kmer<KmerTagDefault>( rc.value ));
+        auto rcrc = reverse_complement( Kmer( k, rc.value ));
         EXPECT_EQ( rcrc.value, km.value );
         EXPECT_TRUE( validate( rcrc ));
 
@@ -210,19 +262,17 @@ TEST( Kmer, CanonicalRepresentation )
     // Test all small k-mers
     for( size_t k = 1; k < 10; ++k ) {
         // LOG_DBG << "at " << k;
-        Kmer<KmerTagDefault>::reset_k( k );
         for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
-            run_test_( i );
+            run_test_( k, i );
         }
     }
 
     // Also test a few random large k-mers to test the boundaries
     for( size_t k = 31; k <= 32; ++k ) {
         // LOG_DBG << "at " << k;
-        Kmer<KmerTagDefault>::reset_k( k );
         for( size_t i = 0; i < 10000; ++i ) {
-            auto const km = make_random_kmer<KmerTagDefault>();
-            run_test_( km.value );
+            auto const km = make_random_kmer( k );
+            run_test_( k, km.value );
         }
     }
 }
@@ -238,9 +288,8 @@ TEST( Kmer, ExtractorBasics )
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
 
-    auto run_test_ = []()
+    auto run_test_ = []( uint8_t k )
     {
-        auto const k = Kmer<KmerTagDefault>::k();
         for( size_t i = 0; i < 500; ++i ) {
             auto const sequence = make_random_kmer_sequence( i );
 
@@ -249,7 +298,7 @@ TEST( Kmer, ExtractorBasics )
 
             // Run the kmer extractor
             size_t start_loc = 0;
-            auto extractor = KmerExtractor<KmerTagDefault>( sequence );
+            auto extractor = KmerExtractor( k, sequence );
             for( auto it = extractor.begin(); it != extractor.end(); ++it ) {
                 // LOG_DBG1 << kmer_to_string( *it ) << " vs " << sequence.substr( start_loc, k );
                 // LOG_DBG << kmer_bits_to_string( *it );
@@ -261,13 +310,13 @@ TEST( Kmer, ExtractorBasics )
                 EXPECT_TRUE( validate( *it ));
 
                 // Test that the rc was set correctly by the extractor.
-                EXPECT_EQ( it->rev_comp, reverse_complement( Kmer<KmerTagDefault>( it->value )).value );
+                EXPECT_EQ( it->rev_comp, reverse_complement( Kmer( k, it->value )).value );
                 ++start_loc;
             }
 
             // Expect correct num of iterations
-            EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
-            EXPECT_EQ( extractor.count_invalid_characters(), 0 );
+            EXPECT_EQ( extractor.valid_character_count(), sequence.size() );
+            EXPECT_EQ( extractor.invalid_character_count(), 0 );
             if( sequence.size() >= k ) {
                 EXPECT_EQ( start_loc, sequence.size() - k + 1 );
             } else {
@@ -279,23 +328,21 @@ TEST( Kmer, ExtractorBasics )
     // Test some random strings for all k-mer sizes
     for( size_t k = 1; k <= 32; ++k ) {
         // LOG_DBG << "at " << k;
-        Kmer<KmerTagDefault>::reset_k( k );
-        run_test_();
+        run_test_( k );
     }
 }
 
 TEST( Kmer, ExtractorInvalids )
 {
-    using Alphabet = Kmer<KmerTagDefault>::Alphabet;
+    using Alphabet = Kmer::Alphabet;
 
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
 
-    auto run_test_ = []()
+    auto run_test_ = []( uint8_t k )
     {
-        auto const k = Kmer<KmerTagDefault>::k();
         for( size_t i = 1; i < 500; ++i ) {
             auto sequence = make_random_kmer_sequence( i );
 
@@ -315,7 +362,7 @@ TEST( Kmer, ExtractorInvalids )
 
             // Run the kmer extractor in sync with the sequence, where we need to skip over invalids.
             size_t start_loc = 0;
-            auto extractor = KmerExtractor<KmerTagDefault>( sequence );
+            auto extractor = KmerExtractor( k, sequence );
             auto cur = extractor.begin();
             auto end = extractor.end();
             while( start_loc + k <= sequence.size() ) {
@@ -341,7 +388,7 @@ TEST( Kmer, ExtractorInvalids )
                 // Test that the rc was set correctly by the extractor.
                 EXPECT_EQ(
                     cur->rev_comp,
-                    reverse_complement( Kmer<KmerTagDefault>( cur->value )).value
+                    reverse_complement( Kmer( k, cur->value )).value
                 );
 
                 // Now move both to the next location
@@ -351,10 +398,10 @@ TEST( Kmer, ExtractorInvalids )
 
             // Now we are done with the kmer extractor as well.
             EXPECT_EQ( cur, end );
-            EXPECT_EQ( extractor.count_valid_characters(), valid_size );
-            EXPECT_EQ( extractor.count_invalid_characters(), invalid_size );
+            EXPECT_EQ( extractor.valid_character_count(), valid_size );
+            EXPECT_EQ( extractor.invalid_character_count(), invalid_size );
             EXPECT_EQ(
-                extractor.count_valid_characters() + extractor.count_invalid_characters(),
+                extractor.valid_character_count() + extractor.invalid_character_count(),
                 sequence.size()
             );
             if( sequence.size() < k ) {
@@ -366,8 +413,7 @@ TEST( Kmer, ExtractorInvalids )
     // Test some random strings for all k-mer sizes
     for( size_t k = 1; k <= 32; ++k ) {
         // LOG_DBG << "########## at " << k;
-        Kmer<KmerTagDefault>::reset_k( k );
-        run_test_();
+        run_test_( k );
     }
 }
 
@@ -380,24 +426,34 @@ TEST( Kmer, ExtractorInvalids )
 //
 //     // We make one long sequence for the testing
 //     LOG_TIME << "make sequence";
-//     auto const sequence = make_random_kmer_sequence( 500000000 );
+//     size_t const seq_len = 1000000000;
+//     auto const sequence = make_random_kmer_sequence( seq_len );
 //     LOG_TIME << "done";
 //
 //     auto const k = 15;
-//     Kmer<KmerTagDefault>::reset_k( k );
-//     auto extractor = KmerExtractor<KmerTagDefault>( sequence );
+//     auto extractor = KmerExtractor( k, sequence );
 //
 //     size_t cnt = 0;
 //     LOG_TIME << "extract kmers";
+//
+//     // Start high-resolution timer
+//     struct timespec start, end;
+//     clock_gettime(CLOCK_MONOTONIC, &start);
 //     for( auto const& kmer : extractor ) {
 //         (void) kmer;
 //         ++cnt;
 //     }
+//
+//     // Calculate the elapsed time in seconds, and the number of encodings per sec we achieved.
+//     clock_gettime(CLOCK_MONOTONIC, &end);
+//     double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+//     unsigned long extr_per_sec = cnt / elapsed_time;
+//     LOG_DBG << "k==" << k << ", time: " << elapsed_time << "s, kmer/s: " << extr_per_sec;
 //     LOG_TIME << "done " << cnt;
 //
 //     // Expect correct num of iterations
-//     EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
-//     EXPECT_EQ( extractor.count_invalid_characters(), 0 );
+//     EXPECT_EQ( extractor.valid_character_count(), sequence.size() );
+//     EXPECT_EQ( extractor.invalid_character_count(), 0 );
 //     EXPECT_EQ( cnt, sequence.size() - k + 1 );
 // }
 
@@ -421,12 +477,10 @@ TEST( Kmer, MicrovariantScanner )
         return mismatch_cnt;
     };
 
-    auto run_test_ = [&]( size_t v )
+    auto run_test_ = [&]( int k, size_t v )
     {
-        auto const k = Kmer<KmerTagDefault>::k();
-
         // Make the kmer
-        auto km = Kmer<KmerTagDefault>( v );
+        auto km = Kmer( k, v );
         set_reverse_complement( km );
         auto const kms = kmer_to_string( km );
         auto const rcs = kmer_to_string( reverse_complement( km ));
@@ -442,7 +496,7 @@ TEST( Kmer, MicrovariantScanner )
             // Test that the rc was set correctly by the extractor.
             EXPECT_EQ(
                 mv.rev_comp,
-                reverse_complement( Kmer<KmerTagDefault>( mv.value )).value
+                reverse_complement( Kmer( k, mv.value )).value
             );
             EXPECT_TRUE( validate( mv ));
 
@@ -464,19 +518,17 @@ TEST( Kmer, MicrovariantScanner )
     // Test all small k-mers
     for( size_t k = 1; k < 10; ++k ) {
         // LOG_DBG << "at " << k;
-        Kmer<KmerTagDefault>::reset_k( k );
         for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
-            run_test_( i );
+            run_test_( k, i );
         }
     }
 
     // Also test a few random large k-mers to test the boundaries
     for( size_t k = 31; k <= 32; ++k ) {
         // LOG_DBG << "at " << k;
-        Kmer<KmerTagDefault>::reset_k( k );
         for( size_t i = 0; i < 10000; ++i ) {
-            auto const km = make_random_kmer<KmerTagDefault>();
-            run_test_( km.value );
+            auto const km = make_random_kmer( k );
+            run_test_( k, km.value );
         }
     }
 }
@@ -511,7 +563,6 @@ TEST( Kmer, CanonicalEncoding )
         // LOG_DBG << "=======================================================================";
         // LOG_DBG << "at " << k;
 
-        Kmer<KmerTagDefault>::reset_k( k );
         auto const num_canon_kmers = number_of_canonical_kmers( k );
         auto const num_palindromes = number_of_palindromes( k );
 
@@ -520,10 +571,10 @@ TEST( Kmer, CanonicalEncoding )
         auto counts = std::vector<size_t>( num_canon_kmers, 0 );
 
         // Test all kmers of that length
-        auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+        auto encoder = MinimalCanonicalEncoding( k );
         for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
             // Make the kmer
-            auto km = Kmer<KmerTagDefault>( i );
+            auto km = Kmer( k, i );
             set_reverse_complement( km );
 
             // Get its index
@@ -556,22 +607,36 @@ TEST( Kmer, CanonicalEncoding )
     }
 }
 
+// There is an optimization bug in GCC7 which gets triggered in the following test case.
+// With that bug, GCC is reporting:
+//
+//     genesis/sequence/kmer/canonical_encoding.hpp: In member function ‘virtual void
+//     Kmer_CanonicalEncodingLarge_Test::TestBody()’:
+//         Error: genesis/sequence/kmer/canonical_encoding.hpp:216:9: error:
+//         assuming signed overflow does not occur when assuming that (X + c) < X is always false
+//         [-Werror=strict-overflow]
+//          if( l + 4 <= k_ ) {
+//          ^~
+//
+// which is just stupid. So we deacivate the test case for GCC7...
+
+#if ! defined(__GNUC__) || __GNUC__ > 7
+
 TEST( Kmer, CanonicalEncodingLarge )
 {
     // Test large sizes of k for the boundaries.
     // Here, we cannot enumerate all values, so we just test a few properties.
     for( size_t k = 31; k <= 32; ++k ) {
-        Kmer<KmerTagDefault>::reset_k( k );
         // LOG_DBG << "=======================================================================";
         // LOG_DBG << "at " << k;
 
         // Test all kmers of that length
-        auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+        auto encoder = MinimalCanonicalEncoding( k );
         for( size_t i = 0; i < 100000; ++i ) {
             // LOG_DBG << "------------------------";
 
             // Make a random kmer
-            auto km = make_random_kmer<KmerTagDefault>();
+            auto km = make_random_kmer( k );
             set_reverse_complement( km );
             // LOG_DBG << km;
 
@@ -582,17 +647,18 @@ TEST( Kmer, CanonicalEncodingLarge )
     }
 }
 
+#endif
+
 // TEST( Kmer, CanonicalEncodingSpeed1 )
 // {
 //     int const k = 13;
-//     Kmer<KmerTagDefault>::reset_k( k );
 //
 //     // Test all kmers of that length
-//     auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+//     auto encoder = MinimalCanonicalEncoding( k );
 //     for( size_t i = 0; i < number_of_kmers( k ); ++i ) {
 //
 //         // Make the kmer
-//         auto km = Kmer<KmerTagDefault>( i );
+//         auto km = Kmer( k, i );
 //         set_reverse_complement( km );
 //         // EXPECT_EQ( km.rev_comp, reverse_complement( km ));
 //
@@ -619,9 +685,8 @@ TEST( Kmer, CanonicalEncodingLarge )
 //     LOG_TIME << "done";
 //
 //     auto const k = 15;
-//     Kmer<KmerTagDefault>::reset_k( k );
-//     auto extractor = KmerExtractor<KmerTagDefault>( sequence );
-//     auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+//     auto extractor = KmerExtractor( k, sequence );
+//     auto encoder = MinimalCanonicalEncoding( k );
 //
 //     size_t cnt = 0;
 //     LOG_TIME << "extract kmers";
@@ -631,7 +696,7 @@ TEST( Kmer, CanonicalEncodingLarge )
 //     }
 //     LOG_TIME << "done " << cnt;
 //
-//     extractor = KmerExtractor<KmerTagDefault>( sequence );
+//     extractor = KmerExtractor( k, sequence );
 //     size_t sum = 0;
 //     LOG_TIME << "extract kmers and compute canonical index";
 //     for( auto const& kmer : extractor ) {
@@ -641,21 +706,19 @@ TEST( Kmer, CanonicalEncodingLarge )
 //     LOG_TIME << "done " << sum;
 //
 //     // Expect correct num of iterations
-//     EXPECT_EQ( extractor.count_valid_characters(), sequence.size() );
-//     EXPECT_EQ( extractor.count_invalid_characters(), 0 );
+//     EXPECT_EQ( extractor.valid_character_count(), sequence.size() );
+//     EXPECT_EQ( extractor.invalid_character_count(), 0 );
 //     EXPECT_EQ( cnt, sequence.size() - k + 1 );
 // }
 
 // void test_canonical_encoding_speed_( int k )
 // {
-//     Kmer<KmerTagDefault>::reset_k( k );
-//
 //     // Generate random kmers and store them and their rc.
 //     // LOG_DBG << "make kmers";
 //     size_t const NUM_KMERS = 200000000;
-//     auto kmers = std::vector<Kmer<KmerTagDefault>>( NUM_KMERS );
+//     auto kmers = std::vector<Kmer>( NUM_KMERS );
 //     for( size_t i = 0; i < NUM_KMERS; ++i ) {
-//         auto kmer = make_random_kmer<KmerTagDefault>();
+//         auto kmer = make_random_kmer( k );
 //         set_reverse_complement( kmer );
 //         kmers[i] = kmer;
 //     }
@@ -667,7 +730,7 @@ TEST( Kmer, CanonicalEncodingLarge )
 //
 //     // Test that the encoding is the same for the kmer and its rc.
 //     // That's our speed test, hence encoding twice the number of kmers of the array.
-//     auto encoder = MinimalCanonicalEncoding<KmerTagDefault>();
+//     auto encoder = MinimalCanonicalEncoding( k );
 //     size_t sum = 0;
 //     for( size_t i = 0; i < NUM_KMERS; ++i ) {
 //         // Compute the encoding.

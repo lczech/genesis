@@ -46,6 +46,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -261,12 +262,14 @@ InfoCompiler const& info_get_compiler()
     #endif
 
     // C++ version
-    #ifdef __cplusplus
-        result.cpp_version = std::to_string(__cplusplus);
+    #if defined(GENESIS_CPP_STD)
+        result.cpp_standard = std::to_string(GENESIS_CPP_STD);
+    #elif defined(__cplusplus)
+        result.cpp_standard = std::to_string(__cplusplus);
     #elif defined(_MSVC_LANG) && _MSVC_LANG >= 201703L
-        result.cpp_version = std::to_string(_MSVC_LANG);
+        result.cpp_standard = std::to_string(_MSVC_LANG);
     #else
-        result.cpp_version = "unknown";
+        result.cpp_standard = "unknown";
     #endif
 
     // OpenMP
@@ -369,7 +372,7 @@ std::string info_print_compiler()
     res += "=============================================\n\n";
     res += "Platform        = " + info_comp.platform + "\n";
     res += "Compiler        = " + info_comp.compiler_family + " " + info_comp.compiler_version + "\n";
-    res += "C++ version     = " + info_comp.cpp_version + "\n";
+    res += "C++ version     = " + info_comp.cpp_standard + "\n";
     res += "Build type      = " + info_comp.build_type  + "\n";
     res += "With OpenMP     = " + std::string( info_comp.with_openmp ? "true" : "false" ) + "\n";
     res += "With AVX        = " + std::string( info_comp.with_avx    ? "true" : "false" ) + "\n";
@@ -556,7 +559,7 @@ bool detect_OS_AVX512_()
         return false;
     }
 
-auto const _XCR_XFEATURE_ENABLED_MASK = 0;
+    auto const _XCR_XFEATURE_ENABLED_MASK = 0;
     uint64_t xcrFeatureMask = xgetbv(_XCR_XFEATURE_ENABLED_MASK);
     return (xcrFeatureMask & 0xe6) == 0xe6;
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -29,10 +29,13 @@
  */
 
 #include "genesis/utils/math/bitvector/operators.hpp"
+#include "genesis/utils/math/bit.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 #include <string>
 
 namespace genesis {
@@ -42,121 +45,131 @@ namespace utils {
 //     Bitvector Operators
 // =================================================================================================
 
-Bitvector bitwise_and( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
-{
-    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
-        auto result = Bitvector( lhs.size(), rhs );
-        result &= lhs;
-        return result;
-    } else {
-        auto result = Bitvector( rhs.size(), lhs );
-        result &= rhs;
-        return result;
+// -------------------------------------------------------------------------
+//     Bit Operators
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Local helper function to get the order of two bitvectors for bitwise operations.
+ *
+ * The first one returned is the vector whose size we want to end up with. The second one is then
+ * the one that we use for the bitwise operation.
+ */
+inline std::pair<Bitvector const*, Bitvector const*> bitwise_operator_order_(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    Bitvector const* first  = nullptr;
+    Bitvector const* second = nullptr;
+
+    switch( length_policy ) {
+        case BitwiseOperatorLengthPolicy::kExpectEqual: {
+            if( lhs.size() != rhs.size() ) {
+                throw std::invalid_argument(
+                    "Bitwise operation on bitvectors of different lengths (" +
+                    std::to_string( lhs.size() ) + " and " + std::to_string( rhs.size() ) +
+                    ") with BitwiseOperatorLengthPolicy::kExpectEqual"
+                );
+            }
+            first  = &lhs;
+            second = &rhs;
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseShorter: {
+            if( lhs.size() < rhs.size() ) {
+                first  = &lhs;
+                second = &rhs;
+            } else {
+                first  = &rhs;
+                second = &lhs;
+            }
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseLonger: {
+            if( lhs.size() < rhs.size() ) {
+                first  = &rhs;
+                second = &lhs;
+            } else {
+                first  = &lhs;
+                second = &rhs;
+            }
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseFirst: {
+            first  = &lhs;
+            second = &rhs;
+            break;
+        }
+        case BitwiseOperatorLengthPolicy::kUseSecond: {
+            first  = &rhs;
+            second = &lhs;
+            break;
+        }
+        default: {
+            throw std::invalid_argument(
+                "Invalid BitwiseOperatorLengthPolicy in bitwise operator"
+            );
+        }
     }
+
+    return std::make_pair( first, second );
 }
 
-Bitvector bitwise_or( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
+Bitvector bitwise_and(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    // Depending on the length policty, we want to switch between which of the two vectors
+    // we use to obtain the final length of the resulting vector. The order function returns
+    // the vector as first whose length we want. We use that to create the result vector with
+    // that length, but using the data of the second vector to fill it. That is an easy way
+    // to get a vector with the desired length that can then combined with the first vector
+    // again via the operator, as now both have the same length.
+    auto const order = bitwise_operator_order_( lhs, rhs, length_policy );
+    auto result = Bitvector( order.first->size(), *order.second );
+    result &= *order.first;
+    return result;
+}
+
+Bitvector bitwise_or(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    // See above bitwise_and() for details on how this works.
+    auto const order = bitwise_operator_order_( lhs, rhs, length_policy );
+    auto result = Bitvector( order.first->size(), *order.second );
+    result |= *order.first;
+    return result;
+}
+
+Bitvector bitwise_xor(
+    Bitvector const& lhs, Bitvector const& rhs,
+    BitwiseOperatorLengthPolicy length_policy
+) {
+    // See above bitwise_and() for details on how this works.
+    auto const order = bitwise_operator_order_( lhs, rhs, length_policy );
+    auto result = Bitvector( order.first->size(), *order.second );
+    result ^= *order.first;
+    return result;
+}
+
+// -------------------------------------------------------------------------
+//     Input and Output
+// -------------------------------------------------------------------------
+
+std::string to_bit_string( Bitvector const& bv, bool with_size )
 {
-    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
-        auto result = Bitvector( lhs.size(), rhs );
-        result |= lhs;
-        return result;
-    } else {
-        auto result = Bitvector( rhs.size(), lhs );
-        result |= rhs;
-        return result;
+    std::string res = ( with_size ? "[" + std::to_string( bv.size() ) + "]\n" : "" );
+    for( size_t i = 0; i < bv.size(); ++i ) {
+        res += bv[i] ? "1" : "0";
+        if( i+1 < bv.size() && (i+1) % 64 == 0 ) {
+            res += "\n";
+        } else if( i+1 < bv.size() && (i+1) % 8 == 0 ) {
+            res += " ";
+        }
     }
+    return res;
 }
-
-Bitvector bitwise_xor( Bitvector const& lhs, Bitvector const& rhs, bool use_larger )
-{
-    if(( use_larger ) ^ ( lhs.size() < rhs.size() )) {
-        auto result = Bitvector( lhs.size(), rhs );
-        result ^= lhs;
-        return result;
-    } else {
-        auto result = Bitvector( rhs.size(), lhs );
-        result ^= rhs;
-        return result;
-    }
-}
-
-Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
-{
-    return lhs & (~rhs);
-}
-
-Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs )
-{
-    return (lhs | rhs) & ~(lhs & rhs);
-}
-
-bool is_strict_subset( Bitvector const& sub, Bitvector const& super )
-{
-    // Not really efficient. We could stop early in the comparison instead.
-    // But as of now, we do not need the speed, so let's keep it simple instead.
-    // Same for the other variants of this function below.
-    return ((sub & super) == sub) && (sub.count() < super.count());
-}
-
-bool is_strict_superset( Bitvector const& super, Bitvector const& sub )
-{
-    return is_strict_subset( sub, super );
-}
-
-bool is_subset( Bitvector const& sub, Bitvector const& super )
-{
-    return (sub == super) || is_strict_subset(sub, super);
-}
-
-bool is_superset( Bitvector const& super, Bitvector const& sub )
-{
-    return (super == sub) || is_strict_superset(super, sub);
-}
-
-// bool lexicographically_compare_helper_( Bitvector const& lhs, Bitvector const& rhs, bool on_equal )
-// {
-//     // Deactivated at the moment, as this does not take care of the typical little endian-ness
-//     // of modern computers, and hence yields wrong results...
-//
-//     // Local helper function to avoid code duplication.
-//     if( lhs.size() != rhs.size() ) {
-//         throw std::runtime_error(
-//             "Cannot use lexicographical comparison functions on Bitvectors of different size."
-//         );
-//     }
-//     for( size_t i = 0; i < lhs.data().size(); ++i ) {
-//         if( lhs.data()[i] < rhs.data()[i] ) {
-//             return true;
-//         } else if( lhs.data()[i] > rhs.data()[i] ) {
-//             return false;
-//         }
-//     }
-//
-//     // If we are here, all of the above comparisons shows that lhs == rhs.
-//     assert( lhs == rhs );
-//     return on_equal;
-// }
-//
-// bool is_lexicographically_less( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( lhs, rhs, false );
-// }
-//
-// bool is_lexicographically_less_or_equal( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( lhs, rhs, true );
-// }
-//
-// bool is_lexicographically_greater( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( rhs, lhs, false );
-// }
-//
-// bool is_lexicographically_greater_or_equal( Bitvector const& lhs, Bitvector const& rhs )
-// {
-//     return lexicographically_compare_helper_( rhs, lhs, true );
-// }
 
 std::ostream& operator << (std::ostream& s, Bitvector const& bv)
 {
@@ -186,6 +199,46 @@ std::istream& operator >> ( std::istream& in, Bitvector& bv )
         }
     }
     return in;
+}
+
+Serializer& operator<<( Serializer& serializer, Bitvector const& bv )
+{
+    // We write the size in number of bits first.
+    // Then, the data serialization will additionally store the size of the underlying vector
+    // that is used in the Bitvector, which is a bit of overhead, but we live with that for now.
+    serializer << bv.size();
+    serializer << bv.data();
+    return serializer;
+}
+
+Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv )
+{
+    // This funciton is a friend of the Bitvector class, so that we can write to its data directly.
+    // Otherwise, we'd need special constructors etc, which is a bit cumbersome.
+    deserializer >> bv.size_;
+    deserializer >> bv.data_;
+
+    // Now that we have read the data, check that it is valid.
+    // First, we check the sizes, and then we check that the last bits are already unset,
+    // and do not contain any stray set bits that would indicate wrong usage or serialization.
+    size_t const expected_size = Bitvector::get_vector_size( bv.size_ );
+    if( bv.data_.size() != expected_size ) {
+        throw std::invalid_argument(
+            "Cannot deserialize Bitvector of expected vector size " + std::to_string( expected_size ) +
+            " with actual vector size " + std::to_string( bv.data_.size() )
+        );
+    }
+    if( bv.data_.size() > 0 ) {
+        auto const back = bv.data_.back();
+        bv.unset_padding_bits();
+        if( bv.data_.back() != back ) {
+            throw std::invalid_argument(
+                "Invalid (de)serialization of Bitvector where last bits after the actual size were set"
+            );
+        }
+    }
+
+    return deserializer;
 }
 
 } // namespace utils

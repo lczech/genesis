@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -151,9 +151,9 @@ TEST( Taxonomy, IteratorPreorder )
 
     // Build string using iterator.
     std::string iterator_result;
-    for( auto it : preorder( tax )) {
+    for( auto const& it : preorder( tax )) {
         auto gen = TaxopathGenerator();
-        auto name = gen( it.taxon() );
+        auto name = gen( it );
         iterator_result += name + "\n";
     }
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,18 +68,10 @@
 //     Prelude
 // =================================================================================================
 
-// C++ language version detection:
-// Note: VC14.0/1900 (VS2015) lacks too much from C++14.
-#ifndef   GENESIS_OPTIONAL_CPLUSPLUS
-# if defined(_MSVC_LANG ) && !defined(__clang__)
-#  define GENESIS_OPTIONAL_CPLUSPLUS  (_MSC_VER == 1900 ? 201103L : _MSVC_LANG )
-# else
-#  define GENESIS_OPTIONAL_CPLUSPLUS  __cplusplus
-# endif
-#endif
+#include "genesis/utils/core/std.hpp"
 
 // Check if C++17 std::optional is available:
-#if ( GENESIS_OPTIONAL_CPLUSPLUS >= 201703L ) && defined( __has_include )
+#if ( GENESIS_CPP_STD >= GENESIS_CPP_STD_17 ) && defined( __has_include )
 #    if __has_include( <optional> )
 #        define GENESIS_OPTIONAL_HAVE_STD_OPTIONAL  1
 #    else
@@ -89,10 +81,13 @@
 #    define GENESIS_OPTIONAL_HAVE_STD_OPTIONAL  0
 #endif
 
-// Use C++17 std::optional if available and requested:
-// Currently, we default to using std::optional if it is available.
-// Might make this configurable in the future.
-#define GENESIS_OPTIONAL_USES_STD_OPTIONAL GENESIS_OPTIONAL_HAVE_STD_OPTIONAL
+// We offer a switch to use C++17 std::optional if available and requested.
+// However, this currently is not working under MacOS with GCC,
+// where somehow our test case Containers.OptionalObservers triggers an assertion
+// of std::optional to fail... So we just keep using our implementation for now,
+// and decativate to offer using std::optional.
+// #define GENESIS_OPTIONAL_USES_STD_OPTIONAL GENESIS_OPTIONAL_HAVE_STD_OPTIONAL
+#define GENESIS_OPTIONAL_USES_STD_OPTIONAL 0
 
 // =================================================================================================
 //     Using std::optional

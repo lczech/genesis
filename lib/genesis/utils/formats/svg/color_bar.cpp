@@ -309,11 +309,16 @@ static void make_svg_color_bar_tickmarks_(
     // Make tickmarks and labels.
     if( settings.with_tickmarks ) {
         auto const tickmarks = color_tickmarks( norm, settings.num_ticks );
+        double const eps = 0.0000001;
         for( auto const& tick : tickmarks ) {
-            if( !std::isfinite(tick.first) || tick.first < 0.0 || tick.first > 1.0 ) {
-                throw std::runtime_error( "Color Normalization tickmark out of [ 0.0, 1.0 ]" );
+            if( !std::isfinite(tick.first) || tick.first < 0.0 - eps || tick.first > 1.0 + eps ) {
+                throw std::runtime_error(
+                    "Color Normalization tickmark out of [ 0.0, 1.0 ] with tick at " +
+                    std::to_string( tick.first )
+                );
             }
-            make_tick( tick.first, tick.second );
+            auto tick_val = std::min( std::max( 0.0, tick.first ), 1.0 );
+            make_tick( tick_val, tick.second );
         }
     }
 }

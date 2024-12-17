@@ -42,6 +42,7 @@
 #include "genesis/population/function/functions.hpp"
 #include "genesis/population/function/window_average.hpp"
 #include "genesis/population/variant.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/transform_iterator.hpp"
 
@@ -74,7 +75,7 @@ namespace population {
 // (e.g., grenedalf, see https://github.com/lczech/grenedalf), so we just leave it active here
 // when C++14 is used for compiling.
 
-#if __cplusplus >= 201402L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 /**
  * @brief Helper function to compute a pairwise F_ST statistic, for all pairs of ranges of
@@ -175,7 +176,7 @@ utils::Matrix<double> compute_pairwise_f_st(
     return result;
 }
 
-#endif // __cplusplus >= 201402L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 // =================================================================================================
 //     F_ST Pool Kofler
@@ -223,7 +224,7 @@ double f_st_pool_kofler( // get_conventional_fstcalculator
     return calc.get_result();
 }
 
-#if __cplusplus >= 201402L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 /**
  * @copydoc f_st_pool_kofler( size_t, size_t, ForwardIterator1, ForwardIterator1, ForwardIterator2, ForwardIterator2 )
@@ -254,7 +255,7 @@ utils::Matrix<double> f_st_pool_kofler(
     );
 }
 
-#endif // __cplusplus >= 201402L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 // =================================================================================================
 //     F_ST Pool Karlsson
@@ -295,7 +296,7 @@ double f_st_pool_karlsson( // get_asymptunbiased_fstcalculator
     return calc.get_result();
 }
 
-#if __cplusplus >= 201402L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 /**
  * @copydoc f_st_pool_karlsson( ForwardIterator1, ForwardIterator1, ForwardIterator2, ForwardIterator2 )
@@ -320,7 +321,7 @@ utils::Matrix<double> f_st_pool_karlsson(
     );
 }
 
-#endif // __cplusplus >= 201402L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 // =================================================================================================
 //     F_ST Pool Unbiased (Spence)
@@ -374,7 +375,7 @@ std::pair<double, double> f_st_pool_unbiased(
     return calc.get_result_pair();
 }
 
-#if __cplusplus >= 201402L
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 /**
  * @brief Compute an unbiased F_ST estimator for pool-sequenced data,
@@ -440,7 +441,7 @@ utils::Matrix<double> f_st_pool_unbiased_hudson(
     );
 }
 
-#endif // __cplusplus >= 201402L
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_14
 
 } // namespace population
 } // namespace genesis

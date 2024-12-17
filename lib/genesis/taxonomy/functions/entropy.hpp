@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ struct PruneByEntropySettings
      * we also allow to split up a border Taxon that has not the currently highest entropy of all
      * border Taxa, as long as this brings us closer to the target size.
      */
-    bool   allow_approximation  = false;
+    bool allow_approximation = false;
 };
 
 // =================================================================================================
@@ -214,7 +214,7 @@ void remove_pruned_taxonomy_children( Taxonomy& taxonomy );
  * @brief Print a Taxonomy, highlighting those @link Taxon Taxa@endlink that are the pruning border,
  * i.e., where we cut off the sub-taxa, and print their entropies next to them.
  */
-std::string print_pruned_taxonomy(    Taxonomy const& taxonomy );
+std::string print_pruned_taxonomy( Taxonomy const& taxonomy );
 
 /**
  * @brief Validate that the pruning status of a Taxonomy is valid.
@@ -234,7 +234,7 @@ std::string print_pruned_taxonomy(    Taxonomy const& taxonomy );
  * If any of those conditions is not met, an information about the faulty Taxon is written to
  * LOG_INFO, and the function returns `false`.
  */
-bool        validate_pruned_taxonomy( Taxonomy const& taxonomy );
+bool validate_pruned_taxonomy( Taxonomy const& taxonomy );
 
 } // namespace taxonomy
 } // namespace genesis

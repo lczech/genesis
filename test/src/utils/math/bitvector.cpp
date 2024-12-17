@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,11 +30,15 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/io/deserializer.hpp"
+#include "genesis/utils/io/serializer.hpp"
+#include "genesis/utils/math/bit.hpp"
 #include "genesis/utils/math/bitvector.hpp"
-#include "genesis/utils/math/bitvector/helper.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/tools/timer.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -43,6 +47,54 @@
 #include <limits>
 
 using namespace genesis::utils;
+
+TEST( Bits, ToBitString )
+{
+    EXPECT_EQ(
+        "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000",
+        to_bit_string<uint64_t>( 0 )
+    );
+    EXPECT_EQ(
+        "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001",
+        to_bit_string<uint64_t>( 1 )
+    );
+    EXPECT_EQ(
+        "00000001 10110110 10011011 01001011 10101100 11010000 01011111 00010101",
+        to_bit_string<uint64_t>( 123456789123456789ULL )
+    );
+}
+
+TEST( Bitvector, ToBitString )
+{
+    EXPECT_EQ(
+        "",
+        to_bit_string( Bitvector( "" ))
+    );
+    EXPECT_EQ(
+        "01010101 0101",
+        to_bit_string( Bitvector( "010101010101" ))
+    );
+    EXPECT_EQ(
+        "01010101 01011010",
+        to_bit_string( Bitvector( "0101010101011010" ))
+    );
+    EXPECT_EQ(
+        "01100",
+        to_bit_string( Bitvector( 5, { 1, 2 }))
+    );
+}
+
+// Very slow. We use the built-in function of Bitvector now.
+// Bitvector make_random_bitvector_( size_t size )
+// {
+//     auto bv = Bitvector( size );
+//     for( size_t i = 0; i < size; ++i ) {
+//         auto const p = ( std::rand() % size );
+//         bv.flip( p );
+//     }
+//     // LOG_DBG << bv;
+//     return bv;
+// }
 
 TEST( Bitvector, Arithmetics )
 {
@@ -74,14 +126,14 @@ TEST( Bitvector, Arithmetics )
     EXPECT_EQ( Bitvector( "000011110000" ), ~bv2 );
 
     // Test pop counting
-    EXPECT_EQ( 6, bv0.count() );
-    EXPECT_EQ( 6, bv1.count() );
-    EXPECT_EQ( 8, bv2.count() );
+    EXPECT_EQ( 6, pop_count(bv0) );
+    EXPECT_EQ( 6, pop_count(bv1) );
+    EXPECT_EQ( 8, pop_count(bv2) );
 
     // Test inverse as well, which also tests that the padding is 0
-    EXPECT_EQ( 6, (~bv0).count() );
-    EXPECT_EQ( 6, (~bv1).count() );
-    EXPECT_EQ( 4, (~bv2).count() );
+    EXPECT_EQ( 6, pop_count(~bv0) );
+    EXPECT_EQ( 6, pop_count(~bv1) );
+    EXPECT_EQ( 4, pop_count(~bv2) );
 
     // Test some inequality as well
     EXPECT_FALSE( bv0 == bv1 );
@@ -174,41 +226,173 @@ TEST( Bitvector, Operators )
     auto const bv_s = Bitvector( "0011" );
     auto const bv_l = Bitvector( "010101" );
 
+    // Shorthands.
+    auto const kExpectEqual = BitwiseOperatorLengthPolicy::kExpectEqual;
+    auto const kUseShorter  = BitwiseOperatorLengthPolicy::kUseShorter;
+    auto const kUseLonger   = BitwiseOperatorLengthPolicy::kUseLonger;
+    auto const kUseFirst    = BitwiseOperatorLengthPolicy::kUseFirst;
+    auto const kUseSecond   = BitwiseOperatorLengthPolicy::kUseSecond;
+
+    // -----------------------------------
+    //     and
+    // -----------------------------------
+
+    // and, expect equal length
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_and( bv_l, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_and( bv_s, bv_l, kExpectEqual ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kExpectEqual ));
+
     // and, using smaller
-    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, false ));
-    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_l, bv_s, false ));
-    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_s, bv_l, false ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, false ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_l, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_s, bv_l, kUseShorter ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseShorter ));
 
     // and, using larger
-    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, true ));
-    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_l, bv_s, true ));
-    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_s, bv_l, true ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, true ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_l, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_s, bv_l, kUseLonger ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseLonger ));
+
+    // and, using first
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_l, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_s, bv_l, kUseFirst ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseFirst ));
+
+    // and, using second
+    EXPECT_EQ( Bitvector("0011"),   bitwise_and( bv_s, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("0001"),   bitwise_and( bv_l, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("000100"), bitwise_and( bv_s, bv_l, kUseSecond ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_and( bv_l, bv_l, kUseSecond ));
+
+    // -----------------------------------
+    //     or
+    // -----------------------------------
+
+    // or, expect equal length
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_or( bv_l, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_or( bv_s, bv_l, kExpectEqual ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kExpectEqual ));
 
     // or, using smaller
-    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, false ));
-    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_l, bv_s, false ));
-    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_s, bv_l, false ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, false ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_l, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_s, bv_l, kUseShorter ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseShorter ));
 
     // or, using larger
-    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, true ));
-    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_l, bv_s, true ));
-    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_s, bv_l, true ));
-    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, true ));
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_l, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_s, bv_l, kUseLonger ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseLonger ));
+
+    // or, using first
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_l, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_s, bv_l, kUseFirst ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseFirst ));
+
+    // or, using second
+    EXPECT_EQ( Bitvector("0011"),   bitwise_or( bv_s, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("0111"),   bitwise_or( bv_l, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("011101"), bitwise_or( bv_s, bv_l, kUseSecond ));
+    EXPECT_EQ( Bitvector("010101"), bitwise_or( bv_l, bv_l, kUseSecond ));
+
+    // -----------------------------------
+    //     xor
+    // -----------------------------------
+
+    // xor, expect equal length
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_xor( bv_l, bv_s, kExpectEqual ));
+    EXPECT_ANY_THROW(               bitwise_xor( bv_s, bv_l, kExpectEqual ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kExpectEqual ));
 
     // xor, using smaller
-    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, false ));
-    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_l, bv_s, false ));
-    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_s, bv_l, false ));
-    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, false ));
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_l, bv_s, kUseShorter ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_s, bv_l, kUseShorter ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseShorter ));
 
     // xor, using larger
-    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, true ));
-    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, true ));
-    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, true ));
-    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, true ));
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, kUseLonger ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, kUseLonger ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseLonger ));
+
+    // xor, using first
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_l, bv_s, kUseFirst ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_s, bv_l, kUseFirst ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseFirst ));
+
+    // xor, using second
+    EXPECT_EQ( Bitvector("0000"),   bitwise_xor( bv_s, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("0110"),   bitwise_xor( bv_l, bv_s, kUseSecond ));
+    EXPECT_EQ( Bitvector("011001"), bitwise_xor( bv_s, bv_l, kUseSecond ));
+    EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseSecond ));
+}
+
+TEST( Bitvector, JaccardIndex )
+{
+    auto const p1 = Bitvector( "10111" );
+    auto const p2 = Bitvector( "10011" );
+    EXPECT_EQ(       3.0 / 4.0, jaccard_similarity( p1, p2 ));
+    EXPECT_EQ( 1.0 - 3.0 / 4.0, jaccard_distance(   p1, p2 ));
+}
+
+TEST( Bitvector, JaccardIndexSpeed )
+{
+    std::srand(std::time(nullptr));
+
+    // With completely random bitvectors, we expect the Jaccard similarity to be 1/3.
+    // Additionally, as we do self-comparisons above, there is always one comparsion with value 1.
+    // So, per outer loop iteration, we add 9*1/3 and 1*1 = 4 to the sum, for a total of ~40.
+    // size_t const s = 5368709120;
+    // size_t const n = 10;
+
+    // Alternative, with some shorter vectors.
+    size_t const s = 2000;
+    size_t const n = 1000;
+
+    // LOG_TIME << "make bvs";
+    auto bvs = std::vector<Bitvector>( n );
+    for( size_t i = 0; i < n; ++i ) {
+        bvs[i] = make_random_bitvector( s );
+    }
+
+    // LOG_TIME << "compute jaccard";
+    double sum = 0.0;
+    size_t cnt = 0;
+    Timer timer;
+    timer.start();
+    for( size_t i = 0; i < n; ++i ) {
+        // LOG_MSG << i;
+        for( size_t j = 0; j < n; ++j ) {
+            auto const js = jaccard_similarity( bvs[i], bvs[j] );
+            EXPECT_LE( js, 1.0 );
+            EXPECT_GE( js, 0.0 );
+            // LOG_DBG1 << "at " << i << ", " << j << " with " << js;
+            sum += js;
+            ++cnt;
+        }
+    }
+    timer.stop();
+
+    // LOG_TIME << "done " << cnt << " comps with sum " << sum;
+    LOG_MSG << "time:  " << timer.elapsed() << " s, sum = " << sum;
+    LOG_MSG << "speed: " << ( static_cast<double>(cnt) / timer.elapsed() ) << " comp/s";
+    LOG_MSG << "speed: " << ( static_cast<double>(cnt*s) / timer.elapsed() ) << " bitops/s";
+}
+
+TEST( Bitvector, HammingDistance )
+{
+    auto const p1 = Bitvector( "10110" );
+    auto const p2 = Bitvector( "10011" );
+    EXPECT_EQ( 2, hamming_distance( p1, p2 ));
 }
 
 TEST( Bitvector, SetRange )
@@ -227,7 +411,7 @@ TEST( Bitvector, SetRange )
                 {
                     // Use the function to test
                     auto bv = Bitvector( s, false );
-                    bv.set( f, l, true );
+                    bv.set_range( f, l, true );
 
                     // Make expected version using slow setter
                     auto ex = Bitvector( s, false );
@@ -248,7 +432,7 @@ TEST( Bitvector, SetRange )
                 {
                     // Use the function to test
                     auto bv = Bitvector( s, true );
-                    bv.set( f, l, false );
+                    bv.set_range( f, l, false );
 
                     // Make expected version using slow setter
                     auto ex = Bitvector( s, true );
@@ -273,58 +457,58 @@ TEST( Bitvector, CountRange )
 {
     // 0 word
     Bitvector const bv_0( 0, true );
-    EXPECT_ANY_THROW( bv_0.count(  0,  0 ));
-    EXPECT_ANY_THROW( bv_0.count(  0,  1 ));
-    EXPECT_ANY_THROW( bv_0.count(  1,  1 ));
-    EXPECT_ANY_THROW( bv_0.count(  1,  0 ));
+    EXPECT_ANY_THROW( pop_count( bv_0,  0,  0 ));
+    EXPECT_ANY_THROW( pop_count( bv_0,  0,  1 ));
+    EXPECT_ANY_THROW( pop_count( bv_0,  1,  1 ));
+    EXPECT_ANY_THROW( pop_count( bv_0,  1,  0 ));
 
     // 0.5 word
     Bitvector const bv_32( 32, true );
-    EXPECT_EQ( 0, bv_32.count( 0, 0 ));
-    EXPECT_EQ( 0, bv_32.count( 1, 1 ));
-    EXPECT_EQ( 1, bv_32.count( 0, 1 ));
-    EXPECT_EQ( 1, bv_32.count( 31, 32 ));
-    EXPECT_EQ( 32, bv_32.count( 0, 32 ));
+    EXPECT_EQ( 0, pop_count( bv_32, 0, 0 ));
+    EXPECT_EQ( 0, pop_count( bv_32, 1, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_32, 0, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_32, 31, 32 ));
+    EXPECT_EQ( 32, pop_count( bv_32, 0, 32 ));
 
-    EXPECT_ANY_THROW( bv_32.count(  1,  0 ));
-    EXPECT_ANY_THROW( bv_32.count(  0, 33 ));
-    EXPECT_ANY_THROW( bv_32.count( 33, 33 ));
+    EXPECT_ANY_THROW( pop_count( bv_32,  1,  0 ));
+    EXPECT_ANY_THROW( pop_count( bv_32,  0, 33 ));
+    EXPECT_ANY_THROW( pop_count( bv_32, 33, 33 ));
 
     // 1 word
     Bitvector const bv_64( 64, true );
-    EXPECT_EQ( 0, bv_64.count( 0, 0 ));
-    EXPECT_EQ( 0, bv_64.count( 1, 1 ));
-    EXPECT_EQ( 1, bv_64.count( 0, 1 ));
-    EXPECT_EQ( 1, bv_64.count( 63, 64 ));
-    EXPECT_EQ( 64, bv_64.count( 0, 64 ));
+    EXPECT_EQ( 0, pop_count( bv_64, 0, 0 ));
+    EXPECT_EQ( 0, pop_count( bv_64, 1, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_64, 0, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_64, 63, 64 ));
+    EXPECT_EQ( 64, pop_count( bv_64, 0, 64 ));
 
-    EXPECT_ANY_THROW( bv_64.count(  1,  0 ));
-    EXPECT_ANY_THROW( bv_64.count(  0, 65 ));
-    EXPECT_ANY_THROW( bv_64.count( 65, 64 ));
+    EXPECT_ANY_THROW( pop_count( bv_64,  1,  0 ));
+    EXPECT_ANY_THROW( pop_count( bv_64,  0, 65 ));
+    EXPECT_ANY_THROW( pop_count( bv_64, 65, 64 ));
 
     // 1.5 word
     Bitvector const bv_96( 96, true );
-    EXPECT_EQ( 0, bv_96.count( 0, 0 ));
-    EXPECT_EQ( 0, bv_96.count( 1, 1 ));
-    EXPECT_EQ( 1, bv_96.count( 0, 1 ));
-    EXPECT_EQ( 1, bv_96.count( 95, 96 ));
-    EXPECT_EQ( 96, bv_96.count( 0, 96 ));
+    EXPECT_EQ( 0, pop_count( bv_96, 0, 0 ));
+    EXPECT_EQ( 0, pop_count( bv_96, 1, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_96, 0, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_96, 95, 96 ));
+    EXPECT_EQ( 96, pop_count( bv_96, 0, 96 ));
 
-    EXPECT_ANY_THROW( bv_96.count(  1,  0 ));
-    EXPECT_ANY_THROW( bv_96.count(  0, 97 ));
-    EXPECT_ANY_THROW( bv_96.count( 97, 97 ));
+    EXPECT_ANY_THROW( pop_count( bv_96,  1,  0 ));
+    EXPECT_ANY_THROW( pop_count( bv_96,  0, 97 ));
+    EXPECT_ANY_THROW( pop_count( bv_96, 97, 97 ));
 
     // 2.5 word
     Bitvector const bv_160( 160, true );
-    EXPECT_EQ( 0, bv_160.count( 0, 0 ));
-    EXPECT_EQ( 0, bv_160.count( 1, 1 ));
-    EXPECT_EQ( 1, bv_160.count( 0, 1 ));
-    EXPECT_EQ( 1, bv_160.count( 159, 160 ));
-    EXPECT_EQ( 160, bv_160.count( 0, 160 ));
+    EXPECT_EQ( 0, pop_count( bv_160, 0, 0 ));
+    EXPECT_EQ( 0, pop_count( bv_160, 1, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_160, 0, 1 ));
+    EXPECT_EQ( 1, pop_count( bv_160, 159, 160 ));
+    EXPECT_EQ( 160, pop_count( bv_160, 0, 160 ));
 
-    EXPECT_ANY_THROW( bv_160.count(   1,  0 ));
-    EXPECT_ANY_THROW( bv_160.count(   0, 161 ));
-    EXPECT_ANY_THROW( bv_160.count( 161, 161 ));
+    EXPECT_ANY_THROW( pop_count( bv_160,   1,  0 ));
+    EXPECT_ANY_THROW( pop_count( bv_160,   0, 161 ));
+    EXPECT_ANY_THROW( pop_count( bv_160, 161, 161 ));
 }
 
 TEST( Bitvector, CountRangeFuzzy )
@@ -336,19 +520,14 @@ TEST( Bitvector, CountRangeFuzzy )
 
         // Size of the bitvector
         size_t const size = std::rand() % max_size;
-        auto bv = Bitvector( size );
 
         // Edge case. Nothing to test.
         if( size == 0 ) {
             continue;
         }
 
-        // Set some random bits
-        for( size_t i = 0; i < size; ++i ) {
-            auto const p = ( std::rand() % size );
-            bv.flip( p );
-        }
-        // LOG_DBG << bv;
+        // Get some random bits
+        auto const bv = make_random_bitvector( size );
 
         // Get random positions between which to count.
         size_t s = std::rand() % size;
@@ -361,7 +540,7 @@ TEST( Bitvector, CountRangeFuzzy )
         ASSERT_LE( s, e );
 
         // Get the count of bits between the two.
-        auto const cnt = bv.count( s, e );
+        auto const cnt = pop_count( bv, s, e );
 
         // Same, but slow, for comparison.
         size_t exp = 0;
@@ -382,8 +561,8 @@ TEST( Bitvector, FindNextSet )
 
     // 0 word
     Bitvector bv_0( 0 );
-    EXPECT_EQ( max, bv_0.find_next_set( 0 ));
-    EXPECT_EQ( max, bv_0.find_next_set( 1 ));
+    EXPECT_EQ( max, find_next_set( bv_0, 0 ));
+    EXPECT_EQ( max, find_next_set( bv_0, 1 ));
 
     // 0.5 word
     Bitvector bv_32( 32 );
@@ -391,47 +570,47 @@ TEST( Bitvector, FindNextSet )
     bv_32.set( 1 );
     bv_32.set( 16 );
     bv_32.set( 31 );
-    EXPECT_EQ(   0, bv_32.find_next_set(  0 ));
-    EXPECT_EQ(   1, bv_32.find_next_set(  1 ));
-    EXPECT_EQ(  16, bv_32.find_next_set(  2 ));
-    EXPECT_EQ(  16, bv_32.find_next_set( 15 ));
-    EXPECT_EQ(  16, bv_32.find_next_set( 16 ));
-    EXPECT_EQ(  31, bv_32.find_next_set( 17 ));
-    EXPECT_EQ(  31, bv_32.find_next_set( 30 ));
-    EXPECT_EQ(  31, bv_32.find_next_set( 31 ));
-    EXPECT_EQ( max, bv_32.find_next_set( 32 ));
-    EXPECT_EQ( max, bv_32.find_next_set( 63 ));
-    EXPECT_EQ( max, bv_32.find_next_set( 64 ));
+    EXPECT_EQ(   0, find_next_set( bv_32,  0 ));
+    EXPECT_EQ(   1, find_next_set( bv_32,  1 ));
+    EXPECT_EQ(  16, find_next_set( bv_32,  2 ));
+    EXPECT_EQ(  16, find_next_set( bv_32, 15 ));
+    EXPECT_EQ(  16, find_next_set( bv_32, 16 ));
+    EXPECT_EQ(  31, find_next_set( bv_32, 17 ));
+    EXPECT_EQ(  31, find_next_set( bv_32, 30 ));
+    EXPECT_EQ(  31, find_next_set( bv_32, 31 ));
+    EXPECT_EQ( max, find_next_set( bv_32, 32 ));
+    EXPECT_EQ( max, find_next_set( bv_32, 63 ));
+    EXPECT_EQ( max, find_next_set( bv_32, 64 ));
 
     // 1 word
     Bitvector bv_64( 64 );
     bv_64.set( 63 );
-    EXPECT_EQ(  63, bv_64.find_next_set( 0 ));
-    EXPECT_EQ(  63, bv_64.find_next_set( 62 ));
-    EXPECT_EQ(  63, bv_64.find_next_set( 63 ));
-    EXPECT_EQ( max, bv_64.find_next_set( 64 ));
+    EXPECT_EQ(  63, find_next_set( bv_64, 0 ));
+    EXPECT_EQ(  63, find_next_set( bv_64, 62 ));
+    EXPECT_EQ(  63, find_next_set( bv_64, 63 ));
+    EXPECT_EQ( max, find_next_set( bv_64, 64 ));
 
     // 1.5 word
     Bitvector bv_96( 96 );
     bv_96.set( 64 );
     bv_96.set( 95 );
-    EXPECT_EQ(  64, bv_96.find_next_set( 0 ));
-    EXPECT_EQ(  64, bv_96.find_next_set( 63 ));
-    EXPECT_EQ(  64, bv_96.find_next_set( 64 ));
-    EXPECT_EQ(  95, bv_96.find_next_set( 65 ));
-    EXPECT_EQ(  95, bv_96.find_next_set( 95 ));
-    EXPECT_EQ( max, bv_96.find_next_set( 96 ));
+    EXPECT_EQ(  64, find_next_set( bv_96, 0 ));
+    EXPECT_EQ(  64, find_next_set( bv_96, 63 ));
+    EXPECT_EQ(  64, find_next_set( bv_96, 64 ));
+    EXPECT_EQ(  95, find_next_set( bv_96, 65 ));
+    EXPECT_EQ(  95, find_next_set( bv_96, 95 ));
+    EXPECT_EQ( max, find_next_set( bv_96, 96 ));
 
     // 2.5 word
     Bitvector bv_160( 160 );
     bv_160.set( 63 );
     bv_160.set( 130 );
-    EXPECT_EQ(  63, bv_160.find_next_set( 0 ));
-    EXPECT_EQ(  63, bv_160.find_next_set( 63 ));
-    EXPECT_EQ( 130, bv_160.find_next_set( 64 ));
-    EXPECT_EQ( 130, bv_160.find_next_set( 129 ));
-    EXPECT_EQ( 130, bv_160.find_next_set( 130 ));
-    EXPECT_EQ( max, bv_160.find_next_set( 131 ));
+    EXPECT_EQ(  63, find_next_set( bv_160, 0 ));
+    EXPECT_EQ(  63, find_next_set( bv_160, 63 ));
+    EXPECT_EQ( 130, find_next_set( bv_160, 64 ));
+    EXPECT_EQ( 130, find_next_set( bv_160, 129 ));
+    EXPECT_EQ( 130, find_next_set( bv_160, 130 ));
+    EXPECT_EQ( max, find_next_set( bv_160, 131 ));
 }
 
 TEST( Bitvector, FindNextSetFuzzy )
@@ -484,9 +663,68 @@ TEST( Bitvector, FindNextSetFuzzy )
                 next_in_vec = find_next_set_val_( selection, i );
             }
 
-            EXPECT_EQ( next_in_vec, bv.find_next_set(i) ) << " at " << i;
+            EXPECT_EQ( next_in_vec, find_next_set( bv, i )) << " at " << i;
         }
-        EXPECT_EQ( std::numeric_limits<size_t>::max(), bv.find_next_set( size ));
-        EXPECT_EQ( std::numeric_limits<size_t>::max(), bv.find_next_set( size + 1 ));
+        EXPECT_EQ( std::numeric_limits<size_t>::max(), find_next_set( bv, size ));
+        EXPECT_EQ( std::numeric_limits<size_t>::max(), find_next_set( bv, size + 1 ));
     }
+}
+
+TEST( Bitvector, FindFirstLastSet )
+{
+    // Test different lengths of bitvectors
+    for( size_t l = 0; l <= 1024; ++l ) {
+        // Test no bit being set
+        auto bv = Bitvector( l );
+        EXPECT_EQ( Bitvector::npos, find_first_set( bv ));
+        EXPECT_EQ( Bitvector::npos, find_last_set( bv ));
+
+        // Test exactly one bit being set, for all bits.
+        for( size_t s = 0; s < l; ++s ) {
+            // LOG_DBG << "l==" << l << " s==" << s;
+            auto bv = Bitvector( l );
+            bv.set( s );
+            EXPECT_EQ( s, find_first_set( bv ));
+            EXPECT_EQ( s, find_last_set( bv ));
+        }
+    }
+}
+
+TEST( Bitvector, Serialization )
+{
+    std::srand(std::time(nullptr));
+
+    // We test that a container of bitvectors also works, and internally test
+    // different sizes that are either exact boundaries, or some arbitrary values.
+    std::vector<Bitvector> bvs;
+    bvs.push_back( make_random_bitvector( 42 ));
+    bvs.push_back( make_random_bitvector( 0 ));
+    bvs.push_back( make_random_bitvector( 512 ));
+    bvs.push_back( make_random_bitvector( 710 ));
+
+    // Serialize
+    std::ostringstream out;
+    Serializer serial( to_stream( out ));
+    serial << bvs;
+    auto const out_str = out.str();
+
+    // Test that the string has the correct size.
+    // This is a size_t for the outer std::vector, and then for each internal bitvector,
+    // we need its size in bits, its vector size, as well as the data itself.
+    size_t total = sizeof( size_t );
+    for( auto const& bv : bvs ) {
+        total += serialized_bitvector_size( bv );
+        // total += 2 * sizeof( size_t );
+        // total += Bitvector::get_vector_size( bv.size() ) * sizeof( Bitvector::IntType );
+    }
+    EXPECT_EQ( out_str.size(), total );
+
+    // Deserialize again
+    std::istringstream in( out_str );
+    Deserializer deser( from_stream( in ));
+    std::vector<Bitvector> bvs_deser;
+    deser >> bvs_deser;
+
+    // Finally, compare
+    EXPECT_EQ( bvs_deser, bvs );
 }

@@ -28,6 +28,7 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/text/char.hpp"
@@ -40,10 +41,17 @@
 #include <stdexcept>
 
 // For C++17, we have a little speedup in the integer parsing part.
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-
+// Not avaiable on GCC < 8 though, so we need an additional check here.
+// Also not working with Clang 6-7, see https://bugzilla.redhat.com/show_bug.cgi?id=1657544
+// Basicaly, the std::from_chars function seems cursed in early implementations of C++17...
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+#if defined( __has_include ) && __has_include(<charconv>)
+#if !defined(__clang__) || (__clang_major__ > 7)
+    // Only if all the above conditions are met do we activate our implementation.
+    #define GENESIS_COMPILER_HAS_STD_FROM_CHARS
     #include <charconv>
-
+#endif
+#endif
 #endif
 
 namespace genesis {
@@ -258,6 +266,9 @@ size_t parse_unsigned_integer_from_chars_( utils::InputStream& source )
     using namespace utils;
     T x = 0;
 
+    // If we want to use __builtin_mul_overflow here, we should check its existence first,
+    // using __has_builtin first. See genesis/utils/math/bit.hpp for examples.
+
     // Hardcoded base 10. See below for other version that allows to select base.
     auto raise_and_add_ = []( T& val, unsigned char c ) {
         return !(
@@ -323,8 +334,8 @@ size_t parse_unsigned_integer_from_chars_( utils::InputStream& source )
 //     parse_unsigned_integer_std_from_chars_
 // -------------------------------------------------------------------------
 
-// Only use C++17 code if we are compiled with that version.
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+// Only use C++17 code if we are compiled with that version and charconv support.
+#ifdef GENESIS_COMPILER_HAS_STD_FROM_CHARS
 
 /**
  * @brief Another speedup technique using std::from_chars(),
@@ -346,10 +357,8 @@ size_t parse_unsigned_integer_std_from_chars_( utils::InputStream& source )
     using namespace utils;
     T x = 0;
 
-    // Fastest method accoing to
+    // Fastest method is from_chars(), so let's us it. See:
     // https://www.fluentcpp.com/2018/07/27/how-to-efficiently-convert-a-string-to-an-int-in-c/
-    // is from_chars(), so let's us it!
-
     auto const conv = std::from_chars( &buffer[ data_pos ], &buffer[ data_end ], x );
 
     // How many chars did we consume?
@@ -389,7 +398,7 @@ size_t parse_unsigned_integer_std_from_chars_( utils::InputStream& source )
     return x;
 }
 
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#endif // GENESIS_COMPILER_HAS_STD_FROM_CHARS
 
 // -------------------------------------------------------------------------
 //     parse_unsigned_integer_naive_
@@ -458,7 +467,7 @@ size_t parse_unsigned_integer_size_t( utils::InputStream& source )
         // If we have GCC or Clang, use our own handcrafted fast-as-hell implementation.
         return parse_unsigned_integer_gcc_intrinsic_( source );
 
-    // #elif ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    // #elif GENESIS_COMPILER_HAS_STD_FROM_CHARS
     //
     //     // Otherwise, if this is C++17, at least use its own fast version,
     //     // that can use some compiler intrinsics itself.

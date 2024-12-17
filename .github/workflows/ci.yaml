@@ -47,7 +47,7 @@ jobs:
 
       matrix:
 
-        # Need dummy entries for the matrix to pick up the variables.
+        # Add basic entries for the matrix to run the latest versions.
         # We later set all other combinations that we want explicitly.
         os:
           - ubuntu-latest
@@ -66,6 +66,26 @@ jobs:
           - ON
           # - OFF
 
+        # C++ standard
+        cppstd:
+          - auto
+
+        # -------------------------------------------------------
+        #     exclude
+        # -------------------------------------------------------
+
+        exclude:
+
+          # Currently (as of 2024-12), the latest llvm used here is clang 18,
+          # which has several bugs concerning deprecated functions, see
+          # https://github.com/llvm/llvm-project/issues/76515 and
+          # https://gcc.gnu.org/pipermail/libstdc++/2024-March/058502.html
+          # which only seem to occur when the environment also has a gcc std lib
+          # present. That is mostly a setup issue here in the CI, so we do not
+          # solve this for now, and just deactivate that test case completely.
+          - os: ubuntu-latest
+            compiler: llvm
+
         # -------------------------------------------------------
         #     include
         # -------------------------------------------------------
@@ -75,15 +95,16 @@ jobs:
         # Easier to reason about, easier to maintain, easier to extend.
 
         # Newer compiler versions are not available on all Ubuntu, so some are excluded.
-        # Older GCC versions are also not supported by MacOS 12 any more.
+        # Older GCC versions are also not supported by some systems any more.
 
         # Currently, llvm-9 causes weird segfauls on Ubuntu, which do not seem to be our fault,
         # but rather a bug in their thread forking, according to valgrind.
-        # Need to investiage further at some point. We used setup-cpp locally to install
-        # the very same version of llvm-9, and got tons of segfauls for all kind of functions.
+        # Need to investigate further at some point. We used setup-cpp locally to install
+        # the very same version of llvm-9, and got tons of segfaults for all kind of functions.
 
         # We also currently exclude clang from macos, as it fails with different types of
-        # linker errors. As this is merely a problem in the setup, we defer solving this for now.
+        # linker errors. As this is merely a problem in the setup in the CI environment,
+        # we defer solving this for now.
 
         include:
 
@@ -99,14 +120,14 @@ jobs:
             compiler: gcc-9
           - os: ubuntu-20.04
             compiler: gcc-10
+          - os: ubuntu-20.04
+            compiler: gcc-11
           # Setup fails
-          # - os: ubuntu-20.04
-          #   compiler: gcc-11
           # - os: ubuntu-20.04
           #   compiler: gcc-12
           - os: ubuntu-20.04
             compiler: gcc-13
-          # Too new
+          # Setup fails
           # - os: ubuntu-20.04
           #   compiler: gcc-14
           - os: ubuntu-20.04
@@ -120,8 +141,9 @@ jobs:
           #   compiler: llvm-9
           - os: ubuntu-20.04
             compiler: llvm-10
-          - os: ubuntu-20.04
-            compiler: llvm-11
+          # Setup fails
+          # - os: ubuntu-20.04
+          #   compiler: llvm-11
           - os: ubuntu-20.04
             compiler: llvm-12
           - os: ubuntu-20.04
@@ -130,14 +152,14 @@ jobs:
             compiler: llvm-14
           - os: ubuntu-20.04
             compiler: llvm-15
-          # Setup fails
-          # - os: ubuntu-20.04
-          #   compiler: llvm-16
+          - os: ubuntu-20.04
+            compiler: llvm-16
           - os: ubuntu-20.04
             compiler: llvm-17
-          # Setup fails
-          # - os: ubuntu-20.04
-          #   compiler: llvm-18
+          - os: ubuntu-20.04
+            compiler: llvm-18
+          - os: ubuntu-20.04
+            compiler: llvm-19
 
           # -------------------------------
           #     Ubuntu 22.04
@@ -189,6 +211,8 @@ jobs:
           # Setup fails
           # - os: ubuntu-22.04
           #   compiler: llvm-18
+          # - os: ubuntu-22.04
+          #   compiler: llvm-19
 
           # -------------------------------
           #     Ubuntu 24.04
@@ -234,61 +258,12 @@ jobs:
           #   compiler: llvm-15
           # - os: ubuntu-24.04
           #   compiler: llvm-16
-          # - os: ubuntu-24.04
-          #   compiler: llvm-17
+          - os: ubuntu-24.04
+            compiler: llvm-17
           - os: ubuntu-24.04
             compiler: llvm-18
-
-          # -------------------------------
-          #     MacOS 12
-          # -------------------------------
-
-          # Setup fails (too old?)
-          # - os: macos-12
-          #   compiler: gcc-7
-          # - os: macos-12
-          #   compiler: gcc-8
-          - os: macos-12
-            compiler: gcc-9
-          - os: macos-12
-            compiler: gcc-10
-          - os: macos-12
-            compiler: gcc-11
-          - os: macos-12
-            compiler: gcc-12
-          # Weird compiler errors
-          # - os: macos-12
-          #   compiler: gcc-13
-          - os: macos-12
-            compiler: gcc-14
-          # Setup fails
-          # - os: macos-12
-          #   compiler: llvm-6
-          # - os: macos-12
-          #   compiler: llvm-7
-          # - os: macos-12
-          #   compiler: llvm-8
-          # - os: macos-12
-          #   compiler: llvm-9
-          # - os: macos-12
-          #   compiler: llvm-10
-          # - os: macos-12
-          #   compiler: llvm-11
-          - os: macos-12
-            compiler: llvm-12
-          - os: macos-12
-            compiler: llvm-13
-          - os: macos-12
-            compiler: llvm-14
-          - os: macos-12
-            compiler: llvm-15
-          # Setup fails
-          # - os: macos-12
-          #   compiler: llvm-16
-          # - os: macos-12
-          #   compiler: llvm-17
-          # - os: macos-12
-          #   compiler: llvm-18
+          - os: ubuntu-24.04
+            compiler: llvm-19
 
           # -------------------------------
           #     MacOS 13
@@ -299,8 +274,8 @@ jobs:
           #   compiler: gcc-7
           # - os: macos-13
           #   compiler: gcc-8
-          - os: macos-13
-            compiler: gcc-9
+          # - os: macos-13
+          #   compiler: gcc-9
           - os: macos-13
             compiler: gcc-10
           - os: macos-13
@@ -326,8 +301,8 @@ jobs:
           #   compiler: llvm-10
           # - os: macos-13
           #   compiler: llvm-11
-          - os: macos-13
-            compiler: llvm-12
+          # - os: macos-13
+          #   compiler: llvm-12
           - os: macos-13
             compiler: llvm-13
           - os: macos-13
@@ -341,12 +316,14 @@ jobs:
           #   compiler: llvm-17
           # - os: macos-13
           #   compiler: llvm-18
+          # - os: macos-13
+          #   compiler: llvm-19
 
           # -------------------------------
           #     MacOS 14
           # -------------------------------
 
-          # Setup fails for all
+          # Setup fails
           # - os: macos-14
           #   compiler: gcc-7
           # - os: macos-14
@@ -389,6 +366,58 @@ jobs:
           #   compiler: llvm-17
           # - os: macos-14
           #   compiler: llvm-18
+          # - os: macos-14
+          #   compiler: llvm-19
+
+          # -------------------------------
+          #     MacOS 15
+          # -------------------------------
+
+          # Setup fails
+          # - os: macos-15
+          #   compiler: gcc-7
+          # - os: macos-15
+          #   compiler: gcc-8
+          # - os: macos-15
+          #   compiler: gcc-9
+          # - os: macos-15
+          #   compiler: gcc-10
+          # - os: macos-15
+          #   compiler: gcc-11
+          # - os: macos-15
+          #   compiler: gcc-12
+          # - os: macos-15
+          #   compiler: gcc-13
+          # - os: macos-15
+          #   compiler: gcc-14
+          # - os: macos-15
+          #   compiler: llvm-6
+          # - os: macos-15
+          #   compiler: llvm-7
+          # - os: macos-15
+          #   compiler: llvm-8
+          # - os: macos-15
+          #   compiler: llvm-9
+          # - os: macos-15
+          #   compiler: llvm-10
+          # - os: macos-15
+          #   compiler: llvm-11
+          # - os: macos-15
+          #   compiler: llvm-12
+          # - os: macos-15
+          #   compiler: llvm-13
+          # - os: macos-15
+          #   compiler: llvm-14
+          # - os: macos-15
+          #   compiler: llvm-15
+          # - os: macos-15
+          #   compiler: llvm-16
+          # - os: macos-15
+          #   compiler: llvm-17
+          # - os: macos-15
+          #   compiler: llvm-18
+          # - os: macos-15
+          #   compiler: llvm-19
 
           # -------------------------------
           #     Release
@@ -411,15 +440,36 @@ jobs:
             build_type: RELEASE
 
           # -------------------------------
+          #     C++11
+          # -------------------------------
+
+          - os: ubuntu-latest
+            compiler: gcc
+            cppstd: "11"
+          - os: ubuntu-latest
+            compiler: llvm
+            cppstd: "11"
+          - os: macos-latest
+            compiler: gcc
+            cppstd: "11"
+          - os: macos-latest
+            compiler: llvm
+            cppstd: "11"
+          - os: macos-latest
+            compiler: apple
+            cppstd: "11"
+
+          # -------------------------------
           #     no htslib
           # -------------------------------
 
           - os: ubuntu-latest
             compiler: gcc
             htslib: OFF
-          - os: ubuntu-latest
-            compiler: llvm
-            htslib: OFF
+          # Deactivate due to bug in llvm 18, see above
+          # - os: ubuntu-latest
+          #   compiler: llvm
+          #   htslib: OFF
           - os: macos-latest
             compiler: gcc
             htslib: OFF
@@ -434,11 +484,11 @@ jobs:
           #     AppleClang
           # -------------------------------
 
-          - os: macos-12
-            compiler: apple
           - os: macos-13
             compiler: apple
           - os: macos-14
+            compiler: apple
+          - os: macos-15
             compiler: apple
 
     # ==========================================================================
@@ -455,7 +505,7 @@ jobs:
 
       - name: Setup C++
         # Reference: https://github.com/marketplace/actions/setup-cpp-c-c
-        uses: aminya/setup-cpp@v0.37.0
+        uses: aminya/setup-cpp@v0.44.0
         if: ${{ matrix.compiler != 'apple' && matrix.os != 'macos-latest' }}
         with:
           compiler: ${{ matrix.compiler }}
@@ -499,7 +549,7 @@ jobs:
         #    we switched now, but keep this here for reference if needed later
         run: |
           brew install autoconf automake libdeflate libomp
-          if [[ ${{ matrix.os }} != macos-14 ]] && [[ ${{ matrix.os }} != macos-latest ]] ; then
+          if [[ ${{ matrix.os }} != macos-14 ]] && [[ ${{ matrix.os }} != macos-15 ]] && [[ ${{ matrix.os }} != macos-latest ]] ; then
               echo "Installing debuggers"
               brew install gdb
               # brew install valgrind
@@ -524,15 +574,30 @@ jobs:
       - name: Configure
         run: |
           export GENESIS_DEBUG=ON
-          export GENESIS_USE_HTSLIB=ON
-          export GENESIS_USE_OPENMP=ON
+          GENESIS_CPP_STANDARD=""
+          GENESIS_USE_HTSLIB=""
+          GENESIS_USE_OPENMP=""
 
-          # Take matrix includes into account
-          if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then export GENESIS_DEBUG=OFF; fi
-          if [[ "${{ matrix.htslib }}" == "OFF" ]]; then export GENESIS_USE_HTSLIB=OFF; fi
+          # Check for release build, deactivating the debug env
+          if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then
+            export GENESIS_DEBUG=OFF
+          fi
+
+          # Set the C++ standard that we want to compile with.
+          # By default, use "auto" to use our CMake auto detection.
+          if [[ "${{ matrix.cppstd }}" != "auto" ]] && [[ "${{ matrix.cppstd }}" != "" ]]; then
+            GENESIS_CPP_STANDARD="-DGENESIS_CPP_STANDARD=${{ matrix.cppstd }}"
+          fi
+
+          # Deactive htslib for some tests
+          if [[ "${{ matrix.htslib }}" == "OFF" ]]; then
+            GENESIS_USE_HTSLIB="-DGENESIS_USE_HTSLIB=OFF"
+          fi
 
           # Deactivate OpenMP on MacOS for now. Causes way too much trouble.
-          if [[ "${RUNNER_OS}" == "macOS" ]]; then export GENESIS_USE_OPENMP=OFF; fi
+          if [[ "${RUNNER_OS}" == "macOS" ]]; then
+            GENESIS_USE_OPENMP="-DGENESIS_USE_OPENMP=OFF"
+          fi
 
           # Need to set the xcode patch here as well, as job steps don't keep status.
           if [[ "${RUNNER_OS}" == "macOS" ]] && [[ "${{ matrix.compiler }}" == gcc* ]]; then
@@ -540,7 +605,7 @@ jobs:
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
-          cmake -S . -B ./build -DGENESIS_USE_HTSLIB=${GENESIS_USE_HTSLIB} -DGENESIS_USE_OPENMP=${GENESIS_USE_OPENMP}
+          cmake -S . -B ./build ${GENESIS_CPP_STANDARD} ${GENESIS_USE_HTSLIB} ${GENESIS_USE_OPENMP}
 
       # - name: MacOS CMake debug
       #   if: always() && runner.os == 'macos'

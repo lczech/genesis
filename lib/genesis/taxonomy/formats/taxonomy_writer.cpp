@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 #include "genesis/taxonomy/iterator/preorder.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxopath.hpp"
 
 #include <iostream>
@@ -49,13 +48,13 @@ void TaxonomyWriter::write( Taxonomy const& tax, std::shared_ptr<utils::BaseOutp
 {
     auto& os = target->ostream();
     for( auto const& tit : preorder( tax )) {
-        os << tax_gen_.to_string( tit.taxon() );
+        os << tax_gen_.to_string( tit );
 
         if( write_ids_ ) {
-            os << "\t" << tit.taxon().id();
+            os << "\t" << tit.id();
         }
         if( write_ranks_ ) {
-            os << "\t" << tit.taxon().rank();
+            os << "\t" << tit.rank();
         }
 
         os << "\n";

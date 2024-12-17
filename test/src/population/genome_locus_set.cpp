@@ -35,6 +35,7 @@
 #include "genesis/population/function/genome_region.hpp"
 #include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;
@@ -79,6 +80,10 @@ void test_genome_locus_set_operators_(
         auto result = list_1;
         result.set_intersect( list_2 );
 
+        // LOG_DBG << to_bit_string( list_1.chromosome_positions( "A" ));
+        // LOG_DBG << to_bit_string( list_2.chromosome_positions( "A" ));
+        // LOG_DBG << to_bit_string( result.chromosome_positions( "A" ));
+
         EXPECT_FALSE( result.is_covered( "A" ));
         EXPECT_FALSE( result.is_covered( "A", 0 ));
         EXPECT_FALSE( result.is_covered( "A", 4 ));
@@ -120,6 +125,10 @@ void test_genome_locus_set_operators_(
     {
         auto result = list_1;
         result.set_union( list_2 );
+
+        // LOG_DBG << to_bit_string( list_1.chromosome_positions( "A" ));
+        // LOG_DBG << to_bit_string( list_2.chromosome_positions( "A" ));
+        // LOG_DBG << to_bit_string( result.chromosome_positions( "A" ));
 
         EXPECT_TRUE(  result.is_covered( "A" ));
         EXPECT_TRUE(  result.is_covered( "A", 0 ));

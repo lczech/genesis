@@ -35,9 +35,75 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 namespace genesis {
 namespace utils {
+
+// =================================================================================================
+//     C++ Standard
+// =================================================================================================
+
+// Define a macro constant that we can use for testing the C++ compiler standard.
+// This is meant in order to avoid the cumbersome tests usually needed if spelled out each time.
+// The values are set to what `__cplusplus` gives with GCC and Clang, for ease of comparison.
+//
+// We set the following values as our internal points of reference:
+//
+//     #define GENESIS_CPP_STD_11 201103L
+//     #define GENESIS_CPP_STD_14 201402L
+//     #define GENESIS_CPP_STD_17 201703L
+//     #define GENESIS_CPP_STD_20 202002L
+//
+// These constants shall be used for all tests of the version of the C++ standard,
+// for instance `#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17`, around code that needs C++17.
+#ifndef GENESIS_CPP_STD
+
+// Define our internally used values for version checks.
+#define GENESIS_CPP_STD_11 201103L
+#define GENESIS_CPP_STD_14 201402L
+#define GENESIS_CPP_STD_17 201703L
+#define GENESIS_CPP_STD_20 202002L
+
+// Detect the C++ standard version based on __cplusplus
+#if defined(__cplusplus)
+    #define GENESIS_CPP_STD __cplusplus
+#else
+    // __cplusplus not defined, use C++11 by default
+    #define GENESIS_CPP_STD GENESIS_CPP_STD_11
+#endif
+
+// For MSVC (Microsoft Visual C++)
+// Since MSVC does not provide an accurate __cplusplus before C++20 without /Zc:__cplusplus,
+// we approximate the C++ standard version using _MSC_VER.
+#if defined(_MSC_VER)
+    #if _MSC_VER >= 1920  // MSVC 2019 and later
+        #if __cplusplus == GENESIS_CPP_STD_20
+            // Already correct for C++20
+        #else
+            // MSVC 2017 and later typically support C++17
+            #undef GENESIS_CPP_STD
+            #define GENESIS_CPP_STD GENESIS_CPP_STD_17
+        #endif
+    #elif _MSC_VER >= 1910  // MSVC 2017
+        // Approximate as C++14
+        #undef GENESIS_CPP_STD
+        #define GENESIS_CPP_STD GENESIS_CPP_STD_14
+    #elif _MSC_VER >= 1900  // MSVC 2015
+        // Approximate as C++11
+        #undef GENESIS_CPP_STD
+        #define GENESIS_CPP_STD GENESIS_CPP_STD_11
+    #else
+        // Older MSVC, approximate as C++98.
+        // That is too old for our code base,
+        // but let's add it for completeness.
+        #undef GENESIS_CPP_STD
+        #define GENESIS_CPP_STD 199711L
+    #endif
+#endif
+
+#endif // GENESIS_CPP_STD
 
 // =================================================================================================
 //     Expection Handling
@@ -59,12 +125,15 @@ namespace utils {
 //     Compiler Attributes
 // =================================================================================================
 
-// We define them here as specified by later standards.
-// Using them this way allows us to easily switch them off (by turning them into empty statements).
-// #define GENESIS_LIKELY   [[likely]]
-// #define GENESIS_UNLIKELY [[unlikely]]
-#define GENESIS_LIKELY
-#define GENESIS_UNLIKELY
+// Since C++20, there are attributes to help the compiler with branch prediction.
+// We use them when available, and otherwise set them to empty statements.
+#if ( GENESIS_CPP_STD >= GENESIS_CPP_STD_20 ) && __has_cpp_attribute( likely ) && __has_cpp_attribute( unlikely )
+    #define GENESIS_CPP_LIKELY   [[likely]]
+    #define GENESIS_CPP_UNLIKELY [[unlikely]]
+#else
+    #define GENESIS_CPP_LIKELY
+    #define GENESIS_CPP_UNLIKELY
+#endif
 
 // =================================================================================================
 //     Shortcomings of the C++ 11 STL...
@@ -105,6 +174,101 @@ public:
 private:
 
     T t;
+};
+
+// =================================================================================================
+//     Helpers for portability between C++ 11 and later
+// =================================================================================================
+
+// -------------------------------------------------------------------------
+//     invoke_result / result_of
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Helper to abstract from `std::invoke_result` and `std::result_of`
+ * for different C++ standards.
+ *
+ * This simply switches between the two, depending on the C++ standard being compiled with.
+ * This is necessary as in later versions, `std::result_of` is deprecated and removed.
+ * Usage similar to `std::invoke_result`, such as
+ *
+ *     typename genesis_invoke_result<F, Args...>::type
+ *
+ * to obtain the resulting type of a call of function `F` with arguments `Args`.
+ */
+template <typename F, typename... Args>
+struct genesis_invoke_result
+{
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+        // C++17 or later
+        using type = typename std::invoke_result<F, Args...>::type;
+    #else
+        // C++11 and C++14. Tricky to get right.
+
+        // First attempt, simply forwarding.
+        // using type = typename std::result_of<F(Args...)>::type;
+
+        // Using decltype to get the correct return type for callable objects, including lambdas
+        // using type = decltype( std::declval<F>()( std::declval<Args>()... ));
+
+        // Use decltype to deduce the result type, ensuring F is callable with Args...
+        // using type = typename std::enable_if<
+        //     std::is_function<typename std::remove_pointer<F>::type>::value ||
+        //     std::is_function<F>::value,
+        //     decltype(std::declval<F>()(std::declval<Args>()...))
+        // >::type;
+
+        // Refined version with decay for lambdas.
+        using type = typename std::result_of<typename std::decay<F>::type(Args...)>::type;
+    #endif
+};
+
+// -------------------------------------------------------------------------
+//     container traits
+// -------------------------------------------------------------------------
+
+// Implement void_t for C++11.
+// We are not using the C++17 version here, for simplicity.
+template <typename...>
+using void_t = void;
+
+template <typename T, typename = void>
+struct is_container : std::false_type {};
+
+/**
+ * @brief Helper trait to detect if T has an iterator, i.e., offers begin() and end() functions,
+ * indicating it is a container.
+ */
+template <typename T>
+struct is_container<
+    T, void_t<
+        typename T::value_type,
+        decltype(std::declval<T>().begin()),
+        decltype(std::declval<T>().end())
+    >
+> : std::true_type {};
+
+// // Specialization to explicitly exclude std::string from being a container
+// template <>
+// struct is_container<std::string> : std::false_type {};
+
+// Trait to detect the presence of a reserve method
+template <typename T, typename = void>
+struct has_reserve : std::false_type {};
+
+template <typename T>
+struct has_reserve<
+    T, void_t<decltype(std::declval<T&>().reserve(std::declval<size_t>()))>
+> : std::true_type {};
+
+// Convenience variable template for has_reserve trait
+// template <typename T>
+// constexpr bool has_reserve_v = has_reserve<T>::value;
+
+// Convenience bool for has_reserve trait (C++11 alternative to constexpr variable template)
+template <typename T>
+struct has_reserve_v {
+    static const bool value = has_reserve<T>::value;
 };
 
 // =================================================================================================

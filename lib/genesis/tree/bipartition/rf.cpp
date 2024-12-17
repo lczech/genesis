@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 
 #include <cstdint>
 #include <algorithm>
@@ -201,14 +203,14 @@ void rf_get_bitvectors_template(
 
             // Call the bitvector processor functor now, as we just finished constructing a split.
             // We normalize first to make sure that we always get comparable bitvectors in the end.
-            current.normalize();
+            normalize(current);
             process_bitvector( current );
         }
     }
 
     // We have traversed all node names now. If there is still an unset bit in the bitvector,
     // that means that we did not find all names that are in the tree.
-    if( name_check.count() != names.size() ) {
+    if( pop_count(name_check) != names.size() ) {
         throw std::runtime_error(
             "Cannot calculate RF distance with trees that have different node names. "
             "Some names are missing from one of the trees."

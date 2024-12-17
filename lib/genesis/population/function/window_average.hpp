@@ -40,6 +40,9 @@
 #include "genesis/population/variant.hpp"
 #include "genesis/population/window/base_window.hpp"
 #include "genesis/population/window/window_view.hpp"
+#include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 
 #include <cassert>
 #include <limits>
@@ -217,7 +220,7 @@ inline size_t get_window_provided_loci_count(
 
         // Finally, we have checked everything. Our first and last position are both inclusive,
         // while the bitvector count uses past-the-end, so we need to add one here for the last.
-        return bv.count( first, last + 1 );
+        return pop_count( bv, first, last + 1 );
     };
 
     // If the window is a WindowStream over a whole genome, we use all its chromosomes.

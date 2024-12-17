@@ -34,6 +34,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <array>
@@ -45,11 +46,11 @@
 #include <string>
 #include <utility>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     #include <string_view>
 
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 namespace genesis {
 namespace utils {
@@ -168,12 +169,12 @@ public:
      */
     inline char current() const
     {
-        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
+        if( data_pos_ >= data_end_ ) GENESIS_CPP_UNLIKELY {
             throw std::runtime_error(
                 "Unexpected end of " + source_name() + " at " + at() + "."
             );
         }
-        if( current_ < 0 ) GENESIS_UNLIKELY {
+        if( current_ < 0 ) GENESIS_CPP_UNLIKELY {
             throw std::domain_error(
                 "Invalid input char in " + source_name() + " at " + at() + "."
             );
@@ -196,22 +197,22 @@ public:
     inline self_type& operator ++ ()
     {
         // If we were already at the end, set counter so zero.
-        if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
+        if( data_pos_ >= data_end_ ) GENESIS_CPP_UNLIKELY {
             reset_();
             return *this;
         }
 
         // Read data if necessary.
-        if( data_pos_ >= BlockLength ) GENESIS_UNLIKELY {
+        if( data_pos_ >= BlockLength ) GENESIS_CPP_UNLIKELY {
             update_blocks_();
         }
         assert( data_pos_ < BlockLength );
 
         // In case we are moving to a new line, set the counters accordingly.
-        if( current_ == '\n' ) {
+        if( current_ == '\n' ) GENESIS_CPP_UNLIKELY {
             ++line_;
             column_ = 1;
-        } else {
+        } else GENESIS_CPP_LIKELY {
             ++column_;
         }
 
@@ -288,7 +289,7 @@ public:
         return result;
     }
 
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     /**
      * @brief Read the current line and move to the beginning of the next, returning a
@@ -350,7 +351,7 @@ private:
     // Internal helper that does the actual work of the get_line_views() function.
     void fill_line_views_( std::string_view* str_views, size_t n_lines );
 
-    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 private:
 

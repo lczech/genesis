@@ -34,6 +34,7 @@
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
 #include <cassert>
@@ -177,7 +178,7 @@ void FastqWriter::write(
     }
 }
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 void FastqWriter::write(
     std::string_view const& label,
@@ -204,7 +205,7 @@ void FastqWriter::write(
     );
 }
 
-#endif
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // =================================================================================================
 //     Internal Members

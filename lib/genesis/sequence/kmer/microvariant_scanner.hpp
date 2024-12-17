@@ -65,7 +65,6 @@ namespace sequence {
  * to iterate a Kmer and all its microvariants, this can be done in one loop. Note that we leave the
  * order of the microvariants implementation-defined, as this might be changed for optimizations.
  */
-template<typename Tag>
 class MicrovariantScanner
 {
 public:
@@ -75,31 +74,29 @@ public:
     // -----------------------------------------------------
 
     using self_type         = MicrovariantScanner;
-    using value_type        = Kmer<Tag>;
+    using value_type        = Kmer;
     using pointer           = value_type*;
     using reference         = value_type&;
     using iterator_category = std::forward_iterator_tag;
 
-    using Alphabet = typename Kmer<Tag>::Alphabet;
-    using Bitfield = typename Kmer<Tag>::Bitfield;
+    using Alphabet = typename Kmer::Alphabet;
+    using Bitfield = typename Kmer::Bitfield;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
     // -----------------------------------------------------
 
-    MicrovariantScanner()
-        : kmer_( 0 )
-    {}
+    MicrovariantScanner() = default;
 
-    explicit MicrovariantScanner( Kmer<Tag> const& kmer, bool include_original = true )
+    explicit MicrovariantScanner( Kmer const& kmer, bool include_original = true )
         : kmer_( kmer )
         , pos_( 0 )
         , cnt_( 0 )
     {
         // Correct setup
-        if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > Bitfield::MAX_CHARS_PER_KMER ) {
+        if( kmer.k() == 0 || kmer.k() > Bitfield::MAX_CHARS_PER_KMER ) {
             throw std::invalid_argument(
-                "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
+                "Cannot extract kmers with k=" + std::to_string( kmer.k() )
             );
         }
 
@@ -177,7 +174,7 @@ public:
     /**
      * @brief Get the current k-mer microvariant.
      */
-    Kmer<Tag> const& kmer() const
+    Kmer const& kmer() const
     {
         return kmer_;
     }
@@ -192,7 +189,7 @@ private:
     {
         // Check assumptions of this function.
         using WordType = typename Bitfield::WordType;
-        static_assert( Bitfield::BITS_PER_CHAR == 2, "Kmer<Tag>::BITS_PER_CHAR != 2" );
+        static_assert( Bitfield::BITS_PER_CHAR == 2, "Kmer::BITS_PER_CHAR != 2" );
 
         // We use four xor steps at the current position to cycle through the variants:
         // The first thee are the substitutions, the last one then restores the original value.
@@ -211,7 +208,7 @@ private:
         //
         // Luckily, for two values that are the complement of each other (AT and GC), the order
         // above also keeps the microvariants applied to both of them as each others complements.
-        // That is, starting with an A, whose rc is T, we iterte the A as ACGTA and the T as TGCAT.
+        // That is, starting with an A, whose rc is T, we iterate the A as ACGTA and the T as TGCAT.
         // In each of those steps, the characters are their complement in these two lists.
         // Thus, we can easily update the rc of the kmer using the values from the table as well.
 
@@ -265,7 +262,7 @@ private:
     static_assert( Alphabet::NEGATE_IS_COMPLEMENT, "Alphabet::NEGATE_IS_COMPLEMENT != true" );
 
     // The current k-mer
-    Kmer<Tag> kmer_;
+    Kmer kmer_;
 
     // The position where currently a value is substitutioned, and the counter for the possible
     // microvariant (substitution) possibilities at the position.
@@ -278,13 +275,12 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-template<typename Tag>
-inline utils::Range<MicrovariantScanner<Tag>> iterate_microvariants(
-    Kmer<Tag> const& kmer, bool include_original = true
+inline utils::Range<MicrovariantScanner> iterate_microvariants(
+    Kmer const& kmer, bool include_original = true
 ) {
     return {
-        MicrovariantScanner<Tag>( kmer, include_original ),
-        MicrovariantScanner<Tag>()
+        MicrovariantScanner( kmer, include_original ),
+        MicrovariantScanner()
     };
 }
 

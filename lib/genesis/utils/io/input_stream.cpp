@@ -30,6 +30,7 @@
 
 #include "genesis/utils/io/input_stream.hpp"
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
@@ -89,7 +90,7 @@ InputStream& InputStream::operator= ( InputStream&& other )
 char InputStream::read_char_or_throw( char const criterion )
 {
     // Check char and move to next.
-    if( data_pos_ >= data_end_ || current_ != criterion ) GENESIS_UNLIKELY {
+    if( data_pos_ >= data_end_ || current_ != criterion ) GENESIS_CPP_UNLIKELY {
         throw std::runtime_error(
             std::string("In ") + source_name() + ": " +
             "Expecting " + char_to_hex( criterion ) + " at " + at() + ", " +
@@ -104,7 +105,7 @@ char InputStream::read_char_or_throw( char const criterion )
 char InputStream::read_char_or_throw( std::function<bool (char)> criterion )
 {
     // Check char and move to next.
-    if( data_pos_ >= data_end_ || !criterion( current_ )) GENESIS_UNLIKELY {
+    if( data_pos_ >= data_end_ || !criterion( current_ )) GENESIS_CPP_UNLIKELY {
         throw std::runtime_error(
             std::string("In ") + source_name() + ": " +
             "Unexpected char " + char_to_hex( current_ ) + " at " + at() + "."
@@ -127,7 +128,7 @@ char InputStream::read_char_or_throw( std::function<bool (char)> criterion )
 void InputStream::get_line( std::string& target )
 {
     // Check edge case.
-    if( data_pos_ >= data_end_ ) {
+    if( data_pos_ >= data_end_ ) GENESIS_CPP_UNLIKELY {
         return;
     }
 
@@ -168,7 +169,7 @@ void InputStream::get_line( std::string& target )
     assert( data_pos_ == data_end_ || column_ == 1 );
 }
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // -------------------------------------------------------------------------
 //     get_line_view
@@ -291,7 +292,7 @@ void InputStream::fill_line_views_( std::string_view* str_views, size_t n_lines 
     }
 }
 
-#endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // -------------------------------------------------------------------------
 //     update_and_move_to_line_or_buffer_end_
@@ -304,7 +305,7 @@ size_t InputStream::update_and_move_to_line_or_buffer_end_()
     assert( data_pos_ < data_end_ );
 
     // Read data if necessary. After this, we are guaranteed to have data_pos_ in the first block.
-    if( data_pos_ >= BlockLength ) GENESIS_UNLIKELY {
+    if( data_pos_ >= BlockLength ) GENESIS_CPP_UNLIKELY {
         update_blocks_();
     }
     assert( data_pos_ < BlockLength );
@@ -753,7 +754,7 @@ void InputStream::update_blocks_()
 void InputStream::set_current_char_()
 {
     // Check end of stream conditions.
-    if( data_pos_ >= data_end_ ) GENESIS_UNLIKELY {
+    if( data_pos_ >= data_end_ ) GENESIS_CPP_UNLIKELY {
         // We do not expect to overshoot. Let's assert this, but if it still happens
         // (in release build), we can also cope, and will just set \0 as the current char.
         assert( data_pos_ == data_end_ );

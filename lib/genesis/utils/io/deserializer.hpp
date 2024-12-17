@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -38,11 +38,16 @@
 #include "genesis/utils/io/output_stream.hpp"
 
 #include <algorithm>
+#include <array>
+#include <cassert>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -52,7 +57,20 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Deserialize values or containers from a binary input stream.
+ *
+ * The class provides the basic functions to deserialize data types from binary streams,
+ * for trivially copyable types, std::strings, and containers.
+ *
+ * The most convenient way to use this is via the streaming `operator >> ()` overloads of this class:
+ *
+ *     Deserializer deser( from_file( "my_file.bin" ));
+ *     deser >> data;
+ *
+ * The operator can also be overloaded for user-defined types as needed, and will then also be
+ * automatically usable for containers of these types.
+ *
+ * @see Serializer for the equalivalent class to save those data to a stream.
  */
 class Deserializer
 {
@@ -62,19 +80,14 @@ public:
     //     Constructor and Destructor
     // -------------------------------------------------------------------------
 
-    explicit Deserializer( std::string const& file_name )
-        : buffer_( std::make_shared< FileInputSource >( file_name ) )
+    explicit Deserializer( std::shared_ptr<BaseInputSource> input_source )
+        : buffer_( input_source )
     {
-        if( ! buffer_ ) {
-            throw std::runtime_error("Creating Deserializer from file failed.");
+        if( !input_source ) {
+            throw std::runtime_error( "Cannot create Deserializer from null input source." );
         }
-    }
-
-    explicit Deserializer( std::istream& instream )
-        : buffer_( std::make_shared< StreamInputSource >( instream ) )
-    {
-        if( ! buffer_ ) {
-            throw std::runtime_error("Creating Deserializer from stream failed.");
+        if( !buffer_ ) {
+            throw std::runtime_error( "Creating Deserializer failed." );
         }
     }
 
@@ -87,62 +100,23 @@ public:
         return buffer_;
     }
 
-    // inline bool good() const
-    // {
-    //     return instream.good();
-    // }
-    //
-    // inline bool eof() const
-    // {
-    //     return instream.eof();
-    // }
-    //
-    // inline bool fail() const
-    // {
-    //     return instream.fail();
-    // }
-    //
-    // inline bool bad() const
-    // {
-    //     return instream.bad();
-    // }
-    //
-    // inline bool succeeded() const
-    // {
-    //     return !instream.eof() && instream.peek() == EOF;
-    // }
-
     inline bool finished() const
     {
-        return ! buffer_;
+        return !buffer_;
     }
 
     // -------------------------------------------------------------------------
-    //     File Status
-    // -------------------------------------------------------------------------
-
-    // inline bool is_open() const
-    // {
-    //     return infile.is_open();
-    // }
-    //
-    // inline void close()
-    // {
-    //     infile.close();
-    // }
-
-    // -------------------------------------------------------------------------
-    //     Deserialization
+    //     Deserialization Argument
     // -------------------------------------------------------------------------
 
     /**
-    * @brief Read `n` bytes from the stream and store them in the buffer.
+    * @brief Read `n` bytes from the stream and store them in the data.
     *
-    * The buffer needs to be big enough to hold `n` bytes.
+    * The @p needs to be big enough to hold @p n bytes.
     */
-    void get_raw(char* buffer, size_t n)
+    inline void get( char* data, size_t n )
     {
-        size_t const got = buffer_.read(buffer, n);
+        size_t const got = buffer_.read( data, n );
         if( got != n ) {
             throw std::runtime_error(
                 "Could only read " + std::to_string(got)  + " bytes instead of n=" +
@@ -152,102 +126,84 @@ public:
     }
 
     /**
-     * @brief Reads `n` bytes from the stream and returns whether all of them are `\0` bytes.
+     * @brief Deserialize trivial types to the stream, by casting it from a char array.
      */
-    bool get_null (size_t n)
+    template <typename T>
+    inline
+    typename std::enable_if<std::is_trivially_copyable<T>::value>::type
+    get( T& value )
     {
-        char* buffer = new char[n];
-        get_raw( buffer, n );
-
-        bool ret = true;
-        for (size_t i = 0; i < n; ++i) {
-            ret &= (buffer[i] == '\0');
-        }
-
-        delete[] buffer;
-        return ret;
+        get( reinterpret_cast<char*>( &value ), sizeof(T) );
     }
 
     /**
-     * @brief Read `n` bytes from the stream and return them as a string.
+     * @brief Deserialize a string, preceeded by its length, from the stream.
      */
-    std::string get_raw_string(size_t n)
+    inline void get( std::string& str )
     {
-        char* buffer = new char[n];
-        get_raw( buffer, n );
+        size_t size = 0;
+        get( size );
+        str.resize( size );
+        get( &str[0], size );
+    }
 
-        std::string str (buffer, n);
-        delete[] buffer;
+    /**
+     * @brief Deserialize the contents of a container (`std::vector`, `std::array` etc)
+     * of other serializable types from the stream.
+     */
+    template <typename T>
+    inline
+    typename std::enable_if<is_container<T>::value>::type
+    get( T& container )
+    {
+        size_t size = 0;
+        get( size );
+        container.clear();
+        for( size_t i = 0; i < size; ++i ) {
+            typename T::value_type element;
+            get( element );
+            container.insert( container.end(), std::move( element ));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    //     Deserialization Return
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief For trivially copyable types, return the deserialized value directly.
+     */
+    template <typename T>
+    inline
+    typename std::enable_if<std::is_trivially_copyable<T>::value, T>::type
+    get()
+    {
+        T data = T{};
+        get( data );
+        return data;
+    }
+
+    /**
+     * @brief For strings, return the deserialized string.
+     */
+    inline std::string get()
+    {
+        std::string str;
+        get( str );
         return str;
     }
 
     /**
-     * @brief Read a string from the stream, provided that its length it written preceding it, as done
-     * by put_string().
+     * @brief For container types, return the deserialized container.
      */
-    std::string get_string ()
+    template <typename T>
+    inline
+    typename std::enable_if<is_container<T>::value, T>::type
+    get()
     {
-        size_t len = get_int<size_t>();
-        return get_raw_string(len);
-    }
-
-    // TODO maybe trailing return types is a solution to make this work without having to specify the template parameters? (also for the othter, similar methods in this class)
-    /**
-     * @brief Read as many bytes from the stream as the type T holds, and return them in form of
-     * a value of type T.
-     */
-    template<typename T>
-    T get_plain ()
-    {
-        T res;
-        get_raw( reinterpret_cast<char*>( &res ), sizeof(T) );
-        return res;
-    }
-
-    /**
-     * @brief Read as many bytes from the stream as the type T holds, and put them in the result
-     * value of type T.
-     */
-    template<typename T>
-    void get_plain (T& res)
-    {
-        get_raw( reinterpret_cast<char*>( &res ), sizeof(T) );
-    }
-
-    /**
-     * @brief Read an integer number from the stream and return it.
-     */
-    template<typename T>
-    T get_int ()
-    {
-        return get_plain<T>();
-    }
-
-    /**
-     * @brief Read an integer number from the stream and store it in the result.
-     */
-    template<typename T>
-    void get_int (T& res)
-    {
-        res = get_plain<T>();
-    }
-
-    /**
-     * @brief Read a floating point number from the stream and return it.
-     */
-    template<typename T>
-    T get_float ()
-    {
-        return get_plain<T>();
-    }
-
-    /**
-     * @brief Read an floating point number from the stream and store it in the result.
-     */
-    template<typename T>
-    void get_float (T& res)
-    {
-        res = get_plain<T>();
+        T container;
+        get( container );
+        return container;
     }
 
     // -------------------------------------------------------------------------
@@ -259,6 +215,83 @@ private:
     InputBuffer buffer_;
 
 };
+
+// =================================================================================================
+//     Streaming Functions
+// =================================================================================================
+
+/**
+ * @brief Generic operator>> template for trivial non-container types to stream from a Deserializer.
+ */
+template <typename T>
+inline typename std::enable_if<!is_container<T>::value, Deserializer&>::type
+operator>>( Deserializer& deserializer, T& value )
+{
+    deserializer.get( value );
+    return deserializer;
+}
+
+/**
+ * @brief Specialization of operator>> template for std::string to stream from a Deserializer.
+ */
+inline Deserializer& operator>>( Deserializer& deserializer, std::string& str )
+{
+    deserializer.get( str );
+    return deserializer;
+}
+
+/**
+ * @brief Specialization of operator>> template for container types to stream from a Deserializer.
+ *
+ * Overload for container types that have reserve(), using SFINAE
+ */
+template <typename Container>
+inline typename std::enable_if<
+    is_container<Container>::value && has_reserve<Container>::value, Deserializer&
+>::type
+operator>>( Deserializer& deserializer, Container& container )
+{
+    // First, deserialize the container size
+    size_t size = 0;
+    deserializer >> size;
+
+    // Clear the container and reserve space
+    container.clear();
+    container.reserve( size );
+
+    // Deserialize each element individually using operator>> recursively on each element,
+    // so that additional overloads of operator>>() can be defined for user types.
+    for( size_t i = 0; i < size; ++i ) {
+        typename Container::value_type element;
+        deserializer >> element;
+        container.insert( container.end(), std::move( element ));
+    }
+
+    return deserializer;
+}
+
+/**
+ * @brief Specialization of operator>> template for container types to stream from a Deserializer.
+ *
+ * Overload for container types that do not have reserve(), using SFINAE
+ */
+template <typename Container>
+inline typename std::enable_if<
+    is_container<Container>::value && !has_reserve<Container>::value, Deserializer&
+>::type
+operator>>( Deserializer& deserializer, Container& container )
+{
+    // Same as above, but without the reserve() call on the container.
+    size_t size = 0;
+    deserializer >> size;
+    container.clear();
+    for( size_t i = 0; i < size; ++i ) {
+        typename Container::value_type element;
+        deserializer >> element;
+        container.insert( container.end(), std::move( element ));
+    }
+    return deserializer;
+}
 
 } // namespace utils
 } // namespace genesis

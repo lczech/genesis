@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -61,12 +62,12 @@ Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name )
     return find_taxon_by_name( tax, name, DepthFirstSearch{} );
 }
 
-Taxon const* find_taxon_by_id( Taxonomy const& tax, std::string const& id )
+Taxon const* find_taxon_by_id( Taxonomy const& tax, uint64_t id )
 {
     return find_taxon_by_id( tax, id, DepthFirstSearch{} );
 }
 
-Taxon*       find_taxon_by_id( Taxonomy&       tax, std::string const& id )
+Taxon* find_taxon_by_id( Taxonomy& tax, uint64_t id )
 {
     return find_taxon_by_id( tax, id, DepthFirstSearch{} );
 }
@@ -84,6 +85,21 @@ size_t taxon_level( Taxon const& taxon )
         ++res;
     }
     return res;
+}
+
+bool taxon_is_leaf( Taxon const& taxon, bool single_lineage )
+{
+    if( taxon.size() == 0 ) {
+        return true;
+    } else if( single_lineage && taxon.size() == 1 ) {
+        return taxon_is_leaf( taxon.at(0), single_lineage );
+    }
+    return false;
+}
+
+bool taxon_is_single_lineage( Taxon const& taxon )
+{
+    return taxon_is_leaf( taxon, true );
 }
 
 size_t total_taxa_count( Taxonomy const& tax )
@@ -195,7 +211,7 @@ std::unordered_map< std::string, size_t> taxa_count_ranks(
 
 bool has_unique_ids( Taxonomy const& tax )
 {
-    std::unordered_set<std::string> ids;
+    std::unordered_set<uint64_t> ids;
     bool has_duplicates = false;
 
     auto collect_and_check = [&]( Taxon const& tax ){
@@ -274,6 +290,17 @@ bool validate( Taxonomy const& taxonomy, bool stop_at_first_error )
     ) {
         bool res = true;
         for( auto const& c : tax ) {
+
+            // Check that the names in the map and vector are consistent.
+            auto const& found = tax.get_child( c.name() );
+            if( found.name() != c.name() ) {
+                LOG_INFO << "Taxon with inconsistent names: " << c.name() + " vs " + found.name();
+                if( stop_at_first_error ) {
+                    return false;
+                } else {
+                    res = false;
+                }
+            }
 
             // Check current parent.
             if( (level == 0 && c.parent() != nullptr) || (level > 0 && c.parent() != &tax) ) {

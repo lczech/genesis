@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,7 +34,9 @@
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 
+#include <cctype>
 #include <string>
 #include <unordered_map>
 
@@ -42,13 +44,17 @@ namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
-//     NCBI Reading stuff
+//     NCBI Taxonomy Reading
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     Data Structures
+// -------------------------------------------------------------------------
 
 struct NcbiNode
 {
-    std::string tax_id;
-    std::string parent_tax_id;
+    uint64_t tax_id;
+    uint64_t parent_tax_id;
     std::string rank;
 
     mutable Taxon* taxon = nullptr;
@@ -56,35 +62,96 @@ struct NcbiNode
 
 struct NcbiName
 {
-    std::string tax_id;
+    uint64_t tax_id;
     std::string name;
     std::string name_class;
 };
 
-using NcbiNodeLookup = std::unordered_map<std::string, NcbiNode>;
-using NcbiNameLookup = std::unordered_map<std::string, NcbiName>;
+using NcbiNodeLookup = std::unordered_map<uint64_t, NcbiNode>;
+using NcbiNameLookup = std::unordered_map<uint64_t, NcbiName>;
 
-NcbiNodeLookup convert_ncbi_node_table(
-    utils::CsvReader::Table const& node_table,
-    size_t tax_id_pos = 0,
-    size_t parent_tax_id_pos = 1,
-    size_t rank_pos = 2
+// -------------------------------------------------------------------------
+//     Tables
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Parameters for reading the NCBI node and name tables.
+ *
+ * We need to extract fields from certain column positions in the table.
+ * These should be stable across NCBI releases, but if needed, can be changed here.
+ *
+ * Furthermore, by default we only add the scientific names into our Taxonomy, and ignore entries
+ * with alternative names and other types of classes. If instead the `name_class_filter` is set
+ * to an emptry string here, all entries are added to the taxonomy.
+ *
+ * Lastly, we likely want to check names for a valid character set. By default, we validate
+ * that names only consist of printable ASCII characters, according to `std::isprint`.
+ */
+struct NcbiTableParameters
+{
+    // Column indices in the node table
+    size_t node_table_tax_id_pos        = 0;
+    size_t node_table_parent_tax_id_pos = 1;
+    size_t node_table_rank_pos          = 2;
+
+    // Column indices in the name table
+    size_t name_table_tax_id_pos        = 0;
+    size_t name_table_name_pos          = 1;
+    size_t name_table_name_class_pos    = 3;
+
+    // Extra validity and filter settings
+    std::string name_class_filter = "scientific name";
+    bool validate_name_characters = true;
+};
+
+NcbiNodeLookup read_ncbi_node_table(
+    std::shared_ptr<utils::BaseInputSource> source
 );
 
-NcbiNameLookup convert_ncbi_name_table(
-    utils::CsvReader::Table const& name_table,
-    size_t tax_id_pos = 0,
-    size_t name_pos = 1,
-    size_t name_class_pos = 3,
-    std::string const& name_class_filter = "scientific name"
+NcbiNodeLookup read_ncbi_node_table(
+    std::shared_ptr<utils::BaseInputSource> source,
+    NcbiTableParameters const& params
 );
+
+NcbiNameLookup read_ncbi_name_table(
+    std::shared_ptr<utils::BaseInputSource> source
+);
+
+NcbiNameLookup read_ncbi_name_table(
+    std::shared_ptr<utils::BaseInputSource> source,
+    NcbiTableParameters const& params
+);
+
+// -------------------------------------------------------------------------
+//     Taxonomy
+// -------------------------------------------------------------------------
 
 Taxonomy convert_ncbi_tables(
     NcbiNodeLookup const& nodes,
     NcbiNameLookup const& names
 );
 
-Taxonomy read_ncbi_taxonomy( std::string const& node_file, std::string const& name_file );
+Taxonomy read_ncbi_taxonomy(
+    std::string const& node_file,
+    std::string const& name_file
+);
+
+Taxonomy read_ncbi_taxonomy(
+    std::string const& node_file,
+    std::string const& name_file,
+    NcbiTableParameters const& params
+);
+
+Taxonomy read_ncbi_taxonomy(
+    std::shared_ptr<utils::BaseInputSource> node_source,
+    std::shared_ptr<utils::BaseInputSource> name_source
+);
+
+Taxonomy read_ncbi_taxonomy(
+    std::shared_ptr<utils::BaseInputSource> node_source,
+    std::shared_ptr<utils::BaseInputSource> name_source,
+    NcbiTableParameters const& params
+);
 
 } // namespace taxonomy
 } // namespace genesis

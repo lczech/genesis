@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -80,6 +80,18 @@ struct EpcaData
     utils::Matrix<double> projection;
     std::vector<size_t>   edge_indices;
 };
+
+/**
+ * @brief Calculate the imbalance of masses on each edge.
+ *
+ * This overload of the function takes the masses directly as a vector, instead of calulcating
+ * them from the Sample. This allows to use it for non-placement data as well.
+ */
+std::vector<double> epca_imbalance_vector(
+    tree::Tree const& tree,
+    std::vector<double> const& masses,
+    bool normalize = true
+);
 
 /**
  * @brief Calculate the imbalance of placement mass for each @link PlacementTreeEdge Edge@endlink

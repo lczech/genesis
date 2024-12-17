@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -57,6 +57,7 @@ namespace taxonomy {
 TaxonomyReader::TaxonomyReader()
 {
     csv_reader_.separator_chars( "\t" );
+    csv_reader_.quotation_chars( "" );
 }
 
 // =================================================================================================
@@ -102,7 +103,9 @@ void TaxonomyReader::parse_document(
 
         // Set the rank and ID.
         taxon.rank( line.rank );
-        taxon.id( line.id );
+        if( !line.id.empty() ) {
+            taxon.id( std::stoull( line.id ));
+        }
     }
 }
 

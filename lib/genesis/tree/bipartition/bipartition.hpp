@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
 
 #include <stdexcept>
 
@@ -96,7 +97,7 @@ public:
 
     void invert()
     {
-        leaf_nodes_.negate();
+        negate(leaf_nodes_);
         link_ = &link_->outer();
     }
 

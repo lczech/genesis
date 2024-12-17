@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -125,7 +125,12 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
             os << placement.like_weight_ratio << ", ";
 
             auto const& edge_data = placement.edge().data<PlacementEdgeData>();
-            os << edge_data.branch_length - placement.proximal_length << ", ";
+            auto const distal_length = edge_data.branch_length - placement.proximal_length;
+            if( std::isfinite( distal_length )) {
+                os << distal_length << ", ";
+            } else {
+                os << "0.0, ";
+            }
             os << placement.pendant_length;
 
             os << " ]";
@@ -216,9 +221,12 @@ utils::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
 
             // convert from proximal to distal length.
             auto const& edge_data = pqry_place.edge().data<PlacementEdgeData>();
-            pqry_fields.push_back( JsonDocument::number_float(
-                edge_data.branch_length - pqry_place.proximal_length
-            ));
+            auto const distal_length = edge_data.branch_length - pqry_place.proximal_length;
+            if( std::isfinite( distal_length )) {
+                pqry_fields.push_back( JsonDocument::number_float( distal_length ));
+            } else {
+                pqry_fields.push_back( JsonDocument::number_float( 0.0 ));
+            }
             pqry_fields.push_back( JsonDocument::number_float( pqry_place.pendant_length ));
 
             pqry_p_arr.push_back( pqry_fields );

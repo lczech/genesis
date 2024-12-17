@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -33,15 +33,18 @@
 
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
+#include "genesis/utils/math/compensated_sum.hpp"
 #include "genesis/utils/math/ranking.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <limits>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -121,16 +124,20 @@ struct MeanStddevPair
 };
 
 /**
- * @brief Store the values of quartiles: `q0 == min`, `q1 == 25%`, `q2 == 50%`, `q3 == 75%`,
- * `q4 == max`.
+ * @brief Store the values of quartiles.
+ *
+ *  See the quarties() function. The stored values are
+ *  `q0 == min`, `q1 == 25%`, `q2 == 50%`, `q3 == 75%`, `q4 == max`.
+ *  The struct is templated over the numeric data type, defaulting to `double`.
  */
+template<typename T = double>
 struct Quartiles
 {
-    double q0 = 0.0;
-    double q1 = 0.0;
-    double q2 = 0.0;
-    double q3 = 0.0;
-    double q4 = 0.0;
+    T q0 = T{};
+    T q1 = T{};
+    T q2 = T{};
+    T q3 = T{};
+    T q4 = T{};
 };
 
 // =================================================================================================
@@ -330,6 +337,62 @@ void closure( ForwardIterator first, ForwardIterator last )
 inline void closure( std::vector<double>& vec )
 {
     return closure( vec.begin(), vec.end() );
+}
+
+/**
+ * @brief Compute the Shannon entropy of a range of values.
+ *
+ * This uses the normalized values (such that their sum is 1.0), and computes the sum of each
+ * normalized value multiplied by its logarithm. Internally, we use data types that maximize
+ * accuracy, as well as a compensated summation algorithm, at the expense of a slight increase
+ * in runtime. This is beneficial for large vectors, as we are then likely dealing with
+ * the summation of many small values.
+ */
+template <class ForwardIterator>
+double shannon_entropy( ForwardIterator first, ForwardIterator last, double log_base = 2.0)
+{
+    using T = typename ForwardIterator::value_type;
+
+    // Use uint64_t for integral types, and compensated summation for floating-point types,
+    // to avoid overflow, and get maximum accuracy.
+    using SumType = typename std::conditional<
+        std::is_integral<T>::value,
+        uint64_t,
+        NeumaierSum
+    >::type;
+    SumType sum = 0;
+
+    // Sum the data and check for negative values
+    for( auto it = first; it != last; ++it ) {
+        if( *it < 0 ) {
+            throw std::invalid_argument(
+                "Negative values are not allowed for computing Shannon entropy."
+            );
+        }
+        sum += *it;
+    }
+
+    // Calculate the Shannon entropy, with precomputed log base change.
+    // Here, we use a compensated sum, as we potentially have many small values.
+    // For simplicity, we always add the value, and negate the result in the end.
+    NeumaierSum entropy = 0.0;
+    double log_base_inv = 1.0 / std::log(log_base);
+    for( auto it = first; it != last; ++it ) {
+        if( *it > 0 ) {
+            double const prob = static_cast<double>(*it) / static_cast<double>(sum);
+            entropy += prob * std::log(prob) * log_base_inv;
+        }
+    }
+    return -1.0 * entropy.get();
+}
+
+/**
+ * @brief Compute the Shannon entropy of a vector of values.
+ */
+template <typename T>
+double shannon_entropy( std::vector<T> const& data, double log_base = 2.0 )
+{
+    return shannon_entropy( data.begin(), data.end(), log_base );
 }
 
 // =================================================================================================
@@ -1011,8 +1074,9 @@ inline double weighted_harmonic_mean(
  * is the arithmetic mean (average) of its two middle elements.
  */
 template <class RandomAccessIterator>
-double median( RandomAccessIterator first, RandomAccessIterator last )
-{
+typename RandomAccessIterator::value_type median(
+    RandomAccessIterator first, RandomAccessIterator last
+) {
     // Checks.
     if( ! std::is_sorted( first, last )) {
         throw std::runtime_error( "Range has to be sorted for median calculation." );
@@ -1043,11 +1107,12 @@ double median( RandomAccessIterator first, RandomAccessIterator last )
 }
 
 /**
- * @brief Calculate the median value of a `vector` of `double`.
+ * @brief Calculate the median value of a `vector` of `double` or some other numerical type.
  *
- * The vector has to be sorted.
+ * The vector has to be sorted, otherwise the function throws an exception.
  */
-inline double median( std::vector<double> const& vec )
+template<typename T>
+inline T median( std::vector<T> const& vec )
 {
     return median( vec.begin(), vec.end() );
 }
@@ -1063,10 +1128,11 @@ inline double median( std::vector<double> const& vec )
  * @p last to the past-the-end element.
  */
 template <class RandomAccessIterator>
-Quartiles quartiles( RandomAccessIterator first, RandomAccessIterator last )
-{
+Quartiles<typename RandomAccessIterator::value_type> quartiles(
+    RandomAccessIterator first, RandomAccessIterator last
+) {
     // Prepare result.
-    Quartiles result;
+    Quartiles<typename RandomAccessIterator::value_type> result;
 
     // Checks.
     if( ! std::is_sorted( first, last )) {
@@ -1101,11 +1167,12 @@ Quartiles quartiles( RandomAccessIterator first, RandomAccessIterator last )
 }
 
 /**
- * @brief Calculate the Quartiles of a `vector` of `double`.
+ * @brief Calculate the Quartiles of a `vector` of `double` or some other numerical type.
  *
- * The vector has to be sorted.
+ * The vector has to be sorted, otherwise the function throws an exception.
  */
-inline Quartiles quartiles( std::vector<double> const& vec )
+template<typename T>
+inline Quartiles<T> quartiles( std::vector<T> const& vec )
 {
     return quartiles( vec.begin(), vec.end() );
 }
@@ -1172,15 +1239,17 @@ inline std::vector<double> index_of_dispersion( std::vector<MeanStddevPair> cons
  * See quartiles() to caculate those values.
  * See https://en.wikipedia.org/wiki/Quartile_coefficient_of_dispersion for details.
  */
-inline double quartile_coefficient_of_dispersion( Quartiles const& q )
+template<typename T>
+inline double quartile_coefficient_of_dispersion( Quartiles<T> const& q )
 {
-    return ( q.q3 - q.q1 ) / ( q.q3 + q.q1 );
+    return static_cast<double>( q.q3 - q.q1 ) / static_cast<double>( q.q3 + q.q1 );
 }
 
 /**
- * @copydoc quartile_coefficient_of_dispersion( Quartiles const& ms )
+ * @copydoc quartile_coefficient_of_dispersion( Quartiles<T> const& ms )
  */
-inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quartiles> const& q )
+template<typename T>
+inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quartiles<T>> const& q )
 {
     auto res = std::vector<double>( q.size() );
     for( size_t i = 0; i < q.size(); ++i ) {

@@ -31,20 +31,20 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/sequence.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
 #include "genesis/sequence/formats/fastq_writer.hpp"
-
+#include "genesis/sequence/sequence.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/output_target.hpp"
 
 #include <iterator>
 #include <iostream>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     #include <string_view>
 
-#endif
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 namespace genesis {
 namespace sequence {
@@ -150,7 +150,7 @@ public:
         return *this;
     }
 
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     /**
      * @brief Writer overload for Fastq files where all elements are provided as std::string_view.
@@ -171,7 +171,7 @@ public:
         return *this;
     }
 
-    #endif
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // -------------------------------------------------------------------------
     //     Settings

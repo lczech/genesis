@@ -209,7 +209,9 @@ std::function<void(Variant const&)> make_variant_input_stream_sequence_order_obs
                     "The current position " +
                     to_string( GenomeLocus{ variant.chromosome, variant.position }) +
                     " of the input Variant is greater than the length of the chromosome "
-                    "as specified by the SequenceDict, which is " + std::to_string( entry.length )
+                    "as specified by the sequence dictionary (as specified by a .dict "
+                    "or .fai file, or by a reference genome .fasta file), which is " +
+                    std::to_string( entry.length )
                 );
             }
         }
@@ -237,7 +239,9 @@ std::function<void(Variant const&)> make_variant_input_stream_sequence_length_ob
                 "The current position " +
                 to_string( GenomeLocus{ variant.chromosome, variant.position }) +
                 " of the input Variant is greater than the length of the chromosome "
-                "as specified by the SequenceDict, which is " + std::to_string( entry.length )
+                "as specified by the sequence dictionary (as specified by a .dict "
+                "or .fai file, or by a reference genome .fasta file), which is " +
+                std::to_string( entry.length )
             );
         }
     };

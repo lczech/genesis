@@ -36,6 +36,7 @@
 #include "genesis/population/window/window.hpp"
 #include "genesis/utils/containers/generic_input_stream.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -303,7 +304,7 @@ void run_region_window_test_(
             }
             // We expect the result to be empty.
             // If not, there are variants that were not in the window.
-            EXPECT_EQ( 0, bv.count() );
+            EXPECT_EQ( 0, pop_count( bv ));
         }
 
         // For each variant in the window, decrement its cover count.

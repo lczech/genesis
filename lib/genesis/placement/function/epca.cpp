@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -63,20 +63,29 @@ namespace placement {
 //     Edge PCA Imbalance Vector
 // =================================================================================================
 
-std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize )
-{
+std::vector<double> epca_imbalance_vector(
+    tree::Tree const& tree,
+    std::vector<double> const& masses,
+    bool normalize
+) {
     // Result vector: imbalance of masses at each edge of the tree.
-    auto vec = std::vector<double>( sample.tree().edge_count(), 0.0 );
+    auto vec = std::vector<double>( tree.edge_count(), 0.0 );
 
     // We need the masses per edge, and their sum, for later.
-    auto const masses   = placement_mass_per_edges_with_multiplicities( sample );
+    if( masses.size() != tree.edge_count() ) {
+        throw std::invalid_argument(
+            "Cannot compute imbalance vector with Tree::edge_count() == " +
+            std::to_string( tree.edge_count() ) + " but given vector of edge masses of size " +
+            std::to_string( masses.size() )
+        );
+    }
     auto const mass_sum = std::accumulate( masses.begin(), masses.end(), 0.0 );
 
     // Collect the placement masses at each link of the tree.
     // Use init to -1 as indicator for assertions.
-    auto link_masses = std::vector<double>( sample.tree().link_count(), -1.0 );
+    auto link_masses = std::vector<double>( tree.link_count(), -1.0 );
 
-    for( auto tree_it : postorder( sample.tree() )) {
+    for( auto tree_it : postorder( tree )) {
 
         // Skip the last iteration. We are interested in edges, not in nodes.
         if( tree_it.is_last_iteration() ) {
@@ -97,10 +106,10 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
         // This is the case if the primary link of its node is the link itself,
         // because the node uses this link to point towards the root - thus, the link itself
         // is away from the root, while the out_idx link lies towards it.
-        assert( sample.tree().link_at( cur_idx ).node().primary_link().index() == cur_idx );
+        assert( tree.link_at( cur_idx ).node().primary_link().index() == cur_idx );
 
         // Some more ways to do the same assertion, just to be sure.
-        assert( tree_it.edge().index() == sample.tree().link_at( cur_idx ).edge().index() );
+        assert( tree_it.edge().index() == tree.link_at( cur_idx ).edge().index() );
         assert( tree_it.edge().primary_link().index() == out_idx );
         assert( tree_it.edge().secondary_link().index() == cur_idx );
 
@@ -159,6 +168,12 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
     }
 
     return vec;
+}
+
+std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize )
+{
+    auto const masses = placement_mass_per_edges_with_multiplicities( sample );
+    return epca_imbalance_vector( sample.tree(), masses, normalize );
 }
 
 // =================================================================================================

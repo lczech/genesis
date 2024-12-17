@@ -23,9 +23,8 @@
 #   CMake Init
 # --------------------------------------------------------------------------------------------------
 
-# CMake declared that versions below this will not be supported any more,
-# so let's use this as our lower bound for now. Will need more testing though...
-cmake_minimum_required (VERSION 2.8.12 FATAL_ERROR)
+# This is a hand-wavy minimum requirement... but well, "works for me".
+cmake_minimum_required(VERSION 3.8)
 
 # Fun with colors!
 if (NOT WIN32)
@@ -64,7 +63,7 @@ include(ExternalProject)
 
 # Include our own extra CMake functionality.
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/tools/cmake" )
-include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
+include( AssembleMonolith )
 
 # Need to make sure that AppleClang is actually recognized and not mistakingly identifyed
 # as normal Clang. See https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
@@ -182,6 +181,12 @@ endif()
 option (GENESIS_BUILD_SHARED_LIB    "Build the shared library version of Genesis." ${GENESIS_IS_MASTER_PROJECT})
 option (GENESIS_BUILD_STATIC_LIB    "Build the static library version of Genesis." ${GENESIS_HAS_PARENT_DIR})
 
+# Option for setting C++ version: default to "auto"
+set( GENESIS_CPP_STANDARD "auto" CACHE STRING
+    "Set C++ standard version (e.g., 11, 14, 17, 20, or 'auto' \
+    to auto-detect the highest supported version)"
+)
+
 # If we are the master project, we want to build the apps by default.
 option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications." ${GENESIS_IS_MASTER_PROJECT})
 
@@ -252,6 +257,12 @@ message (STATUS "Unity build: ${GENESIS_UNITY_BUILD}")
 message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} at ${CMAKE_CXX_COMPILER}")
 message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} at ${CMAKE_C_COMPILER}")
 
+# Get the C++ version to use.
+# Call the function to determine the C++ standard version (either auto-detected or user-specified).
+# This sets `CMAKE_CXX_STANDARD` to the value to be used for compilation.
+include(DetectCppVersion)
+detect_and_set_cpp_standard()
+
 # --------------------------------------------------------------------------------------------------
 #   Compiler and Linker Options
 # --------------------------------------------------------------------------------------------------
@@ -263,7 +274,8 @@ if (MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
 else ()
     # For other operating systems, set the warn flags to a very high level - except unknown pragmas,
     # as this causes needless warnings with OpenMP and other pragma-based techniques.
-    set (WARN_FLAGS "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
+    set( WARN_FLAGS "-Wall -Wextra -pedantic -pedantic-errors" )
+    set( WARN_FLAGS "${WARN_FLAGS} -Wno-unknown-pragmas -Wno-unknown-attributes" )
 
     # Furthermore, in debug mode, we also want all warnings to be errors, so that we do not miss them
     # In release, this might hinder users to successfully build genesis if any warnings remain
@@ -273,7 +285,7 @@ else ()
     ENDIF()
 endif ()
 
-set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
+set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O2 -DDEBUG -g -ggdb3 -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
 
@@ -357,10 +369,10 @@ ENDIF()
 #     AVX/AVX2
 # ----------------------------------------------------------
 
-# IF(GENESIS_USE_AVX)
-#     # Included from modules dir tools/cmake
-#     include( IncludeAVX )
-# ENDIF()
+IF(GENESIS_USE_AVX)
+    # Included from modules dir tools/cmake
+    include( IncludeAVX )
+ENDIF()
 
 # ----------------------------------------------------------
 #     htslib
@@ -501,7 +513,7 @@ string(REGEX REPLACE " +" " " GENESIS_CXX_FLAGS " ${GENESIS_CXX_FLAGS} " )
 string(REGEX REPLACE " +" " " GENESIS_EXE_LINKER_FLAGS " ${GENESIS_EXE_LINKER_FLAGS} " )
 string(REGEX REPLACE " +" " " GENESIS_LINK_LIBRARIES " ${GENESIS_LINK_LIBRARIES} " )
 
-message (STATUS "Final build flags:")
+message (STATUS "${ColorGreen}Final build flags:${ColorEnd}")
 message (STATUS "CMAKE_CXX_FLAGS         : ${CMAKE_CXX_FLAGS}")
 IF(CMAKE_BUILD_TYPE MATCHES "DEBUG")
     message (STATUS "CMAKE_CXX_FLAGS_DEBUG   : ${CMAKE_CXX_FLAGS_DEBUG}")

@@ -32,6 +32,7 @@
  */
 
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/utils/core/std.hpp"
 
 #include <array>
 #include <cassert>
@@ -41,7 +42,7 @@
 #include <stdexcept>
 #include <string>
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 #    include <string_view>
 #endif
 
@@ -55,7 +56,6 @@ namespace sequence {
 /**
  * @brief
  */
-template<typename Tag>
 class KmerExtractor
 {
 public:
@@ -65,13 +65,13 @@ public:
     // -------------------------------------------------------------------------
 
     using self_type         = KmerExtractor;
-    using value_type        = Kmer<Tag>;
+    using value_type        = Kmer;
     using pointer           = value_type*;
     using reference         = value_type&;
     using iterator_category = std::input_iterator_tag;
 
-    using Alphabet = typename Kmer<Tag>::Alphabet;
-    using Bitfield = typename Kmer<Tag>::Bitfield;
+    using Alphabet = typename Kmer::Alphabet;
+    using Bitfield = typename Kmer::Bitfield;
 
     // ======================================================================================
     //      Internal Iterator
@@ -88,13 +88,14 @@ public:
     public:
 
         using self_type         = KmerExtractor::Iterator;
-        using value_type        = Kmer<Tag>;
+        using value_type        = Kmer;
         using pointer           = value_type const*;
         using reference         = value_type const&;
         using iterator_category = std::input_iterator_tag;
 
-        using Alphabet = typename Kmer<Tag>::Alphabet;
-        using Bitfield = typename Kmer<Tag>::Bitfield;
+        using Alphabet = typename Kmer::Alphabet;
+        using Bitfield = typename Kmer::Bitfield;
+        using WordType = typename Bitfield::WordType;
 
         // -------------------------------------------------------------------------
         //     Constructors and Rule of Five
@@ -113,11 +114,13 @@ public:
             }
 
             // Correct setup
-            if( Kmer<Tag>::k() == 0 || Kmer<Tag>::k() > Bitfield::MAX_CHARS_PER_KMER ) {
-                throw std::invalid_argument(
-                    "Cannot extract kmers with k=" + std::to_string( Kmer<Tag>::k() )
-                );
-            }
+            auto const k = parent_->k_;
+            assert( k > 0 && k <= Bitfield::MAX_CHARS_PER_KMER );
+            kmer_ = Kmer( k, 0 );
+
+            // Precomputed values
+            ones_mask_ = Bitfield::ones_mask[ k ];
+            rc_shift_ = (( k - 1 ) * Bitfield::BITS_PER_CHAR );
 
             // Start streaming the data
             assert( location_ == 0 );
@@ -187,7 +190,7 @@ public:
             // location_ points to the index in the input sequence that we are processing next.
             // Test for end of iteration. Signal this by unsetting the parent,
             // which is used in the equality comparison to check for the end iterator.
-            if( location_ >= parent_->input_.size() ) {
+            if( location_ >= parent_->input_.size() ) GENESIS_CPP_UNLIKELY {
                 parent_ = nullptr;
                 return;
             }
@@ -195,9 +198,9 @@ public:
             // Now try to process the char at the current location.
             // If that works, we have moved to the next location in the input and are done.
             // If not, we found an invalid character, and will have to start a new kmer.
-            if( process_current_char_() ) {
+            if( process_current_char_() ) GENESIS_CPP_LIKELY {
                 ++kmer_.location;
-            } else {
+            } else GENESIS_CPP_UNLIKELY {
                 init_kmer_from_current_location_();
             }
         }
@@ -207,7 +210,7 @@ public:
             assert( parent_ );
 
             // Shorthands.
-            auto const k = Kmer<Tag>::k();
+            auto const k = parent_->k_;
             assert( k <= Bitfield::MAX_CHARS_PER_KMER );
 
             size_t start_location = location_;
@@ -250,33 +253,30 @@ public:
 
         inline bool process_current_char_()
         {
-            // Shorthands and checks.
-            auto const k = Kmer<Tag>::k();
-            assert( k > 0 );
             assert( parent_ );
 
             // Get the next bits to use. If it is invalid, we let the caller know.
             assert( location_ < parent_->input_.size() );
             auto const rank = Alphabet::char_to_rank( parent_->input_[ location_ ] );
             ++location_;
-            if( rank > Alphabet::MAX_RANK ) {
-                ++(parent_->count_invalid_characters_);
+            if( rank > Alphabet::MAX_RANK ) GENESIS_CPP_UNLIKELY {
+                ++(parent_->invalid_character_count_);
                 return false;
             }
 
             // Move the new value into the kmer.
-            auto const word = static_cast<typename Bitfield::WordType>( rank );
+            auto const word = static_cast<WordType>( rank );
             kmer_.value <<= Bitfield::BITS_PER_CHAR;
-            kmer_.value &=  Bitfield::ones_mask[ k ];
+            kmer_.value &=  ones_mask_;
             kmer_.value |=  word;
 
             // Also populate the reverse complement.
-            typename Bitfield::WordType const rc_word = Alphabet::complement( rank );
+            WordType const rc_word = Alphabet::complement( rank );
             kmer_.rev_comp >>= Bitfield::BITS_PER_CHAR;
-            kmer_.rev_comp |= ( rc_word << (( k - 1 ) * Bitfield::BITS_PER_CHAR ));
+            kmer_.rev_comp |= ( rc_word << rc_shift_ );
 
             // Successfully processed the char.
-            ++(parent_->count_valid_characters_);
+            ++(parent_->valid_character_count_);
             return true;
         }
 
@@ -291,8 +291,13 @@ public:
 
         // The internal kmer we operate on, and the current location in the input sequence.
         // This corresponds to the char that is extracted from the sequence at the end of the kmer.
-        Kmer<Tag> kmer_;
+        Kmer kmer_;
         size_t location_ = 0;
+
+        // Precomputed values for speed
+        WordType ones_mask_;
+        int rc_shift_ = 0;
+
     };
 
     // ======================================================================================
@@ -303,35 +308,47 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    // With C++17, we can optimize by offering a std::string_view interface.
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    KmerExtractor() = default;
 
-    KmerExtractor( std::string const& input )
+    // With C++17, we can optimize by offering a std::string_view interface.
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+    KmerExtractor( uint8_t k, std::string const& input )
         : buffer_( input )
         , input_( buffer_ )
-    {}
+    {
+        set_k_( k );
+    }
 
-    KmerExtractor( std::string&& input )
+    KmerExtractor( uint8_t k, std::string&& input )
         : buffer_( std::move( input ))
         , input_( buffer_ )
-    {}
+    {
+        set_k_( k );
+    }
 
-    KmerExtractor( std::string_view input )
+    KmerExtractor( uint8_t k, std::string_view input )
         : input_( input )
-    {}
+    {
+        set_k_( k );
+    }
 
     // For C++11, we instead just offer std::string
-    #else // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #else // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
-    KmerExtractor( std::string const& input )
+    KmerExtractor( uint8_t k, std::string const& input )
         : input_( input )
-    {}
+    {
+        set_k_( k );
+    }
 
-    KmerExtractor( std::string&& input )
+    KmerExtractor( uint8_t k, std::string&& input )
         : input_( std::move( input ))
-    {}
+    {
+        set_k_( k );
+    }
 
-    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     ~KmerExtractor() = default;
 
@@ -355,14 +372,40 @@ public:
         return Iterator();
     }
 
-    size_t count_valid_characters() const
+    // -------------------------------------------------------------------------
+    //     Statistics
+    // -------------------------------------------------------------------------
+
+    size_t valid_character_count() const
     {
-        return count_valid_characters_;
+        return valid_character_count_;
     }
 
-    size_t count_invalid_characters() const
+    size_t invalid_character_count() const
     {
-        return count_invalid_characters_;
+        return invalid_character_count_;
+    }
+
+    void reset_character_counts()
+    {
+        valid_character_count_ = 0;
+        invalid_character_count_ = 0;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Internal Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void set_k_( uint8_t k )
+    {
+        if( k == 0 || k > Bitfield::MAX_CHARS_PER_KMER ) {
+            throw std::invalid_argument(
+                "Cannot use k-mer with k==" + std::to_string( k )
+            );
+        }
+        k_ = k;
     }
 
     // -------------------------------------------------------------------------
@@ -371,7 +414,9 @@ public:
 
 private:
 
-    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    uint8_t k_;
+
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // We use a string as a buffer if the class was initialized with a std::string,
     // so that we can keep ownership of (a copy of) the input if needed. If not needed,
@@ -380,16 +425,16 @@ private:
     std::string buffer_;
     std::string_view input_;
 
-    #else // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #else // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // For C++11, we just use a normal string
     std::string input_;
 
-    #endif // ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
     // Count data during iteration
-    mutable size_t count_valid_characters_ = 0;
-    mutable size_t count_invalid_characters_ = 0;
+    mutable size_t valid_character_count_ = 0;
+    mutable size_t invalid_character_count_ = 0;
 
 };
 

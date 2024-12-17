@@ -31,11 +31,13 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/threading/blocking_concurrent_queue.hpp"
 
 #include <atomic>
 #include <cassert>
 #include <chrono>
+#include <exception>
 #include <iterator>
 #include <functional>
 #include <future>
@@ -75,7 +77,7 @@ class ThreadPool;
  * this idea into a class, so that users of the ThreadPool have to use this feature, and hence
  * avoid the deadlock.
  */
-template<class T>
+template<typename T>
 class ProactiveFuture
 {
 public:
@@ -119,7 +121,7 @@ public:
     /**
      * @brief Return the result, after calling wait().
      */
-    T get()
+    inline T get()
     {
         // Use our busy waiting first, until we are ready.
         wait();
@@ -131,7 +133,7 @@ public:
      * @brief Return the result, after calling wait().
      */
     template<typename U = T>
-    typename std::enable_if<!std::is_void<U>::value, U&>::type get()
+    inline typename std::enable_if<!std::is_void<U>::value, U&>::type get()
     {
         // Enable this method only if T is not void (non-void types).
         static_assert( ! std::is_same<T, void>::value, "ProactiveFuture::get() intended for T != void" );
@@ -146,7 +148,7 @@ public:
      * @brief Return the result, after calling wait().
      */
     template<typename U = T>
-    typename std::enable_if<std::is_void<U>::value>::type get()
+    inline typename std::enable_if<std::is_void<U>::value>::type get()
     {
         // Enable this method only if T is void
         static_assert( std::is_same<T, void>::value, "ProactiveFuture::get() intended for T == void" );
@@ -160,7 +162,7 @@ public:
     /**
      * @brief Check if the future has a shared state.
      */
-    bool valid() const noexcept
+    inline bool valid() const noexcept
     {
         return future_.valid();
     }
@@ -171,39 +173,31 @@ public:
      * This is the main function that differs from `std::future::wait()`, in that it processes
      * other tasks from the pool while waiting, until the underlying future is ready.
      */
-    void wait() const;
+    inline void wait() const;
 
     /**
      * @brief Wait for the result, return if it is not available for the specified timeout duration.
      *
-     * This simply forwards to the `wait_for` function of the future. Note that this does _not_ do
-     * the busy waiting that this wrapper is intended for. Hence, calling this function in a loop
-     * until the future is ready might never happen, in case that the ThreadPool dead locks due to
-     * the task waiting for a (then) starving other task. The whole idea of this class is to avoid
-     * this scenario, by processing these potentially starving tasks. We hence recommend to not use
-     * this function, or at least not in a loop, unless you are sure that none of your tasks submit
-     * any tasks of their own to the same thread pool.
+     * This waits for the given @p timeout_duration or longer, and performs the same proactive
+     * waiting (via work stealing) as the wait() function. The waiting time can hence be more than
+     * the provided duration (but never less), if the execution of a task during the waiting takes
+     * longer than the given duration.
      */
-    template< class Rep, class Period >
-    std::future_status wait_for( std::chrono::duration<Rep,Period> const& timeout_duration ) const
-    {
-        // If the user species a time to wait for, we just forward that to the future.
-        return future_.wait_for( timeout_duration );
-    }
+    template<typename Rep, typename Period>
+    inline std::future_status wait_for(
+        std::chrono::duration<Rep,Period> const& timeout_duration
+    ) const;
 
     /**
      * @brief Wait for the result, return if it is not available until specified time point has been
      * reached.
      *
-     * This simply forwards to the `wait_until` function of the future. The same caveat as explained
-     * in wait_for() applies here as well. We hence recommend to not use this function.
+     * Same as wait_for(), but with a @p timeout_time instead of a `timeout_duration`.
      */
-    template< class Clock, class Duration >
-    std::future_status wait_until( std::chrono::time_point<Clock,Duration> const& timeout_time ) const
-    {
-        // If the user species a time to wait until, we just forward that to the future.
-        return future_.wait_until( timeout_time );
-    }
+    template<typename Clock, typename Duration>
+    inline std::future_status wait_until(
+        std::chrono::time_point<Clock,Duration> const& timeout_time
+    ) const;
 
     // -------------------------------------------------------------
     //     Additional members
@@ -212,7 +206,7 @@ public:
     /**
      * @brief Check if the future is ready.
      */
-    bool ready() const
+    inline bool ready() const
     {
         throw_if_invalid_();
         return future_.wait_for( std::chrono::seconds(0) ) == std::future_status::ready;
@@ -225,7 +219,7 @@ public:
      * This should always return `false`, as we never create a deferred future ourselves.
      * This would indicate some misuse of the class via `std::async` or some other mechanism.
      */
-    bool deferred() const
+    inline bool deferred() const
     {
         throw_if_invalid_();
         return future_.wait_for( std::chrono::seconds(0) ) == std::future_status::deferred;
@@ -237,13 +231,21 @@ public:
 
 private:
 
-    void throw_if_invalid_() const
+    inline void throw_if_invalid_() const
     {
         // From: https://en.cppreference.com/w/cpp/thread/future/wait
         // The implementations are encouraged to detect the case when valid() == false before the
         // call and throw a std::future_error with an error condition of std::future_errc::no_state.
+        // Unfortunately, prior to C++17, the standard does not offer an accessible constructor for
+        // std::future_error, see https://en.cppreference.com/w/cpp/thread/future_error/future_error
+        // and while most compilers offer one anyway, AppleClang 16 does not, and fails to compile.
+        // So instead, we here just throw an invalid argument...
         if( !future_.valid() ) {
-            throw std::future_error( std::future_errc::no_state );
+            throw std::invalid_argument(
+                "std::future_error( std::future_errc::no_state ): "
+                "Attempt to access std::promise or std::future without an associated shared state."
+            );
+            // throw std::future_error( std::future_errc::no_state );
         }
     }
 
@@ -268,10 +270,10 @@ private:
  * This simple implementation offer a standing pool of worker threads that pick up tasks.
  *
  * For reasons explained below, it is recommended to initialize a global thread pool via
- * Options::get().global_thread_pool(), with one fewer threads than intended to keep busy,
- * as the main thread will also be able to do busy work while waiting for tasks via our work
- * stealing ProactiveFuture. Use guess_number_of_threads() for obtaining the adequate number of
- * total threads to run, and subtract one to get the number to use this class with.
+ * Options::get().global_thread_pool(), with one fewer threads than intended to maximally use,
+ * as the main thread will also be able to do work while waiting for tasks via our work-stealing
+ * ProactiveFuture. Use guess_number_of_threads() for obtaining the adequate number of total threads
+ * to run, and subtract one to get the number to use this class with.
  *
  * Example
  *
@@ -280,7 +282,7 @@ private:
  *
  *     // Enqueue a new task by providing a function and its arguments, and store its future result.
  *     // This is a ProactiveFuture, so that calling wait() or get() on it will process other tasks.
- *     auto result = thread_pool.enqueue(
+ *     auto result = thread_pool.enqueue_and_retrieve(
  *         []( int some_param ) {
  *             // do computations
  *             int some_result = 42;
@@ -298,7 +300,7 @@ private:
  *
  * The pool implements a work stealing technique similar to the one described in the
  * "C++ Concurrency in Action" book by Anthony Williams, second edition, chapter 9, in order to
- * avoid dead locking when tasks submit their own tasks. In such cases, the parent task could then
+ * avoid dead-locking when tasks submit their own tasks. In such cases, the parent task could then
  * potentially be waiting for the child, but the child might never start, as all threads in the pool
  * are busy waiting for the children they enqueued. Hence, our wrapper implementation, called
  * ProactiveFuture (a thin wrapper around `std::future`; see there for details), instead processes
@@ -312,11 +314,20 @@ private:
  * pool with one fewer threads than hardware concurrency (or whatever other upper limit you want
  * to ensure, e.g., Slurm).
  *
+ * Alternatively, tasks can also be enqueued using enqueue_detached(), which does not return a
+ * ProactiveFuture to wait for, and instead runs the task without any return. This is for instance
+ * useful for tasks whose result we do not need. Moreover, this mechanism can be used to enqueue
+ * a long series of tasks without waiting for each individually, and only finally calling
+ * wait_for_all_pending_tasks() from the main thread to ensure that all work is done. This mechanism
+ * is faster, as it does not have any overhead for creating and managing the
+ * `std::future`/ProactiveFuture instance. However, it is then recommended to limit the maximum
+ * size of the task queue, as explained next.
+ *
  * Lastly, if upon construction a maximum queue size is provided, only that many tasks will be
- * queued at a time (with a bit of leeway, due to concurrency). If a thread calls enqueue() when
- * the queue is already filled with waiting tasks up to the maximum size, the caller instead waits
- * for the queue to be below the specified max, and while waiting, starts processing tasks of its
- * own, so that the waiting time is spend productively.
+ * queued at a time (with a bit of leeway, due to concurrency). If a thread calls enqueue_and_retrieve()
+ * or enqueue_detached() when the queue is already filled with waiting tasks up to the maximum size,
+ * the caller instead waits for the queue to be below the specified max, and while waiting, starts
+ * processing tasks of its own, so that the waiting time is spend productively.
  *
  * This is meant as a mechanism to allow a main thread to just keep queueing work without capturing
  * the futures and waiting for them, while avoiding to endlessly queue new tasks, with the workers
@@ -326,9 +337,10 @@ private:
  * there to be _some_ upper limit on the number of tasks. Also, in case of just a single main thread
  * that is enqueueing new tasks, the maximum is never exceeded.
  *
- * When using this mechanism of submitting work without storing the futures, the wait() function
- * of the class can be used to wait for all current work to be done. This is intended to be called,
- * for instance, from the main thread, once there is no more work to be enqueued.
+ * When using this mechanism of submitting work without storing the futures, use the
+ * wait_for_all_pending_tasks() function of the class to wait for all current work to be done.
+ * This is intended to be called, for instance, from the main thread, once there is no more work
+ * to be enqueued.
  */
 class ThreadPool
 {
@@ -396,6 +408,20 @@ public:
         assert( unfinished_tasks_.load() == 0 );
     }
 
+    /**
+     * @brief Callback function for detached task exceptions.
+     *
+     * When using enqueue_detached() to enqueue a task to the pool, there is no way for the pool
+     * to report back to the caller from that task. Hence, any exceptions thrown in the task might
+     * (likely) not be in the main thread, which by default will lead to termniation of the program,
+     * as there is no way to catch them.
+     *
+     * When setting this function instead, it is called when an exception in such a task is thrown.
+     * This callback can then for instance store the exception (or a list of all) and the main thread
+     * can later check and react to them.
+     */
+    std::function<void(std::exception_ptr)> detached_task_exception_callback;
+
     // -------------------------------------------------------------
     //     Accessor Members
     // -------------------------------------------------------------
@@ -450,11 +476,11 @@ public:
      * If enqueuing the task would exceed the max queue size, we instead first process existing
      * tasks until there is e space in the queue. This makes the caller do wait and work.
      */
-    template<class F, class... Args>
-    auto enqueue_and_retrieve( F&& f, Args&&... args )
-    -> ProactiveFuture<typename std::result_of<F(Args...)>::type>
+    template<typename F, typename... Args>
+    inline auto enqueue_and_retrieve( F&& f, Args&&... args )
+    -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
     {
-        using result_type = typename std::result_of<F(Args...)>::type;
+        using result_type = typename genesis_invoke_result<F, Args...>::type;
 
         // Make sure that we do not enqueue more tasks than the max size.
         run_tasks_until_below_max_queue_size_();
@@ -466,17 +492,16 @@ public:
         auto task_promise = std::make_shared<std::promise<result_type>>();
         auto future_result = ProactiveFuture<result_type>( task_promise->get_future(), *this );
 
-        // To make our lives easier for the helper functions used below, we just wrap
-        // the task in a function that can be called without arguments.
-        std::function<result_type()> task_function = std::bind(
-            std::forward<F>(f), std::forward<Args>(args)...
-        );
-
         // Prepare the task that we want to submit.
         // All this wrapping should be completely transparent to the compiler, and removed.
         // The task captures the package including the promise that is needed for the future.
         WrappedTask wrapped_task;
-        wrapped_task.function = make_wrapped_task_with_promise_( task_promise, task_function );
+        std::function<result_type()> task_function = std::bind(
+            std::forward<F>(f), std::forward<Args>(args)...
+        );
+        wrapped_task.function = make_wrapped_task_with_promise_(
+            task_promise, std::move( task_function )
+        );
 
         // We first incrementi the unfinished counter, and only decrementing it once the task has
         // been fully processed. Thus, the counter always tells us if there is still work going on.
@@ -498,8 +523,8 @@ public:
      * If enqueuing the task would exceed the max queue size, we instead first process existing
      * tasks until there is enough space in the queue. This makes the caller do wait and work.
      */
-    template<class F, class... Args>
-    void enqueue_detached( F&& f, Args&&... args )
+    template<typename F, typename... Args>
+    inline void enqueue_detached( F&& f, Args&&... args )
     {
         // Make sure that we do not enqueue more tasks than the max size.
         run_tasks_until_below_max_queue_size_();
@@ -512,15 +537,41 @@ public:
         wrapped_task.function = [task_function, this]()
         {
             // Run the actual work task here. Once done, we can signal this to the unfinished list.
-            task_function();
-            assert( this->unfinished_tasks_.load() > 0 );
-            --this->unfinished_tasks_;
+            // We need to catch any exceptions thrown in the task here, as otherwise,
+            // the unfinished counter would not be decremented properly, thus breaking invariants.
+            // This is similar to make_wrapped_task_with_promise_(), but there, we need more
+            // intrumentation to distinguish the cases where the exception came from the task vs
+            // it came from setting the value in the promise. Here, if there was an exception,
+            // it must have come from the task, so we then know that the unfiished counter was not
+            // yet decremented.
+            try {
+                task_function();
+                assert( this->unfinished_tasks_.load() > 0 );
+                --(this->unfinished_tasks_);
+            } catch (...) {
+                // In the error case, we first take care of the counter, so that it signals
+                // to the pool that we are done with this task, and then handle the exception.
+                // That keeps the invariants intact, and avoids endless loops on finished tasks
+                // with a still non-zero unfinished tasks counter.
+                assert( this->unfinished_tasks_.load() > 0 );
+                --(this->unfinished_tasks_);
+
+                // Now we can either give the exception to the handler callback, or if none provided,
+                // re-throw it right here again, which likely leads to program termination, if this
+                // task does not happen to be called from the main thread. That's usually fine for
+                // our use case anyway.
+                if( detached_task_exception_callback ) {
+                    detached_task_exception_callback( std::current_exception() );
+                } else {
+                    throw;
+                }
+            }
         };
 
         // We add the task, incrementing the unfinished counter, and only decrementing it once the
-        // task has been fully processed. That way, the counter always tells us if there is still
-        // work going on. We capture a reference to `this` in the task above, which could be
-        // dangerous if the threads survive the lifetime of the pool, but given that their exit
+        // task has been fully processed (see above). That way, the counter always tells us if there
+        // is still work going on. We capture a reference to `this` in the task above, which could
+        // be dangerous if the threads survive the lifetime of the pool, but given that their exit
         // condition is only called from the pool destructor, this should never be able to happen.
         ++unfinished_tasks_;
         task_queue_.enqueue( std::move( wrapped_task ));
@@ -651,13 +702,13 @@ private:
 
     template<typename T>
     inline std::function<void()> make_wrapped_task_with_promise_(
-        std::shared_ptr<std::promise<T>> task_promise,
-        std::function<T()> task_function
+        std::shared_ptr<std::promise<T>>& task_promise,
+        std::function<T()>&& task_function
     ) {
         // We capture a reference to `this` in the below lambda, which could be dangerous
         // if the threads survive the lifetime of the pool, but given that the pool destructor
         // waits for all of them to finish, this should never be able to happen.
-        return [this, task_promise, task_function]()
+        return [this, task_promise, task_function]() mutable
         {
             // Run the work task, and set the value of the associated promise.
             // We need to delegate this here, as the std::promise::set_value() function
@@ -684,8 +735,8 @@ private:
     template<typename T>
     typename std::enable_if<!std::is_void<T>::value>::type
     inline run_task_and_fulfill_promise_(
-        std::shared_ptr<std::promise<T>> task_promise,
-        std::function<T()> task_function,
+        std::shared_ptr<std::promise<T>>& task_promise,
+        std::function<T()>& task_function,
         bool& decremented_unfinished_tasks
     ) {
         // Run the actual work task here. Once done, we can signal this to the unfinished list.
@@ -702,8 +753,8 @@ private:
     template<typename T>
     typename std::enable_if<std::is_void<T>::value>::type
     inline run_task_and_fulfill_promise_(
-        std::shared_ptr<std::promise<T>> task_promise,
-        std::function<void()> task_function,
+        std::shared_ptr<std::promise<T>>& task_promise,
+        std::function<void()>& task_function,
         bool& decremented_unfinished_tasks
     ) {
         // Same as above, but for void functions, i.e., without setting a value for the promise.
@@ -734,7 +785,7 @@ private:
 // =================================================================================================
 
 // Implemented here, as it needs ThreadPool to be defined first.
-template<class T>
+template<typename T>
 void ProactiveFuture<T>::wait() const
 {
     // Let's be thorough. The standard encourages the check for validity.
@@ -776,6 +827,42 @@ void ProactiveFuture<T>::wait() const
     // We call wait just in case here again, to make sure that everything is all right.
     // Probably not necessary, as it's already ready, but won't hurt either.
     // future_.wait();
+}
+
+// Same for wait_for
+template<typename T>
+template<typename Rep, typename Period>
+std::future_status ProactiveFuture<T>::wait_for(
+    std::chrono::duration<Rep,Period> const& timeout_duration
+) const {
+    // Delegate to wait_until()
+    auto const end = std::chrono::steady_clock::now() + timeout_duration;
+    return wait_until( end );
+}
+
+// Same for wait_until
+template<typename T>
+template<typename Clock, typename Duration>
+std::future_status ProactiveFuture<T>::wait_until(
+    std::chrono::time_point<Clock, Duration> const& timeout_time
+) const {
+    // Same initial checks as above, for completeness.
+    throw_if_invalid_();
+    assert( thread_pool_ );
+    assert( !deferred() );
+
+    // Now loop until the time has come, or the task is ready,
+    // and return the result accordingly.
+    while( std::chrono::steady_clock::now() < timeout_time ) {
+        if( ready() ) {
+            return std::future_status::ready;
+        }
+        assert( thread_pool_ );
+        if( ! thread_pool_->try_run_pending_task() ) {
+            std::this_thread::yield();
+        }
+    }
+    return std::future_status::timeout;
 }
 
 } // namespace utils

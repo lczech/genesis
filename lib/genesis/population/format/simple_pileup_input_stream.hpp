@@ -33,7 +33,7 @@
 
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/math/bitvector/helper.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 
 #include <string>
 

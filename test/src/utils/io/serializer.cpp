@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,9 @@
 #include "src/common.hpp"
 
 #include <cstdio>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "genesis/utils/io/serializer.hpp"
 #include "genesis/utils/io/deserializer.hpp"
@@ -41,60 +43,116 @@ using namespace utils;
 
 struct SerializerTestData
 {
-             char m[8];
-             char a;
-      signed int  b;
+    char          m[8];
+    char          a;
+    signed int    b;
     unsigned long c;
     double        d;
-    std::string   t;
-    std::string   r;
-             int  e;
+    int           e;
+    std::string   s;
+
+    std::vector<int> vi;
+    std::vector<std::string> vs;
+    std::vector<std::vector<int>> vv;
+
+    std::set<int> si;
 };
 
-void init_test_data(SerializerTestData& data)
+void init_test_data( SerializerTestData& data )
 {
     strncpy(data.m, "bytes\0\0\0", 8);
-
     data.a = 8;
     data.b = -1;
     data.c = 42;
     data.d = 3.1415;
-    data.t = "Hello World!";
-    data.r = "raw";
     data.e = 125;
+    data.s = "Hello World!";
+
+    data.vi.push_back( 42 );
+    data.vi.push_back( 0 );
+    data.vs.push_back( "hello" );
+    data.vs.push_back( "world" );
+    data.vv.push_back( data.vi );
+    data.vv.push_back( data.vi );
+
+    data.si.insert({ 1, 2, 3 });
 }
 
-void apply_serializer (Serializer& serial, SerializerTestData& data)
+void apply_serializer( Serializer& serial, SerializerTestData& data )
 {
-    serial.put_raw(data.m, 8);
-    serial.put_null(10);
-    serial.put_raw_string(data.r);
+    // serial.put(data.m, 8);
+    // serial.put(data.a);
+    // serial.put(data.b);
+    // serial.put(data.c);
+    // serial.put(data.d);
+    // serial.put(data.e);
+    // serial.put(data.s);
+    //
+    // serial.put( data.vi );
+    // serial.put( data.vs );
+    // serial.put( data.vv );
 
-    serial.put_int(data.a);
-    serial.put_int(data.b);
-    serial.put_int(data.c);
-    serial.put_float(data.d);
+    serial << data.m;
+    serial << data.a;
+    serial << data.b;
+    serial << data.c;
+    serial << data.d;
+    serial << data.e;
+    serial << data.s;
 
-    serial.put_string(data.t);
-    serial.put_int(data.e);
+    serial << data.vi;
+    serial << data.vs;
+    serial << data.vv;
+    serial << data.si;
 }
 
-void apply_deserializer (Deserializer& deser, SerializerTestData& data)
+void apply_deserializer_args( Deserializer& deser, SerializerTestData& data )
 {
-    deser.get_raw(data.m, 8);
-    EXPECT_TRUE (deser.get_null(10));
-    data.r = deser.get_raw_string(3);
+    deser.get(data.m, 8);
 
-    deser.get_int(data.a);
-    deser.get_int(data.b);
-    deser.get_int(data.c);
-    deser.get_float(data.d);
+    // deser.get(data.a);
+    // deser.get(data.b);
+    // deser.get(data.c);
+    // deser.get(data.d);
+    // deser.get(data.e);
+    // deser.get(data.s);
+    //
+    // deser.get( data.vi );
+    // deser.get( data.vs );
+    // deser.get( data.vv );
 
-    data.t = deser.get_string();
-    deser.get_int(data.e);
+    deser >> data.a;
+    deser >> data.b;
+    deser >> data.c;
+    deser >> data.d;
+    deser >> data.e;
+    deser >> data.s;
+    deser >> data.vi;
+    deser >> data.vs;
+    deser >> data.vv;
+    deser >> data.si;
 }
 
-void compare_data (const SerializerTestData& data_a, const SerializerTestData& data_b)
+void apply_deserializer_return( Deserializer& deser, SerializerTestData& data )
+{
+    // No return variant for char array
+    deser.get(data.m, 8);
+
+    // All other types have overloads to return the value directly
+    data.a = deser.get<decltype(data.a)>();
+    data.b = deser.get<decltype(data.b)>();
+    data.c = deser.get<decltype(data.c)>();
+    data.d = deser.get<decltype(data.d)>();
+    data.e = deser.get<decltype(data.e)>();
+    data.s = deser.get<decltype(data.s)>();
+
+    data.vi = deser.get<decltype(data.vi)>();
+    data.vs = deser.get<decltype(data.vs)>();
+    data.vv = deser.get<decltype(data.vv)>();
+    data.si = deser.get<decltype(data.si)>();
+}
+
+void compare_data( SerializerTestData const& data_a, SerializerTestData const& data_b )
 {
     for (size_t i = 0; i < 8; i++) {
         EXPECT_EQ (data_a.m[i], data_b.m[i]);
@@ -103,57 +161,72 @@ void compare_data (const SerializerTestData& data_a, const SerializerTestData& d
     EXPECT_EQ (data_a.b, data_b.b);
     EXPECT_EQ (data_a.c, data_b.c);
     EXPECT_DOUBLE_EQ (data_a.d, data_b.d);
-    EXPECT_EQ (data_a.t, data_b.t);
-    EXPECT_EQ (data_a.r, data_b.r);
     EXPECT_EQ (data_a.e, data_b.e);
+    EXPECT_EQ (data_a.s, data_b.s);
+
+    EXPECT_EQ (data_a.vi, data_b.vi);
+    EXPECT_EQ (data_a.vs, data_b.vs);
+    EXPECT_EQ (data_a.vv, data_b.vv);
+    EXPECT_EQ (data_a.si, data_b.si);
 }
 
-TEST(Serializer, ToAndFromStream)
+TEST( Serializer, ToAndFromStream )
 {
     std::ostringstream out;
-    Serializer serial (out);
+    Serializer serial( to_stream( out ));
 
     SerializerTestData input;
     init_test_data(input);
     apply_serializer(serial, input);
 
-    std::istringstream in(out.str());
-    Deserializer deser (in);
+    // Test with arguments
+    {
+        std::istringstream in(out.str());
+        Deserializer deser( from_stream( in ));
+        SerializerTestData output;
+        apply_deserializer_args(deser, output);
+        compare_data(input, output);
+        EXPECT_TRUE( deser.finished() );
+    }
 
-    SerializerTestData output;
-    apply_deserializer(deser, output);
-
-    compare_data(input, output);
+    // Test with return
+    {
+        std::istringstream in(out.str());
+        Deserializer deser( from_stream( in ));
+        SerializerTestData output;
+        apply_deserializer_return(deser, output);
+        compare_data(input, output);
+        EXPECT_TRUE( deser.finished() );
+    }
 }
 
-TEST(Serializer, ToAndFromFile)
+TEST( Serializer, ToAndFromFile )
 {
     // Skip test if no data directory availabe.
     NEEDS_TEST_DATA;
 
+    // Temp file. We first try to remove it as well,
+    // in case it accidentally exists from a run before.
     std::string file_name = environment->data_dir + "Serializer.ToAndFromFile.bin";
+    std::remove(file_name.c_str());
 
     // Write serialized data to file.
-    Serializer serial (file_name);
+    Serializer serial( to_file( file_name ));
     SerializerTestData input;
     init_test_data(input);
     apply_serializer(serial, input);
     serial.flush();
 
-    // Check if file status is ok.
-    if (!serial) {
-        FAIL() << "Serializer not ok.";
-    }
-
     // Prepare to read from file.
-    Deserializer deser (file_name);
+    Deserializer deser( from_file( file_name ));
     if (!deser) {
         FAIL() << "Deserializer not ok.";
     }
 
     // Get deserialized data from file.
     SerializerTestData output;
-    apply_deserializer(deser, output);
+    apply_deserializer_args(deser, output);
+    EXPECT_TRUE( deser.finished() );
 
     // Test whether both processes worked.
     compare_data(input, output);
@@ -166,22 +239,24 @@ TEST( Deserializer, MoveAssignment )
 {
     // Write data to stream.
     std::ostringstream out;
-    Serializer serial (out);
+    Serializer serial( to_stream( out ));
     SerializerTestData input;
     init_test_data(input);
     apply_serializer(serial, input);
 
     // Read data from stream.
     std::istringstream in(out.str());
-    Deserializer deser (in);
+    Deserializer deser( from_stream( in ));
     SerializerTestData output;
-    apply_deserializer(deser, output);
+    apply_deserializer_args(deser, output);
     compare_data(input, output);
+    EXPECT_TRUE( deser.finished() );
 
     // Move assign and repeat.
     std::istringstream in2(out.str());
-    deser = Deserializer( in2 );
+    deser = Deserializer( from_stream( in2 ));
     SerializerTestData output2;
-    apply_deserializer(deser, output2);
+    apply_deserializer_return(deser, output2);
     compare_data(input, output2);
+    EXPECT_TRUE( deser.finished() );
 }

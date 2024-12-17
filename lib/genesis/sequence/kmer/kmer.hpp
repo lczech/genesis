@@ -50,22 +50,18 @@ namespace sequence {
 // =================================================================================================
 
 /**
- * @brief Default Tag for a Kmer, used when no other Tag is provided.
- */
-struct KmerTagDefault{};
-
-/**
- * @brief Kmer class template for representing k-mers of various sizes, currently up to k-32.
+ * @brief Kmer struct for representing k-mers of various sizes, currently up to k-32.
  *
- * The class is templated with a Tag parameter, which allows distinguishing instances of different
- * k-mer sizes to avoid accidentally mixing them. This also serves as a mechanism to maintain the
- * value of k for each Tag that is being used, so that it does not have to be handed over to each
- * function using the Kmer. The downside of this is that for a given Tag, only one value of k can
- * be used at a time. For normal use cases, this should be fine, as k usually is a fixed value for
- * the duration of a program. Should multiple values be needed, each needs to use their own Tag.
+ * Note that we do store the value of `k` here for simplicity, as well as other properties such
+ * as the reverse complement, location in the genome, etc. These are helpful in many situations,
+ * but is of course wasteful when we just want the value of the k-mer itself.
+ * Hence, when larger collections of Kmer instances need to be stored, it might make sense
+ * to just store the numerical value instead, and discard the extra information kept here.
+ *
+ * Most operations on the Kmer are actually done byt the KmerBitfield and KmerAlphabet classes.
+ * This struct here is mostly meant as an (almost) POD to store the values of a k-mer.
  */
-template<typename Tag = KmerTagDefault>
-class Kmer
+struct Kmer
 {
 public:
 
@@ -75,6 +71,8 @@ public:
 
     using Alphabet = KmerAlphabet;
     using Bitfield = KmerBitfield;
+
+    using WordType = typename Bitfield::WordType;
 
     // Type checks
     static_assert(
@@ -87,11 +85,19 @@ public:
 
     Kmer() = default;
 
-    // Constructor to initialize k-mer data
-    explicit Kmer( typename Bitfield::WordType data )
+    /**
+     * @brief Constructor to initialize k-mer data
+     */
+    explicit Kmer( uint8_t k, WordType data )
         : value( data )
+        , k_( k )
     {
         // assert( value & Bitfield::ones_mask[k_] == value );
+        if( k == 0 || k > Bitfield::MAX_CHARS_PER_KMER ) {
+            throw std::invalid_argument(
+                "Cannot construct kmers with k=" + std::to_string( k )
+            );
+        }
     }
 
     ~Kmer() = default;
@@ -103,52 +109,13 @@ public:
     Kmer& operator= ( Kmer&& )      = default;
 
     // -------------------------------------------------------------------------
-    //     K
+    //     Accessors
     // -------------------------------------------------------------------------
 
-    static uint8_t k()
+    uint8_t k() const
     {
         return k_;
     }
-
-    /**
-     * @brief Set the value of `k` for all Kmer%s of the given Tag.
-     *
-     * This needs to be called once for a given Tag in order to initialize the value of `k` for the
-     * Tag. It can also only be done once, and will throw if used again with a different `k`.
-     * When needing to change `k` for a given Tag later on, use reset_k() instead.
-     */
-    static void set_k( uint8_t k )
-    {
-        if( k_ != 0 && k != k_ ) {
-            throw std::runtime_error(
-                "Cannot set_k() for a given Tag multiple times. Use reset_k() instead"
-            );
-        }
-        reset_k( k );
-    }
-
-    /**
-     * @brief Re-set the value of `k` for all Kmer%s of the given Tag.
-     *
-     * Conceptually, this is the same as set_k(), but without checking that the value has not been
-     * set already. This invalidates all Kmers of the same Tag, and hence shall only be done if
-     * no instances of a Kmer with the Tag are being in use any more. Otherwise, any computations
-     * using those will produce errors or meaningless results.
-     */
-    static void reset_k( uint8_t k )
-    {
-        if( k == 0 || k > Bitfield::MAX_CHARS_PER_KMER ) {
-            throw std::invalid_argument(
-                "Cannot use k-mer with k==" + std::to_string( k )
-            );
-        }
-        k_ = k;
-    }
-
-    // -------------------------------------------------------------------------
-    //     Accessors
-    // -------------------------------------------------------------------------
 
     /**
      * @brief Get the rank value of a position in the kmer.
@@ -218,7 +185,7 @@ public:
      * and the Alphabet for encoding characters as bits. It is public, as we often want to operate
      * on this value directly, for efficiency.
      */
-    typename Bitfield::WordType value = 0;
+    WordType value = 0;
 
     /**
      * @brief Reverse complement (RC) of the kmer.
@@ -233,7 +200,7 @@ public:
      * but that's okay - that is one edge case where the reverse_complement() function will
      * unnecessarily compute it again if called, and we can live with that.
      */
-    typename Bitfield::WordType rev_comp = 0;
+    WordType rev_comp = 0;
 
     /**
      * @brief Location of the kmer in the original input sequence.
@@ -251,13 +218,9 @@ public:
 
 private:
 
-    static uint8_t k_;
+    uint8_t k_;
 
 };
-
-// Initialize the static variable. Has to be out-of-line...
-template<typename Tag>
-uint8_t Kmer<Tag>::k_ = 0;
 
 } // namespace sequence
 } // namespace genesis

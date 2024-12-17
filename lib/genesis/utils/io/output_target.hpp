@@ -116,7 +116,7 @@ inline std::shared_ptr<BaseOutputTarget> to_file(
  */
 inline std::shared_ptr<BaseOutputTarget> to_file(
     std::string const& file_name,
-    std::ios_base::openmode mode = std::ios_base::out
+    std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary
 ) {
     return std::make_shared< FileOutputTarget >( file_name, mode );
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -794,31 +794,36 @@ void NewickReader::broker_to_tree_finish_(
     // Shortcut to tree containers.
     auto& links = tree.expose_link_container();
 
-    // we pushed elements to the link_stack for all children of the nodes and popped them when we
-    // were done processing those children, so there should be no elements left. this assumes that
-    // NewickBroker.assign_ranks() does its job properly!
-    // Already checked in the caller functions!
-    // assert(link_stack.empty());
+    if( links.empty() ) {
+        // Edge case of empty broker/tree.
+        assert( tree.empty() );
+    } else {
+        // we pushed elements to the link_stack for all children of the nodes and popped them
+        // when we were done processing those children, so there should be no elements left.
+        // this assumes that NewickBroker.assign_ranks() does its job properly!
+        // Already checked in the caller functions!
+        // assert(link_stack.empty());
 
-    // now delete the uplink of the root, in order to make the tree fully unrooted.
-    // (we do that after the tree creation, as it is way easier this way)
-    assert( &links.front()->outer() == links.front().get() );
-    auto next = &links.front()->next();
-    while( &next->next() != links.front().get() ) {
-        next = &next->next();
-    }
-    next->reset_next( &next->next().next() );
-    assert( &next->next() == &links.front()->next() );
-    links.erase(links.begin());
-    for (size_t i = 0; i < links.size(); ++i) {
-        links[i]->reset_index(i);
-    }
-    next->node().reset_primary_link( &next->next() );
+        // now delete the uplink of the root, in order to make the tree fully unrooted.
+        // (we do that after the tree creation, as it is way easier this way)
+        assert( &links.front()->outer() == links.front().get() );
+        auto next = &links.front()->next();
+        while( &next->next() != links.front().get() ) {
+            next = &next->next();
+        }
+        next->reset_next( &next->next().next() );
+        assert( &next->next() == &links.front()->next() );
+        links.erase(links.begin());
+        for (size_t i = 0; i < links.size(); ++i) {
+            links[i]->reset_index(i);
+        }
+        next->node().reset_primary_link( &next->next() );
 
-    // Lastly, make sure to correctly set the root link of the tree.
-    // Assert that the link is already the primary link of its node.
-    assert( links.front().get() == &links.front().get()->node().link() );
-    tree.reset_root_link( links.front().get() );
+        // Lastly, make sure to correctly set the root link of the tree.
+        // Assert that the link is already the primary link of its node.
+        assert( links.front().get() == &links.front().get()->node().link() );
+        tree.reset_root_link( links.front().get() );
+    }
 
     // Call all finish plugins.
     for( auto const& finish_plugin : finish_reading_plugins ) {

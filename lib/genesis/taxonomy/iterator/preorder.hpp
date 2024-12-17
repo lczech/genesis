@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -140,12 +140,18 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    self_type operator * ()
+    TaxonType& operator * ()
     {
-        return *this;
+        return *stack_.top();
+        // return *this;
     }
 
-    self_type operator ++ ()
+    // TaxonType& operator -> ()
+    // {
+    //     return *stack_.top();
+    // }
+
+    self_type& operator ++ ()
     {
         // Get the current stack top and remove it. We will then prepare its children for visit
         // by adding them to the stack.

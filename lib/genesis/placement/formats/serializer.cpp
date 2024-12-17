@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,15 +66,15 @@ unsigned char SampleSerializer::version = 1;
 void SampleSerializer::save( Sample const& map, std::string const& file_name )
 {
     // Prepare.
-    utils::Serializer ser (file_name);
-    if (!ser) {
-        throw std::invalid_argument("Serialization failed.");
-    }
+    utils::Serializer ser( utils::to_file( file_name ));
+    // if (!ser) {
+    //     throw std::invalid_argument("Serialization failed.");
+    // }
 
     // Write header.
     char magic[] = "BPLACE\0\0";
-    ser.put_raw(magic, 8);
-    ser.put_int<unsigned char>(version);
+    ser.put(magic, 8);
+    ser.put<unsigned char>(version);
 
     // Write tree.
     // TODO if there is a tree serialization in the future, this one could be used here, and in
@@ -84,30 +84,30 @@ void SampleSerializer::save( Sample const& map, std::string const& file_name )
     nw.enable_branch_lengths(true);
     std::string tree;
     nw.write( map.tree(), utils::to_string( tree ));
-    ser.put_string( std::move( tree ));
+    ser.put( tree );
 
     // Write pqueries.
-    ser.put_int(map.size());
-    for (auto& pqry : map.pqueries()) {
+    ser.put(map.size());
+    for( auto const& pqry : map.pqueries() ) {
 
         // Write placements.
-        ser.put_int(pqry.placement_size());
+        ser.put(pqry.placement_size());
         for( auto const& place : pqry.placements() ) {
             // We set the edge index instead of edge num. This is faster, simpler to resorte, and
             // consinstend with Pquery.add_placement() parameters.
-            ser.put_int   (place.edge().index());
+            ser.put( place.edge().index() );
 
-            ser.put_float( place.likelihood );
-            ser.put_float( place.like_weight_ratio );
-            ser.put_float( place.proximal_length );
-            ser.put_float( place.pendant_length );
+            ser.put( place.likelihood );
+            ser.put( place.like_weight_ratio );
+            ser.put( place.proximal_length );
+            ser.put( place.pendant_length );
         }
 
         // Write names.
-        ser.put_int(pqry.name_size());
+        ser.put(pqry.name_size());
         for( auto const& name : pqry.names() ) {
-            ser.put_string (name.name);
-            ser.put_float  (name.multiplicity);
+            ser.put( name.name );
+            ser.put( name.multiplicity );
         }
     }
 }
@@ -125,49 +125,50 @@ Sample SampleSerializer::load( std::string const& file_name )
     Sample map;
 
     // Prepare, check stream status.
-    utils::Deserializer des( file_name );
+    utils::Deserializer des( utils::from_file( file_name ));
     if( ! des ) {
         throw std::invalid_argument( "Deserialization failed: Cannot open file." );
     }
 
     // Read and check header.
-    std::string magic = des.get_raw_string(8);
-    if (strncmp (magic.c_str(), "BPLACE\0\0", 8) != 0) {
-        throw std::invalid_argument("Wrong file format: \"" + magic + "\".");
+    char magic[8] = {0};
+    des.get( magic, 8);
+    if (strncmp( magic, "BPLACE\0\0", 8 ) != 0) {
+        throw std::invalid_argument("Wrong file format: \"" + std::string( magic ) + "\".");
     }
-    auto ver = des.get_int<unsigned char>();
+    auto ver = des.get<unsigned char>();
     if (ver != version) {
         throw std::invalid_argument("Wrong serialization version: " + std::to_string(ver));
     }
 
     // Read and check tree.
-    auto tree_string = des.get_string();
+    auto tree_string = des.get<std::string>();
     map.tree() = PlacementTreeNewickReader().read( utils::from_string( tree_string ));
 
     // Read pqueries.
-    size_t num_pqueries = des.get_int<size_t>();
+    size_t num_pqueries = des.get<size_t>();
     for (size_t i = 0; i < num_pqueries; ++i) {
         Pquery& pqry = map.add();
 
         // Read placements.
-        size_t num_place = des.get_int<size_t>();
+        size_t num_place = des.get<size_t>();
         for (size_t p = 0; p < num_place; ++p) {
             // Get edge index, add the placement there.
-            size_t edge_idx = des.get_int<size_t>();
+            size_t edge_idx = des.get<size_t>();
             auto&   edge    = map.tree().edge_at( edge_idx );
             auto&  place    = pqry.add_placement( edge );
 
-            place.likelihood        = des.get_float<double>();
-            place.like_weight_ratio = des.get_float<double>();
-            place.proximal_length   = des.get_float<double>();
-            place.pendant_length    = des.get_float<double>();
+            place.likelihood        = des.get<double>();
+            place.like_weight_ratio = des.get<double>();
+            place.proximal_length   = des.get<double>();
+            place.pendant_length    = des.get<double>();
         }
 
         // Read names.
-        size_t num_names = des.get_int<size_t>();
+        size_t num_names = des.get<size_t>();
         for (size_t n = 0; n < num_names; ++n) {
-            auto name = pqry.add_name( des.get_string() );
-            name.multiplicity = des.get_float<double>();
+            auto name = pqry.add_name( des.get<std::string>() );
+            name.multiplicity = des.get<double>();
         }
     }
 

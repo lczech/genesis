@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ namespace utils {
  * @link supplement_acknowledgements_code_reuse_json_document Acknowledgements@endlink.
  */
 template<typename U>
-class JsonIterator : public std::iterator<std::random_access_iterator_tag, U>
+class JsonIterator // : public std::iterator<std::random_access_iterator_tag, U>
 {
     // -------------------------------------------------------------------------
     //     Friends and Asserts
