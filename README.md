@@ -2,7 +2,8 @@
 
 A library for working with phylogenetic and population genetic data.
 
-[![CI](https://github.com/lczech/genesis/workflows/CI/badge.svg?branch=master)](https://github.com/lczech/genesis/actions)
+<!-- [![CI](https://github.com/lczech/genesis/workflows/CI/badge.svg?branch=master)](https://github.com/lczech/genesis/actions) -->
+[![CI](https://github.com/lczech/genesis/actions/workflows/ci.yaml/badge.svg)](https://github.com/lczech/genesis/actions/workflows/ci.yaml)
 [![Softwipe Score](https://img.shields.io/badge/softwipe-9.0/10.0-brightgreen)](https://github.com/adrianzap/softwipe/wiki/Code-Quality-Benchmark)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
