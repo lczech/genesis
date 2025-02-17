@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,8 +96,12 @@ using FastqInputViewStream = FastxInputViewStream;
  * get an input source that can be used here.
  *
  * Thread safety: No thread safety. The common use case for this iterator is to loop over a file.
- * Thus, guarding induces unnecessary overhead. If multiple threads read from this iterator, both
- * dereferencing and incrementing need to be guarded.
+ * The stream cannot be incremented by multiple threads, as those would invalidate the iterators
+ * for other threads. For multi-threaded processing with this stream class, the preferred usage is
+ * thus as follows: Have one thread (usually, the main thread) read the stream and increment the
+ * iterator, and then make copies of the sequnces that can be distributed to other threads for
+ * further processing. With multiple threads operating on a view, there is no way to avoid copies
+ * of the sequences.
  */
 class FastxInputViewStream
 {
