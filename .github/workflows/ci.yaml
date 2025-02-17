@@ -109,59 +109,6 @@ jobs:
         include:
 
           # -------------------------------
-          #     Ubuntu 20.04
-          # -------------------------------
-
-          - os: ubuntu-20.04
-            compiler: gcc-7
-          - os: ubuntu-20.04
-            compiler: gcc-8
-          - os: ubuntu-20.04
-            compiler: gcc-9
-          - os: ubuntu-20.04
-            compiler: gcc-10
-          - os: ubuntu-20.04
-            compiler: gcc-11
-          # Setup fails
-          # - os: ubuntu-20.04
-          #   compiler: gcc-12
-          - os: ubuntu-20.04
-            compiler: gcc-13
-          # Setup fails
-          # - os: ubuntu-20.04
-          #   compiler: gcc-14
-          - os: ubuntu-20.04
-            compiler: llvm-6
-          - os: ubuntu-20.04
-            compiler: llvm-7
-          - os: ubuntu-20.04
-            compiler: llvm-8
-          # Weird segfault
-          # - os: ubuntu-20.04
-          #   compiler: llvm-9
-          - os: ubuntu-20.04
-            compiler: llvm-10
-          # Setup fails
-          # - os: ubuntu-20.04
-          #   compiler: llvm-11
-          - os: ubuntu-20.04
-            compiler: llvm-12
-          - os: ubuntu-20.04
-            compiler: llvm-13
-          - os: ubuntu-20.04
-            compiler: llvm-14
-          - os: ubuntu-20.04
-            compiler: llvm-15
-          - os: ubuntu-20.04
-            compiler: llvm-16
-          - os: ubuntu-20.04
-            compiler: llvm-17
-          - os: ubuntu-20.04
-            compiler: llvm-18
-          - os: ubuntu-20.04
-            compiler: llvm-19
-
-          # -------------------------------
           #     Ubuntu 22.04
           # -------------------------------
 
