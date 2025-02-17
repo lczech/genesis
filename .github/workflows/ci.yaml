@@ -477,7 +477,7 @@ jobs:
         run: |
           sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
           sudo apt-get install gdb valgrind
-          if [[ ${{ matrix.os }} != ubuntu-24.04 ]] ; then
+          if [[ ${{ matrix.os }} == ubuntu-22.04 ]] ; then
               sudo apt-get install libtinfo5
           fi
         # sudo apt-get remove autoconf
