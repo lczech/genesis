@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/printer/compact.hpp"
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"
@@ -62,6 +64,14 @@ void print_hac_(
         auto const tree = CommonTreeNewickReader().read( from_string( line ));
         LOG_MSG << PrinterCompact().print( tree );
     }
+
+    std::string cluster_str;
+    std::string merger_str;
+    hac_write_cluster_table( clust, to_string( cluster_str ));
+    hac_write_merger_table( clust, to_string( merger_str ));
+    LOG_MSG << "distances: " << hac_distance_matrix( clust );
+    LOG_MSG << "clusters: " << cluster_str;
+    LOG_MSG << "mergers: " << merger_str;
 }
 
 TEST( HierarchicalAgglomerativeClustering, DistanceMatrix )
@@ -108,6 +118,7 @@ TEST( HierarchicalAgglomerativeClustering, DistanceMatrix )
             "(d:14,(e:10.5,(c:10.5,(a:8.5,b:8.5)5:2)6:0)7:3.5)8;",
             hac_dendrogram( clust, labels )
         );
+        EXPECT_EQ( 9, hac_distance_matrix( clust ).rows() );
     }
 
     // Complete linkage, https://en.wikipedia.org/wiki/Complete-linkage_clustering
@@ -123,6 +134,7 @@ TEST( HierarchicalAgglomerativeClustering, DistanceMatrix )
             "((e:11.5,(a:8.5,b:8.5)5:3)6:10,(c:14,d:14)7:7.5)8;",
             hac_dendrogram( clust, labels )
         );
+        EXPECT_EQ( 9, hac_distance_matrix( clust ).rows() );
     }
 
     // Unweighted Average linkage, https://en.wikipedia.org/wiki/UPGMA
@@ -138,6 +150,7 @@ TEST( HierarchicalAgglomerativeClustering, DistanceMatrix )
             "((e:11,(a:8.5,b:8.5)5:2.5)6:5.5,(c:14,d:14)7:2.5)8;",
             hac_dendrogram( clust, labels )
         );
+        EXPECT_EQ( 9, hac_distance_matrix( clust ).rows() );
     }
 
     // LOG_MSG << hac_dendrogram( clust, labels, false );
@@ -176,6 +189,7 @@ TEST( HierarchicalAgglomerativeClustering, EuclideanDistance )
         clust.run();
         // print_hac_( clust, labels );
         EXPECT_EQ( exp_newick, hac_dendrogram( clust, labels, false ));
+        EXPECT_EQ( 11, hac_distance_matrix( clust ).rows() );
     }
 
     // Complete Linkage
@@ -188,6 +202,7 @@ TEST( HierarchicalAgglomerativeClustering, EuclideanDistance )
         clust.run();
         // print_hac_( clust, labels );
         EXPECT_EQ( exp_newick, hac_dendrogram( clust, labels, false ));
+        EXPECT_EQ( 11, hac_distance_matrix( clust ).rows() );
     }
 
     // Unweighted Average Linkage
@@ -200,6 +215,7 @@ TEST( HierarchicalAgglomerativeClustering, EuclideanDistance )
         clust.run();
         // print_hac_( clust, labels );
         EXPECT_EQ( exp_newick, hac_dendrogram( clust, labels, false ));
+        EXPECT_EQ( 11, hac_distance_matrix( clust ).rows() );
     }
 }
 
@@ -265,6 +281,7 @@ TEST( HierarchicalAgglomerativeClustering, Bitvectors )
     // that we can compile with more complex distance functions. For a more in-depth test, see below.
     EXPECT_EQ( 2 * num_elems - 1, clustering.clusters().size() );
     EXPECT_EQ(     num_elems - 1, clustering.mergers().size() );
+    EXPECT_EQ( clustering.clusters().size(), hac_distance_matrix( clustering ).rows() );
 }
 
 TEST( HierarchicalAgglomerativeClustering, BitvectorsLimited )
@@ -354,4 +371,5 @@ TEST( HierarchicalAgglomerativeClustering, BitvectorsLimited )
         // In total, each tree has exactly 5 characters from the label names.
         EXPECT_EQ( 5, total_cnt );
     }
+    EXPECT_EQ( clustering.clusters().size(), hac_distance_matrix( clustering ).rows() );
 }
