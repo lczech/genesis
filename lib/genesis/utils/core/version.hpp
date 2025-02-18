@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -100,7 +100,7 @@ inline std::string genesis_header()
      (___/ (___  /   / (___  (__) / (__)   \n\
       __/______________________________    \n\
     (__/                                   \n\
-               2014-2024 by Lucas Czech    \n\
+               2014-2025 by Lucas Czech    \n\
                " + genesis_url()     +    "\n\
                " + genesis_version() +    "\n";
 }
@@ -115,7 +115,7 @@ inline std::string genesis_license()
 {
     return "\
     Genesis - A toolkit for working with phylogenetic data.\n\
-    Copyright (C) 2014-2024 Lucas Czech\n\
+    Copyright (C) 2014-2025 Lucas Czech\n\
     \n\
     This program is free software: you can redistribute it and/or modify\n\
     it under the terms of the GNU General Public License as published by\n\
@@ -131,9 +131,9 @@ inline std::string genesis_license()
     along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\
     \n\
     Contact:\n\
-    Lucas Czech <lczech@carnegiescience.edu>\n\
-    Department of Plant Biology, Carnegie Institution For Science\n\
-    260 Panama Street, Stanford, CA 94305, USA\n";
+    Lucas Czech <lucas.czech@sund.ku.dk>\n\
+    University of Copenhagen, Globe Institute, Section for GeoGenetics\n\
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark\n";
 }
 
 inline std::string ee(int r)
