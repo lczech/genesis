@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -194,6 +194,25 @@ size_t group_with_target_number_of_groups( TaxonGroupingSearchParams const& para
  * @brief Count the number of groups that were constructed by group_by_taxon_sizes().
  */
 size_t count_taxon_groups( Taxonomy const& tax );
+
+/**
+ * @brief For each Taxon group constructed with group_by_taxon_sizes(), get a pointer to the
+ * highest-ranking taxa within that group.
+ *
+ * This function operates on a Taxonomy of KmerTaxonData that has been processed with
+ * group_by_taxon_sizes() to group taxa based on counts of sequences and/or their length.
+ * This results in taxon groups, as well as inner (expanded) taxa that are not part of a group.
+ *
+ * This function returns for each group a pointer to the list of highest rank taxa of the Taxonomy
+ * that are assigned to that group. This can be multiple, in case that
+ * TaxonGroupingLimits::merge_sibling_taxa was used when grouping the taxa; all of them will be
+ * sibling though, i.e., they are all children of the same parent taxon.
+ *
+ * The resulting vector is indexed by the KmerTaxonData::group_index of each group.
+ * That is, for one group (at the indices of the vector), all highest-ranking (sibling) taxa
+ * that belong to that group form the entries of the sub-vector at that index.
+ */
+std::vector<std::vector<Taxon const*>> taxononmy_group_taxa_list( Taxonomy const& tax );
 
 // =================================================================================================
 //     User Reporting

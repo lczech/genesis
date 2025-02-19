@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -407,10 +407,10 @@ size_t count_taxon_groups( Taxonomy const& tax )
     std::unordered_set<size_t> group_indices;
     std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon ){
         for( auto const& child : taxon ) {
-            auto& data = child.data<KmerTaxonData>();
+            auto const& data = child.data<KmerTaxonData>();
             switch( data.group_status ) {
                 case KmerTaxonData::GroupStatus::kAssigned: {
-                    // For taxa that have been assigne to a group, collect their indices.
+                    // For taxa that have been assigned to a group, collect their indices.
                     // As multiple taxa can be assigned to the same group (if the combined
                     // sizes are still within the limits of TaxonGroupingLimits),
                     // we need to count unique group indices here.
@@ -451,6 +451,64 @@ size_t count_taxon_groups( Taxonomy const& tax )
 
     // The number of groups is given by the number of unique group indices.
     return group_indices.size();
+}
+
+// --------------------------------------------------------------------------
+//     taxononmy_group_taxa_list
+// --------------------------------------------------------------------------
+
+std::vector<std::vector<Taxon const*>> taxononmy_group_taxa_list( Taxonomy const& tax )
+{
+    // Prepare the result vector with entries for each group.
+    auto const num_groups = count_taxon_groups( tax );
+    auto result = std::vector<std::vector<Taxon const*>>( num_groups );
+
+    // Iterate the taxonomy, recursing on expanded taxa,
+    // and collecting pointers to the top-most assigned taxa.
+    std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon ){
+        for( auto const& child : taxon ) {
+            auto const& data = child.data<KmerTaxonData>();
+            switch( data.group_status ) {
+                case KmerTaxonData::GroupStatus::kAssigned: {
+                    // For taxa that have been assigned to a group, collect their taxa.
+                    // As multiple taxa can be assigned to the same group (if the combined
+                    // sizes are still within the limits of TaxonGroupingLimits),
+                    // we need to add all those taxa to the vector for that group.
+                    if( data.group_index == std::numeric_limits<size_t>::max() ) {
+                        throw std::invalid_argument(
+                            "Invalid KmerTaxonData::GroupStatus, invalid group index"
+                        );
+                    }
+                    assert( data.group_index < result.size() );
+                    result[ data.group_index ].push_back( &child );
+                    break;
+                }
+                case KmerTaxonData::GroupStatus::kExpanded: {
+                    // For taxa that have been expanded (because they are too big),
+                    // we recurse instead.
+                    recursion_( child );
+                    break;
+                }
+                case KmerTaxonData::GroupStatus::kUnprocessed:
+                default: {
+                    throw std::invalid_argument(
+                        "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
+                    );
+                }
+            }
+        }
+    };
+    recursion_( tax );
+
+    // Assert that we have found all groups, i.e., there are no empty inner vectors left.
+    assert( std::none_of(
+        result.begin(), result.end(),
+        []( std::vector<Taxon const*> const& taxa ){
+            return taxa.empty();
+        }
+    ));
+
+    return result;
 }
 
 // =================================================================================================
