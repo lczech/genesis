@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -390,7 +390,17 @@ public:
         return clusters_.at( i );
     }
 
+    Cluster& cluster( size_t i )
+    {
+        return clusters_.at( i );
+    }
+
     std::vector<Cluster> const& clusters() const
+    {
+        return clusters_;
+    }
+
+    std::vector<Cluster>& clusters()
     {
         return clusters_;
     }
