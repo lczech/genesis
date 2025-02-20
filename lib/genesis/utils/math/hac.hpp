@@ -332,15 +332,30 @@ public:
             );
         }
 
-        // Maximum number of iterations we are going to run the clustering for,
-        // corresponding to a full hierarchical clustering of all observations.
-        // If more clusters are deactivated (via the keep_active_function),
-        // the actual number of iterations might be lowered during the run.
-        assert( data_.size() > 0 );
-        size_t total_iterations = data_.size() - 1;
-
-        // Init the result object.
+        // Init the clusters, mergers, and other results.
         init_();
+        assert( data_.empty() );
+
+        // Maximum number of iterations we are going to run the clustering for,
+        // corresponding to a full hierarchical clustering of all active observations,
+        // i.e., one fewer than the number of (active) clusters.
+        // Then, if more clusters are deactivated (via the keep_active_function),
+        // the actual number of iterations might be lowered during the run.
+        size_t total_iterations = 0;
+        for( auto const& cluster : clusters_ ) {
+            if( cluster.active ) {
+                ++total_iterations;
+            }
+        }
+        if( total_iterations < 2 ) {
+            throw std::invalid_argument(
+                "Cannot run hierarchical agglomerative clustering if all initial clusters "
+                "have been deactivated before clustering due to the keep_active_function() function."
+            );
+        }
+        --total_iterations;
+        assert( total_iterations > 0 );
+        assert( total_iterations <= clusters_.size() - 1 );
 
         // Do a full clustering for all iterations.
         size_t iteration = 1;
@@ -434,6 +449,7 @@ private:
 
         // Move all observations as single data points to the cluster list,
         // and compute the distances for the lower trinangle of entries.
+        assert( data_.size() > 0 );
         clusters_.resize( data_.size() );
         for( size_t i = 0; i < data_.size(); ++i ) {
             init_cluster_( i, std::move( data_[i] ));

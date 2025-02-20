@@ -61,8 +61,15 @@ void print_hac_(
     LOG_MSG << dend;
     auto const lines = split( hac_dendrogram( clust, labels ), '\n' );
     for( auto const& line : lines ) {
-        auto const tree = CommonTreeNewickReader().read( from_string( line ));
-        LOG_MSG << PrinterCompact().print( tree );
+        // LOG_DBG1 << line;
+        // We do not really have trees here for some single-node clusters...
+        // Might need to fix this in the future, but good enough for now to catch this here.
+        if( line.size() >= 5 ) {
+            auto const tree = CommonTreeNewickReader().read( from_string( line ));
+            LOG_MSG << PrinterCompact().print( tree );
+        } else {
+            LOG_MSG << line;
+        }
     }
 
     std::string cluster_str;
@@ -73,6 +80,14 @@ void print_hac_(
     LOG_MSG << "clusters: " << cluster_str;
     LOG_MSG << "mergers: " << merger_str;
 }
+
+// ================================================================================================
+//     Default Hierarchical Agglomerative Clustering
+// ================================================================================================
+
+// -------------------------------------------------------------------------
+//     Distance Matrix
+// -------------------------------------------------------------------------
 
 TEST( HierarchicalAgglomerativeClustering, DistanceMatrix )
 {
@@ -156,6 +171,10 @@ TEST( HierarchicalAgglomerativeClustering, DistanceMatrix )
     // LOG_MSG << hac_dendrogram( clust, labels, false );
 }
 
+// -------------------------------------------------------------------------
+//     Euclidean Distance
+// -------------------------------------------------------------------------
+
 TEST( HierarchicalAgglomerativeClustering, EuclideanDistance )
 {
     // Set up an example using euclidean distance,
@@ -218,6 +237,14 @@ TEST( HierarchicalAgglomerativeClustering, EuclideanDistance )
         EXPECT_EQ( 11, hac_distance_matrix( clust ).rows() );
     }
 }
+
+// ================================================================================================
+//     Bitvector Hierarchical Agglomerative Clustering
+// ================================================================================================
+
+// -------------------------------------------------------------------------
+//     Base Case
+// -------------------------------------------------------------------------
 
 TEST( HierarchicalAgglomerativeClustering, Bitvectors )
 {
@@ -284,63 +311,92 @@ TEST( HierarchicalAgglomerativeClustering, Bitvectors )
     EXPECT_EQ( clustering.clusters().size(), hac_distance_matrix( clustering ).rows() );
 }
 
-TEST( HierarchicalAgglomerativeClustering, BitvectorsLimited )
+// -------------------------------------------------------------------------
+//     Limited and Deactivated
+// -------------------------------------------------------------------------
+
+// We cluster bitvectors, and also store some extra indicator number,
+// which we use to (more or less) randomly deactivate some clusters.
+// In real applications, this number would e.g. be some cluster size,
+// so that we can deactivate clusters once they get too big.
+struct HacBitvectorExtra
 {
+    Bitvector bv;
+    size_t num;
+};
+
+std::pair<std::vector<HacBitvectorExtra>, std::vector<std::string>>
+hac_test_make_random_bitvectors_(
+    size_t const num_elems = 25,
+    size_t const bv_len = 1000
+) {
     std::srand(std::time(nullptr));
 
     // Make some (more or less) random bitvectors.
     // We create them such that we have groups of 5 that are similar to each other.
     // Here, we furthermore keep track of how many elements there are in each cluster.
-    using T = std::pair<Bitvector, size_t>;
-    auto const num_elems = 25;
-    auto const bv_len = 1000;
-    auto bvs = std::vector<T>( num_elems );
+    auto bvs = std::vector<HacBitvectorExtra>( num_elems );
     std::vector<std::string> labels;
     for( size_t i = 0; i < num_elems; ++i ) {
         if( i % 5 == 0 ) {
             // Every firth bv is completely randomized.
-            bvs[i].first = Bitvector( bv_len );
+            bvs[i].bv = Bitvector( bv_len );
             for( size_t p = 0; p < bv_len; ++p ) {
-                bvs[i].first.flip( std::rand() % bv_len );
+                bvs[i].bv.flip( std::rand() % bv_len );
             }
         } else {
             // All other (4 out of 5) have a single bit difference
             // to the preceeding one.
-            EXPECT_EQ( bv_len, bvs[i - (i % 5)].first.size() );
-            bvs[i].first = bvs[i - (i % 5)].first;
-            bvs[i].first.flip( std::rand() % bv_len );
+            EXPECT_EQ( bv_len, bvs[i - (i % 5)].bv.size() );
+            bvs[i].bv = bvs[i - (i % 5)].bv;
+            bvs[i].bv.flip( std::rand() % bv_len );
         }
-        bvs[i].second = 1;
+        bvs[i].num = 1;
 
         // Give the five different clusters names from A0..A4 .. E0..E4
         labels.push_back( std::string( 1, 'A' + i/5 ) + std::to_string( i%5 ));
     }
+    return { bvs, labels };
+}
 
+HierarchicalAgglomerativeClustering<HacBitvectorExtra> hac_test_make_hac_()
+{
     // See above fore the general setup of the clustering. Here, we impose the additional constraint
     // that clusters can have at most 5 elements, and deactivate a cluster for further consideration
     // once it reaches that number of elements.
-    auto clustering = HierarchicalAgglomerativeClustering<T>();
-    clustering.set_data( std::move( bvs ));
-    clustering.distance_function = []( T const& a, T const& b )
+    auto clustering = HierarchicalAgglomerativeClustering<HacBitvectorExtra>();
+    clustering.distance_function = []( HacBitvectorExtra const& a, HacBitvectorExtra const& b )
     {
-        return jaccard_distance( a.first, b.first );
+        return jaccard_distance( a.bv, b.bv );
     };
-    clustering.merge_function = []( T const& a, T const& b )
+    clustering.merge_function = []( HacBitvectorExtra const& a, HacBitvectorExtra const& b )
     {
-        return T{ ( a.first | b.first ), ( a.second + b.second ) };
+        return HacBitvectorExtra{ ( a.bv | b.bv ), ( a.num + b.num ) };
     };
-    clustering.deactivate_function = []( T& data )
+    clustering.deactivate_function = []( HacBitvectorExtra& data )
     {
-        data.first = Bitvector();
+        data.bv = Bitvector();
     };
-    clustering.keep_active_function = []( T const& data )
+    clustering.keep_active_function = []( HacBitvectorExtra const& data )
     {
-        return data.second < 5;
+        return data.num < 5;
     };
     // clustering.report_step_begin_function = []( size_t iteration, size_t total_iterations )
     // {
     //     LOG_MSG << "At " << iteration << " of " << total_iterations;
     // };
+
+    return clustering;
+}
+
+TEST( HierarchicalAgglomerativeClustering, BitvectorsLimited )
+{
+    // Make 5 sets of 5 similar bitvectors,
+    // and prepare a clustering instance for this.
+    auto bvs_data = hac_test_make_random_bitvectors_();
+    auto const& labels = bvs_data.second;
+    auto clustering = hac_test_make_hac_();
+    clustering.set_data( std::move( bvs_data.first ));
 
     // Run the clustering
     clustering.run();
@@ -371,5 +427,37 @@ TEST( HierarchicalAgglomerativeClustering, BitvectorsLimited )
         // In total, each tree has exactly 5 characters from the label names.
         EXPECT_EQ( 5, total_cnt );
     }
+    EXPECT_EQ( clustering.clusters().size(), hac_distance_matrix( clustering ).rows() );
+}
+
+TEST( HierarchicalAgglomerativeClustering, BitvectorsDeactivated )
+{
+    // Make 5 sets of 5 similar bitvectors,
+    // and set the "deactivate" count for some of them, so that they immediately
+    // get deactivated upon initialization.
+    auto bvs_data = hac_test_make_random_bitvectors_();
+    auto const& labels = bvs_data.second;
+    for( size_t i = 0; i < bvs_data.first.size(); ++i ) {
+        if( i % 5 == 4 ) {
+            bvs_data.first[i].num = 5;
+        }
+    }
+
+    // Prepare a clustering instance for this.
+    auto clustering = hac_test_make_hac_();
+    clustering.set_data( std::move( bvs_data.first ));
+
+    // Run the clustering
+    clustering.run();
+    // print_hac_( clustering, labels );
+
+    // We created 5 clusters, and so the dendrogram should contain 5 lines in newick format.
+    EXPECT_EQ( 8, split( hac_dendrogram( clustering, labels ), '\n' ).size() );
+
+    // Similar to above, we just test the number of clusters and mergers created.
+    // That is the normal number (49 and 24), but reduced by 4 each, as instead of 1,
+    // we here created 5 clusters (whose difference is 4).
+    EXPECT_EQ( 42, clustering.clusters().size() );
+    EXPECT_EQ( 17, clustering.mergers().size() );
     EXPECT_EQ( clustering.clusters().size(), hac_distance_matrix( clustering ).rows() );
 }
