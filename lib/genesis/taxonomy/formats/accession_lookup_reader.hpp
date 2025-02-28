@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,8 +36,10 @@
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <cassert>
@@ -66,6 +68,7 @@ namespace taxonomy {
  *  - If the table has no header row, the two relevant columns can simply be specified
  *    by their position, e.g., column 0 for the first column.
  *  - If the table contains a header row with column names, those can be specified instead.
+ *    Typically, we use for instance "accession" and "taxid".
  *
  * Furthermore, each of those two modes is provided in two variants: One where the AccessionLookup
  * is returned as the result of the reading, and one where a given AccessionLookup can be provided.
@@ -129,8 +132,8 @@ public:
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
         std::shared_ptr<utils::BaseInputSource> source,
-        std::string const& accession_column_name,
-        std::string const& taxid_column_name
+        std::string const& accession_column_name = "accession",
+        std::string const& taxid_column_name = "taxid"
     ) const {
         AccessionLookup<Hashmap> target;
         read_with_column_names(
@@ -143,8 +146,8 @@ public:
     void read_with_column_names(
         std::shared_ptr<utils::BaseInputSource> source,
         AccessionLookup<Hashmap>& target,
-        std::string const& accession_column_name,
-        std::string const& taxid_column_name
+        std::string const& accession_column_name = "accession",
+        std::string const& taxid_column_name = "taxid"
     ) const {
         utils::InputStream instr( source );
         auto const col_pos = get_table_header_column_positions_(
@@ -333,7 +336,16 @@ private:
         while( instr ) {
             // Get the next line (moves the inut stream), and split it into fields.
             auto const line = instr.get_line();
-            auto const cols = utils::split( line, separator_char_, false );
+
+            // Split the line in the table.
+            // Depending on the standard, we can use a view, which is cheaper.
+            #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+                auto const cols = utils::split_view( line, separator_char_, false );
+            #else
+                auto const cols = utils::split( line, separator_char_, false );
+            #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+            // Basic sanity check of the columns.
             if( acc_pos >= cols.size() || tid_pos >= cols.size() ) {
                 throw std::runtime_error(
                     "Invalid accession lookup table with inconsistent number of columns"
@@ -341,8 +353,13 @@ private:
             }
             ++acc_count_;
 
-            // Extract the info from the two fields we are interested in.
-            auto tax_it = tax_id_to_taxon_.find( std::stoull( cols[tid_pos] ));
+            // Convert the tax id to numeric. Using two methods here for string and string view
+            #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+                auto const taxid = utils::convert_from_chars<uint64_t>( cols[tid_pos] );
+            #else
+                auto const taxid = std::stoull( cols[tid_pos] );
+            #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+            auto tax_it = tax_id_to_taxon_.find( taxid );
             if( tax_it == tax_id_to_taxon_.end() ) {
                 ++inv_count_;
                 if( skip_accessions_with_invalid_tax_id_ ) {
@@ -350,11 +367,13 @@ private:
                 } else {
                     throw std::runtime_error(
                         "Invalid accession lookup table, containing an entry for tax id '" +
-                        cols[tid_pos] + "' which is not part of the taxonomy"
+                        std::string( cols[tid_pos] ) + "' which is not part of the taxonomy"
                     );
                 }
             }
-            target.add( cols[acc_pos], tax_it->second );
+
+            // Add the entry
+            target.add( std::string( cols[acc_pos] ), tax_it->second );
             ++val_count_;
         }
     }
