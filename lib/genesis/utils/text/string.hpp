@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <algorithm>
@@ -285,16 +286,28 @@ std::string tail( std::string const& text, size_t lines = 10 );
 size_t count_substring_occurrences( std::string const& str, std::string const& sub );
 
 /**
+ * @brief Split a string containing positive interger numbers into its parts and resolve ranges.
+ *
+ * For example, the string `1, 3, 5-7, 10` results in a vector of all listed numbers and the
+ * ranges in between, that is `1, 3, 5, 6, 7, 10`. Whitespace is ignored; the range is sorted.
+ */
+std::vector<size_t> split_range_list( std::string const& str );
+
+// -------------------------------------------------------------------------
+//     Split String
+// -------------------------------------------------------------------------
+
+/**
  * @brief Spilt a @p string into parts, given a @p delimiter char.
  *
  * The @p string is split using the @p delimiter char, and returned as a vector
  * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
  * excluded from the output.
  */
-std::vector<std::string> split (
+std::vector<std::string> split(
     std::string const& str,
-    char delimiter = '\t',
-    const bool trim_empty = true
+    char const delimiter = '\t',
+    bool const trim_empty = true
 );
 
 /**
@@ -304,10 +317,10 @@ std::vector<std::string> split (
  * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
  * excluded from the output.
  */
-std::vector<std::string> split (
+std::vector<std::string> split(
     std::string const& str,
     std::string const& delimiters,
-    const bool trim_empty = true
+    bool const trim_empty = true
 );
 
 /**
@@ -318,10 +331,10 @@ std::vector<std::string> split (
  * and returned as a vector of strings.  If `trim_empty` is set, empty strings resulting from
  * adjacent delimiter chars are excluded from the output.
  */
-std::vector<std::string> split (
+std::vector<std::string> split(
     std::string const& str,
     std::function<bool (char)> delimiter_predicate,
-    const bool trim_empty = true
+    bool const trim_empty = true
 );
 
 /**
@@ -331,19 +344,43 @@ std::vector<std::string> split (
  * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiters are
  * excluded from the output.
  */
-std::vector<std::string> split_at (
+std::vector<std::string> split_at(
     std::string const& str,
     std::string const& delimiter,
-    const bool trim_empty = true
+    bool const trim_empty = true
 );
 
-/**
- * @brief Split a string containing positive interger numbers into its parts and resolve ranges.
- *
- * For example, the string `1, 3, 5-7, 10` results in a vector of all listed numbers and the
- * ranges in between, that is `1, 3, 5, 6, 7, 10`. Whitespace is ignored; the range is sorted.
- */
-std::vector<size_t> split_range_list( std::string const& str );
+// -------------------------------------------------------------------------
+//     Split String View
+// -------------------------------------------------------------------------
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+std::vector<std::string_view> split_view(
+    std::string const& str,
+    char const delimiter = '\t',
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view(
+    std::string const& str,
+    std::string const& delimiters,
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view(
+    std::string const& str,
+    std::function<bool (char)> delimiter_predicate,
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view_at(
+    std::string const& str,
+    std::string const& delimiter,
+    bool const trim_empty = true
+);
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // =================================================================================================
 //     Manipulate

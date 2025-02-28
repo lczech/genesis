@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -533,106 +533,6 @@ size_t count_substring_occurrences( std::string const& str, std::string const& s
     return count;
 }
 
-/**
- * @brief Local function that does the work for the split cuntions.
- */
-static std::vector<std::string> split_ (
-    std::string const& string,
-    std::function<size_t ( std::string const&, size_t )> find_pos,
-    size_t advance_by,
-    const bool trim_empty
-) {
-    std::vector<std::string> result;
-
-    size_t last_pos = 0;
-    while( true ) {
-        // Find first matching char.
-        size_t pos = find_pos( string, last_pos );
-
-        // If not found, push back rest and stop.
-        if( pos == std::string::npos ) {
-           pos = string.length();
-
-           if( pos != last_pos || !trim_empty ) {
-              result.push_back( std::string( string.data() + last_pos, pos - last_pos ));
-           }
-
-           break;
-
-        // If found, push back and continue.
-        } else {
-           if( pos != last_pos || !trim_empty ) {
-              result.push_back( std::string( string.data() + last_pos, pos - last_pos ));
-           }
-        }
-
-        last_pos = pos + advance_by;
-    }
-
-    return result;
-}
-
-std::vector<std::string> split (
-    std::string const& str,
-    char delimiter,
-    const bool trim_empty
-) {
-    return split( str, std::string( 1, delimiter ), trim_empty );
-}
-
-std::vector<std::string> split (
-    std::string const& str,
-    std::string const& delimiters,
-    const bool trim_empty
-) {
-    return split_(
-        str,
-        [&]( std::string const& str, size_t last_pos ){
-            return str.find_first_of( delimiters, last_pos );
-        },
-        1,
-        trim_empty
-    );
-}
-
-std::vector<std::string> split (
-    std::string const& str,
-    std::function<bool(char)> delimiter_predicate,
-    const bool trim_empty
-) {
-    return split_(
-        str,
-        [&]( std::string const& str, size_t last_pos ){
-            // Find first matching char.
-            size_t pos = std::string::npos;
-            for( size_t i = last_pos; i < str.size(); ++i ) {
-                if( delimiter_predicate( str[i] ) ) {
-                    pos = i;
-                    break;
-                }
-            }
-            return pos;
-        },
-        1,
-        trim_empty
-    );
-}
-
-std::vector<std::string> split_at (
-    std::string const& str,
-    std::string const& delimiter,
-    const bool trim_empty
-) {
-    return split_(
-        str,
-        [&]( std::string const& str, size_t last_pos ){
-            return str.find( delimiter, last_pos );
-        },
-        delimiter.size(),
-        trim_empty
-    );
-}
-
 std::vector<size_t> split_range_list( std::string const& str )
 {
     std::vector<size_t> result;
@@ -672,6 +572,182 @@ std::vector<size_t> split_range_list( std::string const& str )
     std::sort( result.begin(), result.end() );
     return result;
 }
+
+// -------------------------------------------------------------------------
+//     Split String Helpers
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Local function that does the work for the split cuntions.
+ */
+template<class R>
+static std::vector<R> split_loop_(
+    std::string const& string,
+    std::function<size_t ( std::string const&, size_t )> find_pos,
+    size_t const advance_by,
+    bool const trim_empty
+) {
+    std::vector<R> result;
+
+    size_t last_pos = 0;
+    while( true ) {
+        // Find first matching char.
+        size_t pos = find_pos( string, last_pos );
+
+        // If not found, push back rest and stop.
+        if( pos == std::string::npos ) {
+           pos = string.length();
+
+           if( pos != last_pos || !trim_empty ) {
+              result.push_back( R( string.data() + last_pos, pos - last_pos ));
+           }
+
+           break;
+
+        // If found, push back and continue.
+        } else {
+           if( pos != last_pos || !trim_empty ) {
+              result.push_back( R( string.data() + last_pos, pos - last_pos ));
+           }
+        }
+
+        last_pos = pos + advance_by;
+    }
+
+    return result;
+}
+
+template<class R>
+std::vector<R> split_(
+    std::string const& str,
+    std::string const& delimiters,
+    bool const trim_empty
+) {
+    return split_loop_<R>(
+        str,
+        [&]( std::string const& str, size_t last_pos ){
+            return str.find_first_of( delimiters, last_pos );
+        },
+        1,
+        trim_empty
+    );
+}
+
+template<class R>
+std::vector<R> split_(
+    std::string const& str,
+    std::function<bool(char)> delimiter_predicate,
+    bool const trim_empty
+) {
+    return split_loop_<R>(
+        str,
+        [&]( std::string const& str, size_t last_pos ){
+            // Find first matching char.
+            size_t pos = std::string::npos;
+            for( size_t i = last_pos; i < str.size(); ++i ) {
+                if( delimiter_predicate( str[i] ) ) {
+                    pos = i;
+                    break;
+                }
+            }
+            return pos;
+        },
+        1,
+        trim_empty
+    );
+}
+
+template<class R>
+std::vector<R> split_at_(
+    std::string const& str,
+    std::string const& delimiter,
+    bool const trim_empty
+) {
+    return split_loop_<R>(
+        str,
+        [&]( std::string const& str, size_t last_pos ){
+            return str.find( delimiter, last_pos );
+        },
+        delimiter.size(),
+        trim_empty
+    );
+}
+
+// -------------------------------------------------------------------------
+//     Split String
+// -------------------------------------------------------------------------
+
+std::vector<std::string> split(
+    std::string const& str,
+    char const delimiter,
+    bool const trim_empty
+) {
+    return split_<std::string>( str, std::string( 1, delimiter ), trim_empty );
+}
+
+std::vector<std::string> split(
+    std::string const& str,
+    std::string const& delimiters,
+    bool const trim_empty
+) {
+    return split_<std::string>( str, delimiters, trim_empty );
+}
+
+std::vector<std::string> split(
+    std::string const& str,
+    std::function<bool(char)> delimiter_predicate,
+    bool const trim_empty
+) {
+    return split_<std::string>( str, delimiter_predicate, trim_empty );
+}
+
+std::vector<std::string> split_at(
+    std::string const& str,
+    std::string const& delimiter,
+    bool const trim_empty
+) {
+    return split_at_<std::string>( str, delimiter, trim_empty );
+}
+
+// -------------------------------------------------------------------------
+//     Split String View
+// -------------------------------------------------------------------------
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+std::vector<std::string_view> split_view(
+    std::string const& str,
+    char const delimiter,
+    bool const trim_empty
+) {
+    return split_<std::string_view>( str, std::string( 1, delimiter ), trim_empty );
+}
+
+std::vector<std::string_view> split_view(
+    std::string const& str,
+    std::string const& delimiters,
+    bool const trim_empty
+) {
+    return split_<std::string_view>( str, delimiters, trim_empty );
+}
+
+std::vector<std::string_view> split_view(
+    std::string const& str,
+    std::function<bool (char)> delimiter_predicate,
+    bool const trim_empty
+) {
+    return split_<std::string_view>( str, delimiter_predicate, trim_empty );
+}
+
+std::vector<std::string_view> split_view_at(
+    std::string const& str,
+    std::string const& delimiter,
+    bool const trim_empty
+) {
+    return split_at_<std::string_view>( str, delimiter, trim_empty );
+}
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // =================================================================================================
 //     Manipulate
