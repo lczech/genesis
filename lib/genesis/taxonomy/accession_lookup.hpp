@@ -275,7 +275,7 @@ private:
     ) {
         // Default for std::unordered_map under C++11, using insert() and external locking.
         assert( mtx_ );
-        auto lock = std::lock_guard<std::mutex>( *mtx_ );
+        std::lock_guard<std::mutex> lock( *mtx_ );
         auto const result = map_.insert( std::make_pair( accession, taxon ));
         if( !result.second && result.first->second != taxon ) {
             // Only throw if the key exists and has a different taxon assigned to it.
@@ -295,7 +295,7 @@ private:
         // Default for std::unordered_map under C++ > 14, or the phmap without internal locking,
         // using try_emplace() and external locking.
         assert( mtx_ );
-        auto lock = std::lock_guard<std::mutex>( *mtx_ );
+        std::lock_guard<std::mutex> lock( *mtx_ );
         auto const result = map_.try_emplace( accession, taxon );
         if( !result.second && result.first->second != taxon ) {
             throw std::runtime_error(
