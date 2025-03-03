@@ -313,7 +313,7 @@ private:
         // Specialization for phmap wit internal locking.
         map_.try_emplace_l(
             accession,
-            [&]( MapType::value_type const& it ){
+            [&]( typename MapType::value_type const& it ){
                 // This function is called when the element already exist,
                 // while holding the internal lock, so that we can access the element.
                 if( it.second != taxon ) {
