@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,9 +37,31 @@
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+// For the parallel hashmap of https://github.com/greg7mdp/parallel-hashmap
+// we offer specialized refinements of the below class that allow multi-threaded
+// insertion of elements without an external lock on the data structure.
+// For this, we here forward-declare the two hash maps of that repository,
+// such that we can check for it without having to have the classes in our code base.
+
+namespace phmap {
+
+template <class K, class V, class Hash, class Eq, class Alloc, size_t N, class Mutex>
+class parallel_flat_hash_map;
+
+template <class K, class V, class Hash, class Eq, class Alloc, size_t N, class Mutex>
+class parallel_node_hash_map;
+
+}
 
 namespace genesis {
 namespace taxonomy {
@@ -90,7 +112,10 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    AccessionLookup()  = default;
+    AccessionLookup()
+        : mtx_( ::genesis::utils::make_unique<std::mutex>() )
+    {}
+
     ~AccessionLookup() = default;
 
     AccessionLookup( AccessionLookup const& ) = default;
@@ -208,6 +233,11 @@ public:
         return map_;
     }
 
+    inline constexpr bool is_concurrent() const
+    {
+        return is_concurrent_<MapType>::value;
+    }
+
     // -------------------------------------------------------------------------
     //     Private Members
     // -------------------------------------------------------------------------
@@ -232,14 +262,26 @@ private:
     )::value >::type
     inline add_( std::string const& accession, Taxon* taxon )
     {
-        auto const result = map_.try_emplace( accession, taxon );
-        if( !result.second ) {
-            // Only throw if the key exists and has a different taxon assigned to it.
-            // If it's the same anyway, we tolerate this.
-            if( result.first->second != taxon ) {
-                throw std::runtime_error(
-                    "Duplicate entry for accession '" + accession + "' in lookup table"
-                );
+        // Add a new entry to the lookup hash map.
+        if( !is_concurrent_<MapType>::value ) {
+            // For non-thread-safe maps, lock externally.
+            assert( mtx_ );
+            auto lock = std::lock_guard<std::mutex>( *mtx_ );
+            auto const result = map_.try_emplace( accession, taxon );
+            if( !result.second ) {
+                // The key already exist. Only throw if it has a different taxon assigned to it.
+                // If it's the same anyway, we tolerate this.
+                is_duplicate_or_throw_( accession, taxon );
+            }
+        } else {
+            // For concurrent maps, no external locking is needed for the insertion.
+            auto const result = map_.try_emplace( accession, taxon );
+            if( !result.second ) {
+                // For the duplicate check, we need to obtain the lock first,
+                // as the iterator of result.first is not thread-safe. The bool of
+                // result.second that we access here should be thread-safe though.
+                auto lock = std::lock_guard<std::mutex>( *mtx_ );
+                is_duplicate_or_throw_( accession, taxon );
             }
         }
     }
@@ -257,12 +299,20 @@ private:
     )::value >::type
     inline add_( std::string const& accession, Taxon* taxon )
     {
-        auto const result = map_.insert( std::make_pair( accession, taxon ));
-        if( !result.second ) {
-            if( result.first->second != taxon ) {
-                throw std::runtime_error(
-                    "Duplicate entry for accession '" + accession + "' in lookup table"
-                );
+        // Same logic as above, but using insert() instead of try_emplace().
+        // Note: This function is unfortunately duplcated below for older compilers.
+        if( !is_concurrent_<MapType>::value ) {
+            assert( mtx_ );
+            auto lock = std::lock_guard<std::mutex>( *mtx_ );
+            auto const result = map_.insert( std::make_pair( accession, taxon ));
+            if( !result.second ) {
+                is_duplicate_or_throw_( accession, taxon );
+            }
+        } else {
+            auto const result = map_.insert( std::make_pair( accession, taxon ));
+            if( !result.second ) {
+                auto lock = std::lock_guard<std::mutex>( *mtx_ );
+                is_duplicate_or_throw_( accession, taxon );
             }
         }
     }
@@ -275,17 +325,52 @@ private:
      */
     inline void add_( std::string const& accession, Taxon* taxon )
     {
-        auto const result = map_.insert( std::make_pair( accession, taxon ));
-        if( !result.second ) {
-            if( result.first->second != taxon ) {
-                throw std::runtime_error(
-                    "Duplicate entry for accession '" + accession + "' in lookup table"
-                );
+
+        // Code duplcation from above... Not nice, but we did not get this to work properly
+        // in a way that compiles with C++11, C++14, and later with just one approach...
+        if( !is_concurrent_<MapType>::value ) {
+            assert( mtx_ );
+            auto lock = std::lock_guard<std::mutex>( *mtx_ );
+            auto const result = map_.insert( std::make_pair( accession, taxon ));
+            if( !result.second ) {
+                is_duplicate_or_throw_( accession, taxon );
+            }
+        } else {
+            auto const result = map_.insert( std::make_pair( accession, taxon ));
+            if( !result.second ) {
+                auto lock = std::lock_guard<std::mutex>( *mtx_ );
+                is_duplicate_or_throw_( accession, taxon );
             }
         }
     }
 
     #endif
+
+    inline void is_duplicate_or_throw_( std::string const& accession, Taxon* taxon )
+    {
+        // The function assumes to be called with a lock on the mutex being held by the caller!
+        // The above add_() functions are thread safe for the insert/emplace,
+        // either by locking everything through mtx_, or, when using a `parallel_hashmap`,
+        // through its internal locking.
+        // However, in case of a key already being present, the result.first of the insertion
+        // is an iterator, and hence not thread-safe to access.
+        // We could overload the above to work differently for std::unordered_map
+        // and parallel_hashmap, but as we do not expect this error case to happen
+        // often, it is fine to just load the key/value again here.
+        auto it = map_.find( accession );
+        if( it == map_.end() ) {
+            // This should never happen, as we only call this function when an entry
+            // does already exist. Still, let's check, just in case.
+            throw std::runtime_error(
+                "Entry for accession \"" + accession + "\" was erased in lookup table"
+            );
+        } else if( it->second != taxon ) {
+            throw std::runtime_error(
+                "Duplicate entry for accession \"" + accession + "\" in lookup table"
+            );
+        }
+        // else: all good, nothing to do.
+    }
 
     inline ConstIterator find_(
         std::string const& accession,
@@ -303,12 +388,39 @@ private:
     }
 
     // -------------------------------------------------------------------------
+    //     Type Helpers
+    // -------------------------------------------------------------------------
+
+private:
+
+    // Nested trait to check if a map type is concurrent (i.e. has internal locking).
+    // By default, we assume the map is not concurrent, and use external locking.
+    template <typename T>
+    struct is_concurrent_ : std::false_type {};
+
+    // Specialization for parallel_flat_hash_map instantiated with std::mutex.
+    template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc, size_t N>
+    struct is_concurrent_<phmap::parallel_flat_hash_map<Key, Value, Hash, Eq, Alloc, N, std::mutex>>
+        : std::true_type
+    {};
+
+    // Specialization for parallel_node_hash_map instantiated with std::mutex.
+    template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc, size_t N>
+    struct is_concurrent_<phmap::parallel_node_hash_map<Key, Value, Hash, Eq, Alloc, N, std::mutex>>
+        : std::true_type
+    {};
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
 private:
 
     MapType map_;
+
+    // For multi-threaded use, we need a mutex.
+    // Use a pointer, so that this class is movable.
+    std::unique_ptr<std::mutex> mtx_;
 
 };
 

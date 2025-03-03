@@ -41,14 +41,19 @@
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
+#include <atomic>
 #include <cassert>
 #include <cctype>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace genesis {
 namespace taxonomy {
@@ -88,9 +93,16 @@ public:
     // ---------------------------------------------------------------------
 
     AccessionLookupReader();
+
     AccessionLookupReader( Taxonomy& tax )
     {
         fill_taxon_map_( tax );
+    }
+
+    AccessionLookupReader( Taxonomy& tax, std::shared_ptr<utils::ThreadPool> thread_pool )
+    {
+        fill_taxon_map_( tax );
+        thread_pool_ = thread_pool;
     }
 
     ~AccessionLookupReader() = default;
@@ -102,7 +114,7 @@ public:
     AccessionLookupReader& operator= ( AccessionLookupReader&& )      = default;
 
     // ---------------------------------------------------------------------
-    //     Reading
+    //     Read with Column Positions
     // ---------------------------------------------------------------------
 
     template<template<typename...> class Hashmap = std::unordered_map>
@@ -125,9 +137,44 @@ public:
         size_t accession_column_position = 0,
         size_t taxid_column_position = 1
     ) const {
-        utils::InputStream instr( source );
-        read_table_( instr, accession_column_position, taxid_column_position, target );
+        utils::InputStream instream( source );
+        read_table_(
+            instream, accession_column_position, taxid_column_position, target
+        );
     }
+
+    template<template<typename...> class Hashmap = std::unordered_map>
+    AccessionLookup<Hashmap> read_with_column_positions(
+        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        size_t accession_column_position = 0,
+        size_t taxid_column_position = 1
+    ) const {
+        // Read all provided files, either in parallel if we have a thread pool, or consecutively.
+        AccessionLookup<Hashmap> target;
+        if( thread_pool_ ) {
+            utils::parallel_for_each(
+                sources, [&]( std::shared_ptr<utils::BaseInputSource>& source ){
+                    utils::InputStream instream( source );
+                    read_table_(
+                        instream, accession_column_position, taxid_column_position, target
+                    );
+                },
+                thread_pool_
+            ).get();
+        } else {
+            for( auto& source : sources ) {
+                utils::InputStream instream( source );
+                read_table_(
+                    instream, accession_column_position, taxid_column_position, target
+                );
+            }
+        }
+        return target;
+    }
+
+    // ---------------------------------------------------------------------
+    //     Read with Column Names
+    // ---------------------------------------------------------------------
 
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
@@ -149,11 +196,48 @@ public:
         std::string const& accession_column_name = "accession",
         std::string const& taxid_column_name = "taxid"
     ) const {
-        utils::InputStream instr( source );
+        utils::InputStream instream( source );
         auto const col_pos = get_table_header_column_positions_(
-            instr, accession_column_name, taxid_column_name
+            instream, accession_column_name, taxid_column_name
         );
-        read_table_( instr, col_pos.first, col_pos.second, target );
+        read_table_(
+            instream, col_pos.first, col_pos.second, target
+        );
+    }
+
+    template<template<typename...> class Hashmap = std::unordered_map>
+    AccessionLookup<Hashmap> read_with_column_names(
+        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        std::string const& accession_column_name = "accession",
+        std::string const& taxid_column_name = "taxid"
+    ) const {
+        // Read all provided files, either in parallel if we have a thread pool, or consecutively.
+        AccessionLookup<Hashmap> target;
+        if( thread_pool_ ) {
+            utils::parallel_for_each(
+                sources, [&]( std::shared_ptr<utils::BaseInputSource>& source ){
+                    utils::InputStream instream( source );
+                    auto const col_pos = get_table_header_column_positions_(
+                        instream, accession_column_name, taxid_column_name
+                    );
+                    read_table_(
+                        instream, col_pos.first, col_pos.second, target
+                    );
+                },
+                thread_pool_
+            ).get();
+        } else {
+            for( auto& source : sources ) {
+                utils::InputStream instream( source );
+                auto const col_pos = get_table_header_column_positions_(
+                    instream, accession_column_name, taxid_column_name
+                );
+                read_table_(
+                    instream, col_pos.first, col_pos.second, target
+                );
+            }
+        }
+        return target;
     }
 
     // ---------------------------------------------------------------------
@@ -191,7 +275,7 @@ public:
     }
 
     // ---------------------------------------------------------------------
-    //     Counts
+    //     Counts and Reporting
     // ---------------------------------------------------------------------
 
     /**
@@ -251,6 +335,7 @@ private:
     ) {
         // Iterate the whole underlying taxonomy, and add an entry for each taxon
         // to our internal lookup table from taxon id to the taxon pointer.
+        // This is then used when adding an accession to find the taxa.
         preorder_for_each(
             tax,
             [&]( Taxon& taxon )
@@ -267,12 +352,12 @@ private:
     }
 
     std::pair<size_t, size_t> get_table_header_column_positions_(
-        utils::InputStream& instr,
+        utils::InputStream& instream,
         std::string const& accession_column_name,
         std::string const& taxid_column_name
     ) const {
         // Read the header row, and split it into column names
-        auto const header = instr.get_line();
+        auto const header = instream.get_line();
         auto const cols = utils::split( header, separator_char_, false );
 
         // Find the two columns we are intersted in.
@@ -310,7 +395,7 @@ private:
 
     template<template<typename...> class Hashmap>
     void read_table_(
-        utils::InputStream& instr,
+        utils::InputStream& instream,
         size_t acc_pos,
         size_t tid_pos,
         AccessionLookup<Hashmap>& target
@@ -330,18 +415,15 @@ private:
             );
         }
 
-        // Parse the table. Can be optimized by avoiding to use all those strings,
-        // and parse the data directly instead, but good enough for now. The majority
-        // of this function is spent in the hashmap adding function target.add() anyway.
-        while( instr ) {
-            // Get the next line (moves the inut stream), and split it into fields.
-            auto const line = instr.get_line();
-
-            // Split the line in the table.
+        // Parse the table, line by line.
+        while( instream ) {
+            // Get the next line (moves the inut stream), and split the line in the table.
             // Depending on the standard, we can use a view, which is cheaper.
             #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+                auto const line = instream.get_line_view();
                 auto const cols = utils::split_view( line, separator_char_, false );
             #else
+                auto const line = instream.get_line();
                 auto const cols = utils::split( line, separator_char_, false );
             #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
@@ -353,7 +435,8 @@ private:
             }
             ++acc_count_;
 
-            // Convert the tax id to numeric. Using two methods here for string and string view
+            // Convert the tax id to numeric. Using two methods here
+            // for string and string view, again for speed.
             #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
                 auto const taxid = utils::convert_from_chars<uint64_t>( cols[tid_pos] );
             #else
@@ -372,7 +455,7 @@ private:
                 }
             }
 
-            // Add the entry
+            // Add the entry. We assume that the target hashmap takes care of thread sychronization.
             target.add( std::string( cols[acc_pos] ), tax_it->second );
             ++val_count_;
         }
@@ -394,9 +477,11 @@ private:
 
     // Counts of processing the table, for the total,
     // and for the accessions with a valid and invalid tax id.
-    mutable size_t acc_count_ = 0;
-    mutable size_t val_count_ = 0;
-    mutable size_t inv_count_ = 0;
+    mutable std::atomic<size_t> acc_count_ = 0;
+    mutable std::atomic<size_t> val_count_ = 0;
+    mutable std::atomic<size_t> inv_count_ = 0;
+
+    std::shared_ptr<utils::ThreadPool> thread_pool_;
 
 };
 
