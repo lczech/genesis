@@ -351,7 +351,7 @@ std::vector<std::string> split_at(
 );
 
 // -------------------------------------------------------------------------
-//     Split String View
+//     Split String into String View
 // -------------------------------------------------------------------------
 
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -376,6 +376,70 @@ std::vector<std::string_view> split_view(
 
 std::vector<std::string_view> split_view_at(
     std::string const& str,
+    std::string const& delimiter,
+    bool const trim_empty = true
+);
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+// -------------------------------------------------------------------------
+//     Split String View into String View
+// -------------------------------------------------------------------------
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+std::vector<std::string_view> split_view(
+    std::string_view const& str,
+    char const delimiter = '\t',
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view(
+    std::string_view const& str,
+    std::string const& delimiters,
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view(
+    std::string_view const& str,
+    std::function<bool (char)> delimiter_predicate,
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view_at(
+    std::string_view const& str,
+    std::string const& delimiter,
+    bool const trim_empty = true
+);
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+// -------------------------------------------------------------------------
+//     Split char const* into String View
+// -------------------------------------------------------------------------
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+std::vector<std::string_view> split_view(
+    char const* str,
+    char const delimiter = '\t',
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view(
+    char const* str,
+    std::string const& delimiters,
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view(
+    char const* str,
+    std::function<bool (char)> delimiter_predicate,
+    bool const trim_empty = true
+);
+
+std::vector<std::string_view> split_view_at(
+    char const* str,
     std::string const& delimiter,
     bool const trim_empty = true
 );
