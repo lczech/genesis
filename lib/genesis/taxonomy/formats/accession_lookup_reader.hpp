@@ -41,6 +41,7 @@
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/text/convert.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/threading/multi_future.hpp"
 #include "genesis/utils/threading/thread_functions.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"
 
@@ -80,7 +81,7 @@ namespace taxonomy {
  * is returned as the result of the reading, and one where a given AccessionLookup can be provided.
  * The latter is useful if there are multiple tables that shall be combined into a single
  * lookup instance. We however recommend to use the multi-file reading option instead for this
- * use case, as this can parallelize the reading to get 2x speedup.
+ * use case, as this can parallelize the reading.
  *
  * In order for this to work, the constructor of this class takes the target Taxonomy, and
  * builds an internal map from the Taxon::id() to the @link Taxon Taxa@endlink in the Taxonomy.
@@ -96,12 +97,15 @@ namespace taxonomy {
  */
 class AccessionLookupReader
 {
+    // ---------------------------------------------------------------------------------------------
+    //     Helper Structs
+    // ---------------------------------------------------------------------------------------------
+
 public:
 
-    // ---------------------------------------------------------------------
-    //     Helper Structs
-    // ---------------------------------------------------------------------
-
+    /**
+     * @brief Summary of reading a single source.
+     */
     struct Report
     {
         /**
@@ -134,12 +138,40 @@ public:
          * This requires ignore_mismatching_duplicates() to be set, as otherwise, an exception
          * is thrown in the case of mismatching duplicate entries.
          */
-        size_t mismatching_duplicate_count = 0;
+        size_t mismatch_count = 0;
     };
 
-    // ---------------------------------------------------------------------
+private:
+
+    /**
+     * @brief Unfortunately, we need an atomic version of the above for internal processing,
+     * so that we can fill the report from multiple threads.
+     */
+    struct AtomicReport
+    {
+        std::atomic<size_t> processed_count = 0;
+        std::atomic<size_t> valid_count     = 0;
+        std::atomic<size_t> invalid_count   = 0;
+        std::atomic<size_t> mismatch_count  = 0;
+    };
+
+    /**
+     * @brief Intermediate buffer for a single entry read from an input table.
+     *
+     * For parallel reading, we need to keep a block of entries in memory, so that multiple threads
+     * can add to different buckts of the hash map in parallel.
+     */
+    struct Entry
+    {
+        std::string accession;
+        uint64_t    taxid;
+    };
+
+    // ---------------------------------------------------------------------------------------------
     //     Constructor and Rule of Five
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
+
+public:
 
     AccessionLookupReader();
 
@@ -162,10 +194,14 @@ public:
     AccessionLookupReader& operator= ( AccessionLookupReader const& ) = default;
     AccessionLookupReader& operator= ( AccessionLookupReader&& )      = default;
 
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     //     Read with Column Positions
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
+    /**
+     * @brief Read a single accession2taxid input with column positions,
+     * and return the hash map.
+     */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_positions(
         std::shared_ptr<utils::BaseInputSource> source,
@@ -179,6 +215,10 @@ public:
         return target;
     }
 
+    /**
+     * @brief Read a single accession2taxid input with column positions,
+     * and add it to an existing hash map.
+     */
     template<template<typename...> class Hashmap = std::unordered_map>
     void read_with_column_positions(
         std::shared_ptr<utils::BaseInputSource> source,
@@ -194,6 +234,10 @@ public:
         reports_.push_back( report );
     }
 
+    /**
+     * @brief Read a set of accession2taxid inputs with column positions,
+     * and return the hash map.
+     */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_positions(
         std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
@@ -202,47 +246,25 @@ public:
     ) const {
         // Read all provided files, either in parallel if we have a thread pool, or consecutively.
         AccessionLookup<Hashmap> target;
-        if( thread_pool_ ) {
-            // For the multithreaded, we need a bit of extra care when adding the reports
-            // to our result, to avoid concurrency issues. We resize here to what we need,
-            // and then use an offset, so that each thread gets its report to write to.
-            auto& reports = reports_;
-            size_t report_offset = reports.size();
-            reports.resize( reports.size() + sources.size() );
-
-            // Now add files in parallel. In our tests, this is about 2x as fast as single
-            // threaded reading. Not much more can be done though it seems, as the rehashing
-            // of the hash map tables becomes a bottleneck eventually.
-            utils::parallel_for(
-                0, sources.size(),
-                [&]( size_t source_index ){
-                    auto& source = sources[source_index];
-                    utils::InputStream instream( source );
-                    auto report = read_table_(
-                        instream, accession_column_position, taxid_column_position, target
-                    );
-                    report.source = source->source_string();
-                    reports[report_offset + source_index] = report;
-                },
-                thread_pool_
-            ).get();
-        } else {
-            for( auto& source : sources ) {
-                utils::InputStream instream( source );
-                auto report = read_table_(
-                    instream, accession_column_position, taxid_column_position, target
-                );
-                report.source = source->source_string();
-                reports_.push_back( report );
-            }
+        for( auto& source : sources ) {
+            utils::InputStream instream( source );
+            auto report = read_table_(
+                instream, accession_column_position, taxid_column_position, target
+            );
+            report.source = source->source_string();
+            reports_.push_back( report );
         }
         return target;
     }
 
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     //     Read with Column Names
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
+    /**
+     * @brief Read a single accession2taxid input with column names,
+     * and return the hash map.
+     */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
         std::shared_ptr<utils::BaseInputSource> source,
@@ -256,6 +278,10 @@ public:
         return target;
     }
 
+    /**
+     * @brief Read a single accession2taxid input with column names,
+     * and add it to an existing hash map.
+     */
     template<template<typename...> class Hashmap = std::unordered_map>
     void read_with_column_names(
         std::shared_ptr<utils::BaseInputSource> source,
@@ -274,6 +300,10 @@ public:
         reports_.push_back( report );
     }
 
+    /**
+     * @brief Read a set of accession2taxid inputs with column names,
+     * and return the hash map.
+     */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
         std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
@@ -282,46 +312,23 @@ public:
     ) const {
         // Read all provided files, either in parallel if we have a thread pool, or consecutively.
         AccessionLookup<Hashmap> target;
-        if( thread_pool_ ) {
-            // Same as above. See there for details.
-            auto& reports = reports_;
-            size_t report_offset = reports.size();
-            reports.resize( reports.size() + sources.size() );
-            utils::parallel_for(
-                0, sources.size(),
-                [&]( size_t source_index ){
-                    auto& source = sources[source_index];
-                    utils::InputStream instream( source );
-                    auto const col_pos = get_table_header_column_positions_(
-                        instream, accession_column_name, taxid_column_name
-                    );
-                    auto report = read_table_(
-                        instream, col_pos.first, col_pos.second, target
-                    );
-                    report.source = source->source_string();
-                    reports[report_offset + source_index] = report;
-                },
-                thread_pool_
-            ).get();
-        } else {
-            for( auto& source : sources ) {
-                utils::InputStream instream( source );
-                auto const col_pos = get_table_header_column_positions_(
-                    instream, accession_column_name, taxid_column_name
-                );
-                auto report = read_table_(
-                    instream, col_pos.first, col_pos.second, target
-                );
-                report.source = source->source_string();
-                reports_.push_back( report );
-            }
+        for( auto& source : sources ) {
+            utils::InputStream instream( source );
+            auto const col_pos = get_table_header_column_positions_(
+                instream, accession_column_name, taxid_column_name
+            );
+            auto report = read_table_(
+                instream, col_pos.first, col_pos.second, target
+            );
+            report.source = source->source_string();
+            reports_.push_back( report );
         }
         return target;
     }
 
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     //     Settings
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     /**
      * @brief Set the separator char used in the input table.
@@ -372,12 +379,28 @@ public:
         return ignore_mismatching_duplicates_;
     }
 
-    // ---------------------------------------------------------------------
+    /**
+     * @brief Block size for parallel reading
+     *
+     * Usually does not need to be changed. This determines the size of the blocks used
+     * for internal parallel processing of input lines.
+     */
+    void block_size( size_t value )
+    {
+        block_size_ = value;
+    }
+
+    size_t block_size() const
+    {
+        return block_size_;
+    }
+
+    // ---------------------------------------------------------------------------------------------
     //     Reporting
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     /**
-     * @brief Return all Report%s created during reading. There is one pre input source.
+     * @brief Return all Report%s created during reading. There is one per input source.
      */
     std::vector<Report> const& reports()
     {
@@ -393,7 +416,7 @@ public:
         auto const acc_count = static_cast<double>( report.processed_count );
         auto const val_prop = static_cast<double>( report.valid_count ) / acc_count;
         auto const inv_prop = static_cast<double>( report.invalid_count ) / acc_count;
-        auto const mis_prop = static_cast<double>( report.mismatching_duplicate_count ) / acc_count;
+        auto const mis_prop = static_cast<double>( report.mismatch_count ) / acc_count;
 
         // Print tablulated counts and percentages
         std::string p = "In " + report.source;
@@ -402,8 +425,8 @@ public:
         p += " (" + std::to_string( 100.0 * val_prop ) + "%)";
         p += "\n    invalid:    " + std::to_string( report.invalid_count );
         p += " (" + std::to_string( 100.0 * inv_prop ) + "%)";
-        if( report.mismatching_duplicate_count ) {
-            p += "\n    mismatch:   " + std::to_string( report.mismatching_duplicate_count );
+        if( report.mismatch_count ) {
+            p += "\n    mismatch:   " + std::to_string( report.mismatch_count );
             p += " (" + std::to_string( 100.0 * mis_prop ) + "%)";
         }
         return p;
@@ -424,11 +447,15 @@ public:
         return result;
     }
 
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     //     Internal Members
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
 private:
+
+    // -------------------------------------------------------------------------
+    //     fill_taxon_map_
+    // -------------------------------------------------------------------------
 
     void fill_taxon_map_(
         Taxonomy& tax
@@ -450,6 +477,10 @@ private:
             }
         );
     }
+
+    // -------------------------------------------------------------------------
+    //     get_table_header_column_positions_
+    // -------------------------------------------------------------------------
 
     std::pair<size_t, size_t> get_table_header_column_positions_(
         utils::InputStream& instream,
@@ -493,6 +524,10 @@ private:
         return std::make_pair( acc_pos, tid_pos );
     }
 
+    // -------------------------------------------------------------------------
+    //     read_table_
+    // -------------------------------------------------------------------------
+
     template<template<typename...> class Hashmap>
     Report read_table_(
         utils::InputStream& instream,
@@ -515,35 +550,179 @@ private:
             );
         }
 
-        // Parse the table, line by line.
-        Report report;
-        while( instream ) {
-            // Get the next line (moves the inut stream), and split the line in the table.
-            // Depending on the standard, we can use a view, which is cheaper.
-            #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
-                auto const line = instream.get_line_view();
-                auto const cols = utils::split_view( line, separator_char_, false );
-            #else
-                auto const line = instream.get_line();
-                auto const cols = utils::split( line, separator_char_, false );
-            #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+        // We keep track of what we have processed, with atomic counts for the threads.
+        AtomicReport report;
+        size_t processed_count = 0;
 
-            // Basic sanity check of the columns.
-            if( acc_pos >= cols.size() || tid_pos >= cols.size() ) {
-                throw std::runtime_error(
-                    "Invalid accession lookup table with inconsistent number of columns"
-                );
+        // We want to avoid re-allocation of the splitting per line.
+        // Keep a buffer into which we can split the elements of each line.
+        #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+            std::vector<std::string_view> col_buffer;
+        #else
+            std::vector<std::string> col_buffer;
+        #endif
+
+        // Parse the table, line by line, and accumulate the reports from each block.
+        // For the multi threaded case, we need to keep a future for the block processing,
+        // to know when we are done with the block. Bit ugly, but works.
+        utils::ProactiveFuture<void> block_future;
+        while( instream ) {
+            // For simplicity of code, we always process the input data in blocks,
+            // independently of whether we use threads or not.
+            // First, fill the block with data, reading from the input in a single thread.
+            auto block = std::make_shared<std::vector<Entry>>();
+            block->reserve( block_size_ );
+            for( size_t b = 0; b < block_size_; ++b ) {
+
+                // If the stream is done already before we have filled a whole block, we are done.
+                if( ! instream ) {
+                    break;
+                }
+
+                // Get the next line (moves the inut stream), and split the line in the table.
+                // Depending on the standard, we can use a view, which is cheaper.
+                #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+                    auto const line = instream.get_line_view();
+                    utils::split_view( line, col_buffer, separator_char_, false );
+                #else
+                    auto const line = instream.get_line();
+                    utils::split( line, col_buffer, separator_char_, false );
+                #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+                // Basic sanity check of the columns.
+                if( acc_pos >= col_buffer.size() || tid_pos >= col_buffer.size() ) {
+                    throw std::runtime_error(
+                        "Invalid accession lookup table with inconsistent number of columns"
+                    );
+                }
+                ++processed_count;
+
+                // Convert the tax id to numeric. Using two methods here
+                // for string and string view, again for speed.
+                #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+                    auto const taxid = utils::convert_from_chars<uint64_t>( col_buffer[tid_pos] );
+                #else
+                    auto const taxid = std::stoull( col_buffer[tid_pos] );
+                #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+                // Add the line to the current block
+                block->push_back({ std::string( col_buffer[acc_pos] ), taxid });
             }
+
+            // Now we have filled a block with entries from the file.
+            // Before we can process it though, we need to make sure that the processing of the
+            // previous block is done (if there was any - not the case in the first iteration).
+            // This is because within a block, each sub map of the phmap (if we are using it)
+            // needs to be exclusively written to by one thread. If we were to enqueue tasks to
+            // the thread pool for new blocks before the previous block is done, we'd have multiple
+            // threads accessing the same sub map, which causes race conditions.
+            if( block_future.valid() ) {
+                block_future.get();
+            }
+
+            // Now we can process the block.
+            // The shared pointer is handed over by copy, so that it stays alive during processing.
+            // This uses tag dispatch on the map type, so that we can use our multi threaded
+            // overload for the phmap if provided.
+            using MapType = Hashmap<std::string, Taxon*>;
+            process_block_dispatch_( is_phmap_<MapType>{}, block, target, report, block_future );
+        }
+
+        // Wait for the last block that has not yet finished processing.
+        if( block_future.valid() ) {
+            block_future.get();
+        }
+
+        // Now we have processed all blocks, and are done.
+        assert( processed_count == report.processed_count );
+        (void) processed_count;
+
+        // Transfer the values to the resulting report. Bit cumbersome to be honest,
+        // and there might be a more elegant solution, but good enough for now.
+        Report final_report;
+        final_report.processed_count = report.processed_count;
+        final_report.valid_count     = report.valid_count;
+        final_report.invalid_count   = report.invalid_count;
+        final_report.mismatch_count  = report.mismatch_count;
+        return final_report;
+    }
+
+    // -------------------------------------------------------------------------
+    //     process_block_dispatch_ - no phmap
+    // -------------------------------------------------------------------------
+
+    template<template<typename...> class Hashmap>
+    void process_block_dispatch_(
+        std::false_type /* is_phmap_ */,
+        std::shared_ptr<std::vector<Entry>> block,
+        AccessionLookup<Hashmap>& target,
+        AtomicReport& report,
+        utils::ProactiveFuture<void>& block_future
+    ) const {
+        using MapType = Hashmap<std::string, Taxon*>;
+        static_assert( ! is_phmap_<MapType>::value );
+
+        // Normal non-threaded processing, where we just do what we have to do.
+        // This forwards to another function, which we also need for the non-threaded
+        // version of the phmap below, in case that no thread pool was provided.
+        // We ignore the block futures here, as in the non-concurrent way, we don't want them.
+        (void) block_future;
+        assert( ! block_future.valid() );
+        process_block_consecutively_( block, target, report );
+    }
+
+    // -------------------------------------------------------------------------
+    //     process_block_dispatch_ - phmap
+    // -------------------------------------------------------------------------
+
+    template<template<typename...> class Hashmap>
+    void process_block_dispatch_(
+        std::true_type /* is_phmap_ */,
+        std::shared_ptr<std::vector<Entry>> block,
+        AccessionLookup<Hashmap>& target,
+        AtomicReport& report,
+        utils::ProactiveFuture<void>& block_future
+    ) const {
+        using MapType = Hashmap<std::string, Taxon*>;
+        static_assert( is_phmap_<MapType>::value );
+        assert( ! block_future.valid() );
+
+        // Here, we have a phmap as our underlying hash map type.
+        // We now also need to see if we have a thread pool provided, and only if so, can we submit
+        // the processing concurrently. Otherwise, we here also use the single threaded version.
+        if( thread_pool_ ) {
+            // Submit the processing to a thread. The block lives in a shared pointer,
+            // so it is alive while the thread needs it, and cleaned up automatically
+            // once the thread is done with its processing.
+            block_future = thread_pool_->enqueue_and_retrieve(
+                [ this, block, &target, &report ](){
+                    process_block_concurrently_( block, target, report );
+                }
+            );
+        } else {
+            process_block_consecutively_( block, target, report );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    //     process_block_consecutively_
+    // -------------------------------------------------------------------------
+
+    template<template<typename...> class Hashmap>
+    void process_block_consecutively_(
+        std::shared_ptr<std::vector<Entry>> block,
+        AccessionLookup<Hashmap>& target,
+        AtomicReport& report
+    ) const {
+        assert( block );
+        assert( block->size() <= block_size_ );
+
+        // Process all entries in the block
+        for( auto const& entry : *block ) {
             ++report.processed_count;
 
-            // Convert the tax id to numeric. Using two methods here
-            // for string and string view, again for speed.
-            #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
-                auto const taxid = utils::convert_from_chars<uint64_t>( cols[tid_pos] );
-            #else
-                auto const taxid = std::stoull( cols[tid_pos] );
-            #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
-            auto tax_it = tax_id_to_taxon_.find( taxid );
+            // Find the Taxon in our Taxonomy for the given taxid.
+            auto tax_it = tax_id_to_taxon_.find( entry.taxid );
             if( tax_it == tax_id_to_taxon_.end() ) {
                 ++report.invalid_count;
                 if( skip_accessions_with_invalid_tax_id_ ) {
@@ -551,28 +730,137 @@ private:
                 } else {
                     throw std::runtime_error(
                         "Invalid accession lookup table, containing an entry for tax id '" +
-                        std::string( cols[tid_pos] ) + "' which is not part of the taxonomy"
+                        std::to_string( entry.taxid ) + "' which is not part of the taxonomy"
                     );
                 }
             }
 
-            // Add the entry. We assume that the target hashmap takes care of thread sychronization.
+            // Add the entry to the hash map
             bool const added = target.add(
-                std::string( cols[acc_pos] ),
+                entry.accession,
                 tax_it->second,
                 ignore_mismatching_duplicates_
             );
             if( !added ) {
-                ++report.mismatching_duplicate_count;
+                ++report.mismatch_count;
             }
             ++report.valid_count;
         }
-        return report;
     }
 
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     process_block_concurrently_
+    // -------------------------------------------------------------------------
+
+    template<template<typename...> class Hashmap>
+    void process_block_concurrently_(
+        std::shared_ptr<std::vector<Entry>> block,
+        AccessionLookup<Hashmap>& target,
+        AtomicReport& report
+    ) const {
+        assert( block );
+        assert( block->size() <= block_size_ );
+        assert( thread_pool_ );
+
+        // Submit the processing of the block as many times as there are sub-maps in the hash map.
+        utils::MultiFuture<void> futures( target.data().subcnt() );
+        for( size_t i = 0; i < target.data().subcnt(); ++i ) {
+            futures[i] = thread_pool_->enqueue_and_retrieve(
+                [ this, block, &target, &report ]( size_t j ){
+                    process_block_subindex_thread_( block, target, report, j );
+                }, i
+            );
+        }
+
+        // Get all futures, to wait for the threads to finish.
+        futures.get();
+    }
+
+    // -------------------------------------------------------------------------
+    //     process_block_subindex_thread_
+    // -------------------------------------------------------------------------
+
+    template<template<typename...> class Hashmap>
+    void process_block_subindex_thread_(
+        std::shared_ptr<std::vector<Entry>> block,
+        AccessionLookup<Hashmap>& target,
+        AtomicReport& report,
+        size_t thread_sub_index
+    ) const {
+        assert( block );
+        assert( block->size() <= block_size_ );
+        assert( thread_sub_index < target.data().subcnt() );
+
+        // Iterate all entries, but only add those that are in our sub map,
+        // so that we can work lock-free.
+        for( auto const& entry : *block ) {
+            auto const entry_hash = target.data().hash( entry.accession );
+            size_t const entry_sub_index = target.data().subidx( entry_hash );
+            if( entry_sub_index != thread_sub_index ) {
+                continue;
+            }
+            ++report.processed_count;
+
+            // Find the Taxon in our Taxonomy for the given taxid.
+            auto tax_it = tax_id_to_taxon_.find( entry.taxid );
+            if( tax_it == tax_id_to_taxon_.end() ) {
+                ++report.invalid_count;
+                if( skip_accessions_with_invalid_tax_id_ ) {
+                    continue;
+                } else {
+                    throw std::runtime_error(
+                        "Invalid accession lookup table, containing an entry for tax id '" +
+                        std::to_string( entry.taxid ) + "' which is not part of the taxonomy"
+                    );
+                }
+            }
+
+            // Here we have a value with its hash that we want to add.
+            auto const result = target.data().try_emplace_with_hash(
+                entry_hash, entry.accession, tax_it->second
+            );
+            if( ! result.second && result.first->second != tax_it->second ) {
+                if( ignore_mismatching_duplicates_ ) {
+                    ++report.mismatch_count;
+                } else {
+                    throw std::runtime_error(
+                        "Duplicate entry for accession \"" + entry.accession + "\" in lookup table"
+                    );
+                }
+            }
+            ++report.valid_count;
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    //     Type Helpers
+    // ---------------------------------------------------------------------------------------------
+
+private:
+
+    // -------------------------------------------------------------------------
+    //     is_phmap_
+    // -------------------------------------------------------------------------
+
+    // Default case: not phmap
+    template <typename, typename = void>
+    struct is_phmap_ : std::false_type {};
+
+    // Specialization for parallel_flat_hash_map
+    template <class Key, class Value, class Hash, class Eq, class Alloc, size_t N, class Mutex>
+    struct is_phmap_<phmap::parallel_flat_hash_map<Key, Value, Hash, Eq, Alloc, N, Mutex>>
+        : std::true_type
+    {};
+
+    // Specialization for parallel_node_hash_map
+    template <class Key, class Value, class Hash, class Eq, class Alloc, size_t N, class Mutex>
+    struct is_phmap_<phmap::parallel_node_hash_map<Key, Value, Hash, Eq, Alloc, N, Mutex>>
+        : std::true_type
+    {};
+
+    // ---------------------------------------------------------------------------------------------
     //     Data Members
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
 private:
 
@@ -584,6 +872,7 @@ private:
     char separator_char_ = '\t';
     bool skip_accessions_with_invalid_tax_id_ = false;
     bool ignore_mismatching_duplicates_ = false;
+    size_t block_size_ = (1 << 18);
 
     // Store all reports for a read operation
     mutable std::vector<Report> reports_;
