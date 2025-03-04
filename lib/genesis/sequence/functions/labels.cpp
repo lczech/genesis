@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -162,13 +162,13 @@ LabelAttributes label_attributes( std::string const& label )
     // Set the label to the first part (before the first semicolon).
     // This is always correct, even if there are no semicola.
     LabelAttributes result;
-    auto const attribs = utils::split( label, ";" );
+    auto const attribs = utils::split( label, ";", true );
     assert( attribs.size() > 0 );
     result.label = attribs.front();
 
     // Set the other parts. We here require that the attribs follow the needed structure.
     for( size_t i = 1; i < attribs.size(); ++i ) {
-        auto const ap = utils::split( attribs[i], "=" );
+        auto const ap = utils::split( attribs[i], "=", true );
         if( ap.size() != 2 ) {
             throw std::runtime_error( "Invalid Sequence label for extracting label attributes." );
         }

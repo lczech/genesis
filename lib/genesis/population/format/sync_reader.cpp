@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ std::vector<std::string> SyncReader::read_header(
 
     // Now we can read the rest of the line, and for simplicity just split later.
     // Check that the fixed columns are there as expected.
-    result = utils::split( it.get_line() );
+    result = utils::split( it.get_line(), '\t', false );
     if( result.size() < 3 || result[0] != "chr" || result[1] != "pos" || result[2] != "ref" ) {
         throw std::runtime_error(
             "Malformed sync " + it.source_name() + ": Header row provided (starting with '#'), " +

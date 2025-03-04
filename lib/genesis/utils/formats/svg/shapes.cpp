@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -532,7 +532,7 @@ SvgBox SvgPath::bounding_box() const
     bool start = true;
     SvgPoint cur;
     for( auto const& elem : elements ) {
-        auto const list = split( elem, " \t," );
+        auto const list = split( elem, " \t,", true );
 
         // We expect the commands to be separated from their values... That is not according
         // to the svg standard, where there does not need to be a delimiter, but it works for now,

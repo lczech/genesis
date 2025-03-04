@@ -163,7 +163,7 @@ TEST(Text, SplitDelim)
     auto mulit_delim = split("one:two three-four", ": -");
     EXPECT_EQ(4, mulit_delim.size());
 
-    auto with_empty = split("::one:two:three::four:", ":");
+    auto with_empty = split("::one:two:three::four:", ":", true);
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split("::one:two:three::four:", ":", false);
@@ -178,7 +178,7 @@ TEST(Text, SplitPredicate)
     auto simple = split( "one two\tthree four", isblank );
     EXPECT_EQ(4, simple.size());
 
-    auto with_empty = split( "one   two\t three\t four", isblank );
+    auto with_empty = split( "one   two\t three\t four", isblank, true );
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split( "one   two\t three\t four", isblank, false );
@@ -193,7 +193,7 @@ TEST(Text, SplitAt)
     auto simple = split_at( "one:two:three:four", ":" );
     EXPECT_EQ(4, simple.size());
 
-    auto with_empty = split_at("::one:two:three::four:", ":");
+    auto with_empty = split_at("::one:two:three::four:", ":", true);
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split_at("::one:two:three::four:", ":", false);
@@ -205,7 +205,7 @@ TEST(Text, SplitAt)
     auto simple2 = split_at( "onefootwofoothreefoofour", "foo" );
     EXPECT_EQ(4, simple2.size());
 
-    auto with_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo");
+    auto with_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo", true);
     EXPECT_EQ(4, with_empty2.size());
 
     auto non_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo", false);
@@ -225,7 +225,7 @@ TEST(Text, SplitViewDelim)
     auto mulit_delim = split_view("one:two three-four", ": -");
     EXPECT_EQ(4, mulit_delim.size());
 
-    auto with_empty = split_view("::one:two:three::four:", ":");
+    auto with_empty = split_view("::one:two:three::four:", ":", true);
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split_view("::one:two:three::four:", ":", false);
@@ -240,7 +240,7 @@ TEST(Text, SplitViewPredicate)
     auto simple = split_view( "one two\tthree four", isblank );
     EXPECT_EQ(4, simple.size());
 
-    auto with_empty = split_view( "one   two\t three\t four", isblank );
+    auto with_empty = split_view( "one   two\t three\t four", isblank, true );
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split_view( "one   two\t three\t four", isblank, false );
@@ -255,7 +255,7 @@ TEST(Text, SplitViewAt)
     auto simple = split_view_at( "one:two:three:four", ":" );
     EXPECT_EQ(4, simple.size());
 
-    auto with_empty = split_view_at("::one:two:three::four:", ":");
+    auto with_empty = split_view_at("::one:two:three::four:", ":", true);
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split_view_at("::one:two:three::four:", ":", false);
@@ -267,7 +267,7 @@ TEST(Text, SplitViewAt)
     auto simple2 = split_view_at( "onefootwofoothreefoofour", "foo" );
     EXPECT_EQ(4, simple2.size());
 
-    auto with_empty2 = split_view_at("foofooonefootwofoothreefoofoofourfoo", "foo");
+    auto with_empty2 = split_view_at("foofooonefootwofoothreefoofoofourfoo", "foo", true);
     EXPECT_EQ(4, with_empty2.size());
 
     auto non_empty2 = split_view_at("foofooonefootwofoothreefoofoofourfoo", "foo", false);
