@@ -104,7 +104,8 @@ namespace taxonomy {
  * retrieved while also adding new ones from other threads, external locking is needed.
  * This does not affect multi-threaded reading once the writing is done; that is thread-safe.
  *
- * @see AccessionLookupReader for a helper to read a table format.
+ * @see AccessionLookupReader for a helper to read accession table formats,
+ * such as the NCBI accession2taxid
  */
 template<template<typename...> class Hashmap = std::unordered_map>
 // template<template<typename, typename, typename...> class Hashmap = std::unordered_map>
@@ -142,24 +143,38 @@ public:
 
     /**
     * @brief Add an @p accession to the lookup table.
+    *
+    * Add a new entry to the hash map. If an identical entry already exists, nothing happens.
+    * If an entry is added for an existing key, but a different value, we throw an exception
+    * by default. If @p ignore_mismatching_duplicates is set however, we just ignore the new
+    * entry, and keep the existing one. This is useful to work with the messy reality of data.
+    *
+    * Invalidates all references and iterators to existing elements.
+    *
+    * Returns `true` if an entry was added, or `false` otherwise (which can only happen due to
+    * @p ignore_mismatching_duplicates being set).
     */
-    inline void add( std::string const& accession, Taxon* taxon )
-    {
+    inline bool add(
+        std::string const& accession,
+        Taxon* taxon,
+        bool ignore_mismatching_duplicates = false
+    ) {
         // Delegate to insert() or try_emplace() depending on C++ standard and phmap usage,
         // and delegate to a concurrent write or using an external lock.
-        add_(
+        return add_(
             has_try_emplace_<MapType>{},
             is_concurrent_<MapType>{},
             accession,
-            taxon
+            taxon,
+            ignore_mismatching_duplicates
         );
     }
 
     /**
-     * @brief Get the Taxon to the requested @p accession.
+     * @brief Get the lookup value (of type T, e.g., taxid, Taxon) to the requested @p accession.
      *
      * If not found, either a `nullptr` is returned, or an exception is thrown, depending on
-     * @p throw_if_not_found.
+     * @p throw_if_not_found. The returned value is invalidated when new entries are added.
      */
     inline Taxon* get(
         std::string const& accession,
@@ -267,11 +282,12 @@ public:
 
 private:
 
-    inline void add_(
+    inline bool add_(
         std::false_type /* has_try_emplace_ */,
         std::false_type /* is_concurrent_ */,
         std::string const& accession,
-        Taxon* taxon
+        Taxon* taxon,
+        bool ignore_mismatching_duplicates
     ) {
         // Default for std::unordered_map under C++11, using insert() and external locking.
         assert( mtx_ );
@@ -280,17 +296,23 @@ private:
         if( !result.second && result.first->second != taxon ) {
             // Only throw if the key exists and has a different taxon assigned to it.
             // If it's the same anyway, we tolerate this.
-            throw std::runtime_error(
-                "Duplicate entry for accession \"" + accession + "\" in lookup table"
-            );
+            if( ignore_mismatching_duplicates ) {
+                return false;
+            } else {
+                throw std::runtime_error(
+                    "Duplicate entry for accession \"" + accession + "\" in lookup table"
+                );
+            }
         }
+        return true;
     }
 
-    inline void add_(
+    inline bool add_(
         std::true_type /* has_try_emplace_ */,
         std::false_type /* is_concurrent_ */,
         std::string const& accession,
-        Taxon* taxon
+        Taxon* taxon,
+        bool ignore_mismatching_duplicates
     ) {
         // Default for std::unordered_map under C++ > 14, or the phmap without internal locking,
         // using try_emplace() and external locking.
@@ -298,32 +320,44 @@ private:
         std::lock_guard<std::mutex> lock( *mtx_ );
         auto const result = map_.try_emplace( accession, taxon );
         if( !result.second && result.first->second != taxon ) {
-            throw std::runtime_error(
-                "Duplicate entry for accession \"" + accession + "\" in lookup table"
-            );
+            if( ignore_mismatching_duplicates ) {
+                return false;
+            } else {
+                throw std::runtime_error(
+                    "Duplicate entry for accession \"" + accession + "\" in lookup table"
+                );
+            }
         }
+        return true;
     }
 
-    inline void add_(
+    inline bool add_(
         std::true_type /* has_try_emplace_ */,
         std::true_type /* is_concurrent_ */,
         std::string const& accession,
-        Taxon* taxon
+        Taxon* taxon,
+        bool ignore_mismatching_duplicates
     ) {
         // Specialization for phmap wit internal locking.
+        bool added = true;
         map_.try_emplace_l(
             accession,
             [&]( typename MapType::value_type const& it ){
                 // This function is called when the element already exist,
                 // while holding the internal lock, so that we can access the element.
                 if( it.second != taxon ) {
-                    throw std::runtime_error(
-                        "Duplicate entry for accession \"" + accession + "\" in lookup table"
-                    );
+                    if( ignore_mismatching_duplicates ) {
+                        added = false;
+                    } else {
+                        throw std::runtime_error(
+                            "Duplicate entry for accession \"" + accession + "\" in lookup table"
+                        );
+                    }
                 }
             },
             taxon
         );
+        return added;
     }
 
     // No overload for the fourth combination needed, as we only set is_concurrent_
@@ -368,12 +402,12 @@ private:
 
     // Specialization: if the expression inside decltype is valid,
     // then the type has a try_emplace method, and we can use it.
-    template <typename T>
-    struct has_try_emplace_<T, decltype(void(
+    template <typename H>
+    struct has_try_emplace_<H, decltype(void(
         // We attempt to call try_emplace with dummy key and value.
-        std::declval<T>().try_emplace(
-            std::declval<typename T::key_type>(),
-            std::declval<typename T::mapped_type>()
+        std::declval<H>().try_emplace(
+            std::declval<typename H::key_type>(),
+            std::declval<typename H::mapped_type>()
         )
     ))> : std::true_type {};
 
@@ -405,7 +439,7 @@ private:
 
     // Nested trait to check if a phmap type is concurrent (i.e. has internal locking via mutex).
     // By default, we assume the map is not concurrent, and use external locking.
-    template <class T>
+    template <class H>
     struct is_concurrent_ : std::false_type {};
 
     // Specialization for parallel_flat_hash_map instantiated with std::mutex.

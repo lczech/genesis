@@ -63,7 +63,7 @@ namespace taxonomy {
 // =================================================================================================
 
 /**
- * @brief Read a lookup table mapping from accessions to IDs, as used in Taxon::id(), by storing
+ * @brief Read a lookup table mapping from accessions to taxids, as used in Taxon::id(), by storing
  * the mapping to their Taxon in a Taxonomy.
  *
  * We expect some input table with two or more columns, where one column contains an accession name,
@@ -73,20 +73,69 @@ namespace taxonomy {
  *  - If the table has no header row, the two relevant columns can simply be specified
  *    by their position, e.g., column 0 for the first column.
  *  - If the table contains a header row with column names, those can be specified instead.
- *    Typically, we use for instance "accession" and "taxid".
+ *    Typically, we use for instance "accession.version" and "taxid".
+ *    This is the format used by the NCBI accession2taxid tables.
  *
  * Furthermore, each of those two modes is provided in two variants: One where the AccessionLookup
  * is returned as the result of the reading, and one where a given AccessionLookup can be provided.
  * The latter is useful if there are multiple tables that shall be combined into a single
- * lookup instance.
+ * lookup instance. We however recommend to use the multi-file reading option instead for this
+ * use case, as this can parallelize the reading to get 2x speedup.
  *
  * In order for this to work, the constructor of this class takes the target Taxonomy, and
  * builds an internal map from the Taxon::id() to the @link Taxon Taxa@endlink in the Taxonomy.
  * These are the Taxa that the lookup then maps to for each accession name.
+ *
+ * Note: See https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/README for details on
+ * the format used by the NCBI accession2taxid tables. In short, these files are strucutred as
+ *
+ *     accession<TAB>accession.version<TAB>taxid<TAB>gi
+ *
+ * with the `accession.version` being the one typically used to label reference sequences,
+ * and the `gi` being phased out, meaning that we do not expect it in more recent releases.
  */
 class AccessionLookupReader
 {
 public:
+
+    // ---------------------------------------------------------------------
+    //     Helper Structs
+    // ---------------------------------------------------------------------
+
+    struct Report
+    {
+        /**
+         * @brief Source that was read from, typically an `accession2taxid` table file.
+         */
+        std::string source;
+
+        /**
+         * @brief How many accessions were processed in the input table in total.
+         */
+        size_t processed_count = 0;
+
+        /**
+         * @brief How many accessions were valid, i.e., were added to the AccessionLookup.
+         */
+        size_t valid_count = 0;
+
+        /**
+         * @brief How many accessions were invalid, i.e., for which there was no valid tax id
+         * in the underlying Taxonomy.
+         *
+         * This requires skip_accessions_with_invalid_tax_id() to be set to `true`, as otherwise,
+         * an exception is thrown when an accession with an invalid tax id is encountered.
+         */
+        size_t invalid_count = 0;
+
+        /**
+         * @brief How many accessions were mismatching duplicates.
+         *
+         * This requires ignore_mismatching_duplicates() to be set, as otherwise, an exception
+         * is thrown in the case of mismatching duplicate entries.
+         */
+        size_t mismatching_duplicate_count = 0;
+    };
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -138,9 +187,11 @@ public:
         size_t taxid_column_position = 1
     ) const {
         utils::InputStream instream( source );
-        read_table_(
+        auto report = read_table_(
             instream, accession_column_position, taxid_column_position, target
         );
+        report.source = source->source_string();
+        reports_.push_back( report );
     }
 
     template<template<typename...> class Hashmap = std::unordered_map>
@@ -152,21 +203,37 @@ public:
         // Read all provided files, either in parallel if we have a thread pool, or consecutively.
         AccessionLookup<Hashmap> target;
         if( thread_pool_ ) {
-            utils::parallel_for_each(
-                sources, [&]( std::shared_ptr<utils::BaseInputSource>& source ){
+            // For the multithreaded, we need a bit of extra care when adding the reports
+            // to our result, to avoid concurrency issues. We resize here to what we need,
+            // and then use an offset, so that each thread gets its report to write to.
+            auto& reports = reports_;
+            size_t report_offset = reports.size();
+            reports.resize( reports.size() + sources.size() );
+
+            // Now add files in parallel. In our tests, this is about 2x as fast as single
+            // threaded reading. Not much more can be done though it seems, as the rehashing
+            // of the hash map tables becomes a bottleneck eventually.
+            utils::parallel_for(
+                0, sources.size(),
+                [&]( size_t source_index ){
+                    auto& source = sources[source_index];
                     utils::InputStream instream( source );
-                    read_table_(
+                    auto report = read_table_(
                         instream, accession_column_position, taxid_column_position, target
                     );
+                    report.source = source->source_string();
+                    reports[report_offset + source_index] = report;
                 },
                 thread_pool_
             ).get();
         } else {
             for( auto& source : sources ) {
                 utils::InputStream instream( source );
-                read_table_(
+                auto report = read_table_(
                     instream, accession_column_position, taxid_column_position, target
                 );
+                report.source = source->source_string();
+                reports_.push_back( report );
             }
         }
         return target;
@@ -179,7 +246,7 @@ public:
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
         std::shared_ptr<utils::BaseInputSource> source,
-        std::string const& accession_column_name = "accession",
+        std::string const& accession_column_name = "accession.version",
         std::string const& taxid_column_name = "taxid"
     ) const {
         AccessionLookup<Hashmap> target;
@@ -193,36 +260,46 @@ public:
     void read_with_column_names(
         std::shared_ptr<utils::BaseInputSource> source,
         AccessionLookup<Hashmap>& target,
-        std::string const& accession_column_name = "accession",
+        std::string const& accession_column_name = "accession.version",
         std::string const& taxid_column_name = "taxid"
     ) const {
         utils::InputStream instream( source );
         auto const col_pos = get_table_header_column_positions_(
             instream, accession_column_name, taxid_column_name
         );
-        read_table_(
+        auto report = read_table_(
             instream, col_pos.first, col_pos.second, target
         );
+        report.source = source->source_string();
+        reports_.push_back( report );
     }
 
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
         std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
-        std::string const& accession_column_name = "accession",
+        std::string const& accession_column_name = "accession.version",
         std::string const& taxid_column_name = "taxid"
     ) const {
         // Read all provided files, either in parallel if we have a thread pool, or consecutively.
         AccessionLookup<Hashmap> target;
         if( thread_pool_ ) {
-            utils::parallel_for_each(
-                sources, [&]( std::shared_ptr<utils::BaseInputSource>& source ){
+            // Same as above. See there for details.
+            auto& reports = reports_;
+            size_t report_offset = reports.size();
+            reports.resize( reports.size() + sources.size() );
+            utils::parallel_for(
+                0, sources.size(),
+                [&]( size_t source_index ){
+                    auto& source = sources[source_index];
                     utils::InputStream instream( source );
                     auto const col_pos = get_table_header_column_positions_(
                         instream, accession_column_name, taxid_column_name
                     );
-                    read_table_(
+                    auto report = read_table_(
                         instream, col_pos.first, col_pos.second, target
                     );
+                    report.source = source->source_string();
+                    reports[report_offset + source_index] = report;
                 },
                 thread_pool_
             ).get();
@@ -232,9 +309,11 @@ public:
                 auto const col_pos = get_table_header_column_positions_(
                     instream, accession_column_name, taxid_column_name
                 );
-                read_table_(
+                auto report = read_table_(
                     instream, col_pos.first, col_pos.second, target
                 );
+                report.source = source->source_string();
+                reports_.push_back( report );
             }
         }
         return target;
@@ -274,54 +353,75 @@ public:
         return skip_accessions_with_invalid_tax_id_;
     }
 
-    // ---------------------------------------------------------------------
-    //     Counts and Reporting
-    // ---------------------------------------------------------------------
-
     /**
-     * @brief Return how many accessions were processed in the input table in total.
-     */
-    size_t processed_accessions_count() const
-    {
-        return acc_count_;
-    }
-
-    /**
-     * @brief Return how many accessions were valid, i.e., were added to the AccessionLookup.
+     * @brief Decide what to do in case of conflicting entries.
      *
-     * This usually corresponds to the final value of AccessionLookup::size(),
-     * unless other sources were used as well to add accessions to the lookup.
+     * When adding a new entry to the hash map, we might find that the accession already exists
+     * in the target hash map. If the entry value is identical, nothing happens.
+     * If an entry is added for an existing key, but a different value, we throw an exception
+     * by default. If ignore_mismatching_duplicates is set however, we just ignore the new
+     * entry, and keep the existing one. This is useful to work with the messy reality of data.
      */
-    size_t valid_accessions_count() const
+    void ignore_mismatching_duplicates( bool value )
     {
-        return val_count_;
+        ignore_mismatching_duplicates_ = value;
+    }
+
+    bool ignore_mismatching_duplicates() const
+    {
+        return ignore_mismatching_duplicates_;
+    }
+
+    // ---------------------------------------------------------------------
+    //     Reporting
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Return all Report%s created during reading. There is one pre input source.
+     */
+    std::vector<Report> const& reports()
+    {
+        return reports_;
     }
 
     /**
-     * @brief Return how many accessions were invalid, i.e., for which there was no valid tax id
-     * in the underlying Taxonomy.
-     *
-     * This requires skip_accessions_with_invalid_tax_id() to be set to `true`, as otherwise,
-     * an exception is thrown when an accession with an invalid tax id is encountered.
+     * @brief Produce a short summary report of reading a table, listing the counts.
      */
-    size_t invalid_accessions_count() const
+    static std::string print( Report const& report )
     {
-        return inv_count_;
+        // Calculate proportions
+        auto const acc_count = static_cast<double>( report.processed_count );
+        auto const val_prop = static_cast<double>( report.valid_count ) / acc_count;
+        auto const inv_prop = static_cast<double>( report.invalid_count ) / acc_count;
+        auto const mis_prop = static_cast<double>( report.mismatching_duplicate_count ) / acc_count;
+
+        // Print tablulated counts and percentages
+        std::string p = "In " + report.source;
+        p += "\n    processed: " + std::to_string( report.processed_count );
+        p += "\n    valid:     " + std::to_string( report.valid_count );
+        p += " (" + std::to_string( 100.0 * val_prop ) + "%)";
+        p += "\n    invalid:    " + std::to_string( report.invalid_count );
+        p += " (" + std::to_string( 100.0 * inv_prop ) + "%)";
+        if( report.mismatching_duplicate_count ) {
+            p += "\n    mismatch:   " + std::to_string( report.mismatching_duplicate_count );
+            p += " (" + std::to_string( 100.0 * mis_prop ) + "%)";
+        }
+        return p;
+
+        // return (
+        //     "In " + report.source + ": Processed " + std::to_string( report.processed_count ) +
+        //     " input accession names, of which " + std::to_string( report.valid_count ) +
+        //     "(" + std::to_string( val_prop ) + "%) had a valid taxonomic ID in the taxonomy."
+        // );
     }
 
-    /**
-     * @brief Produce a short summary report of the reading, listing the counts.
-     */
-    std::string report() const
+    std::string print_reports() const
     {
-        auto const acc_count = static_cast<double>( acc_count_ );
-        auto const val_percent = 100.0 * static_cast<double>( val_count_ ) / acc_count;
-        // auto const inv_percent = 100.0 * static_cast<double>( inv_count_ ) / acc_count;
-        return (
-            "Processed " + std::to_string( acc_count_ ) + " input accession names, of which " +
-            std::to_string( val_count_ ) + "(" + std::to_string( val_percent ) +
-            "%) had a valid taxonomic ID in the taxonomy."
-        );
+        std::string result;
+        for( auto const& report : reports_ ) {
+            result += print( report ) + "\n";
+        }
+        return result;
     }
 
     // ---------------------------------------------------------------------
@@ -394,7 +494,7 @@ private:
     }
 
     template<template<typename...> class Hashmap>
-    void read_table_(
+    Report read_table_(
         utils::InputStream& instream,
         size_t acc_pos,
         size_t tid_pos,
@@ -416,6 +516,7 @@ private:
         }
 
         // Parse the table, line by line.
+        Report report;
         while( instream ) {
             // Get the next line (moves the inut stream), and split the line in the table.
             // Depending on the standard, we can use a view, which is cheaper.
@@ -433,7 +534,7 @@ private:
                     "Invalid accession lookup table with inconsistent number of columns"
                 );
             }
-            ++acc_count_;
+            ++report.processed_count;
 
             // Convert the tax id to numeric. Using two methods here
             // for string and string view, again for speed.
@@ -444,7 +545,7 @@ private:
             #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
             auto tax_it = tax_id_to_taxon_.find( taxid );
             if( tax_it == tax_id_to_taxon_.end() ) {
-                ++inv_count_;
+                ++report.invalid_count;
                 if( skip_accessions_with_invalid_tax_id_ ) {
                     continue;
                 } else {
@@ -456,9 +557,17 @@ private:
             }
 
             // Add the entry. We assume that the target hashmap takes care of thread sychronization.
-            target.add( std::string( cols[acc_pos] ), tax_it->second );
-            ++val_count_;
+            bool const added = target.add(
+                std::string( cols[acc_pos] ),
+                tax_it->second,
+                ignore_mismatching_duplicates_
+            );
+            if( !added ) {
+                ++report.mismatching_duplicate_count;
+            }
+            ++report.valid_count;
         }
+        return report;
     }
 
     // ---------------------------------------------------------------------
@@ -474,12 +583,10 @@ private:
     // Settings for reading the table
     char separator_char_ = '\t';
     bool skip_accessions_with_invalid_tax_id_ = false;
+    bool ignore_mismatching_duplicates_ = false;
 
-    // Counts of processing the table, for the total,
-    // and for the accessions with a valid and invalid tax id.
-    mutable std::atomic<size_t> acc_count_ = 0;
-    mutable std::atomic<size_t> val_count_ = 0;
-    mutable std::atomic<size_t> inv_count_ = 0;
+    // Store all reports for a read operation
+    mutable std::vector<Report> reports_;
 
     std::shared_ptr<utils::ThreadPool> thread_pool_;
 
