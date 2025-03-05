@@ -153,7 +153,6 @@ T convert_from_chars( S const& str, int base = 10 )
             std::string( sv ) + "\""
         );
     }
-
     if( ec == std::errc::result_out_of_range ) {
         throw std::out_of_range(
             "Out of range in std::from_char: the value is too large or too small, input \"" +

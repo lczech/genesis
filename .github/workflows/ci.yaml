@@ -130,10 +130,11 @@ jobs:
           # Setup fails
           # - os: ubuntu-22.04
           #   compiler: gcc-14
-          - os: ubuntu-22.04
-            compiler: llvm-6
-          - os: ubuntu-22.04
-            compiler: llvm-7
+          # Too old to support
+          # - os: ubuntu-22.04
+          #   compiler: llvm-6
+          # - os: ubuntu-22.04
+          #   compiler: llvm-7
           - os: ubuntu-22.04
             compiler: llvm-8
           # Weird segfault
