@@ -695,6 +695,135 @@ TEST( Bitvector, CountRangeFuzzy )
 //     Find Operators
 // =================================================================================================
 
+TEST( Bitvector, AnyAllSetUnset )
+{
+    // Tests for all_set()
+    EXPECT_TRUE( all_set( Bitvector( "1111" )));
+    EXPECT_TRUE( all_set( Bitvector( "1" )));
+    EXPECT_FALSE( all_set( Bitvector( "1011" )));
+    EXPECT_FALSE( all_set( Bitvector( "1101" )));
+    EXPECT_FALSE( all_set( Bitvector( "0" )));
+    EXPECT_FALSE( all_set( Bitvector( "0111" )));
+
+    // Tests for all_unset()
+    EXPECT_TRUE( all_unset( Bitvector( "0000" )));
+    EXPECT_TRUE( all_unset( Bitvector( "0" )));
+    EXPECT_FALSE( all_unset( Bitvector( "0100" )));
+    EXPECT_FALSE( all_unset( Bitvector( "1000" )));
+    EXPECT_FALSE( all_unset( Bitvector( "0010" )));
+    EXPECT_FALSE( all_unset( Bitvector( "1010" )));
+
+    // Tests for any_set()
+    EXPECT_FALSE( any_set( Bitvector( "0000" )));
+    EXPECT_FALSE( any_set( Bitvector( "0")));
+    EXPECT_TRUE( any_set( Bitvector( "0100" )));
+    EXPECT_TRUE( any_set( Bitvector( "1000" )));
+    EXPECT_TRUE( any_set( Bitvector( "1010" )));
+    EXPECT_TRUE( any_set( Bitvector( "0001" )));
+
+    // Tests for any_unset()
+    EXPECT_FALSE( any_unset( Bitvector( "1111" )));
+    EXPECT_FALSE( any_unset( Bitvector( "1" )));
+    EXPECT_TRUE( any_unset( Bitvector( "1101" )));
+    EXPECT_TRUE( any_unset( Bitvector( "1010" )));
+    EXPECT_TRUE( any_unset( Bitvector( "0111" )));
+    EXPECT_TRUE( any_unset( Bitvector( "1110" )));
+
+    // Tests for a default constructed (size 0) Bitvector.
+    // With no bits, "all" predicates are vacuously true.
+    EXPECT_TRUE( all_set( Bitvector() ));
+    EXPECT_TRUE( all_unset( Bitvector() ));
+    // "Any" predicates are false because there are no bits to be set/unset.
+    EXPECT_FALSE( any_set( Bitvector() ));
+    EXPECT_FALSE( any_unset( Bitvector() ));
+}
+
+TEST( Bitvector, AnyAllSetUnsetLargeSizes )
+{
+    // Tests for Bitvectors of larger sizes, including those with word boundary sizes, as that
+    // is where the padding is important. We also want sizes that include initial and middle words.
+
+    for (size_t n = 1; n <= 256; n++) {
+        // LOG_MSG << "Size = " << std::to_string(n);
+
+        // 1. All zeros.
+        std::string zeros(n, '0');
+        Bitvector bvZeros(zeros);
+        EXPECT_FALSE(all_set(bvZeros));   // Not all bits are 1.
+        EXPECT_TRUE(all_unset(bvZeros));    // All bits are 0.
+        EXPECT_FALSE(any_set(bvZeros));     // No bit is 1.
+        EXPECT_TRUE(any_unset(bvZeros));    // At least one bit is 0.
+
+        // 2. All ones.
+        std::string ones(n, '1');
+        Bitvector bvOnes(ones);
+        EXPECT_TRUE(all_set(bvOnes));       // All bits are 1.
+        EXPECT_FALSE(all_unset(bvOnes));      // Not all bits are 0.
+        EXPECT_TRUE(any_set(bvOnes));         // At least one bit is 1.
+        EXPECT_FALSE(any_unset(bvOnes));      // No bit is 0.
+
+        // 3. Alternating pattern: "0", "1", "0", "1", ...
+        std::string alt;
+        alt.reserve(n);
+        for (size_t i = 0; i < n; i++) {
+            alt.push_back((i % 2 == 0) ? '0' : '1');
+        }
+        Bitvector bvAlt(alt);
+        if (n == 1) {
+            // When n == 1, the alternating pattern yields "0"
+            EXPECT_FALSE(all_set(bvAlt));
+            EXPECT_TRUE(all_unset(bvAlt));
+            EXPECT_FALSE(any_set(bvAlt));
+            EXPECT_TRUE(any_unset(bvAlt));
+        } else {
+            // For n >= 2, the pattern contains both 0's and 1's.
+            EXPECT_FALSE(all_set(bvAlt));
+            EXPECT_FALSE(all_unset(bvAlt));
+            EXPECT_TRUE(any_set(bvAlt));
+            EXPECT_TRUE(any_unset(bvAlt));
+        }
+
+        // 4. Only the first bit set.
+        {
+            std::string first(n, '0');
+            first[0] = '1';
+            Bitvector bvFirst(first);
+            if (n == 1) {
+                // For a single-bit bitvector "1"
+                EXPECT_TRUE(all_set(bvFirst));
+                EXPECT_FALSE(all_unset(bvFirst));
+                EXPECT_TRUE(any_set(bvFirst));
+                EXPECT_FALSE(any_unset(bvFirst));
+            } else {
+                // For n > 1, only the first bit is set.
+                EXPECT_FALSE(all_set(bvFirst));
+                EXPECT_FALSE(all_unset(bvFirst));
+                EXPECT_TRUE(any_set(bvFirst));
+                EXPECT_TRUE(any_unset(bvFirst));
+            }
+        }
+
+        // 5. Only the last bit set.
+        {
+            std::string last(n, '0');
+            last[n - 1] = '1';
+            Bitvector bvLast(last);
+            if (n == 1) {
+                // For a single-bit bitvector "1"
+                EXPECT_TRUE(all_set(bvLast));
+                EXPECT_FALSE(all_unset(bvLast));
+                EXPECT_TRUE(any_set(bvLast));
+                EXPECT_FALSE(any_unset(bvLast));
+            } else {
+                EXPECT_FALSE(all_set(bvLast));
+                EXPECT_FALSE(all_unset(bvLast));
+                EXPECT_TRUE(any_set(bvLast));
+                EXPECT_TRUE(any_unset(bvLast));
+            }
+        }
+    }
+}
+
 TEST( Bitvector, FindNextSet )
 {
     auto const max = std::numeric_limits<size_t>::max();

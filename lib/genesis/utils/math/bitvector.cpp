@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -242,6 +242,11 @@ void Bitvector::unset_padding_bits()
         //~ data_.back() &= ~BIT_MASKS[i];
     //~ }
     //~ data_.back() &= BIT_MASKS[size_ % IntSize] - 1;
+}
+
+Bitvector::IntType Bitvector::get_padding_mask() const
+{
+    return ONES_MASKS[ size_ % IntSize ];
 }
 
 void Bitvector::negate()

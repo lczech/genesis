@@ -395,17 +395,63 @@ size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs )
 }
 
 // -------------------------------------------------------------------------
-//     Fit Set Bits
+//     Find Set Bits
 // -------------------------------------------------------------------------
+
+bool all_set( Bitvector const& bv )
+{
+    // Edge case. An empty bitvector has all bits set. Ex falso quodlibet.
+    if( bv.empty() ) {
+        return true;
+    }
+
+    // Check if all words (except for the last) are one. If not, we can stop early.
+    // Due to padding, we need to check the last word differently.
+    auto const& data = bv.data();
+    for( size_t i = 0; i < data.size() - 1; ++i ) {
+        if( data[i] != Bitvector::ALL_1 ) {
+            return false;
+        }
+    }
+
+    // If there is a non-zero mask, we have padding, and check this.
+    // All bits are set if the padding bits are equal to the mask.
+    auto const mask = bv.get_padding_mask();
+    if( mask ) {
+        assert( bv.size() % Bitvector::IntSize != 0 );
+        return data.back() == mask;
+    }
+
+    // Otherwise, it's a vector without padding, i.e., exactly a multiple of 64.
+    // In that case, the last word of the vector needs to be all 1.
+    assert( bv.size() % Bitvector::IntSize == 0 );
+    return data.back() == Bitvector::ALL_1;
+}
+
+bool all_unset( Bitvector const& bv )
+{
+    // Here, we do not need to take care of padding, as it is zero as well.
+    for( auto word : bv.data() ) {
+        if( word != Bitvector::ALL_0 ) {
+            return false;
+        }
+    }
+    return true;
+}
 
 bool any_set( Bitvector const& bv )
 {
-    for( auto word : bv.data() ) {
-        if( word > 0 ) {
-            return true;
-        }
-    }
-    return false;
+    return ! all_unset( bv );
+}
+
+bool any_unset( Bitvector const& bv )
+{
+    return ! all_set( bv );
+}
+
+bool none_set( Bitvector const& bv )
+{
+    return all_unset( bv );
 }
 
 size_t find_first_set( Bitvector const& bv )

@@ -198,9 +198,33 @@ size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs );
 // -------------------------------------------------------------------------
 
 /**
- * @brief Return if any bits are set at all.
+ * @brief Return if all bits are set, i.e., the Bitvector is all one.
+ */
+bool all_set( Bitvector const& bv );
+
+/**
+ * @brief Return if all bits are unset, i.e., the Bitvector is all zero.
+ *
+ * Alias for none_set()
+ */
+bool all_unset( Bitvector const& bv );
+
+/**
+ * @brief Return if any bits are set, i.e., the Bitvector is not all zero.
  */
 bool any_set( Bitvector const& bv );
+
+/**
+ * @brief Return if any bits are unset, i.e., the Bitvector is not all one.
+ */
+bool any_unset( Bitvector const& bv );
+
+/**
+ * @brief Return if no bits are set, i.e., the Bitvector is all zero.
+ *
+ * Alias for all_unset()
+ */
+bool none_set( Bitvector const& bv );
 
 /**
  * @brief Return the index of the first bit in the Bitvector that is set.
