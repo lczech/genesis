@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,6 +48,23 @@
 
 using namespace genesis::utils;
 
+// =================================================================================================
+//     I/O Operators
+// =================================================================================================
+
+// Make a random bitvector for testing.
+// Very slow. We use the built-in function of Bitvector now.
+// Bitvector make_random_bitvector_( size_t size )
+// {
+//     auto bv = Bitvector( size );
+//     for( size_t i = 0; i < size; ++i ) {
+//         auto const p = ( std::rand() % size );
+//         bv.flip( p );
+//     }
+//     // LOG_DBG << bv;
+//     return bv;
+// }
+
 TEST( Bits, ToBitString )
 {
     EXPECT_EQ(
@@ -83,85 +100,6 @@ TEST( Bitvector, ToBitString )
         to_bit_string( Bitvector( 5, { 1, 2 }))
     );
 }
-
-// Very slow. We use the built-in function of Bitvector now.
-// Bitvector make_random_bitvector_( size_t size )
-// {
-//     auto bv = Bitvector( size );
-//     for( size_t i = 0; i < size; ++i ) {
-//         auto const p = ( std::rand() % size );
-//         bv.flip( p );
-//     }
-//     // LOG_DBG << bv;
-//     return bv;
-// }
-
-TEST( Bitvector, Arithmetics )
-{
-    Bitvector const bv0( "010101010101" );
-    Bitvector const bv1( "111000111000" );
-    Bitvector const bv2( "111100001111" );
-
-    Bitvector const bvz( 12, false );
-    Bitvector const bvo( 12, true );
-
-    // Self-and is a fixpoint
-    EXPECT_EQ( bv0, bv0 & bv0 );
-    EXPECT_EQ( bv1, bv1 & bv1 );
-    EXPECT_EQ( bv2, bv2 & bv2 );
-
-    // Self-or is a fixpoint
-    EXPECT_EQ( bv0, bv0 | bv0 );
-    EXPECT_EQ( bv1, bv1 | bv1 );
-    EXPECT_EQ( bv2, bv2 | bv2 );
-
-    // Self-xor gives 0s
-    EXPECT_EQ( bvz, bv0 ^ bv0 );
-    EXPECT_EQ( bvz, bv1 ^ bv1 );
-    EXPECT_EQ( bvz, bv2 ^ bv2 );
-
-    // Test inverse
-    EXPECT_EQ( Bitvector( "101010101010" ), ~bv0 );
-    EXPECT_EQ( Bitvector( "000111000111" ), ~bv1 );
-    EXPECT_EQ( Bitvector( "000011110000" ), ~bv2 );
-
-    // Test pop counting
-    EXPECT_EQ( 6, pop_count(bv0) );
-    EXPECT_EQ( 6, pop_count(bv1) );
-    EXPECT_EQ( 8, pop_count(bv2) );
-
-    // Test inverse as well, which also tests that the padding is 0
-    EXPECT_EQ( 6, pop_count(~bv0) );
-    EXPECT_EQ( 6, pop_count(~bv1) );
-    EXPECT_EQ( 4, pop_count(~bv2) );
-
-    // Test some inequality as well
-    EXPECT_FALSE( bv0 == bv1 );
-    EXPECT_FALSE( bv0 == bv2 );
-    EXPECT_FALSE( bv1 == bv2 );
-    EXPECT_TRUE(  bv0 != bv1 );
-    EXPECT_TRUE(  bv0 != bv2 );
-    EXPECT_TRUE(  bv1 != bv2 );
-}
-
-// TEST( Bitvector, LexCompare )
-// {
-//     Bitvector const bv0( "000000000001" );
-//     Bitvector const bv1( "100000000000" );
-//     // Bitvector const bv0( "010101010101" );
-//     // Bitvector const bv1( "111000111000" );
-//
-//     LOG_DBG << bv0 << ": " << bv0.data()[0];
-//     LOG_DBG << bv1 << ": " << bv1.data()[0];
-//
-//     EXPECT_FALSE( is_lexicographically_less( bv0, bv0 ));
-//     EXPECT_FALSE( is_lexicographically_greater( bv0, bv1 ));
-//     EXPECT_FALSE( is_lexicographically_greater( bv1, bv1 ));
-//
-//     EXPECT_TRUE( is_lexicographically_less( bv0, bv1 ));
-//     EXPECT_TRUE( is_lexicographically_less_or_equal( bv0, bv1 ));
-//     EXPECT_TRUE( is_lexicographically_less_or_equal( bv0, bv0 ));
-// }
 
 TEST( Bitvector, CopyRange )
 {
@@ -218,6 +156,97 @@ TEST( Bitvector, BoolVec )
         // Here, the size is 5 elements, 0-4, but the largest index is 5.
         EXPECT_ANY_THROW( make_bool_vector_from_indices( { 1, 3, 5 }, 5 ));
     }
+}
+
+TEST( Bitvector, Serialization )
+{
+    std::srand(std::time(nullptr));
+
+    // We test that a container of bitvectors also works, and internally test
+    // different sizes that are either exact boundaries, or some arbitrary values.
+    std::vector<Bitvector> bvs;
+    bvs.push_back( make_random_bitvector( 42 ));
+    bvs.push_back( make_random_bitvector( 0 ));
+    bvs.push_back( make_random_bitvector( 512 ));
+    bvs.push_back( make_random_bitvector( 710 ));
+
+    // Serialize
+    std::ostringstream out;
+    Serializer serial( to_stream( out ));
+    serial << bvs;
+    auto const out_str = out.str();
+
+    // Test that the string has the correct size.
+    // This is a size_t for the outer std::vector, and then for each internal bitvector,
+    // we need its size in bits, its vector size, as well as the data itself.
+    size_t total = sizeof( size_t );
+    for( auto const& bv : bvs ) {
+        total += serialized_bitvector_size( bv );
+        // total += 2 * sizeof( size_t );
+        // total += Bitvector::get_vector_size( bv.size() ) * sizeof( Bitvector::IntType );
+    }
+    EXPECT_EQ( out_str.size(), total );
+
+    // Deserialize again
+    std::istringstream in( out_str );
+    Deserializer deser( from_stream( in ));
+    std::vector<Bitvector> bvs_deser;
+    deser >> bvs_deser;
+
+    // Finally, compare
+    EXPECT_EQ( bvs_deser, bvs );
+}
+
+// =================================================================================================
+//     Arithmetic and Logic Operators
+// =================================================================================================
+
+TEST( Bitvector, Arithmetics )
+{
+    Bitvector const bv0( "010101010101" );
+    Bitvector const bv1( "111000111000" );
+    Bitvector const bv2( "111100001111" );
+
+    Bitvector const bvz( 12, false );
+    Bitvector const bvo( 12, true );
+
+    // Self-and is a fixpoint
+    EXPECT_EQ( bv0, bv0 & bv0 );
+    EXPECT_EQ( bv1, bv1 & bv1 );
+    EXPECT_EQ( bv2, bv2 & bv2 );
+
+    // Self-or is a fixpoint
+    EXPECT_EQ( bv0, bv0 | bv0 );
+    EXPECT_EQ( bv1, bv1 | bv1 );
+    EXPECT_EQ( bv2, bv2 | bv2 );
+
+    // Self-xor gives 0s
+    EXPECT_EQ( bvz, bv0 ^ bv0 );
+    EXPECT_EQ( bvz, bv1 ^ bv1 );
+    EXPECT_EQ( bvz, bv2 ^ bv2 );
+
+    // Test inverse
+    EXPECT_EQ( Bitvector( "101010101010" ), ~bv0 );
+    EXPECT_EQ( Bitvector( "000111000111" ), ~bv1 );
+    EXPECT_EQ( Bitvector( "000011110000" ), ~bv2 );
+
+    // Test pop counting
+    EXPECT_EQ( 6, pop_count(bv0) );
+    EXPECT_EQ( 6, pop_count(bv1) );
+    EXPECT_EQ( 8, pop_count(bv2) );
+
+    // Test inverse as well, which also tests that the padding is 0
+    EXPECT_EQ( 6, pop_count(~bv0) );
+    EXPECT_EQ( 6, pop_count(~bv1) );
+    EXPECT_EQ( 4, pop_count(~bv2) );
+
+    // Test some inequality as well
+    EXPECT_FALSE( bv0 == bv1 );
+    EXPECT_FALSE( bv0 == bv2 );
+    EXPECT_FALSE( bv1 == bv2 );
+    EXPECT_TRUE(  bv0 != bv1 );
+    EXPECT_TRUE(  bv0 != bv2 );
+    EXPECT_TRUE(  bv1 != bv2 );
 }
 
 TEST( Bitvector, Operators )
@@ -336,6 +365,29 @@ TEST( Bitvector, Operators )
     EXPECT_EQ( Bitvector("000000"), bitwise_xor( bv_l, bv_l, kUseSecond ));
 }
 
+// TEST( Bitvector, LexCompare )
+// {
+//     Bitvector const bv0( "000000000001" );
+//     Bitvector const bv1( "100000000000" );
+//     // Bitvector const bv0( "010101010101" );
+//     // Bitvector const bv1( "111000111000" );
+//
+//     LOG_DBG << bv0 << ": " << bv0.data()[0];
+//     LOG_DBG << bv1 << ": " << bv1.data()[0];
+//
+//     EXPECT_FALSE( is_lexicographically_less( bv0, bv0 ));
+//     EXPECT_FALSE( is_lexicographically_greater( bv0, bv1 ));
+//     EXPECT_FALSE( is_lexicographically_greater( bv1, bv1 ));
+//
+//     EXPECT_TRUE( is_lexicographically_less( bv0, bv1 ));
+//     EXPECT_TRUE( is_lexicographically_less_or_equal( bv0, bv1 ));
+//     EXPECT_TRUE( is_lexicographically_less_or_equal( bv0, bv0 ));
+// }
+
+// =================================================================================================
+//     Set Operators
+// =================================================================================================
+
 TEST( Bitvector, JaccardIndex )
 {
     auto const p1 = Bitvector( "10111" );
@@ -395,63 +447,9 @@ TEST( Bitvector, HammingDistance )
     EXPECT_EQ( 2, hamming_distance( p1, p2 ));
 }
 
-TEST( Bitvector, SetRange )
-{
-    // We do an exhaustive test, because why not.
-    // We tested up to 1024, which takes some minutes,
-    // but in the normal case, it should suffice to test fewer,
-    // as long as we have cases across word boundaries, with words in the middle, etc
-    for( size_t s = 0; s < 256; ++s ) {
-        // if( s % 100 == 0 ) {
-        //     LOG_DBG << "at " << s;
-        // }
-        for( size_t f = 0; f < s; ++f ) {
-            for( size_t l = f; l <= s; ++l ) {
-                // Set true
-                {
-                    // Use the function to test
-                    auto bv = Bitvector( s, false );
-                    bv.set_range( f, l, true );
-
-                    // Make expected version using slow setter
-                    auto ex = Bitvector( s, false );
-                    for( size_t i = f; i < l; ++i ) {
-                        ex.set( i, true );
-                    }
-
-                    // Now test
-                    if( ex != bv ) {
-                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
-                        LOG_DBG << "bv==" << bv;
-                        LOG_DBG << "ex==" << ex;
-                    }
-                    EXPECT_EQ( ex, bv );
-                }
-
-                // Set false
-                {
-                    // Use the function to test
-                    auto bv = Bitvector( s, true );
-                    bv.set_range( f, l, false );
-
-                    // Make expected version using slow setter
-                    auto ex = Bitvector( s, true );
-                    for( size_t i = f; i < l; ++i ) {
-                        ex.set( i, false );
-                    }
-
-                    // Now test
-                    if( ex != bv ) {
-                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
-                        LOG_DBG << "bv==" << bv;
-                        LOG_DBG << "ex==" << ex;
-                    }
-                    EXPECT_EQ( ex, bv );
-                }
-            }
-        }
-    }
-}
+// =================================================================================================
+//     Count Operators
+// =================================================================================================
 
 TEST( Bitvector, CountRange )
 {
@@ -554,6 +552,10 @@ TEST( Bitvector, CountRangeFuzzy )
         // LOG_DBG << "first: " << s << ", last: " << e << ", count: " << cnt << ", bv: " << bv;
     }
 }
+
+// =================================================================================================
+//     Find Operators
+// =================================================================================================
 
 TEST( Bitvector, FindNextSet )
 {
@@ -690,41 +692,64 @@ TEST( Bitvector, FindFirstLastSet )
     }
 }
 
-TEST( Bitvector, Serialization )
+// =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+TEST( Bitvector, SetRange )
 {
-    std::srand(std::time(nullptr));
+    // We do an exhaustive test, because why not.
+    // We tested up to 1024, which takes some minutes,
+    // but in the normal case, it should suffice to test fewer,
+    // as long as we have cases across word boundaries, with words in the middle, etc
+    for( size_t s = 0; s < 256; ++s ) {
+        // if( s % 100 == 0 ) {
+        //     LOG_DBG << "at " << s;
+        // }
+        for( size_t f = 0; f < s; ++f ) {
+            for( size_t l = f; l <= s; ++l ) {
+                // Set true
+                {
+                    // Use the function to test
+                    auto bv = Bitvector( s, false );
+                    bv.set_range( f, l, true );
 
-    // We test that a container of bitvectors also works, and internally test
-    // different sizes that are either exact boundaries, or some arbitrary values.
-    std::vector<Bitvector> bvs;
-    bvs.push_back( make_random_bitvector( 42 ));
-    bvs.push_back( make_random_bitvector( 0 ));
-    bvs.push_back( make_random_bitvector( 512 ));
-    bvs.push_back( make_random_bitvector( 710 ));
+                    // Make expected version using slow setter
+                    auto ex = Bitvector( s, false );
+                    for( size_t i = f; i < l; ++i ) {
+                        ex.set( i, true );
+                    }
 
-    // Serialize
-    std::ostringstream out;
-    Serializer serial( to_stream( out ));
-    serial << bvs;
-    auto const out_str = out.str();
+                    // Now test
+                    if( ex != bv ) {
+                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
+                        LOG_DBG << "bv==" << bv;
+                        LOG_DBG << "ex==" << ex;
+                    }
+                    EXPECT_EQ( ex, bv );
+                }
 
-    // Test that the string has the correct size.
-    // This is a size_t for the outer std::vector, and then for each internal bitvector,
-    // we need its size in bits, its vector size, as well as the data itself.
-    size_t total = sizeof( size_t );
-    for( auto const& bv : bvs ) {
-        total += serialized_bitvector_size( bv );
-        // total += 2 * sizeof( size_t );
-        // total += Bitvector::get_vector_size( bv.size() ) * sizeof( Bitvector::IntType );
+                // Set false
+                {
+                    // Use the function to test
+                    auto bv = Bitvector( s, true );
+                    bv.set_range( f, l, false );
+
+                    // Make expected version using slow setter
+                    auto ex = Bitvector( s, true );
+                    for( size_t i = f; i < l; ++i ) {
+                        ex.set( i, false );
+                    }
+
+                    // Now test
+                    if( ex != bv ) {
+                        LOG_DBG << "s==" << s << " f==" << f << " l==" << l;
+                        LOG_DBG << "bv==" << bv;
+                        LOG_DBG << "ex==" << ex;
+                    }
+                    EXPECT_EQ( ex, bv );
+                }
+            }
+        }
     }
-    EXPECT_EQ( out_str.size(), total );
-
-    // Deserialize again
-    std::istringstream in( out_str );
-    Deserializer deser( from_stream( in ));
-    std::vector<Bitvector> bvs_deser;
-    deser >> bvs_deser;
-
-    // Finally, compare
-    EXPECT_EQ( bvs_deser, bvs );
 }
