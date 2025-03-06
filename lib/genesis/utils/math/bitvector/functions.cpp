@@ -131,20 +131,23 @@ void normalize( Bitvector& bv )
 
 size_t bitvector_hash( Bitvector const& bv )
 {
-    std::size_t res = 0;
+    // We factor in the size (in bits) of the bitvector,
+    // so that two all-false bitvectors of different size
+    // also have differing hashes.
+    size_t seed = std::hash<size_t>()( bv.size() );
     for( auto word : bv.data() ) {
-        res = hash_combine( res, word );
+        seed = hash_combine( seed, word );
     }
-    return res;
+    return seed;
 }
 
 Bitvector::IntType bitvector_x_hash( Bitvector const& bv )
 {
-    Bitvector::IntType res = 0;
+    Bitvector::IntType seed = 0;
     for( auto word : bv.data() ) {
-        res ^= word;
+        seed ^= word;
     }
-    return res;
+    return seed;
 }
 
 // -------------------------------------------------------------------------
