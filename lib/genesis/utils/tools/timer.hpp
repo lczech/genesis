@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,12 +93,6 @@ public:
         }
     }
 
-    void reset()
-    {
-        total_time_ = 0.0;
-        running_ = false;
-    }
-
     void pause()
     {
         stop();
@@ -109,8 +103,22 @@ public:
         start();
     }
 
+    void reset()
+    {
+        total_time_ = 0.0;
+        running_ = false;
+    }
+
+    void restart()
+    {
+        reset();
+        start();
+    }
+
     /**
      * @brief Return elapsed time in seconds.
+     *
+     * The timer keeps running, so this is essentially a "lap" function.
      */
     double elapsed() const
     {
@@ -123,6 +131,8 @@ public:
 
     /**
      * @brief Return elapsed time in a given `chrono` duration type (defaulting to seconds).
+     *
+     * @see elapsed()
      */
     template <typename DurationType = std::chrono::seconds>
     double elapsed_as() const
@@ -134,6 +144,26 @@ public:
         }
         auto const duration = std::chrono::duration<double>(total_time_);
         return std::chrono::duration<double, typename DurationType::period>(duration).count();
+    }
+
+    /**
+     * @brief Return the elapsed time in seconds, and reset the timer.
+     */
+    double elapsed_and_restart()
+    {
+        auto const elap = elapsed();
+        restart();
+        return elap;
+    }
+
+    /**
+     * @brief Return the elapsed time in seconds, and stop the timer.
+     */
+    double elapsed_and_stop()
+    {
+        auto const elap = elapsed();
+        stop();
+        return elap;
     }
 
     // -------------------------------------------------------------------------
