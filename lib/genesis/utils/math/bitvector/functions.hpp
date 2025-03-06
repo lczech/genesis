@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -148,16 +148,6 @@ Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs );
 Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs );
 
 /**
- * @brief Strict subset.
- */
-bool is_strict_subset( Bitvector const& sub, Bitvector const& super );
-
-/**
- * @brief Strict superset.
- */
-bool is_strict_superset( Bitvector const& super, Bitvector const& sub );
-
-/**
  * @brief Subset or equal.
  */
 bool is_subset( Bitvector const& sub, Bitvector const& super );
@@ -166,6 +156,16 @@ bool is_subset( Bitvector const& sub, Bitvector const& super );
  * @brief Superset or equal.
  */
 bool is_superset( Bitvector const& super, Bitvector const& sub );
+
+/**
+ * @brief Strict subset.
+ */
+bool is_strict_subset( Bitvector const& sub, Bitvector const& super );
+
+/**
+ * @brief Strict superset.
+ */
+bool is_strict_superset( Bitvector const& super, Bitvector const& sub );
 
 // -------------------------------------------------------------------------
 //     Distances

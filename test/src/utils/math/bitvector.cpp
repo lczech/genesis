@@ -447,6 +447,144 @@ TEST( Bitvector, HammingDistance )
     EXPECT_EQ( 2, hamming_distance( p1, p2 ));
 }
 
+TEST( Bitvector, SetOperators )
+{
+    // Set operators
+    auto const p1 = Bitvector( "0011" );
+    auto const p2 = Bitvector( "0101" );
+    EXPECT_EQ( Bitvector( "0010" ), set_minus( p1, p2 ));
+    EXPECT_EQ( Bitvector( "0110" ), symmetric_difference( p1, p2 ));
+}
+
+TEST( Bitvector, StrictSubset )
+{
+    // 1. Both vectors empty (identical): not a strict subset.
+    EXPECT_FALSE( is_strict_subset( Bitvector( "0000" ), Bitvector( "0000" )));
+
+    // 2. Empty bitvector is a strict subset of a non-empty bitvector.
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "0000" ), Bitvector( "1111" )));
+
+    // 3. Single bit cases.
+    // Empty set is a strict subset of a one-element set.
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "0" ), Bitvector( "1" )));
+    // Identical one-element sets are not strict.
+    EXPECT_FALSE( is_strict_subset( Bitvector( "1" ), Bitvector( "1" )));
+
+    // 4. Typical cases where one extra bit distinguishes the superset.
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "1010" ), Bitvector( "1011" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "0010" ), Bitvector( "1010" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "1110" ), Bitvector( "1111" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "0100" ), Bitvector( "1100" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "0001" ), Bitvector( "1001" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "0010" ), Bitvector( "1011" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "0101" ), Bitvector( "0111" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "1010" ), Bitvector( "1110" )));
+    EXPECT_TRUE(  is_strict_subset( Bitvector( "1000" ), Bitvector( "1010" )));
+
+    // 5. Cases where the left bitvector has a 1 that the right does not.
+    EXPECT_FALSE( is_strict_subset( Bitvector( "1011" ), Bitvector( "1010" )));
+    EXPECT_FALSE( is_strict_subset( Bitvector( "1010" ), Bitvector( "0101" )));
+    EXPECT_FALSE( is_strict_subset( Bitvector( "1001" ), Bitvector( "1110" )));
+    EXPECT_FALSE( is_strict_subset( Bitvector( "0100" ), Bitvector( "0010" )));
+
+    // 6. Equality cases are not considered strict subsets.
+    EXPECT_FALSE( is_strict_subset( Bitvector( "1100" ), Bitvector( "1100" )));
+}
+
+TEST( Bitvector, Subset )
+{
+    // 1. Both vectors empty: an empty set is a subset of itself.
+    EXPECT_TRUE(  is_subset( Bitvector( "0000" ), Bitvector( "0000" )));
+
+    // 2. Empty bitvector is a subset of any bitvector with at least one bit set.
+    EXPECT_TRUE(  is_subset( Bitvector( "0000" ), Bitvector( "1111" )));
+
+    // 3. Single bit cases.
+    // Empty set is a subset.
+    EXPECT_TRUE(  is_subset( Bitvector( "0" ), Bitvector( "1" )));
+    // Equal one-element sets are subsets.
+    EXPECT_TRUE(  is_subset( Bitvector( "1" ), Bitvector( "1" )));
+
+    // 4. Typical cases where the left bitvector is a subset of the right.
+    EXPECT_TRUE(  is_subset( Bitvector( "1010" ), Bitvector( "1011" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "0010" ), Bitvector( "1010" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "1110" ), Bitvector( "1111" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "0100" ), Bitvector( "1100" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "0001" ), Bitvector( "1001" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "0010" ), Bitvector( "1011" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "0101" ), Bitvector( "0111" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "1010" ), Bitvector( "1110" )));
+    EXPECT_TRUE(  is_subset( Bitvector( "1000" ), Bitvector( "1010" )));
+
+    // 5. Cases where the left bitvector has a 1 that is not present in the right.
+    EXPECT_FALSE( is_subset( Bitvector( "1011" ), Bitvector( "1010" )));
+    EXPECT_FALSE( is_subset( Bitvector( "1010" ), Bitvector( "0101" )));
+    EXPECT_FALSE( is_subset( Bitvector( "1001" ), Bitvector( "1110" )));
+    EXPECT_FALSE( is_subset( Bitvector( "0100" ), Bitvector( "0010" )));
+
+    // 6. Equality cases are valid subsets.
+    EXPECT_TRUE(  is_subset( Bitvector( "1100" ), Bitvector( "1100" )));
+}
+
+TEST( Bitvector, SubsetSpeed )
+{
+    std::srand(std::time(nullptr));
+
+    // Large values for a proper test.
+    // size_t const s = 5368709120;
+    // size_t const n = 10;
+
+    // Alternative, shorter for normal tests.
+    size_t const s = 2000;
+    size_t const n = 1000;
+
+    Timer timer;
+    timer.start();
+    size_t cnt = 0;
+
+    // Make some random bitvectors
+    LOG_MSG << "make bvs";
+    auto bvs = std::vector<Bitvector>( n );
+    for( size_t i = 0; i < n; ++i ) {
+        bvs[i] = make_random_bitvector( s );
+    }
+    LOG_MSG << "make bvs:     " << timer.elapsed_and_restart() << " s";
+
+    // Test the subset speed
+    LOG_MSG << "comp subset";
+    size_t subset_cnt = 0;
+    for( size_t i = 0; i < n; ++i ) {
+        // LOG_MSG << i;
+        for( size_t j = 0; j < n; ++j ) {
+            subset_cnt += is_subset( bvs[i], bvs[j] );
+            ++cnt;
+        }
+    }
+    LOG_MSG << "comp subset: " << timer.elapsed_and_restart() << " s";
+
+    // Test the strict subset speed
+    LOG_MSG << "comp strict";
+    size_t strict_cnt = 0;
+    for( size_t i = 0; i < n; ++i ) {
+        // LOG_MSG << i;
+        for( size_t j = 0; j < n; ++j ) {
+            strict_cnt += is_strict_subset( bvs[i], bvs[j] );
+        }
+    }
+    LOG_MSG << "comp strict: " << timer.elapsed_and_stop() << " s";
+    LOG_MSG << "subset: " << subset_cnt << ", strict: " << strict_cnt;
+
+    // We can basically guarantee that we have only subsets from comparing vectors
+    // to themselves, and no strict subsets. The case where there are two exactly
+    // identical vectors in our randomly generated ones is negligible.
+    EXPECT_EQ( n, subset_cnt );
+    EXPECT_EQ( 0, strict_cnt );
+
+    // LOG_MSG << "time:  " << timer.elapsed() << " s";
+    // LOG_MSG << "speed: " << ( static_cast<double>(cnt) / timer.elapsed() ) << " comp/s";
+    // LOG_MSG << "speed: " << ( static_cast<double>(cnt*s) / timer.elapsed() ) << " bitops/s";
+}
+
 // =================================================================================================
 //     Count Operators
 // =================================================================================================

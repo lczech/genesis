@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -243,35 +243,90 @@ size_t pop_count( Bitvector const& bv, size_t first, size_t last )
 
 Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
 {
+    // Not efficient, as it creates temporary vectors...
+    // but not needed in any performance relevant way at the moment,
+    // so let's keep it like this for now.
     return lhs & (~rhs);
 }
 
 Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs )
 {
-    return (lhs | rhs) & ~(lhs & rhs);
+    // Symmetric difference is simply xor.
+    // We provide this function mostly for semamtics... not really used.
+    return lhs ^ rhs;
+    // return (lhs | rhs) & ~(lhs & rhs);
+}
+
+bool is_subset( Bitvector const& sub, Bitvector const& super )
+{
+    // Sanity check
+    if( sub.size() != super.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute sub/super set between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& sub_data = sub.data();
+    auto const& super_data = super.data();
+
+    // Non-strict subset: Every bit in sub must also be set in super.
+    for( size_t i = 0; i < sub_data.size(); ++i ) {
+        // If sub has any bit not set in super,
+        // then sub is not a subset, and we can return early.
+        if( sub_data[i] & ~super_data[i] ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool is_superset( Bitvector const& super, Bitvector const& sub )
+{
+    return is_subset( sub, super );
 }
 
 bool is_strict_subset( Bitvector const& sub, Bitvector const& super )
 {
-    // Not really efficient. We could stop early in the comparison instead.
-    // But as of now, we do not need the speed, so let's keep it simple instead.
-    // Same for the other variants of this function below.
-    return ((sub & super) == sub) && (pop_count(sub) < pop_count(super));
+    // Sanity check
+    if( sub.size() != super.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute sub/super set between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& sub_data = sub.data();
+    auto const& super_data = super.data();
+
+    // Strict subset: sub must be a subset of super, and super must have
+    // at least one extra bit, i.e., the two vectors are not exactly equal.
+    // This is the same as the above is_subset(), but also includes an extra check
+    // for inequality. It is better to have some code duplication here,
+    // as this allows us to traverse each vector only once, for cache locality.
+    bool found_extra_bit = false;
+    for( size_t i = 0; i < sub_data.size(); ++i ) {
+        // If sub contains a bit that super does not,
+        // sub cannot be a subset, and we can return early.
+        if( sub_data[i] & ~super_data[i] ) {
+            return false;
+        }
+
+        // Check if super has any bit that sub does not.
+        // We already know that the sub/super set property is met,
+        // so if they are inequal, then sub contains extra bits.
+        found_extra_bit |= ( sub_data[i] != super_data[i] );
+        // found_extra_bit |= ( super_data[i] & ~sub_data[i] );
+        // if( !found_extra_bit && ( super_data[i] & ~sub_data[i] )) {
+        //     found_extra_bit = true;
+        // }
+    }
+    return found_extra_bit;
 }
 
 bool is_strict_superset( Bitvector const& super, Bitvector const& sub )
 {
     return is_strict_subset( sub, super );
-}
-
-bool is_subset( Bitvector const& sub, Bitvector const& super )
-{
-    return (sub == super) || is_strict_subset(sub, super);
-}
-
-bool is_superset( Bitvector const& super, Bitvector const& sub )
-{
-    return (super == sub) || is_strict_superset(super, sub);
 }
 
 // -------------------------------------------------------------------------
