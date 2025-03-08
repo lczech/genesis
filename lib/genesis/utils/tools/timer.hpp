@@ -201,6 +201,16 @@ double measure_execution_time(Func&& func, Args&&... args)
     // return std::chrono::duration_cast<DurationType>(end_time - start_time).count();
 }
 
+// =================================================================================================
+//     Alternative Implementation
+// =================================================================================================
+
+// #include <ctime>
+// struct timespec start, end;
+// clock_gettime(CLOCK_MONOTONIC, &start);
+// clock_gettime(CLOCK_MONOTONIC, &end);
+// double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+
 } // namespace utils
 } // namespace genesis
 
