@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -120,10 +120,10 @@ struct KmerAlphabet
     /**
      * @brief Return the rank, given an ASCII char.
      *
-     * If the input char is invalid, either an exception is thrown, or the max of uint8_t is returned.
+     * If the input char is invalid, the max of uint8_t is returned.
      * The latter can then be checked against KmerBitmask::MAX_RANK to see if the rank is valid.
      */
-    static inline uint8_t char_to_rank( char c, bool throw_if_invalid = false )
+    static inline uint8_t char_to_rank( char c ) noexcept
     {
         // Basic input checks. Checking upper and lower case in one condition is faster in our tests
         // than turning it into one case and doing fewer checks - likely due to branch prediction.
@@ -132,20 +132,18 @@ struct KmerAlphabet
             ( c != 'A' ) && ( c != 'C' ) && ( c != 'G' ) && ( c != 'T' ) &&
             ( c != 'a' ) && ( c != 'c' ) && ( c != 'g' ) && ( c != 't' )
         ) GENESIS_CPP_UNLIKELY {
-            if( throw_if_invalid ) {
-                throw std::invalid_argument(
-                    "Cannot use char " + utils::char_to_hex( c ) + " to construct ACGT k-mer"
-                );
-            } else {
-                return std::numeric_limits<uint8_t>::max();
-            }
+            return std::numeric_limits<uint8_t>::max();
         }
 
         // We need ASCII for the following to work. Probably fine, but doesn't hurt to check.
-        static_assert( static_cast<int>('A') == 65, "Non-ASCII char set" );
-        static_assert( static_cast<int>('C') == 67, "Non-ASCII char set" );
-        static_assert( static_cast<int>('G') == 71, "Non-ASCII char set" );
-        static_assert( static_cast<int>('T') == 84, "Non-ASCII char set" );
+        static_assert( static_cast<int>('A') == 0x41, "Non-ASCII char set" );
+        static_assert( static_cast<int>('C') == 0x43, "Non-ASCII char set" );
+        static_assert( static_cast<int>('G') == 0x47, "Non-ASCII char set" );
+        static_assert( static_cast<int>('T') == 0x54, "Non-ASCII char set" );
+        static_assert( static_cast<int>('a') == 0x61, "Non-ASCII char set" );
+        static_assert( static_cast<int>('c') == 0x63, "Non-ASCII char set" );
+        static_assert( static_cast<int>('g') == 0x67, "Non-ASCII char set" );
+        static_assert( static_cast<int>('t') == 0x74, "Non-ASCII char set" );
 
         // For extra speed, we exploit the ASCII code of the characters. We already checked above
         // that we are dealing with valid ones, so this is fine. The lower halves of each byte are:
@@ -159,7 +157,8 @@ struct KmerAlphabet
         // is already what we want (A=C=0 and G=T=1), but the other (the right one) is not
         // (A=T=0 and C=G=1, but we want A=G=0 and C=T=1 for that bit). We xor with the other bit
         // to get our result, as that has a 1 for the G and the T, and gives us the encoding that
-        // we want. This works for upper and lower case, as the case bit is in the higher four bits,
+        // we want. Luckily, the fourth bit is always zero here, so that it does not mess this up.
+        // This works for upper and lower case, as the case bit is in the higher four bits,
         // which are ignored here anyway. In our tests, this is the fastest method.
         unsigned char const u = c;
         return ((u >> 1) ^ (u >> 2)) & 3;
