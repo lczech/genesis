@@ -40,7 +40,7 @@ namespace sequence {
 // Need out-of-line definition in C++11... Just to make the compiler happy.
 
 constexpr std::array<uint64_t, 16> MinimalCanonicalEncoding::replace_;
-constexpr std::array<uint8_t, 16>  MinimalCanonicalEncoding::reverse_;
+// constexpr std::array<uint8_t, 16>  MinimalCanonicalEncoding::reverse_;
 
 } // namespace sequence
 } // namespace genesis

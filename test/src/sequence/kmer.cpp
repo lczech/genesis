@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,10 +37,10 @@
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/random.hpp"
+#include "genesis/utils/tools/timer.hpp"
 
 #include <algorithm>
 #include <cstdint>
-#include <ctime>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -725,8 +725,7 @@ TEST( Kmer, CanonicalEncodingLarge )
 //
 //     // Start high-resolution timer
 //     // LOG_DBG << "start speed test";
-//     struct timespec start, end;
-//     clock_gettime(CLOCK_MONOTONIC, &start);
+//     auto timer = utils::Timer( true );
 //
 //     // Test that the encoding is the same for the kmer and its rc.
 //     // That's our speed test, hence encoding twice the number of kmers of the array.
@@ -740,8 +739,7 @@ TEST( Kmer, CanonicalEncodingLarge )
 //     (void) sum;
 //
 //     // Calculate the elapsed time in seconds, and the number of encodings per sec we achieved.
-//     clock_gettime(CLOCK_MONOTONIC, &end);
-//     double elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+//     auto const elapsed_time = timer.elapsed();
 //     unsigned long enc_per_sec = NUM_KMERS / elapsed_time;
 //     // LOG_DBG << "finished speed test";
 //     LOG_DBG << "k==" << k << ", time: " << elapsed_time << "s, enc/s: " << enc_per_sec;
