@@ -134,10 +134,21 @@ public:
     /**
      * @brief Constructor that takes a size and a list of values (positions) to be set to true.
      */
-    Bitvector( size_t size, std::initializer_list<size_t> list )
+    Bitvector( size_t size, std::initializer_list<size_t> index_list )
         : Bitvector(size, false)
     {
-        for( size_t e : list ) {
+        for( size_t e : index_list ) {
+            set(e);
+        }
+    }
+
+    /**
+     * @brief Constructor that takes a size and a list of values (positions) to be set to true.
+     */
+    Bitvector( size_t size, std::vector<size_t> index_list )
+        : Bitvector(size, false)
+    {
+        for( size_t e : index_list ) {
             set(e);
         }
     }
