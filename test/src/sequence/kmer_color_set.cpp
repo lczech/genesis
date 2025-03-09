@@ -41,10 +41,15 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/random.hpp"
 
+#include <algorithm>
+#include <atomic>
+#include <future>
 #include <iomanip>
 #include <ios>
+#include <mutex>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 using namespace genesis;
 using namespace genesis::sequence;
@@ -343,4 +348,86 @@ TEST( KmerColorSet, Random )
     // LOG_DBG << print_kmer_color_list( cset );
     // LOG_DBG << print_kmer_lookup_map( cset );
     // LOG_DBG << print_kmer_color_set_summary( cset );
+    LOG_DBG << print_kmer_color_set_lookup_statistics( cset );
+}
+
+TEST( KmerColorSet, Concurrency )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // Params of the color set.
+    size_t const p = 16;
+    size_t const r = 1048576;
+
+    // Params of the loops.
+    auto const n = 10000;
+    const int num_threads = 8;
+
+    // Init the color set
+    auto cset = KmerColorSet( p, r );
+    cset.init_secondary_colors_with_binary_reduction();
+    // auto const initial_cset_size = cset.get_color_list().size();
+
+    // Prepare async tasks that will run in parallel accessing the set
+    std::atomic<int> worker_ready{0};
+    std::promise<void> go;
+    std::shared_future<void> ready(go.get_future());
+    auto worker_done = std::vector<std::future<void>>(num_threads);
+    std::mutex mtx;
+
+    try
+    {
+        // Run workers, all waiting for the signal to start, then running in parallel.
+        for( size_t i = 0; i < num_threads; ++i ) {
+            worker_done[i] = std::async(
+                std::launch::async,
+                [ready, &worker_ready, &mtx, p, r, &cset]() {
+                    // Wait for all workers to be ready
+                    ++worker_ready;
+                    ready.wait();
+
+                    // Then run some async stress on the color set!
+                    for( size_t i = 0; i < n; ++i ) {
+                        // Pick a random entry, and a random bit, and look it up. This time,
+                        // we only pick secondary colors, and ignore existing imaginary colors.
+                        auto max_color_index = std::min( cset.get_color_list().size() - 1, r - 1 );
+                        auto const e = permuted_congruential_generator( max_color_index );
+                        auto const b = permuted_congruential_generator( p - 1 );
+
+                        // Protect the data!
+                        std::lock_guard<std::mutex> lock( mtx );
+                        cset.lookup_and_update( e, b );
+                    }
+                }
+            );
+        }
+
+        // Set up all threads to wait for the signal, then go!
+        // Busy wait is okay here for test purposes
+        while( worker_ready.load() != num_threads ) {
+            std::this_thread::yield();
+        }
+        go.set_value();
+
+        // Signal was given, now we wait for results
+        for( size_t i = 0; i < num_threads; ++i ) {
+            worker_done[i].get();
+        }
+
+        // Test our results
+    } catch(...) {
+        // Clean up such that all threads join again
+        go.set_value();
+        throw;
+    }
+
+    // Let's see what we got!
+    verify_unique_colors( cset );
+    // LOG_DBG << print_kmer_color_list( cset );
+    // LOG_DBG << print_kmer_lookup_map( cset );
+    LOG_DBG << print_kmer_color_set_summary( cset );
+    LOG_DBG << print_kmer_color_set_lookup_statistics( cset );
 }

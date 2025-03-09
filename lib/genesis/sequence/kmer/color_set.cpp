@@ -61,7 +61,7 @@ void KmerColorSet::init_primary_colors_()
     // primary colors by 1.
     Color empty;
     empty.elements = Bitvector( primary_color_count_ );
-    empty.type = ColorType::kEmpty;
+    empty.type = Color::Type::kEmpty;
     push_back_color( std::move( empty ));
     assert( colors_.size() == 1 );
 
@@ -71,7 +71,7 @@ void KmerColorSet::init_primary_colors_()
         Color color;
         color.elements = Bitvector( primary_color_count_ );
         color.elements.set( i );
-        color.type = ColorType::kPrimary;
+        color.type = Color::Type::kPrimary;
         push_back_color( std::move( color ));
     }
     assert( colors_.size() == 1 + primary_color_count_ );
@@ -188,7 +188,7 @@ void KmerColorSet::init_secondary_colors_from_bitvectors(
         // Create a color for the bitvector, and check that it is not a duplicate.
         Color color;
         color.elements = bv;
-        color.type = ColorType::kSecondary;
+        color.type = Color::Type::kSecondary;
         if( find_color( color.elements ) > 0 ) {
             throw std::invalid_argument(
                 "Cannot initialize Kmer Color Set with Bitvectors containing duplicates"
@@ -305,6 +305,7 @@ size_t KmerColorSet::lookup_and_update(
     if( existing_color_index == 0 ) {
         // Assert that the element bitvector is indeed set for the target index.
         assert( colors_[ 1 + target_element_index ].elements.get( target_element_index ));
+        ++lookup_stats_.existing_is_empty;
         return 1 + target_element_index;
     }
 
@@ -317,6 +318,7 @@ size_t KmerColorSet::lookup_and_update(
         // the index stored in the color here, instead of existing_color_index. Those are the
         // same for primary and secondary colors, but not for imaginary ones, where they point
         // to a secondary color intead.
+        ++lookup_stats_.existing_contains_target;
         return existing_color.index;
     }
 
@@ -333,6 +335,7 @@ size_t KmerColorSet::lookup_and_update(
         // We return the internal index here, as this might be an imaginary color.
         assert( target_index < colors_.size() );
         assert( max_real_color_count_ == 0 || colors_[target_index].index < max_real_color_count_ );
+        ++lookup_stats_.target_color_exists;
         return colors_[target_index].index;
     }
 
@@ -346,7 +349,7 @@ size_t KmerColorSet::lookup_and_update(
     // the existing color any more, as we are updating it with a new color. If its occurrence
     // goes down to zero, we can instead replace it with the new one in the list, remove
     // from the lookup, and add a new lookup entry instead.
-    // if( existing_color.type == ColorType::kSecondary && existing_color.occurrence == 1 ) {
+    // if( existing_color.type == Color::Type::kSecondary && existing_color.occurrence == 1 ) {
     //     // replace the entry in the list, remove the hash, add the new hash
     // } else {
     //     // decrement the occurrence
@@ -356,7 +359,7 @@ size_t KmerColorSet::lookup_and_update(
     // If not, we add the new target color as a secondary color.
     if( max_real_color_count_ == 0 || colors_.size() < max_real_color_count_ ) {
         // Add the color and get its index in the list.
-        target_color.type = ColorType::kSecondary;
+        target_color.type = Color::Type::kSecondary;
         auto const added_index = push_back_color( std::move( target_color ));
 
         // We are adding it as a secondary color, so its index is idempotent. Assert that.
@@ -364,6 +367,7 @@ size_t KmerColorSet::lookup_and_update(
         assert( colors_.size() <= max_real_color_count_ );
         assert( colors_[added_index].index == added_index );
         assert( max_real_color_count_ == 0 || added_index < max_real_color_count_ );
+        ++lookup_stats_.real_color_added;
         return added_index;
     }
 
@@ -391,7 +395,7 @@ size_t KmerColorSet::lookup_and_update(
     assert( real_index < colors_.size() );
 
     // Now we add the color as an imaginary one that points to our secondary color.
-    target_color.type = ColorType::kImaginary;
+    target_color.type = Color::Type::kImaginary;
     target_color.index = real_index;
     auto const added_index = push_back_color( std::move( target_color ));
 
@@ -401,6 +405,7 @@ size_t KmerColorSet::lookup_and_update(
     assert( colors_[added_index].index <  added_index );
     assert( colors_[added_index].index == real_index );
     assert( colors_[added_index].index < max_real_color_count_ );
+    ++lookup_stats_.imaginary_color_added;
     return real_index;
 }
 
@@ -534,7 +539,7 @@ size_t KmerColorSet::push_back_color( KmerColorSet::Color&& color )
     assert( color.elements.size() == primary_color_count_ );
 
     // Check usage.
-    if( color.type == ColorType::kEmpty && ! colors_.empty() ) {
+    if( color.type == Color::Type::kEmpty && ! colors_.empty() ) {
         throw std::invalid_argument( "Cannot add empty color unless it is the first one" );
     }
 
@@ -571,7 +576,7 @@ size_t KmerColorSet::merge_colors_and_push_back( size_t index_1, size_t index_2 
     // Merge a pair using bitwise OR on the color set.
     Color color;
     color.elements = colors_[ index_1 ].elements | colors_[ index_2 ].elements;
-    color.type = ColorType::kSecondary;
+    color.type = Color::Type::kSecondary;
     return push_back_color( std::move( color ));
 }
 

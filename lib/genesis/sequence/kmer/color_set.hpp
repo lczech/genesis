@@ -65,16 +65,17 @@ public:
 
     using Bitvector = genesis::utils::Bitvector;
 
-    enum class ColorType
-    {
-        kEmpty,
-        kPrimary,
-        kSecondary,
-        kImaginary
-    };
-
     struct Color
     {
+        // Types of colors that we model here.
+        enum class Type
+        {
+            kEmpty,
+            kPrimary,
+            kSecondary,
+            kImaginary
+        };
+
         // We keep all colors we have observed in the list. For primary and secondary colors,
         // they are indexing themselves, i.e., the index here is exactly their position
         // in the color list. However, an imaginary color references another color that is
@@ -90,10 +91,19 @@ public:
         Bitvector elements;
 
         // Type of the color.
-        ColorType type = ColorType::kEmpty;
+        Type type = Type::kEmpty;
 
         // We keep track of how often this color is referenced in total.
         // size_t occurrence = 0;
+    };
+
+    struct LookupStatistics
+    {
+        size_t existing_is_empty = 0;
+        size_t existing_contains_target = 0;
+        size_t target_color_exists = 0;
+        size_t real_color_added = 0;
+        size_t imaginary_color_added = 0;
     };
 
     // -------------------------------------------------------------------------
@@ -255,6 +265,11 @@ public:
         return max_real_color_count_;
     }
 
+    LookupStatistics const& get_lookup_statistics() const
+    {
+        return lookup_stats_;
+    }
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
@@ -286,6 +301,9 @@ private:
     // std::pair<size_t, size_t> initial_secondary_color_range_;
     // std::pair<size_t, size_t> secondary_color_range_;
     // std::pair<size_t, size_t> imaginary_color_range_;
+
+    // For debugging and performance assessment, we keep track of statis of the lookup functions
+    LookupStatistics lookup_stats_;
 
 };
 

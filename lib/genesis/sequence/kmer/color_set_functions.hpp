@@ -52,6 +52,7 @@ void verify_unique_colors( KmerColorSet const& cset );
 std::string print_kmer_color_list( KmerColorSet const& cset, size_t int_width = 6 );
 std::string print_kmer_lookup_map( KmerColorSet const& cset );
 std::string print_kmer_color_set_summary( KmerColorSet const& cset );
+std::string print_kmer_color_set_lookup_statistics( KmerColorSet const& cset );
 
 } // namespace sequence
 } // namespace genesis

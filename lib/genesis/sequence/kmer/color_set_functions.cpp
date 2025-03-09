@@ -48,16 +48,16 @@ namespace sequence {
 std::string kmer_color_type_to_string( KmerColorSet::Color const& color )
 {
     switch( color.type ) {
-        case KmerColorSet::ColorType::kEmpty: {
+        case KmerColorSet::Color::Type::kEmpty: {
             return "E";
         }
-        case KmerColorSet::ColorType::kPrimary: {
+        case KmerColorSet::Color::Type::kPrimary: {
             return "P";
         }
-        case KmerColorSet::ColorType::kSecondary: {
+        case KmerColorSet::Color::Type::kSecondary: {
             return "S";
         }
-        case KmerColorSet::ColorType::kImaginary: {
+        case KmerColorSet::Color::Type::kImaginary: {
             return "I";
         }
     }
@@ -172,6 +172,18 @@ std::string print_kmer_color_set_summary( KmerColorSet const& cset )
     ss << "Imaginary:   " << color_counts[3] << "\n";
     ss << "Max real:    " << cset.get_max_real_color_count() << "\n";
     ss << "Unique keys: " << count_unique_lookup_keys( cset ) << "\n";
+    return ss.str();
+}
+
+std::string print_kmer_color_set_lookup_statistics( KmerColorSet const& cset )
+{
+    std::stringstream ss;
+    auto const& stats = cset.get_lookup_statistics();
+    ss << "existing_is_empty        = " << stats.existing_is_empty << "\n";
+    ss << "existing_contains_target = " << stats.existing_contains_target << "\n";
+    ss << "target_color_exists      = " << stats.target_color_exists << "\n";
+    ss << "real_color_added         = " << stats.real_color_added << "\n";
+    ss << "imaginary_color_added    = " << stats.imaginary_color_added << "\n";
     return ss.str();
 }
 
