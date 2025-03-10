@@ -45,37 +45,6 @@ namespace sequence {
 //     Color Set Functions
 // =================================================================================================
 
-std::string kmer_color_type_to_string( KmerColorSet::Color const& color )
-{
-    switch( color.type ) {
-        case KmerColorSet::Color::Type::kEmpty: {
-            return "E";
-        }
-        case KmerColorSet::Color::Type::kPrimary: {
-            return "P";
-        }
-        case KmerColorSet::Color::Type::kSecondary: {
-            return "S";
-        }
-        case KmerColorSet::Color::Type::kImaginary: {
-            return "I";
-        }
-    }
-    return "-";
-}
-
-std::array<size_t, 4> count_kmer_color_set_color_types( KmerColorSet const& cset )
-{
-    // We have four types of colors currently.
-    assert( cset.get_color_list().size() == cset.get_lookup_map().size() );
-    auto result = std::array<size_t, 4>();
-    for( auto const& color : cset.get_color_list() ) {
-        assert( static_cast<int>( color.type ) < 4 );
-        ++result[ static_cast<int>( color.type ) ];
-    }
-    return result;
-}
-
 size_t count_unique_lookup_keys( KmerColorSet const& cset )
 {
     // Loop over the entire multimap, but "jump" over groups of the same key.
@@ -118,8 +87,6 @@ std::string print_kmer_color_list( KmerColorSet const& cset, size_t int_width )
     for( size_t i = 0; i < cset.get_color_list().size(); ++i ) {
         auto const& color = cset.get_color_list()[i];
         ss << std::setw( int_width ) << i;
-        ss << " " << kmer_color_type_to_string( color );
-        ss << " " << std::setw( int_width ) << color.index;
         ss << " " << utils::to_bit_string( color.elements );
         ss << "\n";
     }
@@ -161,9 +128,6 @@ std::string print_kmer_color_set_summary( KmerColorSet const& cset )
     assert( cset.get_color_list().size() == cset.get_lookup_map().size() );
 
     // Count all colors
-    auto const color_counts = count_kmer_color_set_color_types( cset );
-    assert( color_counts[1] == cset.get_primary_color_count() );
-
     std::stringstream ss;
     ss << "Colors:      " << cset.get_color_list().size() << "\n";
     ss << "Empty:       " << color_counts[0] << "\n";

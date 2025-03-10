@@ -67,42 +67,31 @@ public:
 
     struct Color
     {
-        // Types of colors that we model here.
-        enum class Type
-        {
-            kEmpty,
-            kPrimary,
-            kSecondary,
-            kImaginary
-        };
-
-        // We keep all colors we have observed in the list. For primary and secondary colors,
-        // they are indexing themselves, i.e., the index here is exactly their position
-        // in the color list. However, an imaginary color references another color that is
-        // a superset of itself (in terms of the bit set), and so we need to store that index
-        // here instead.
-        // An alternative design would be to store the imaginary colors separately to avoid that,
-        // but then we'd need to search both lists when looking up if a color already exists.
-        size_t index = 0;
-
         // For each primary element that we want to color, store a bit indicating
         // if this color comprises the element. Primary colors have exactly one bit set,
         // while secondary colors have all bits of their primary colors set.
         Bitvector elements;
 
-        // Type of the color.
-        Type type = Type::kEmpty;
-
-        // We keep track of how often this color is referenced in total.
+        // In the future, we might want to keep track of how often this color is referenced,
+        // such that we can decommission it if it is not longer used.
         // size_t occurrence = 0;
     };
 
-    struct LookupStatistics
+    struct ImaginaryColor
     {
-        size_t existing_is_empty = 0;
-        size_t existing_contains_target = 0;
-        size_t target_color_exists = 0;
-        size_t real_color_added = 0;
+        // An imaginary color also has a bitvector of the elements it covers,
+        // but additionally the index of the real color that it refers to.
+        Bitvector elements;
+        size_t real_index;
+    };
+
+    struct Statistics
+    {
+        size_t existing_color_is_empty = 0;
+        size_t existing_color_contains_target = 0;
+        size_t matching_real_color_exists = 0;
+        size_t matching_real_color_added = 0;
+        size_t imaginary_color_exists = 0;
         size_t imaginary_color_added = 0;
     };
 
@@ -114,12 +103,12 @@ public:
 
     // KmerColorSet() = default;
 
-    KmerColorSet( size_t primary_color_count, size_t max_real_color_count = 0 )
-        : primary_color_count_( primary_color_count )
-        , max_real_color_count_( max_real_color_count )
+    KmerColorSet( size_t element_count, size_t max_color_count = 0 )
+        : element_count_( element_count )
+        , max_color_count_( max_color_count )
     {
-        if( primary_color_count_ == 0 ) {
-            throw std::runtime_error( "Primary color count has to be greater than zero" );
+        if( element_count_ == 0 ) {
+            throw std::runtime_error( "Element count has to be greater than zero" );
         }
         init_primary_colors_();
     }
@@ -144,7 +133,7 @@ public:
 
     void init_secondary_colors_with_binary_reduction();
     void init_secondary_colors_from_bitvectors( std::vector<Bitvector> const& bitvecs );
-    void init_secondary_colors_from_indices( std::vector<std::vector<size_t>> const& indices );
+    void init_secondary_colors_from_groups( std::vector<std::vector<size_t>> const& groups );
 
     template <typename T>
     void init_secondary_colors_from_hac(
@@ -158,7 +147,7 @@ public:
         // We assume that no early deactivation via keep_active_function() was used
         // in the clustering though.
         check_uninitialized_secondary_colors_();
-        if( primary_color_count_ != hac_observations ) {
+        if( element_count_ != hac_observations ) {
             throw std::invalid_argument(
                 "Primary color count in Kmer Color Set does not match "
                 "the number of observations in the Hierarchical Agglomerative Clustering."
@@ -182,7 +171,7 @@ public:
 
             // We simply use the two cluster indices that were merged, and merge
             // our corresponding colors. Due to the empty color, we need an offset of one here.
-            merge_colors_and_push_back(
+            merge_and_add_real_colors(
                 1 + merger.cluster_index_a,
                 1 + merger.cluster_index_b
             );
@@ -197,7 +186,7 @@ public:
         //         "of a Kmer Color Set, as the last merger does not comprise all observerations."
         //     );
         // }
-        check_max_real_color_count_();
+        check_max_color_count_();
     }
 
     void init_secondary_colors_from_phylogeny()
@@ -213,7 +202,7 @@ public:
 private:
 
     void check_uninitialized_secondary_colors_() const;
-    void check_max_real_color_count_() const;
+    void check_max_color_count_() const;
 
     // -------------------------------------------------------------------------
     //     Lookup & Modification
@@ -226,13 +215,42 @@ public:
         size_t target_element_index
     );
 
-    size_t find_color( Bitvector const& target ) const;
+private:
+
+    size_t lookup_(
+        size_t existing_color_index,
+        size_t target_element_index,
+        Bitvector& target_elements,
+        size_t& target_hash
+    ) const;
+
+    size_t update_(
+        size_t existing_color_index,
+        size_t target_element_index,
+        Bitvector& target_elements,
+        size_t& target_hash
+    );
+
+public:
+
+    size_t find_real_color( Bitvector const& target ) const;
+    size_t find_imaginary_color( Bitvector const& target ) const;
+
+private:
+
+    size_t find_real_color_( Bitvector const& target, size_t hash ) const;
+    size_t find_imaginary_color_( Bitvector const& target, size_t hash ) const;
+
+public:
 
     size_t find_minimal_superset( Bitvector const& target ) const;
+    size_t merge_and_add_real_colors( size_t color_index_1, size_t color_index_2 );
+    size_t add_real_color( Color&& color );
 
-    size_t push_back_color( Color&& color );
+private:
 
-    size_t merge_colors_and_push_back( size_t color_index_1, size_t color_index_2 );
+    size_t add_real_color_( Color&& color, size_t hash );
+    size_t add_imaginary_color_( Color&& color, size_t hash, size_t real_color_index );
 
     // -------------------------------------------------------------------------
     //     Data Access
@@ -242,7 +260,13 @@ public:
 
     Color const& get_color_at( size_t index ) const
     {
-        return colors_.at( index );
+        if( index >= colors_.size() ) {
+            throw std::invalid_argument(
+                "Invalid color index " + std::to_string( index ) +
+                " in color list of size " + std::to_string( colors_.size() )
+            );
+        }
+        return colors_.[ index ];
     }
 
     std::vector<Color> const& get_color_list() const
@@ -250,24 +274,29 @@ public:
         return colors_;
     }
 
-    std::unordered_multimap<size_t, size_t> const& get_lookup_map() const
+    std::unordered_multimap<size_t, size_t> const& get_real_color_lookup() const
     {
-        return lookup_;
+        return real_lookup_;
     }
 
-    size_t get_primary_color_count() const
+    std::unordered_map<Bitvector, size_t> const& get_imaginary_color_lookup() const
     {
-        return primary_color_count_;
+        return imaginary_lookup_;
     }
 
-    size_t get_max_real_color_count() const
+    size_t get_element_count() const
     {
-        return max_real_color_count_;
+        return element_count_;
     }
 
-    LookupStatistics const& get_lookup_statistics() const
+    size_t get_max_color_count() const
     {
-        return lookup_stats_;
+        return max_color_count_;
+    }
+
+    Statistics const& get_statistics() const
+    {
+        return stats_;
     }
 
     // -------------------------------------------------------------------------
@@ -276,12 +305,16 @@ public:
 
 private:
 
-    // List of all colors
-    std::vector<Color> colors_;
+    // Keep track of our set sizes
+    size_t element_count_;
+    size_t max_color_count_;
+
+    // List of all real colors (empty, primary, secondary).
+    std::vector<Color> real_colors_;
 
     // Lookup from the hash of a color's bitvector to its index in the list.
     // Instead of mapping from bitvectors to their color index, we map from their hashes to the index.
-    // This avoids having to keep another copy of each bitvector as keys in the lookup.
+    // This avoids having to keep another copy of each bitvector of real colors as keys in the lookup.
     // Note that we are using a multimap here, as different colors can have the same hash.
     // Hence, when using this lookup, we need an additional step to identify the correct color,
     // by comparing the pointed-to bitvector with the one we are looking up.
@@ -289,21 +322,17 @@ private:
     // as the hash map would also need to do a final key comparison on top anyway.
     // The only overhead is that the hashmap also needs to do that double check on the key
     // (our color hash) itself, but that's cheap compared to the bitvector comparisons.
-    std::unordered_multimap<size_t, size_t> lookup_;
+    std::unordered_multimap<size_t, size_t> real_lookup_;
 
-    // Keep track of our set sizes
-    size_t primary_color_count_;
-    size_t max_real_color_count_;
+    // The imaginary colors are not stored in a list, as we only want to keep them here during
+    // construction of the list anyway. We hence do not need to keep list and lookup separate,
+    // and can simply store the full bitvectors here. Otherwise, this works the same as above,
+    // with the hashes as keys for speed, so that we do not need to recompute them.
+    std::unordered_multimap<size_t, ImaginaryColor> imaginary_lookup_;
 
-    // For convenience, we also keep track of the ranges of each type of color.
-    // The second element is the past-the-end index.
-    // std::pair<size_t, size_t> primary_color_range_;
-    // std::pair<size_t, size_t> initial_secondary_color_range_;
-    // std::pair<size_t, size_t> secondary_color_range_;
-    // std::pair<size_t, size_t> imaginary_color_range_;
-
-    // For debugging and performance assessment, we keep track of statis of the lookup functions
-    LookupStatistics lookup_stats_;
+    // For debugging and performance assessment,
+    // we keep track of statis of the lookup functions.
+    Statistics stats_;
 
 };
 

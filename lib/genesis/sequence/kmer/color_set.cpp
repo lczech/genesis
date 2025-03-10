@@ -53,28 +53,26 @@ void KmerColorSet::init_primary_colors_()
         throw std::runtime_error( "Primary colors already initialized" );
     }
     assert( colors_.size() == 0 );
-    assert( primary_color_count_ != 0 );
+    assert( element_count_ != 0 );
 
     // Add the empty color as the first element. This is so that a color index of 0,
-    // which is what we get by default in an uninitialized lookup, does not trick us
-    // into believing it's a real color. Hence, internally, we need to offset all
-    // primary colors by 1.
+    // which is what we get by default in an uninitialized setting, does not trick us
+    // into believing it's a real color.
+    // Hence, internally, we need to offset all actual primary colors by 1.
     Color empty;
-    empty.elements = Bitvector( primary_color_count_ );
-    empty.type = Color::Type::kEmpty;
-    push_back_color( std::move( empty ));
+    empty.elements = Bitvector( element_count_ );
+    add_real_color( std::move( empty ));
     assert( colors_.size() == 1 );
 
     // Now add entries for all primary colors, with bitvectors that have
     // the bit set that corresponds to the color's index.
-    for( size_t i = 0; i < primary_color_count_; ++i ) {
+    for( size_t i = 0; i < element_count_; ++i ) {
         Color color;
-        color.elements = Bitvector( primary_color_count_ );
+        color.elements = Bitvector( element_count_ );
         color.elements.set( i );
-        color.type = Color::Type::kPrimary;
-        push_back_color( std::move( color ));
+        add_real_color( std::move( color ));
     }
-    assert( colors_.size() == 1 + primary_color_count_ );
+    assert( colors_.size() == 1 + element_count_ );
 }
 
 // -------------------------------------------------------------------------
@@ -110,7 +108,7 @@ void KmerColorSet::init_secondary_colors_with_binary_reduction()
 
             // Default case: two groups to merge into a new color.
             if( i + 1 < last ) {
-                merge_colors_and_push_back( i, i+1 );
+                merge_and_add_real_colors( i, i+1 );
                 continue;
             }
 
@@ -127,7 +125,7 @@ void KmerColorSet::init_secondary_colors_with_binary_reduction()
             if( leftover_index == 0 ) {
                 leftover_index = i;
             } else {
-                merge_colors_and_push_back( i, leftover_index );
+                merge_and_add_real_colors( i, leftover_index );
                 leftover_index = 0;
             }
         }
@@ -140,16 +138,16 @@ void KmerColorSet::init_secondary_colors_with_binary_reduction()
     recursive_merge_( 1, colors_.size() );
 
     // At the end, there should be no leftover color; all should be in some secondary color.
-    // Due to the exist condition of the recursive function, the leftover is set to the last
+    // Due to the exit condition of the recursive function, the leftover is set to the last
     // element that has all colors set (which is hence not really a leftover).
     assert( leftover_index == colors_.size() - 1 );
 
     // A binary tree has one fewer inner nodes than tips. We have added those as colors,
     // and have the empty color, so our total is now double the number of primary colors.
     // Also, the last secondary color should contain _all_ primary colors.
-    assert( colors_.size() == 2 * primary_color_count_ );
+    assert( colors_.size() == 2 * element_count_ );
     assert( all_set( colors_.back().elements ));
-    check_max_real_color_count_();
+    check_max_color_count_();
 }
 
 // -------------------------------------------------------------------------
@@ -169,10 +167,10 @@ void KmerColorSet::init_secondary_colors_from_bitvectors(
     // Add all bitvectors as secondary colors
     for( auto const& bv : bitvecs ) {
         // Validity checks
-        if( bv.size() != primary_color_count_ ) {
+        if( bv.size() != element_count_ ) {
             throw std::invalid_argument(
                 "Cannot initialize Kmer Color Set with Bitvectors of size "
-                "that does not match the primary color count"
+                "that does not match the element count"
             );
         }
         if( utils::pop_count( bv ) < 2 ) {
@@ -188,15 +186,14 @@ void KmerColorSet::init_secondary_colors_from_bitvectors(
         // Create a color for the bitvector, and check that it is not a duplicate.
         Color color;
         color.elements = bv;
-        color.type = Color::Type::kSecondary;
-        if( find_color( color.elements ) > 0 ) {
+        if( find_real_color( color.elements ) > 0 ) {
             throw std::invalid_argument(
                 "Cannot initialize Kmer Color Set with Bitvectors containing duplicates"
             );
         }
 
         // All good; add the color to our list.
-        push_back_color( std::move( color ));
+        add_real_color( std::move( color ));
     }
 
     // Final checks
@@ -206,22 +203,22 @@ void KmerColorSet::init_secondary_colors_from_bitvectors(
     //         "that do not contain an all-set bitvector"
     //     );
     // }
-    check_max_real_color_count_();
+    check_max_color_count_();
 }
 
 // -------------------------------------------------------------------------
-//     init_secondary_colors_from_indices
+//     init_secondary_colors_from_groups
 // -------------------------------------------------------------------------
 
-void KmerColorSet::init_secondary_colors_from_indices(
-    std::vector<std::vector<size_t>> const& indices
+void KmerColorSet::init_secondary_colors_from_groups(
+    std::vector<std::vector<size_t>> const& groups
 ) {
-    // Quick and dirty: create bitvectors from the indices, then forward. We are currently
-    // not expecting more than a few hundred or thousand colors, so this should be fine
-    // for initialization. If extended to more colors, might need optimization.
+    // Quick and dirty: create bitvectors from the indices, then forward to the bitvector function.
+    // We are currently not expecting more than a few hundred or thousand initial colors, so this
+    // should be fine for initialization. If extended to more colors, might need optimization.
     std::vector<Bitvector> bitvecs;
-    for( auto const& index_list : indices ) {
-        bitvecs.emplace_back( Bitvector( primary_color_count_, index_list ));
+    for( auto const& group_indices : groups ) {
+        bitvecs.emplace_back( Bitvector( element_count_, group_indices ));
     }
     init_secondary_colors_from_bitvectors( bitvecs );
 }
@@ -235,7 +232,7 @@ void KmerColorSet::check_uninitialized_secondary_colors_() const
     // We currently only allow initializing the secondary colors once.
     // Might change in the future to allow to set multiple types of starting colors
     // for the secondaries, but for now, we do not need/want that.
-    if( colors_.size() != 1 + primary_color_count_ ) {
+    if( colors_.size() != 1 + element_count_ ) {
         throw std::runtime_error(
             "Primary color count is off or secondary colors have already been initialized"
         );
@@ -243,20 +240,20 @@ void KmerColorSet::check_uninitialized_secondary_colors_() const
 }
 
 // -------------------------------------------------------------------------
-//     check_max_real_color_count_
+//     check_max_color_count_
 // -------------------------------------------------------------------------
 
-void KmerColorSet::check_max_real_color_count_() const
+void KmerColorSet::check_max_color_count_() const
 {
-    // If we have a max real color count set, but it is already exhausted after initialization,
+    // If we have a max color count set, but it is already exhausted after initialization,
     // we have reached an invalid state, as the that means we have valid secondary colors
     // that are beyond the max, and so they are unusuable. Guard against that.
-    if( max_real_color_count_ == 0 ) {
+    if( max_color_count_ == 0 ) {
         return;
     }
-    if( colors_.size() > max_real_color_count_ ) {
+    if( colors_.size() > max_color_count_ ) {
         throw std::invalid_argument(
-            "Cannot initialize Kmer Color Set with more secondary colors than the max real color count"
+            "Cannot initialize Kmer Color Set with more secondary colors than the max color count"
         );
     }
 }
@@ -273,39 +270,64 @@ size_t KmerColorSet::lookup_and_update(
     size_t existing_color_index,
     size_t target_element_index
 ) {
+    // Below, we unfortunately need to allocate a temporary bitvector for lookup up
+    // if that one already exists in our colors, even if we do not update anything.
+    // But at least we can avoid re-allocation and re-creating of this throughout
+    // the calls of lookup_ and update_ below.
+    Bitvector target_elements;
+    size_t target_hash;
+
+    // First see if we can find a fitting color. Either the existing one indexed here
+    // already contains the target element, or there is another color already that is
+    // the exact match of the union of the existing one and the new target index.
+    auto const retrieved_index = lookup_(
+        existing_color_index, target_element_index, target_elements, target_hash
+    );
+    if( retrieved_index > 0 ) {
+        assert( retrieved_index < colors_.size() );
+        return retrieved_index;
+    }
+
+    // If there is no existing fitting color, we have to add a new one, or, if we are out
+    // of colors, find a minimally fitting superset, and make an imaginary one for it.
+    return update_(
+        existing_color_index, target_element_index, target_elements, target_hash
+    );
+}
+
+// -------------------------------------------------------------------------
+//     lookup_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::lookup_(
+    size_t existing_color_index,
+    size_t target_element_index,
+    Bitvector& target_elements,
+    size_t& target_hash
+) const {
     // Sanity checks.
     if( existing_color_index >= colors_.size() ) {
         throw std::invalid_argument(
             "Invalid color index " + std::to_string( existing_color_index )
         );
     }
-    if( target_element_index >= primary_color_count_ ) {
+    if( target_element_index >= element_count_ ) {
         throw std::invalid_argument(
-            "Invalid primary index " + std::to_string( target_element_index )
+            "Invalid element index " + std::to_string( target_element_index )
         );
     }
+    assert( 1 + element_count_ <= colors_.size() );
     assert( 1 + target_element_index <= colors_.size() );
-    assert( 1 + primary_color_count_ <= colors_.size() );
-    assert( colors_[existing_color_index].elements.size() == primary_color_count_ );
+    assert( colors_[existing_color_index].elements.size() == element_count_ );
 
-    // Usually, we only want to look up real colors (primary and secondary, but not imaginary),
-    // as those are the only ones being stored by the caller anyway. So here we could test
-    // if the given color is real. However, the below code also works when requesting an existing
-    // imaginary color. Not sure if that is usueful or good, but let's allow this for now.
-    // if( max_real_color_count_ > 0 && existing_color_index >= max_real_color_count_ ) {
-    //     throw std::invalid_argument(
-    //         "Color at index " + std::to_string( existing_color_index ) + " is an imaginary color"
-    //     );
-    // }
-
-    // Special case for speed: If the existing color is the empty color,
-    // then we are dealing with a default empty entry that does not yet have any color.
+    // Special case for speed: If the existing color is the empty color, that means that
+    // the existing entry is a default empty entry that does not yet have any color.
     // In that case, we can just return the index where the added primary color resides.
-    // The below code would also work in this case, but take more time to get there.
+    // The other code would also work in this case, but take more time to get there.
     if( existing_color_index == 0 ) {
         // Assert that the element bitvector is indeed set for the target index.
         assert( colors_[ 1 + target_element_index ].elements.get( target_element_index ));
-        ++lookup_stats_.existing_is_empty;
+        ++stats_.existing_color_is_empty;
         return 1 + target_element_index;
     }
 
@@ -313,43 +335,68 @@ size_t KmerColorSet::lookup_and_update(
     // If so, we do not need to do anything here, and the color index is the same as given.
     auto const& existing_color = colors_[existing_color_index];
     if( existing_color.elements.get( target_element_index )) {
-        // We do usually not expect that this function is called with the index of an imaginary
-        // color, but it also should not be an issue really to do that. We only need to return
-        // the index stored in the color here, instead of existing_color_index. Those are the
-        // same for primary and secondary colors, but not for imaginary ones, where they point
-        // to a secondary color intead.
-        ++lookup_stats_.existing_contains_target;
-        return existing_color.index;
+        ++stats_.existing_color_contains_target;
+        return existing_color;
     }
 
     // Here, we are in the case where the existing color does not already contain
-    // the newly added primary color, so we need to make a new set of their union.
-    Color target_color;
-    target_color.elements = existing_color.elements;
-    target_color.elements.set( target_element_index );
-    // target_color.occurrence = 1;
-
-    // Check if an entry with that combination already exists. If so, this is our result.
-    auto const target_index = find_color( target_color.elements );
-    if( target_index > 0 ) {
-        // We return the internal index here, as this might be an imaginary color.
-        assert( target_index < colors_.size() );
-        assert( max_real_color_count_ == 0 || colors_[target_index].index < max_real_color_count_ );
-        ++lookup_stats_.target_color_exists;
-        return colors_[target_index].index;
+    // the newly added element, so we need to make a new bitvector of their union.
+    // We use a buffer at call site to avoid re-computing the bitvector and its hash.
+    if( target_elements.empty() ) {
+        target_elements = existing_color.elements;
+        target_elements.set( target_element_index );
+        target_hash = utils::bitvector_hash( target_elements );
+    } else {
+        // Expensive asserts...
+        assert( target_elements.size() == element_count_ );
+        assert( target_elements.get( target_element_index ));
+        assert( target_elements | existing_color.elements == target_elements );
+        assert( target_hash == utils::bitvector_hash( target_elements ));
     }
 
-    // If the new color is not in our list yet, this is a secondary color
-    // that we have not seen before. We need to add it to our list,
-    // either as a new secondary color, or, if we are out of space for those,
-    // as an imaginary color.
+    // Check if an entry with those elements already exists. If so, this is our result.
+    auto const real_index = find_real_color_( target_elements, target_hash );
+    assert( real_index < colors_.size() );
+    if( real_index > 0 ) {
+        ++stats_.matching_real_color_exists;
+        return real_index;
+    }
+
+    // If not in the real colors, check the imaginary ones as well.
+    auto const imaginary_index = find_imaginary_color_( target_elements, target_hash );
+    assert( imaginary_index < colors_.size() );
+    if( imaginary_index > 0 ) {
+        ++stats_.imaginary_color_exists;
+        return imaginary_index;
+    }
+
+    // Otherwise, indicate that we did not find a match in the existing colors by returning
+    // the empty color index 0. Also, some bookkeeping for the stats.
+    return 0;
+}
+
+// -------------------------------------------------------------------------
+//     update_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::update_(
+    size_t existing_color_index,
+    size_t target_element_index,
+    Bitvector& target_elements,
+    size_t& target_hash
+) {
+    // If the new color is not in our list yet, this is a yet unseen secondary color.
+    // We need to add it to our color set, either as a new secondary color, or,
+    // if we are out of space for those, as an imaginary color.
 
     // TODO Decommissioning unused colors.
     // Below, whenever we have found the index we are looking for, we might not need
     // the existing color any more, as we are updating it with a new color. If its occurrence
     // goes down to zero, we can instead replace it with the new one in the list, remove
-    // from the lookup, and add a new lookup entry instead.
-    // if( existing_color.type == Color::Type::kSecondary && existing_color.occurrence == 1 ) {
+    // from the lookup, and add a new lookup entry instead. Need to make sure that we are not
+    // removing primary entries (single bit set), but initializing them with a count of 1
+    // should do the trick, as that way, it will never go down to zero.
+    // if( existing_color.occurrence == 1 ) {
     //     // replace the entry in the list, remove the hash, add the new hash
     // } else {
     //     // decrement the occurrence
@@ -357,24 +404,23 @@ size_t KmerColorSet::lookup_and_update(
 
     // Check if we have already exhausted our supply of secondary colors.
     // If not, we add the new target color as a secondary color.
-    if( max_real_color_count_ == 0 || colors_.size() < max_real_color_count_ ) {
+    if( max_color_count_ == 0 || colors_.size() < max_color_count_ ) {
         // Add the color and get its index in the list.
-        target_color.type = Color::Type::kSecondary;
-        auto const added_index = push_back_color( std::move( target_color ));
+        auto const added_index = add_real_color( std::move( target_elements ));
 
         // We are adding it as a secondary color, so its index is idempotent. Assert that.
         assert( colors_.size() == added_index + 1 );
-        assert( colors_.size() <= max_real_color_count_ );
+        assert( colors_.size() <= max_color_count_ );
         assert( colors_[added_index].index == added_index );
-        assert( max_real_color_count_ == 0 || added_index < max_real_color_count_ );
-        ++lookup_stats_.real_color_added;
+        assert( max_color_count_ == 0 || added_index < max_color_count_ );
+        ++stats_.real_color_added;
         return added_index;
     }
 
     // Here we are in the case that we want to add the new color, but do not have space
     // for secondary colors any more, so we add it as an imaginary one instead.
     // First, we find the minimal superset in the secondary colors that includes our target color.
-    auto const real_index = find_minimal_superset( target_color.elements );
+    auto const real_index = find_minimal_superset( target_elements.elements );
 
     // If we have not found any matching superset, that means that our secondary colors
     // are missing a proper candidate, and should have been initialized differently,
@@ -389,50 +435,80 @@ size_t KmerColorSet::lookup_and_update(
     }
 
     // If we know we have found a valid secondary color, assert its propertiers.
-    assert( max_real_color_count_ > 0 );
+    assert( max_color_count_ > 0 );
     assert( real_index > 0 );
-    assert( real_index < max_real_color_count_ );
+    assert( real_index < max_color_count_ );
     assert( real_index < colors_.size() );
 
     // Now we add the color as an imaginary one that points to our secondary color.
-    target_color.type = Color::Type::kImaginary;
-    target_color.index = real_index;
-    auto const added_index = push_back_color( std::move( target_color ));
+    target_elements.type = Color::Type::kImaginary;
+    target_elements.index = real_index;
+    auto const added_index = add_real_color( std::move( target_elements ));
 
     // We are adding it as an imaginary color, so its index is not idempotent. Assert that.
     // We then return the pointed-to secondary color.
     assert( colors_.size() == added_index + 1 );
     assert( colors_[added_index].index <  added_index );
     assert( colors_[added_index].index == real_index );
-    assert( colors_[added_index].index < max_real_color_count_ );
-    ++lookup_stats_.imaginary_color_added;
+    assert( colors_[added_index].index < max_color_count_ );
+    ++stats_.imaginary_color_added;
     return real_index;
 }
 
 // -------------------------------------------------------------------------
-//     find_color
+//     find_real_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_color( utils::Bitvector const& target ) const
+size_t KmerColorSet::find_real_color( utils::Bitvector const& target ) const
 {
     // Sanity check. Internally not needed, but added for external usage.
-    if( target.size() != primary_color_count_ ) {
+    if( target.size() != element_count_ ) {
         throw std::invalid_argument(
             "Invalid target bitvecor with different number of bits than the number of primary colors"
         );
     }
 
+    // Same with the hash, only need to compute this for the external interface here.
+    auto const hash = utils::bitvector_hash( target );
+    return find_real_color_( target, hash );
+}
+
+// -------------------------------------------------------------------------
+//     find_imaginary_color
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::find_imaginary_color( utils::Bitvector const& target ) const
+{
+    // Same as above for the real colors.
+    if( target.size() != element_count_ ) {
+        throw std::invalid_argument(
+            "Invalid target bitvecor with different number of bits than the number of primary colors"
+        );
+    }
+    auto const hash = utils::bitvector_hash( target );
+    return find_imaginary_color_( target, hash );
+}
+
+// -------------------------------------------------------------------------
+//     find_real_color_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::find_real_color_( utils::Bitvector const& target, size_t hash ) const
+{
+    // Sanity checks.
+    assert( target.size() == element_count_ );
+    assert( hash == utils::bitvector_hash( target ));
+    assert( real_colors_.size() == real_lookup_.size() );
+
     // There might be more than one color with the same hash, hence we need to
     // loop over the range to access all elements with the given hash key.
-    assert( colors_.size() == lookup_.size() );
-    auto const hash = utils::bitvector_hash( target );
-    auto const range = lookup_.equal_range( hash );
-    for( auto it = range.first; it != range.second; ++it ) {
+    auto const real_range = real_lookup_.equal_range( hash );
+    for( auto it = real_range.first; it != real_range.second; ++it ) {
         assert( it->first == hash );
 
         // Check if the given bitvector matches the one pointed to by this hash.
         // If so, we have found our match, and return its color index.
-        if( colors_[it->second].elements == target ) {
+        if( real_colors_[it->second].elements == target ) {
             return it->second;
         }
     }
@@ -443,13 +519,45 @@ size_t KmerColorSet::find_color( utils::Bitvector const& target ) const
 }
 
 // -------------------------------------------------------------------------
+//     find_imaginary_color_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::find_imaginary_color_( utils::Bitvector const& target, size_t hash ) const
+{
+    // Sanity checks.
+    assert( target.size() == element_count_ );
+    assert( hash == utils::bitvector_hash( target ));
+    assert( real_colors_.size() == real_lookup_.size() );
+
+    // This is only reasonable if the color list is full (reached max_color_count_), as otherwise,
+    // the target color would not have been added as an imaginary one anyway yet.
+    if( max_color_count_ == 0 || real_colors_.size() < max_color_count_ ) {
+        assert( imaginary_lookup_.empty() );
+        return 0;
+    }
+
+    // Similar principle to the above find_real_color, but with the imaginary color hash map.
+    // The map is structured a bit differently for efficiency, but otherwise the same.
+    auto const imaginary_range = imaginary_lookup_.equal_range( hash );
+    for( auto it = imaginary_range.first; it != imaginary_range.second; ++it ) {
+        assert( it->first == hash );
+        if( it->second.elements == target ) {
+            return it->second.index;
+        }
+    }
+
+    // We did not find the entry, meaning there is no color with this hash. Return the empty color.
+    return 0;
+}
+
+// -------------------------------------------------------------------------
 //     find_minimal_superset
 // -------------------------------------------------------------------------
 
 size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target ) const
 {
     // Sanity check. Internally not needed, but added for external usage.
-    if( target.size() != primary_color_count_ ) {
+    if( target.size() != element_count_ ) {
         throw std::invalid_argument(
             "Invalid target bitvecor with different number of bits than the number of primary colors"
         );
@@ -461,13 +569,13 @@ size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target ) con
     // (as they are strict subsets of existing secondary colors).
     // We do not assert this here though, as we might want to use this function in other contexts
     // by outside callers. In that case, we just scan the range of secondary colors.
-    // assert( max_real_color_count_ > 0 );
-    // assert( max_real_color_count_ < colors_.size() );
+    // assert( max_color_count_ > 0 );
+    // assert( max_color_count_ < colors_.size() );
 
     // Init our trackers. We have at most all bits of all primary colors set,
     // meaning that we start the search with one more, so that the min can find it.
     size_t min_index = 0;
-    size_t min_pop_count = primary_color_count_ + 1;
+    size_t min_pop_count = element_count_ + 1;
 
     // We are searching for a strict superset that has minimal pop count.
     // We cannot be better than having exactly one element more set than the target,
@@ -477,7 +585,7 @@ size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target ) con
     // Upper bound of the search in the typical use case is the end of the secondary colors.
     // We however allow this function to be called before all slots for secondary colors
     // are used up, in which case we need to stop whenever we reach the end of the colors.
-    size_t const max_index = std::min( colors_.size(), max_real_color_count_ );
+    size_t const max_index = std::min( colors_.size(), max_color_count_ );
 
     // TODO Add an optional early stop condition here that only searches through the initial set
     // of secondary colors created with the init functions, in case that this here is too slow.
@@ -488,7 +596,7 @@ size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target ) con
     // Here, we unfortunately need to iterate all colors, which is slow and might need
     // optimization or a different approach in the future. Let's see if the imaginary colors
     // saturate fast enough so that we do not need to search  for a new one all too often.
-    for( size_t i = 1 + primary_color_count_; i < max_index; ++i ) {
+    for( size_t i = 1 + element_count_; i < max_index; ++i ) {
         // The color needs to be different, as we would have found an identical match earlier.
         // We could use is_strict_superset() here as well, but it's slightly slower.
         assert( colors_[i].elements != target );
@@ -515,7 +623,7 @@ size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target ) con
     // Otherwise, we have found a secondary color that is a superset of our target.
     // Furthermore, it is guaranteed to be a strict superset, as otherwise, it would be
     // identical to the target, and so we would have found it in the lookup already.
-    assert( min_index == 0 || min_pop_count <= primary_color_count_ );
+    assert( min_index == 0 || min_pop_count <= element_count_ );
     assert( min_index == 0 || min_pop_count > utils::pop_count( target ));
     assert( min_index == 0 || colors_[min_index].elements != target );
     assert( min_index == 0 || is_strict_superset( colors_[min_index].elements, target ));
@@ -527,45 +635,10 @@ size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target ) con
 // ================================================================================================
 
 // -------------------------------------------------------------------------
-//     push_back_color
+//     merge_and_add_real_colors
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::push_back_color( KmerColorSet::Color&& color )
-{
-    // Check our assumptions.
-    // In the init, we explicitly check for duplicates. During our internal executing however,
-    // we assume that our algorithm never wants to add a color that already exists. Assert that.
-    assert( find_color( color.elements ) == 0 );
-    assert( color.elements.size() == primary_color_count_ );
-
-    // Check usage.
-    if( color.type == Color::Type::kEmpty && ! colors_.empty() ) {
-        throw std::invalid_argument( "Cannot add empty color unless it is the first one" );
-    }
-
-    // Get the index at which the color will be placed in the list,
-    // which is simply the current size of the list.
-    size_t const index = colors_.size();
-
-    // For imaginary colors, we assume that the caller already set the index
-    // of the color it points to. For all others, we set it here for convenience.
-    if( color.index == 0 ) {
-        color.index = index;
-    }
-
-    // Add the color to the list and the lookup.
-    auto const hash = utils::bitvector_hash( color.elements );
-    colors_.emplace_back( std::move( color ));
-    lookup_.insert({ hash, index });
-    assert( colors_.size() == lookup_.size() );
-    assert( colors_.size() == index + 1 );
-
-    // We here return the real index in the list, not the one that the color points to,
-    // and leave the decision about that to the caller.
-    return index;
-}
-
-size_t KmerColorSet::merge_colors_and_push_back( size_t index_1, size_t index_2 )
+size_t KmerColorSet::merge_and_add_real_colors( size_t index_1, size_t index_2 )
 {
     // Helper function that takes two colors, merges them, and adds them to the list.
     // First check that the colors are valid entries.
@@ -576,21 +649,91 @@ size_t KmerColorSet::merge_colors_and_push_back( size_t index_1, size_t index_2 
     // Merge a pair using bitwise OR on the color set.
     Color color;
     color.elements = colors_[ index_1 ].elements | colors_[ index_2 ].elements;
-    color.type = Color::Type::kSecondary;
-    return push_back_color( std::move( color ));
+    return add_real_color( std::move( color ));
 }
 
-// size_t replace_color( size_t index, Color&& color )
-// {
-//     assert( index < colors_.size() );
-//     assert( color.elements.size() == primary_color_count_ );
-//
-//     // Add the color to the list and the lookup
-//     auto const hash = utils::bitvector_hash( color.elements );
-//     colors_.emplace_back( std::move( color ));
-//     lookup_.insert({ hash, colors_.size() - 1 });
-//     return index;
-// }
+// -------------------------------------------------------------------------
+//     add_real_color
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::add_real_color( KmerColorSet::Color&& color )
+{
+    // External call, so check the inputs.
+    if( color.elements.size() != element_count_ ) {
+        throw std::invalid_argument(
+            "Cannot add color with bitvector of size that does not match the element count"
+        );
+    }
+    if( utils::pop_count( color.elements ) < 2 ) {
+        throw std::invalid_argument(
+            "Cannot add color with bitvector representing the empty color or primary colors "
+            "(i.e., zero or single bit set)"
+        );
+    }
+
+    // Use the interal function to perform the actual work.
+    auto const hash = utils::bitvector_hash( color.elements );
+    return add_real_color_( std::move( color ), hash );
+}
+
+// -------------------------------------------------------------------------
+//     add_real_color_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::add_real_color_( Color&& color, size_t hash )
+{
+    // Sanity checks.
+    assert( real_colors_.size() == real_lookup_.size() );
+    if( max_color_count_ > 0 && real_colors_.size() >= max_color_count_ ) {
+        throw std::runtime_error(
+            "Cannot add additional real color, as max color count is already reached"
+        );
+    }
+    assert( max_color_count_ <= real_colors_.size() );
+
+    // Check our assumptions about the color.
+    // In the init, we explicitly check for duplicates. During our internal executing however,
+    // we assume that our algorithm never wants to add a color that already exists. Assert that.
+    assert( color.elements.size() == element_count_ );
+    assert( hash == utils::bitvector_hash( color.elements ));
+    assert( find_real_color_( color.elements, hash ) == 0 );
+    assert( find_imaginary_color_( color.elements, hash ) == 0 );
+
+    // Get the index at which the color will be placed in the list,
+    // which is simply the current size of the list.
+    size_t const index = real_colors_.size();
+
+    // Add the color to the list and the lookup.
+    real_colors_.emplace_back( std::move( color ));
+    real_lookup_.insert({ hash, index });
+    assert( real_colors_.size() == real_lookup_.size() );
+    assert( real_colors_.size() == index + 1 );
+
+    // We here return the real index in the list, not the one that the color points to,
+    // and leave the decision about that to the caller.
+    return index;
+}
+
+// -------------------------------------------------------------------------
+//     add_imaginary_color_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::add_imaginary_color_( Color&& color, size_t hash, size_t real_color_index )
+{
+    if( max_color_count_ == 0 || real_colors_.size() < max_color_count_ ) {
+        throw std::runtime_error(
+            "Cannot add imaginary color, as max color count is not yet reached"
+        );
+    }
+
+    // Check our assumptions about the color.
+    assert( color.elements.size() == element_count_ );
+    assert( hash == utils::bitvector_hash( color.elements ));
+    assert( find_real_color_( color.elements, hash ) == 0 );
+    assert( find_imaginary_color_( color.elements, hash ) == 0 );
+
+    // ...
+}
 
 } // namespace sequence
 } // namespace genesis

@@ -43,16 +43,14 @@ namespace sequence {
 //     Color Set Functions
 // =================================================================================================
 
-std::string kmer_color_type_to_string( KmerColorSet::Color const& color );
-std::array<size_t, 4> count_kmer_color_set_color_types( KmerColorSet const& cset );
-
 size_t count_unique_lookup_keys( KmerColorSet const& cset );
 void verify_unique_colors( KmerColorSet const& cset );
 
 std::string print_kmer_color_list( KmerColorSet const& cset, size_t int_width = 6 );
-std::string print_kmer_lookup_map( KmerColorSet const& cset );
+std::string print_kmer_real_color_lookup( KmerColorSet const& cset );
+std::string print_kmer_imaginary_color_lookup( KmerColorSet const& cset );
 std::string print_kmer_color_set_summary( KmerColorSet const& cset );
-std::string print_kmer_color_set_lookup_statistics( KmerColorSet const& cset );
+std::string print_kmer_color_set_statistics( KmerColorSet const& cset );
 
 } // namespace sequence
 } // namespace genesis
