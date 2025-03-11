@@ -31,7 +31,9 @@
 #include "genesis/sequence/kmer/color_set_functions.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <iomanip>
 #include <ios>
 #include <sstream>
@@ -225,10 +227,11 @@ void verify_unique_colors( KmerColorSet const& cset )
 //     Printing
 // =================================================================================================
 
-std::string print_kmer_color_list( KmerColorSet const& cset, size_t int_width )
+std::string print_kmer_color_list( KmerColorSet const& cset )
 {
     assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
 
+    size_t const int_width = std::ceil( std::log10( cset.get_color_list().size() ));
     std::stringstream ss;
     ss << "Colors: " << cset.get_color_list().size() << "\n";
     for( size_t i = 0; i < cset.get_color_list().size(); ++i ) {
@@ -272,23 +275,31 @@ std::string print_kmer_color_lookup( KmerColorSet const& cset )
     return ss.str();
 }
 
-std::string print_kmer_color_gamut( KmerColorSet const& cset, size_t int_width )
+std::string print_kmer_color_gamut( KmerColorSet const& cset )
 {
     auto const gamut = cset.get_gamut();
-    std::stringstream ss;
+    if( gamut.empty() ) {
+        return "";
+    }
+
+    // Proper alignment for nicer output
+    auto const max_gamut = *std::max_element( gamut.begin(), gamut.end() );
+    size_t const first_width = std::ceil( std::log10( gamut.rows() ));
+    size_t const col_width = std::ceil( std::log10( std::max( max_gamut, gamut.cols() )));
 
     // Write header line with the element indices
-    ss << std::string( int_width, ' ' );
+    std::stringstream ss;
+    ss << std::string( first_width, ' ' );
     for( size_t c = 0; c < gamut.cols(); ++c ) {
-        ss << " " << std::setw( int_width ) << c;
+        ss << " " << std::setw( col_width ) << c;
     }
     ss << "\n";
 
-    // Write the content of the gamut, with an extra first colum for the color indices.
+    // Write the content of the gamut, with an extra first column for the color indices.
     for( size_t r = 0; r < gamut.rows(); ++r ) {
-        ss << std::setw( int_width ) << r;
+        ss << std::setw( first_width ) << r;
         for( size_t c = 0; c < gamut.cols(); ++c ) {
-            ss << " " << std::setw( int_width ) << gamut( r, c );
+            ss << " " << std::setw( col_width ) << gamut( r, c );
         }
         ss << "\n";
     }
@@ -299,7 +310,29 @@ std::string print_kmer_color_gamut( KmerColorSet const& cset, size_t int_width )
 std::string print_kmer_color_set_summary( KmerColorSet const& cset )
 {
     assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
+
+    // Report how many of the gamut are real and how many are imaginar numbers
+    auto const& gamut = cset.get_gamut();
     auto const& stats = cset.get_gamut_statistics();
+    auto const gamut_size = gamut.rows() * gamut.cols();
+    auto const gamut_empty = gamut_size - ( stats.real_color_count + stats.imag_color_count);
+    auto const real_per = gamut_size == 0 ? 0.0 : 100.0 * stats.real_color_count / gamut_size;
+    auto const imag_per = gamut_size == 0 ? 0.0 : 100.0 * stats.imag_color_count / gamut_size;
+    auto const empt_per = gamut_size == 0 ? 0.0 : 100.0 * gamut_empty / gamut_size;
+
+    // Proper alignment for nicer output
+    size_t const gamut_width = (
+        gamut.empty()
+        ? 1
+        : std::ceil( std::log10( std::max({
+            stats.real_color_count, stats.imag_color_count, gamut_empty
+        })))
+    );
+    size_t const percent_width = (
+        gamut.empty()
+        ? 3
+        : std::ceil( std::log10( std::max({ real_per, imag_per, empt_per }))) + 2
+    );
 
     // Count all colors
     std::stringstream ss;
@@ -307,9 +340,14 @@ std::string print_kmer_color_set_summary( KmerColorSet const& cset )
     ss << "Colors:      " << cset.get_color_list().size() << "\n";
     ss << "Max colors:  " << cset.get_max_color_count() << "\n";
     ss << "Unique keys: " << count_unique_lookup_keys( cset ) << "\n";
-    ss << "Gamut size:  " << cset.get_gamut().rows() << "x" << cset.get_gamut().cols() << "\n";
-    ss << "Gamut real:  " << stats.real_color_count << "\n";
-    ss << "Gamut imag:  " << stats.imag_color_count << "\n";
+    ss << "Gamut size:  " << gamut.rows() << "x" << gamut.cols() << "\n";
+    ss << std::fixed << std::setprecision(1);
+    ss << "Gamut real:  " << std::setw(gamut_width) << stats.real_color_count;
+    ss << " (" << std::setw(percent_width) << real_per << "%)\n";
+    ss << "Gamut imag:  " << std::setw(gamut_width) << stats.imag_color_count;
+    ss << " (" << std::setw(percent_width) << imag_per << "%)\n";
+    ss << "Gamut empty: " << std::setw(gamut_width) << gamut_empty;
+    ss << " (" << std::setw(percent_width) << empt_per << "%)\n";
     return ss.str();
 }
 

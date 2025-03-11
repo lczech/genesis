@@ -131,9 +131,9 @@ void add_secondary_colors_from_taxonomy()
 size_t count_unique_lookup_keys( KmerColorSet const& cset );
 void verify_unique_colors( KmerColorSet const& cset );
 
-std::string print_kmer_color_list( KmerColorSet const& cset, size_t int_width = 3 );
+std::string print_kmer_color_list( KmerColorSet const& cset );
 std::string print_kmer_color_lookup( KmerColorSet const& cset );
-std::string print_kmer_color_gamut( KmerColorSet const& cset, size_t int_width = 3 );
+std::string print_kmer_color_gamut( KmerColorSet const& cset );
 std::string print_kmer_color_set_summary( KmerColorSet const& cset );
 
 } // namespace sequence

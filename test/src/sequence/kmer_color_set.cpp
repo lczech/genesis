@@ -352,7 +352,7 @@ TEST( KmerColorSet, Concurrency )
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_done[i] = std::async(
                 std::launch::async,
-                [ready, &worker_ready, &mtx, p, r, &cset]() {
+                [ready, &worker_ready, &mtx, &cset]() {
                     // Wait for all workers to be ready
                     ++worker_ready;
                     ready.wait();
