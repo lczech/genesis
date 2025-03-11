@@ -126,18 +126,17 @@ public:
     size_t add_color( Bitvector&& elements );
     size_t add_merged_color( size_t color_index_1, size_t color_index_2 );
 
-    size_t find_matching_color(
-        size_t existing_color_index,
-        size_t target_element_index
+    size_t find_existing_color(
+        Bitvector const& target_elements
     ) const;
 
-    size_t find_existing_color(
-        Bitvector const& target_color
+    size_t find_minimal_superset(
+        Bitvector const& target_elements
     ) const;
 
     size_t get_joined_color_index(
         size_t existing_color_index,
-        size_t target_element_index
+        size_t additive_element_index
     );
 
     // -------------------------------------------------------------------------
@@ -195,13 +194,20 @@ private:
 
     size_t find_matching_color_(
         size_t     existing_color_index,
-        size_t     target_element_index,
+        size_t     additive_element_index,
         Bitvector& target_elements,
-        size_t&     target_hash
+        size_t&    target_hash
+    ) const;
+
+    void populate_target_color_(
+        size_t     existing_color_index,
+        size_t     additive_element_index,
+        Bitvector& target_elements,
+        size_t&    target_hash
     ) const;
 
     size_t find_existing_color_(
-        Bitvector const& target_color,
+        Bitvector const& target_elements,
         size_t           hash
     ) const;
 
@@ -214,11 +220,11 @@ private:
 
     size_t get_gamut_entry_(
         size_t existing_color_index,
-        size_t target_element_index
+        size_t additive_element_index
     );
 
     size_t find_minimal_superset_(
-        Bitvector const& target
+        Bitvector const& target_elements
     ) const;
 
     // -------------------------------------------------------------------------

@@ -89,7 +89,10 @@ size_t KmerColorSet::add_merged_color( size_t index_1, size_t index_2 )
 {
     // Helper function that takes two colors, merges them, and adds them to the list.
     // First check that the colors are valid entries.
-    if( index_1 == 0 || index_1 >= colors_.size() || index_2 == 0 || index_2 >= colors_.size() ) {
+    if(
+        index_1 == 0 || index_1 >= colors_.size() ||
+        index_2 == 0 || index_2 >= colors_.size()
+    ) {
         throw std::runtime_error( "Invalid color indices for merging" );
     }
 
@@ -101,31 +104,34 @@ size_t KmerColorSet::add_merged_color( size_t index_1, size_t index_2 )
 }
 
 // -------------------------------------------------------------------------
-//     find_matching_color
-// -------------------------------------------------------------------------
-
-size_t KmerColorSet::find_matching_color(
-    size_t existing_color_index,
-    size_t target_element_index
-) const {
-    // The fully parameterized overload of this function takes a buffer,
-    // which we here provide locally for callers that do not need a buffer,
-    // i.e., in cases where the target bitvector and hash are not re-used anyway.
-    Bitvector target_elements;
-    size_t    target_hash;
-    return find_matching_color_(
-        existing_color_index, target_element_index, target_elements, target_hash
-    );
-}
-
-// -------------------------------------------------------------------------
 //     find_existing_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_existing_color( utils::Bitvector const& target ) const
+size_t KmerColorSet::find_existing_color( utils::Bitvector const& target_elements ) const
 {
-    auto const hash = utils::bitvector_hash( target );
-    return find_existing_color_( target, hash );
+    if( target_elements.size() != element_count_ ) {
+        throw std::invalid_argument(
+            "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
+            " in color set that has " + std::to_string( element_count_ ) + " elements"
+        );
+    }
+    auto const target_hash = utils::bitvector_hash( target_elements );
+    return find_existing_color_( target_elements, target_hash );
+}
+
+// -------------------------------------------------------------------------
+//     find_minimal_superset
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target_elements ) const
+{
+    if( target_elements.size() != element_count_ ) {
+        throw std::invalid_argument(
+            "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
+            " in color set that has " + std::to_string( element_count_ ) + " elements"
+        );
+    }
+    return find_minimal_superset_( target_elements );
 }
 
 // -------------------------------------------------------------------------
@@ -134,7 +140,7 @@ size_t KmerColorSet::find_existing_color( utils::Bitvector const& target ) const
 
 size_t KmerColorSet::get_joined_color_index(
     size_t existing_color_index,
-    size_t target_element_index
+    size_t additive_element_index
 ) {
     // Sanity checks of the user input.
     if( existing_color_index >= colors_.size() ) {
@@ -142,19 +148,20 @@ size_t KmerColorSet::get_joined_color_index(
             "Invalid color index " + std::to_string( existing_color_index )
         );
     }
-    if( target_element_index >= element_count_ ) {
+    if( additive_element_index >= element_count_ ) {
         throw std::invalid_argument(
-            "Invalid element index " + std::to_string( target_element_index )
+            "Invalid element index " + std::to_string( additive_element_index )
         );
     }
 
-    // First check if we have saturated our colors already.
-    // If so, we can just  return the entry from the gamut.
+    // First check if we have saturated our colors already and have a gamut.
+    // If so, we can just return the entry from there.
     if( ! gamut_.empty() ) {
+        assert( max_color_count_ > 0 );
         assert( colors_.size() == max_color_count_ );
         assert( gamut_.rows() == colors_.size() );
         assert( gamut_.cols() == element_count_ );
-        return get_gamut_entry_( existing_color_index, target_element_index );
+        return get_gamut_entry_( existing_color_index, additive_element_index );
     }
 
     // If not, we are still in the phase of building up our colors.
@@ -170,7 +177,7 @@ size_t KmerColorSet::get_joined_color_index(
     // already contains the target element, or there is another color already that is
     // the exact match of the union of the existing one and the new target index.
     auto const matching_index = find_matching_color_(
-        existing_color_index, target_element_index, target_elements, target_hash
+        existing_color_index, additive_element_index, target_elements, target_hash
     );
     if( matching_index > 0 ) {
         assert( matching_index < colors_.size() );
@@ -197,7 +204,12 @@ size_t KmerColorSet::get_joined_color_index(
     // Check if we have already saturated our supply of secondary colors.
     // If not, we add the new target color as a secondary color.
     if( max_color_count_ == 0 || colors_.size() < max_color_count_ ) {
-        // Add the color and return its index in the list.
+        // Add the color and return its index in the list. The target_elements and their hash
+        // has been populated above by the find_matching_color_ function. Still, for clarity,
+        // we call the populate function here; it does nothing. Stupid? Or more clarity?
+        populate_target_color_(
+            existing_color_index, additive_element_index, target_elements, target_hash
+        );
         auto const added_index = add_color_( std::move( target_elements ), target_hash );
         assert( colors_.size() == added_index + 1 );
         assert( colors_.size() <= max_color_count_ );
@@ -208,7 +220,7 @@ size_t KmerColorSet::get_joined_color_index(
     // Otherwise, if we have saturated the colors, we instead switch to the gamut
     // of minimally fitting supersets, and use imaginary colors going forward.
     init_gamut_();
-    return get_gamut_entry_( existing_color_index, target_element_index );
+    return get_gamut_entry_( existing_color_index, additive_element_index );
 }
 
 // ================================================================================================
@@ -254,12 +266,12 @@ void KmerColorSet::init_primary_colors_()
 
 size_t KmerColorSet::find_matching_color_(
     size_t     existing_color_index,
-    size_t     target_element_index,
+    size_t     additive_element_index,
     Bitvector& target_elements,
     size_t&    target_hash
 ) const {
     assert( existing_color_index < colors_.size() );
-    assert( target_element_index < element_count_ );
+    assert( additive_element_index < element_count_ );
 
     // Special case for speed: If the existing color is the empty color, that means that
     // the existing entry is a default empty entry that does not yet have any color.
@@ -267,8 +279,8 @@ size_t KmerColorSet::find_matching_color_(
     // The other code would also work in this case, but take more time to get there.
     if( existing_color_index == 0 ) {
         // Assert that the element bitvector is indeed set for the target index.
-        assert( colors_[ 1 + target_element_index ].elements.get( target_element_index ));
-        return 1 + target_element_index;
+        assert( colors_[ 1 + additive_element_index ].elements.get( additive_element_index ));
+        return 1 + additive_element_index;
     }
 
     // Check if the given color already comprises the primary color target element.
@@ -277,31 +289,50 @@ size_t KmerColorSet::find_matching_color_(
     // the below code that sets the element bit and checks if that results in an existing color.
     // But here, checking one individual bit is faster than creating a whole new bitvector.
     auto const& existing_color = colors_[existing_color_index];
-    if( existing_color.elements.get( target_element_index )) {
+    if( existing_color.elements.get( additive_element_index )) {
         return existing_color_index;
     }
 
     // Here, we are in the case where the existing color does not already contain
     // the newly added element, so we need to make a new bitvector of their union.
     // We use a buffer at call site to avoid re-computing the bitvector and its hash.
-    if( target_elements.empty() ) {
-        target_elements = existing_color.elements;
-        target_elements.set( target_element_index );
-        target_hash = utils::bitvector_hash( target_elements );
-    } else {
-        // We have already computed the target bitvector and its hash.
-        // Let's assert that they are correct (the last two should be deactivated later).
-        assert( target_elements.size() == element_count_ );
-        assert(( target_elements | existing_color.elements ) == target_elements );
-        assert( target_elements.get( target_element_index ));
-        assert( target_hash == utils::bitvector_hash( target_elements ));
-    }
+    populate_target_color_(
+        existing_color_index, additive_element_index, target_elements, target_hash
+    );
 
     // Check if an entry with those elements already exists, and return its index. If there is
-    // no such color, the locate function returns 0, which is then also our result here.
+    // no such color, the find function returns 0, which is then also our result here.
     size_t const target_index = find_existing_color_( target_elements, target_hash );
     assert( target_index < colors_.size() );
     return target_index;
+}
+
+// -------------------------------------------------------------------------
+//     populate_target_color_
+// -------------------------------------------------------------------------
+
+void KmerColorSet::populate_target_color_(
+    size_t     existing_color_index,
+    size_t     additive_element_index,
+    Bitvector& target_elements,
+    size_t&    target_hash
+) const {
+    // Populate the target elements and their hash, but only if they are not already set.
+    // This is mostly meant as a performance improvement, as we might not always need those,
+    // but if we do, we need them multiple times, and can avoid recomputation.
+    auto const& existing_color = colors_[existing_color_index];
+    if( target_elements.empty() ) {
+        target_elements = existing_color.elements;
+        target_elements.set( additive_element_index );
+        target_hash = utils::bitvector_hash( target_elements );
+    } else {
+        // We have already computed the target bitvector and its hash.
+        // Let's assert that they are correct (the last two can be deactivated later).
+        assert( target_elements.size() == element_count_ );
+        assert(( target_elements | existing_color.elements ) == target_elements );
+        assert( target_elements.get( additive_element_index ));
+        assert( target_hash == utils::bitvector_hash( target_elements ));
+    }
 }
 
 // -------------------------------------------------------------------------
@@ -398,7 +429,7 @@ void KmerColorSet::init_gamut_()
     // set in addition to our original color, or, if that does not exist in the color list,
     // we instead use the minimal (w.r.t. pop count) superset color instead as an imaginary color.
     // We only compute these on-demand, as likely not all of them will be needed.
-    gamut_ = utils::Matrix<size_t>( colors_.size(), element_count_ );
+    gamut_ = utils::Matrix<size_t>( colors_.size(), element_count_, 0 );
 
     // Potential parallel implementation to pre-compute the gamut matrix.
     // However, in the current design, this will likely deadlock in our intended use case,
@@ -424,15 +455,15 @@ void KmerColorSet::init_gamut_()
 
 size_t KmerColorSet::get_gamut_entry_(
     size_t existing_color_index,
-    size_t target_element_index
+    size_t additive_element_index
 ) {
     // The usual sanity checks.
     assert( existing_color_index < colors_.size() );
-    assert( target_element_index < element_count_ );
+    assert( additive_element_index < element_count_ );
     assert( ! gamut_.empty() );
 
     // If the entry is already in the gamut, we just return that.
-    auto const gamut_entry = gamut_( existing_color_index, target_element_index );
+    auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
     assert( gamut_entry < colors_.size() );
     if( gamut_entry > 0 ) {
         return gamut_entry;
@@ -443,13 +474,13 @@ size_t KmerColorSet::get_gamut_entry_(
     size_t    target_hash;
     auto const matching_index = find_matching_color_(
         existing_color_index,
-        target_element_index,
+        additive_element_index,
         target_elements,
         target_hash
     );
     assert( matching_index < colors_.size() );
     if( matching_index > 0 ) {
-        gamut_( existing_color_index, target_element_index ) = matching_index;
+        gamut_( existing_color_index, additive_element_index ) = matching_index;
         ++gamut_stats_.real_color_count;
         return matching_index;
     }
@@ -457,6 +488,9 @@ size_t KmerColorSet::get_gamut_entry_(
     // ...or, if none exists, find the imaginary color representing the minimal fitting superset.
     // The target_elements has been set to our desired bitvector by the above call already.
     assert( ! target_elements.empty() );
+    populate_target_color_(
+        existing_color_index, additive_element_index, target_elements, target_hash
+    );
     auto const superset_index = find_minimal_superset_( target_elements );
 
     // If we have not found any matching superset, that means that our secondary colors
@@ -472,7 +506,7 @@ size_t KmerColorSet::get_gamut_entry_(
     }
 
     // Finally, update the gamut with the new imaginary color entry
-    gamut_( existing_color_index, target_element_index ) = superset_index;
+    gamut_( existing_color_index, additive_element_index ) = superset_index;
     ++gamut_stats_.imag_color_count;
     return superset_index;
 }
@@ -481,14 +515,10 @@ size_t KmerColorSet::get_gamut_entry_(
 //     find_minimal_superset_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_minimal_superset_( utils::Bitvector const& target ) const
+size_t KmerColorSet::find_minimal_superset_( utils::Bitvector const& target_elements ) const
 {
-    // Sanity check. Internally not needed, but added for external usage.
-    if( target.size() != element_count_ ) {
-        throw std::invalid_argument(
-            "Invalid target bitvecor with different number of bits than the number of primary colors"
-        );
-    }
+    // Sanity check.
+    assert( target_elements.size() == element_count_ );
 
     // Init our trackers. We have at most all bits of all primary colors set,
     // meaning that we start the search with one more, so that the min can find it.
@@ -498,7 +528,7 @@ size_t KmerColorSet::find_minimal_superset_( utils::Bitvector const& target ) co
     // We are searching for a strict superset that has minimal pop count.
     // We cannot be better than having exactly one element more set than the target,
     // so we can use that as an early stop criterion.
-    size_t const target_pop_count = utils::pop_count( target );
+    size_t const target_pop_count = utils::pop_count( target_elements );
 
     // TODO Add an optional early stop condition here that only searches through the initial set
     // of secondary colors created with the add functions, in case that this here is too slow.
@@ -509,7 +539,7 @@ size_t KmerColorSet::find_minimal_superset_( utils::Bitvector const& target ) co
     // to iterate all colors, which is slow - hence, the frozen table caches these for re-use.
     for( size_t i = 1 + element_count_; i < colors_.size(); ++i ) {
         // If the color is not a superset of what we need, we skip it.
-        if( ! utils::is_superset( colors_[i].elements, target )) {
+        if( ! utils::is_superset( colors_[i].elements, target_elements )) {
             continue;
         }
 
@@ -532,9 +562,9 @@ size_t KmerColorSet::find_minimal_superset_( utils::Bitvector const& target ) co
     // Otherwise, we have found a secondary color that is a superset of our target.
     // We leave it up to the caller though to decide in case of no fitting color.
     assert( min_index == 0 || min_pop_count <= element_count_ );
-    assert( min_index == 0 || min_pop_count >= utils::pop_count( target ));
-    assert( min_index == 0 || colors_[min_index].elements != target );
-    assert( min_index == 0 || is_strict_superset( colors_[min_index].elements, target ));
+    assert( min_index == 0 || min_pop_count >= utils::pop_count( target_elements ));
+    assert( min_index == 0 || colors_[min_index].elements != target_elements );
+    assert( min_index == 0 || is_strict_superset( colors_[min_index].elements, target_elements ));
     return min_index;
 }
 
