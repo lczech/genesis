@@ -31,9 +31,14 @@
 #include "genesis/sequence/kmer/color_set.hpp"
 #include "genesis/utils/core/logging.hpp"
 
+// The KmerColorSet class is only available from C++17 onwards.
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
+#include <chrono>
+#include <thread>
 
 namespace genesis {
 namespace sequence {
@@ -109,6 +114,7 @@ size_t KmerColorSet::add_merged_color( size_t index_1, size_t index_2 )
 
 size_t KmerColorSet::find_existing_color( utils::Bitvector const& target_elements ) const
 {
+    std::shared_lock lock( mutex_ );
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
@@ -125,6 +131,7 @@ size_t KmerColorSet::find_existing_color( utils::Bitvector const& target_element
 
 size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target_elements ) const
 {
+    std::shared_lock lock( mutex_ );
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
@@ -142,85 +149,81 @@ size_t KmerColorSet::get_joined_color_index(
     size_t existing_color_index,
     size_t additive_element_index
 ) {
-    // Sanity checks of the user input.
-    if( existing_color_index >= colors_.size() ) {
-        throw std::invalid_argument(
-            "Invalid color index " + std::to_string( existing_color_index )
-        );
-    }
-    if( additive_element_index >= element_count_ ) {
-        throw std::invalid_argument(
-            "Invalid element index " + std::to_string( additive_element_index )
-        );
-    }
-
-    // First check if we have saturated our colors already and have a gamut.
-    // If so, we can just return the entry from there.
-    if( ! gamut_.empty() ) {
-        assert( max_color_count_ > 0 );
-        assert( colors_.size() == max_color_count_ );
-        assert( gamut_.rows() == colors_.size() );
-        assert( gamut_.cols() == element_count_ );
-        return get_gamut_entry_( existing_color_index, additive_element_index );
-    }
-
-    // If not, we are still in the phase of building up our colors.
-    // We need to perform a lookup, return that, or if not found, add a new color.
-
     // Below, we need to allocate a temporary bitvector for looking up
     // if that one already exists in our colors, even if we do not update anything.
     // But at least we can avoid re-allocation and re-creating of this throughout here.
     Bitvector target_elements;
     size_t    target_hash;
 
-    // First see if we can find a fitting color. Either the existing one indexed here
-    // already contains the target element, or there is another color already that is
-    // the exact match of the union of the existing one and the new target index.
-    auto const matching_index = find_matching_color_(
-        existing_color_index, additive_element_index, target_elements, target_hash
-    );
-    if( matching_index > 0 ) {
-        assert( matching_index < colors_.size() );
-        return matching_index;
+    // Sanity checks of the user input, needs shared locking.
+    {
+        std::shared_lock lock( mutex_ );
+        if( existing_color_index >= colors_.size() ) {
+            throw std::invalid_argument(
+                "Invalid color index " + std::to_string( existing_color_index )
+            );
+        }
+        if( additive_element_index >= element_count_ ) {
+            throw std::invalid_argument(
+                "Invalid element index " + std::to_string( additive_element_index )
+            );
+        }
     }
 
-    // If the new color is not in our list yet, this is a yet unseen secondary color.
-    // We need to add it to our color set, either as a new secondary color, or,
-    // if we are out of space for those, start the gamut, and add it as an imaginary color.
+    // We here have a couple of read operations, potentially followed by write operations.
+    // First, we check if the requested color already exists, either in the gamut,
+    // or, if we are still in the phase of collecting colors, in there.
+    // For that part, we hence need the shared lock, and afterwards, the unique lock.
+    // We do this in a loop, because otherwise, the writer threads might starve,
+    // if multiple of them arrive at the point where they want to add a color,
+    // but while waiting for the exclusive lock, some other thread has already started
+    // the gamut phase. In that case, all running threads will be so fast that they will
+    // starve the "old" threads that still think we are in the color collecting phase
+    // before the gamut. So, we give them a timeout, and let them recheck every now and then,
+    // so that they can detect the beginning of the gamut phase, in which case they will
+    // not need to write to the color list any more anyway.
+    size_t attempt = 1;
+    while( true ) {
+        // First, under shared locking, check if we have a matching entry already,
+        // either in the color list, or in the gamut, if we have started with that yet.
+        // If so, we are done already and can return, without needed exclusive locking.
+        {
+            std::shared_lock lock( mutex_ );
+            auto const matching_index = get_joined_color_index_read_(
+                existing_color_index, additive_element_index, target_elements, target_hash
+            );
+            if( matching_index > 0 ) {
+                return matching_index;
+            }
+        }
 
-    // TODO Decommissioning unused colors.
-    // Below, whenever we have found the index we are looking for, we might not need
-    // the existing color any more, as we are updating it with a new color. If its occurrence
-    // goes down to zero, we can instead replace it with the new one in the list, remove
-    // from the lookup, and add a new lookup entry instead. Need to make sure that we are not
-    // removing primary entries (single bit set), but initializing them with a count of 1
-    // should do the trick, as that way, it will never go down to zero.
-    // if( existing_color.occurrence == 1 ) {
-    //     // replace the entry in the list, remove the hash, add the new hash
-    // } else {
-    //     // decrement the occurrence
-    // }
+        // If the new color is not in our list yet, this is a yet unseen secondary color.
+        // We need to add it to our color set, either as a new secondary color, or,
+        // if we are out of space for those, start the gamut, and add it as an imaginary color.
+        // This has to happen with the exclusive write lock being held.
+        std::unique_lock unique_lock( mutex_, std::defer_lock );
+        if( unique_lock.try_lock_for( std::chrono::milliseconds( attempt ))) {
+            // We have a gap in locking between the above and this block. Maybe in the future,
+            // we can use an upgradable lock here, but that on the other hand might be too slow.
+            // But with the current design, we unfortunately need to re-do the above checks,
+            // as the conditions might have changed in between the shared and the exclusive lock.
+            auto const matching_index = get_joined_color_index_read_(
+                existing_color_index, additive_element_index, target_elements, target_hash
+            );
+            if( matching_index > 0 ) {
+                return matching_index;
+            }
 
-    // Check if we have already saturated our supply of secondary colors.
-    // If not, we add the new target color as a secondary color.
-    if( max_color_count_ == 0 || colors_.size() < max_color_count_ ) {
-        // Add the color and return its index in the list. The target_elements and their hash
-        // has been populated above by the find_matching_color_ function. Still, for clarity,
-        // we call the populate function here; it does nothing. Stupid? Or more clarity?
-        populate_target_color_(
-            existing_color_index, additive_element_index, target_elements, target_hash
-        );
-        auto const added_index = add_color_( std::move( target_elements ), target_hash );
-        assert( colors_.size() == added_index + 1 );
-        assert( colors_.size() <= max_color_count_ );
-        assert( max_color_count_ == 0 || added_index < max_color_count_ );
-        return added_index;
+            // We hold the exclusive lock, and hence can write the new color, and return its index.
+            return get_joined_color_index_write_(
+                existing_color_index, additive_element_index, target_elements, target_hash
+            );
+        }
+
+        // If we could not get the lock in time, yield and loop to check again.
+        ++attempt;
+        std::this_thread::yield();
     }
-
-    // Otherwise, if we have saturated the colors, we instead switch to the gamut
-    // of minimally fitting supersets, and use imaginary colors going forward.
-    init_gamut_();
-    return get_gamut_entry_( existing_color_index, additive_element_index );
 }
 
 // ================================================================================================
@@ -258,6 +261,97 @@ void KmerColorSet::init_primary_colors_()
         add_color_( std::move( elements ), hash );
     }
     assert( colors_.size() == 1 + element_count_ );
+}
+
+// -------------------------------------------------------------------------
+//     get_joined_color_index_read_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::get_joined_color_index_read_(
+    size_t     existing_color_index,
+    size_t     additive_element_index,
+    Bitvector& target_elements,
+    size_t&    target_hash
+) {
+    // Check if we have saturated our colors already and have a gamut.
+    // If so, we can just return the entry from there.
+    if( ! gamut_.empty() ) {
+        assert( max_color_count_ > 0 );
+        assert( colors_.size() == max_color_count_ );
+        assert( gamut_.rows() == colors_.size() );
+        assert( gamut_.cols() == element_count_ );
+        return get_gamut_entry_( existing_color_index, additive_element_index );
+    }
+
+    // If not, we are still in the phase of building up our colors.
+    // We need to perform a lookup, return that, or if not found, add a new color.
+
+    // First see if we can find a fitting color. Either the existing one indexed here
+    // already contains the target element, or there is another color already that is
+    // the exact match of the union of the existing one and the new target index.
+    // If the search is unsuccessful, it returns 0, which is then also our return value here.
+    auto const matching_index = find_matching_color_(
+        existing_color_index, additive_element_index, target_elements, target_hash
+    );
+    assert( matching_index < colors_.size() );
+    return matching_index;
+}
+
+// -------------------------------------------------------------------------
+//     find_matching_color_write_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::get_joined_color_index_write_(
+    size_t     existing_color_index,
+    size_t     additive_element_index,
+    Bitvector& target_elements,
+    size_t&    target_hash
+) {
+    // TODO Decommissioning unused colors.
+    // Below, whenever we have found the index we are looking for, we might not need
+    // the existing color any more, as we are updating it with a new color. If its occurrence
+    // goes down to zero, we can instead replace it with the new one in the list, remove
+    // from the lookup, and add a new lookup entry instead. Need to make sure that we are not
+    // removing primary entries (single bit set), but initializing them with a count of 1
+    // should do the trick, as that way, it will never go down to zero.
+    // Maybe a better stragegy is to consolidate colors every now and then (for instance,
+    // via a callback whenever we are about to switch to gamut mode): go through a user-provided
+    // iterable of data, and see which colors are actually in use. Then, remove all unused,
+    // and provide a new update array for the user to replace all the colors with their new indices.
+    // if( existing_color.occurrence == 1 ) {
+    //     // replace the entry in the list, remove the hash, add the new hash
+    // } else {
+    //     // decrement the occurrence
+    // }
+
+    // Check if we have already saturated our supply of secondary colors.
+    // If not, we add the new target color as a secondary color.
+    if( max_color_count_ == 0 || colors_.size() < max_color_count_ ) {
+        // Add the color and return its index in the list. The target_elements and their hash
+        // has been populated above by the find_matching_color_ function. Still, for clarity,
+        // we call the populate function here; it does nothing. Stupid? Or more clarity?
+        populate_target_color_(
+            existing_color_index, additive_element_index, target_elements, target_hash
+        );
+        auto const added_index = add_color_( std::move( target_elements ), target_hash );
+        assert( colors_.size() == added_index + 1 );
+        assert( colors_.size() <= max_color_count_ );
+        assert( max_color_count_ == 0 || added_index < max_color_count_ );
+        return added_index;
+    }
+
+    // Otherwise, if we have saturated the colors, we instead switch to the gamut
+    // of minimally fitting supersets, and use imaginary colors going forward.
+    init_gamut_();
+
+    // If we are here, we have initialized the gamut, and now only need to return the entry.
+    // We could do this outside of the lock, as the function does its own locking on top
+    // of the read/write shared/unique locking used above. This is because the gamut is a matrix
+    // of independent values, with no larger data strucuture or re-allocations needed once set up.
+    // So we can do this more fine grained than blocking everything for a single cell write.
+    // But in the current design, we do not do that, and just compute this first entry
+    // while holding the lock. Should be fine.
+    return get_gamut_entry_( existing_color_index, additive_element_index );
 }
 
 // -------------------------------------------------------------------------
@@ -423,6 +517,11 @@ void KmerColorSet::init_gamut_()
         on_saturation_callback_();
     }
 
+    // Set up the vector guard for accessing the gamut. We use the square root of the number
+    // of total entries in the gamut matrix to get a large enough number of buckets for the
+    // guards to avoid collision. Probably overkill, and super ad-hoc, but let's see if it works.
+    gamut_guard_ = utils::ConcurrentVectorGuard( 10 * std::sqrt( colors_.size() * element_count_ ));
+
     // For each color, we create a row where the columns correspond to each of the elements being set.
     // Wherever the original color (of the row) already has the bit set anyway, the color is
     // idempotent. Otherwise, it either points to another existing color that has exactly that bit
@@ -457,19 +556,30 @@ size_t KmerColorSet::get_gamut_entry_(
     size_t existing_color_index,
     size_t additive_element_index
 ) {
-    // The usual sanity checks.
+    // The usual sanity checks. Can be done without a lock, as they all only depend on conditions
+    // that we consider const within the context of this function. If there is a concurrency issue
+    // here due to any of these changing, then things are seriously broken elsewhere as well.
     assert( existing_color_index < colors_.size() );
     assert( additive_element_index < element_count_ );
     assert( ! gamut_.empty() );
 
+    // Below, we need read and write acces to the cells in the gamut matrix. Protect against
+    // concurrent calling for the same bucket of entries in the gamut matrix. We use the index
+    // in the (linearized) matrix to obtain the guard.
+    auto const cell_index = gamut_.index( existing_color_index, additive_element_index );
+
     // If the entry is already in the gamut, we just return that.
-    auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
-    assert( gamut_entry < colors_.size() );
-    if( gamut_entry > 0 ) {
-        return gamut_entry;
+    {
+        auto lock = gamut_guard_.get_lock_guard( cell_index );
+        auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
+        assert( gamut_entry < colors_.size() );
+        if( gamut_entry > 0 ) {
+            return gamut_entry;
+        }
     }
 
     // Otherwise, we need to compute the entry first, which means we try to find a matching color...
+    // Outside of the lock, so that the cell guard is not blocking other threads unnecessarily.
     Bitvector target_elements;
     size_t    target_hash;
     auto const matching_index = find_matching_color_(
@@ -480,13 +590,24 @@ size_t KmerColorSet::get_gamut_entry_(
     );
     assert( matching_index < colors_.size() );
     if( matching_index > 0 ) {
-        gamut_( existing_color_index, additive_element_index ) = matching_index;
-        ++gamut_stats_.real_color_count;
+        // We re-aquire the lock. In the meantime, the entry can have changed from some other thread.
+        // If everything is working correctly, that should have given the same result as we found
+        // here, so all good. But for safety, we check and throw otherwise.
+        auto lock = gamut_guard_.get_lock_guard( cell_index );
+        auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
+        if( gamut_entry == 0 ) {
+            gamut_( existing_color_index, additive_element_index ) = matching_index;
+            ++gamut_stats_.real_color_count;
+        } else if( gamut_entry != matching_index ){
+            throw std::runtime_error( "Inconsistent state of the gamut matrix in real color" );
+        }
         return matching_index;
     }
 
     // ...or, if none exists, find the imaginary color representing the minimal fitting superset.
     // The target_elements has been set to our desired bitvector by the above call already.
+    // Again, outside of the lock, to allow for more concurrency even within the lock guards
+    // that are shared between certain cells. The minimal subset is expensive!
     assert( ! target_elements.empty() );
     populate_target_color_(
         existing_color_index, additive_element_index, target_elements, target_hash
@@ -505,10 +626,19 @@ size_t KmerColorSet::get_gamut_entry_(
         );
     }
 
-    // Finally, update the gamut with the new imaginary color entry
-    gamut_( existing_color_index, additive_element_index ) = superset_index;
-    ++gamut_stats_.imag_color_count;
-    return superset_index;
+    // Finally, update the gamut with the new imaginary color entry.
+    // Same locking procedure as above, with the same safeguards.
+    {
+        auto lock = gamut_guard_.get_lock_guard( cell_index );
+        auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
+        if( gamut_entry == 0 ) {
+            gamut_( existing_color_index, additive_element_index ) = superset_index;
+            ++gamut_stats_.imag_color_count;
+        } else if( gamut_entry != superset_index ){
+            throw std::runtime_error( "Inconsistent state of the gamut matrix in imag color" );
+        }
+        return superset_index;
+    }
 }
 
 // -------------------------------------------------------------------------
@@ -570,3 +700,5 @@ size_t KmerColorSet::find_minimal_superset_( utils::Bitvector const& target_elem
 
 } // namespace sequence
 } // namespace genesis
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17

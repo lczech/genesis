@@ -41,6 +41,9 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/random.hpp"
 
+// The KmerColorSet class is only available from C++17 onwards.
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
 #include <algorithm>
 #include <atomic>
 #include <future>
@@ -366,7 +369,7 @@ TEST( KmerColorSet, Concurrency )
                         auto const b = permuted_congruential_generator( p - 1 );
 
                         // Protect the data!
-                        std::lock_guard<std::mutex> lock( mtx );
+                        // std::lock_guard<std::mutex> lock( mtx );
                         cset.get_joined_color_index( e, b );
                     }
                 }
@@ -399,3 +402,5 @@ TEST( KmerColorSet, Concurrency )
     // LOG_DBG << print_kmer_color_gamut( cset );
     // LOG_DBG << print_kmer_color_set_summary( cset );
 }
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17

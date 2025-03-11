@@ -36,6 +36,9 @@
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 
+// The KmerColorSet class is only available from C++17 onwards.
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
 #include <array>
 #include <string>
 
@@ -139,4 +142,5 @@ std::string print_kmer_color_set_summary( KmerColorSet const& cset );
 } // namespace sequence
 } // namespace genesis
 
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 #endif // include guard

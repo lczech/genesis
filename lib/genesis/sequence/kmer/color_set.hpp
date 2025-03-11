@@ -32,19 +32,26 @@
  */
 
 #include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/hac.hpp"
+#include "genesis/utils/threading/concurrent_vector_guard.hpp"
+
+// This whole class is only available from C++17 onwards,
+// as we are using std::shared_mutex and other features from there.
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 #include <array>
+#include <atomic>
 #include <cassert>
 #include <cstdint>
 #include <functional>
 #include <limits>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
@@ -166,6 +173,7 @@ public:
 
     size_t get_color_list_size() const
     {
+        std::shared_lock lock( mutex_ );
         return colors_.size();
     }
 
@@ -184,9 +192,13 @@ public:
         return gamut_;
     }
 
-    GamutStatistics const& get_gamut_statistics() const
+    GamutStatistics get_gamut_statistics() const
     {
-        return gamut_stats_;
+        // Copy over the state, so that the caller does not have to deal with atomics.
+        GamutStatistics stats;
+        stats.real_color_count = gamut_stats_.real_color_count.load();
+        stats.imag_color_count = gamut_stats_.imag_color_count.load();
+        return stats;
     }
 
     // -------------------------------------------------------------------------
@@ -196,6 +208,20 @@ public:
 private:
 
     void init_primary_colors_();
+
+    size_t get_joined_color_index_read_(
+        size_t     existing_color_index,
+        size_t     additive_element_index,
+        Bitvector& target_elements,
+        size_t&    target_hash
+    );
+
+    size_t get_joined_color_index_write_(
+        size_t     existing_color_index,
+        size_t     additive_element_index,
+        Bitvector& target_elements,
+        size_t&    target_hash
+    );
 
     size_t find_matching_color_(
         size_t     existing_color_index,
@@ -271,11 +297,28 @@ private:
     utils::Matrix<size_t> gamut_;
 
     // For debugging and performance assessment, we keep track of statis of the gamut.
-    GamutStatistics gamut_stats_;
+    // We use a private atomic variant of this, as we are writing the gamut concurrently.
+    struct GamutStatisticsAtomic
+    {
+        std::atomic<size_t> real_color_count = 0;
+        std::atomic<size_t> imag_color_count = 0;
+    };
+    GamutStatisticsAtomic gamut_stats_;
+
+    // We have a bit of a tricky concurrency situation here. Not only do we want reader/writer
+    // shared/exclusive access for the color list and lookup, but also differenciate between
+    // the color accumualtion phase and the gamut phase...
+    // The mutex_ is used for shared/exclusive locking during the color collection phase,
+    // such that the color list and lookup can grow under concurrent access.
+    // Then, once we have saturated the colors and switch to the gamut, we instead use a more
+    // fine-grained locking of the gamut matrix cells instead, using the vector guard.
+    mutable std::shared_timed_mutex mutex_;
+    mutable utils::ConcurrentVectorGuard gamut_guard_;
 
 };
 
 } // namespace sequence
 } // namespace genesis
 
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 #endif // include guard
