@@ -580,6 +580,7 @@ TEST( Bitvector, SubsetSpeed )
     EXPECT_EQ( n, subset_cnt );
     EXPECT_EQ( 0, strict_cnt );
 
+    (void) cnt;
     // LOG_MSG << "time:  " << timer.elapsed() << " s";
     // LOG_MSG << "speed: " << ( static_cast<double>(cnt) / timer.elapsed() ) << " comp/s";
     // LOG_MSG << "speed: " << ( static_cast<double>(cnt*s) / timer.elapsed() ) << " bitops/s";
