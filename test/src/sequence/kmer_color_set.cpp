@@ -361,7 +361,7 @@ TEST( KmerColorSet, Concurrency )
                     for( size_t i = 0; i < n; ++i ) {
                         // Pick a random entry, and a random bit, and look it up. This time,
                         // we only pick secondary colors, and ignore existing imaginary colors.
-                        auto max_color_index = std::min( cset.get_color_list().size() - 1, r - 1 );
+                        auto max_color_index = std::min( cset.get_color_list_size() - 1, r - 1 );
                         auto const e = permuted_congruential_generator( max_color_index );
                         auto const b = permuted_congruential_generator( p - 1 );
 

@@ -164,6 +164,11 @@ public:
         return colors_[ index ];
     }
 
+    size_t get_color_list_size() const
+    {
+        return colors_.size();
+    }
+
     std::vector<Color> const& get_color_list() const
     {
         return colors_;
