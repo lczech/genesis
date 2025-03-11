@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
@@ -42,6 +43,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <unordered_map>
@@ -57,11 +59,11 @@ namespace sequence {
 
 class KmerColorSet
 {
+public:
+
     // -------------------------------------------------------------------------
     //     Types and Enums
     // -------------------------------------------------------------------------
-
-public:
 
     using Bitvector = genesis::utils::Bitvector;
 
@@ -77,29 +79,15 @@ public:
         // size_t occurrence = 0;
     };
 
-    struct ImaginaryColor
+    struct GamutStatistics
     {
-        // An imaginary color also has a bitvector of the elements it covers,
-        // but additionally the index of the real color that it refers to.
-        Bitvector elements;
-        size_t real_index;
-    };
-
-    struct Statistics
-    {
-        size_t existing_color_is_empty = 0;
-        size_t existing_color_contains_target = 0;
-        size_t matching_real_color_exists = 0;
-        size_t matching_real_color_added = 0;
-        size_t imaginary_color_exists = 0;
-        size_t imaginary_color_added = 0;
+        size_t real_color_count = 0;
+        size_t imag_color_count = 0;
     };
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
-
-public:
 
     // KmerColorSet() = default;
 
@@ -122,167 +110,39 @@ public:
     KmerColorSet& operator= ( KmerColorSet&& )      = default;
 
     // -------------------------------------------------------------------------
-    //     Init
+    //     Settings
     // -------------------------------------------------------------------------
 
-private:
-
-    void init_primary_colors_();
-
-public:
-
-    void init_secondary_colors_with_binary_reduction();
-    void init_secondary_colors_from_bitvectors( std::vector<Bitvector> const& bitvecs );
-    void init_secondary_colors_from_groups( std::vector<std::vector<size_t>> const& groups );
-
-    template <typename T>
-    void init_secondary_colors_from_hac(
-        utils::HierarchicalAgglomerativeClustering<T> const& hac
+    void set_on_saturation_callback(
+        std::function<void()> callback
     ) {
-        // The HAC produces a new merged cluster in each merging step.
-        // Hence, their difference is the number of original observations in the clustering.
-        auto const hac_observations = hac.clusters().size() - hac.mergers().size();
-
-        // Starting conditions.
-        // We assume that no early deactivation via keep_active_function() was used
-        // in the clustering though.
-        check_uninitialized_secondary_colors_();
-        if( element_count_ != hac_observations ) {
-            throw std::invalid_argument(
-                "Primary color count in Kmer Color Set does not match "
-                "the number of observations in the Hierarchical Agglomerative Clustering."
-            );
-        }
-        if( hac_observations != hac.mergers().size() + 1 ) {
-            throw std::invalid_argument(
-                "Invalid Hierarchical Agglomerative Clustering for initializing secondary colors "
-                "of a Kmer Color Set, as the merging is incomplete with unmerged clusters."
-            );
-        }
-
-        // We build a reduction of our data by combining primary color bitvectors
-        // in the same way that the HAC has merged the observeration clusters.
-        for( size_t i = 0; i < hac.mergers().size(); ++i ) {
-            auto const& merger = hac.mergers()[i];
-
-            // The i-th merger created a new cluster that is located at the i-th position
-            // after the initial clusters of the observations.
-            assert( hac_observations + i == merger.cluster_index_p );
-
-            // We simply use the two cluster indices that were merged, and merge
-            // our corresponding colors. Due to the empty color, we need an offset of one here.
-            merge_and_add_real_colors(
-                1 + merger.cluster_index_a,
-                1 + merger.cluster_index_b
-            );
-        }
-
-        // The last merger we added should have led to an entry of all primary colors,
-        // such that we have at least one hit when searching for imaginary colors.
-        // Nope: Deactivated again - we leave this up to the user, and fail later instead.
-        // if( ! all_set( colors_.back().elements )) {
-        //     throw std::runtime_error(
-        //         "Invalid Hierarchical Agglomerative Clustering for initializing secondary colors "
-        //         "of a Kmer Color Set, as the last merger does not comprise all observerations."
-        //     );
-        // }
-        check_max_color_count_();
+        on_saturation_callback_ = callback;
     }
-
-    void init_secondary_colors_from_phylogeny()
-    {
-        // TODO
-    }
-
-    void init_secondary_colors_from_taxonomy()
-    {
-        // TODO
-    }
-
-private:
-
-    void check_uninitialized_secondary_colors_() const;
-    void check_max_color_count_() const;
 
     // -------------------------------------------------------------------------
     //     Lookup & Modification
     // -------------------------------------------------------------------------
 
-public:
+    size_t add_color( Bitvector&& elements );
+    size_t add_merged_color( size_t color_index_1, size_t color_index_2 );
 
-    size_t lookup_and_update(
+    size_t find_matching_color(
+        size_t existing_color_index,
+        size_t target_element_index
+    ) const;
+
+    size_t find_existing_color(
+        Bitvector const& target_color
+    ) const;
+
+    size_t get_joined_color_index(
         size_t existing_color_index,
         size_t target_element_index
     );
 
-private:
-
-    size_t lookup_(
-        size_t existing_color_index,
-        size_t target_element_index,
-        Bitvector& target_elements,
-        size_t& target_hash
-    ) const;
-
-    size_t update_(
-        size_t existing_color_index,
-        size_t target_element_index,
-        Bitvector& target_elements,
-        size_t& target_hash
-    );
-
-public:
-
-    size_t find_real_color( Bitvector const& target ) const;
-    size_t find_imaginary_color( Bitvector const& target ) const;
-
-private:
-
-    size_t find_real_color_( Bitvector const& target, size_t hash ) const;
-    size_t find_imaginary_color_( Bitvector const& target, size_t hash ) const;
-
-public:
-
-    size_t find_minimal_superset( Bitvector const& target ) const;
-    size_t merge_and_add_real_colors( size_t color_index_1, size_t color_index_2 );
-    size_t add_real_color( Color&& color );
-
-private:
-
-    size_t add_real_color_( Color&& color, size_t hash );
-    size_t add_imaginary_color_( Color&& color, size_t hash, size_t real_color_index );
-
     // -------------------------------------------------------------------------
     //     Data Access
     // -------------------------------------------------------------------------
-
-public:
-
-    Color const& get_color_at( size_t index ) const
-    {
-        if( index >= colors_.size() ) {
-            throw std::invalid_argument(
-                "Invalid color index " + std::to_string( index ) +
-                " in color list of size " + std::to_string( colors_.size() )
-            );
-        }
-        return colors_.[ index ];
-    }
-
-    std::vector<Color> const& get_color_list() const
-    {
-        return colors_;
-    }
-
-    std::unordered_multimap<size_t, size_t> const& get_real_color_lookup() const
-    {
-        return real_lookup_;
-    }
-
-    std::unordered_map<Bitvector, size_t> const& get_imaginary_color_lookup() const
-    {
-        return imaginary_lookup_;
-    }
 
     size_t get_element_count() const
     {
@@ -294,10 +154,72 @@ public:
         return max_color_count_;
     }
 
-    Statistics const& get_statistics() const
+    Color const& get_color_at( size_t index ) const
     {
-        return stats_;
+        if( index >= colors_.size() ) {
+            throw std::invalid_argument(
+                "Invalid color index " + std::to_string( index ) +
+                " in color list of size " + std::to_string( colors_.size() )
+            );
+        }
+        return colors_[ index ];
     }
+
+    std::vector<Color> const& get_color_list() const
+    {
+        return colors_;
+    }
+
+    std::unordered_multimap<size_t, size_t> const& get_color_lookup() const
+    {
+        return lookup_;
+    }
+
+    utils::Matrix<size_t> const& get_gamut() const
+    {
+        return gamut_;
+    }
+
+    GamutStatistics const& get_gamut_statistics() const
+    {
+        return gamut_stats_;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Internal Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    void init_primary_colors_();
+
+    size_t find_matching_color_(
+        size_t     existing_color_index,
+        size_t     target_element_index,
+        Bitvector& target_elements,
+        size_t&     target_hash
+    ) const;
+
+    size_t find_existing_color_(
+        Bitvector const& target_color,
+        size_t           hash
+    ) const;
+
+    size_t add_color_(
+        Bitvector&& elements,
+        size_t hash
+    );
+
+    void init_gamut_();
+
+    size_t get_gamut_entry_(
+        size_t existing_color_index,
+        size_t target_element_index
+    );
+
+    size_t find_minimal_superset_(
+        Bitvector const& target
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -309,12 +231,12 @@ private:
     size_t element_count_;
     size_t max_color_count_;
 
-    // List of all real colors (empty, primary, secondary).
-    std::vector<Color> real_colors_;
+    // List of all colors (empty, primary, secondary).
+    std::vector<Color> colors_;
 
     // Lookup from the hash of a color's bitvector to its index in the list.
     // Instead of mapping from bitvectors to their color index, we map from their hashes to the index.
-    // This avoids having to keep another copy of each bitvector of real colors as keys in the lookup.
+    // This avoids having to keep another copy of each bitvector of colors as keys in the lookup.
     // Note that we are using a multimap here, as different colors can have the same hash.
     // Hence, when using this lookup, we need an additional step to identify the correct color,
     // by comparing the pointed-to bitvector with the one we are looking up.
@@ -322,17 +244,23 @@ private:
     // as the hash map would also need to do a final key comparison on top anyway.
     // The only overhead is that the hashmap also needs to do that double check on the key
     // (our color hash) itself, but that's cheap compared to the bitvector comparisons.
-    std::unordered_multimap<size_t, size_t> real_lookup_;
+    std::unordered_multimap<size_t, size_t> lookup_;
 
-    // The imaginary colors are not stored in a list, as we only want to keep them here during
-    // construction of the list anyway. We hence do not need to keep list and lookup separate,
-    // and can simply store the full bitvectors here. Otherwise, this works the same as above,
-    // with the hashes as keys for speed, so that we do not need to recompute them.
-    std::unordered_multimap<size_t, ImaginaryColor> imaginary_lookup_;
+    // For user reporting purposes, we have a callback when the gamut was initialized,
+    // so that we can see when in our data processing we have saturated the colors.
+    std::function<void()> on_saturation_callback_;
 
-    // For debugging and performance assessment,
-    // we keep track of statis of the lookup functions.
-    Statistics stats_;
+    // Once we have filled the list of colors up to the max, we freeze it, and only ever return
+    // already existing colors upon lookup. For this, for each color, we use the minimal subset that
+    // contains that color and each additional element set. This matrix serves as lookup for that.
+    // Its rows are the color indices, its columns are the element indices, and its values are
+    // the new color indices of the color that is the minimal superset of those two.
+    // Many of them will not be exact matches for the color we would want (hence the minimal subset),
+    // so in a sense, these are imaginary colors: They cannot be exactly produced.
+    utils::Matrix<size_t> gamut_;
+
+    // For debugging and performance assessment, we keep track of statis of the gamut.
+    GamutStatistics gamut_stats_;
 
 };
 
