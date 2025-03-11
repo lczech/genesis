@@ -309,10 +309,12 @@ private:
     // shared/exclusive access for the color list and lookup, but also differenciate between
     // the color accumualtion phase and the gamut phase...
     // The mutex_ is used for shared/exclusive locking during the color collection phase,
-    // such that the color list and lookup can grow under concurrent access.
+    // such that the color list and lookup can grow under concurrent access, while the atomic
+    // makes sure that a writer cannot starve.
     // Then, once we have saturated the colors and switch to the gamut, we instead use a more
     // fine-grained locking of the gamut matrix cells instead, using the vector guard.
-    mutable std::shared_timed_mutex mutex_;
+    std::atomic<bool> write_pending_{false};
+    mutable std::shared_mutex mutex_;
     mutable utils::ConcurrentVectorGuard gamut_guard_;
 
 };

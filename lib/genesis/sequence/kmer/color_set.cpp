@@ -149,12 +149,6 @@ size_t KmerColorSet::get_joined_color_index(
     size_t existing_color_index,
     size_t additive_element_index
 ) {
-    // Below, we need to allocate a temporary bitvector for looking up
-    // if that one already exists in our colors, even if we do not update anything.
-    // But at least we can avoid re-allocation and re-creating of this throughout here.
-    Bitvector target_elements;
-    size_t    target_hash;
-
     // Sanity checks of the user input, needs shared locking.
     {
         std::shared_lock lock( mutex_ );
@@ -170,59 +164,60 @@ size_t KmerColorSet::get_joined_color_index(
         }
     }
 
+    // Below, we need to allocate a temporary bitvector for looking up
+    // if that one already exists in our colors, even if we do not update anything.
+    // But at least we can avoid re-allocation and re-creating of this throughout here.
+    Bitvector target_elements;
+    size_t    target_hash;
+
     // We here have a couple of read operations, potentially followed by write operations.
     // First, we check if the requested color already exists, either in the gamut,
     // or, if we are still in the phase of collecting colors, in there.
     // For that part, we hence need the shared lock, and afterwards, the unique lock.
-    // We do this in a loop, because otherwise, the writer threads might starve,
-    // if multiple of them arrive at the point where they want to add a color,
-    // but while waiting for the exclusive lock, some other thread has already started
-    // the gamut phase. In that case, all running threads will be so fast that they will
-    // starve the "old" threads that still think we are in the color collecting phase
-    // before the gamut. So, we give them a timeout, and let them recheck every now and then,
-    // so that they can detect the beginning of the gamut phase, in which case they will
-    // not need to write to the color list any more anyway.
-    size_t attempt = 1;
-    while( true ) {
-        // First, under shared locking, check if we have a matching entry already,
-        // either in the color list, or in the gamut, if we have started with that yet.
-        // If so, we are done already and can return, without needed exclusive locking.
-        {
-            std::shared_lock lock( mutex_ );
-            auto const matching_index = get_joined_color_index_read_(
-                existing_color_index, additive_element_index, target_elements, target_hash
-            );
-            if( matching_index > 0 ) {
-                return matching_index;
-            }
-        }
-
-        // If the new color is not in our list yet, this is a yet unseen secondary color.
-        // We need to add it to our color set, either as a new secondary color, or,
-        // if we are out of space for those, start the gamut, and add it as an imaginary color.
-        // This has to happen with the exclusive write lock being held.
-        std::unique_lock unique_lock( mutex_, std::defer_lock );
-        if( unique_lock.try_lock_for( std::chrono::milliseconds( attempt ))) {
-            // We have a gap in locking between the above and this block. Maybe in the future,
-            // we can use an upgradable lock here, but that on the other hand might be too slow.
-            // But with the current design, we unfortunately need to re-do the above checks,
-            // as the conditions might have changed in between the shared and the exclusive lock.
-            auto const matching_index = get_joined_color_index_read_(
-                existing_color_index, additive_element_index, target_elements, target_hash
-            );
-            if( matching_index > 0 ) {
-                return matching_index;
-            }
-
-            // We hold the exclusive lock, and hence can write the new color, and return its index.
-            return get_joined_color_index_write_(
-                existing_color_index, additive_element_index, target_elements, target_hash
-            );
-        }
-
-        // If we could not get the lock in time, yield and loop to check again.
-        ++attempt;
+    // Wait if a writer is pending, to give priority to writer (fairness and avoid starvation).
+    while( write_pending_.load( std::memory_order_acquire )) {
         std::this_thread::yield();
+    }
+
+    // First, under shared locking, check if we have a matching entry already,
+    // either in the color list, or in the gamut, if we have started with that yet.
+    // If so, we are done already and can return, without needed exclusive locking.
+    {
+        std::shared_lock lock( mutex_ );
+        auto const matching_index = get_joined_color_index_read_(
+            existing_color_index, additive_element_index, target_elements, target_hash
+        );
+        if( matching_index > 0 ) {
+            return matching_index;
+        }
+    }
+
+    // If the new color is not in our list yet, this is a yet unseen secondary color.
+    // We need to add it to our color set, either as a new secondary color, or,
+    // if we are out of space for those, start the gamut, and add it as an imaginary color.
+    // This has to happen with the exclusive write lock being held.
+    {
+        write_pending_.store(true, std::memory_order_release);
+        std::unique_lock lock( mutex_ );
+
+        // We have a gap in locking between the above and this block. Maybe in the future,
+        // we can use an upgradable lock here, but that on the other hand might be too slow.
+        // But with the current design, we unfortunately need to re-do the above checks,
+        // as the conditions might have changed in between the shared and the exclusive lock.
+        auto const matching_index = get_joined_color_index_read_(
+            existing_color_index, additive_element_index, target_elements, target_hash
+        );
+        if( matching_index > 0 ) {
+            write_pending_.store(false, std::memory_order_release);
+            return matching_index;
+        }
+
+        // We hold the exclusive lock, and hence can write the new color, and return its index.
+        auto const added_index = get_joined_color_index_write_(
+            existing_color_index, additive_element_index, target_elements, target_hash
+        );
+        write_pending_.store(false, std::memory_order_release);
+        return added_index;
     }
 }
 
