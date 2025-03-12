@@ -331,7 +331,7 @@ void kmer_color_set_concurrency_test_(
     size_t r, // max number of colors
     size_t n  // number of requests per thread
 ) {
-    int num_threads = 8;
+    size_t num_threads = 8;
 
     // Init the color set
     auto cset = KmerColorSet( p, r );
@@ -350,7 +350,7 @@ void kmer_color_set_concurrency_test_(
     });
 
     // Prepare async tasks that will run in parallel accessing the set
-    std::atomic<int> worker_ready{0};
+    std::atomic<size_t> worker_ready{0};
     std::promise<void> go;
     std::shared_future<void> ready(go.get_future());
     auto worker_done = std::vector<std::future<void>>(num_threads);
