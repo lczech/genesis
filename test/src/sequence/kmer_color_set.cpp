@@ -59,7 +59,7 @@ using namespace genesis::sequence;
 using namespace genesis::utils;
 
 // =================================================================================================
-//     Init Tests
+//     Functionality Tests
 // =================================================================================================
 
 TEST( KmerColorSet, Basics )
@@ -257,7 +257,7 @@ TEST( KmerColorSet, Random )
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
-    LOG_INFO << "Seed: " << seed;
+    LOG_DBG << "Seed: " << seed;
 
     // Params of the color set.
     // We are only allowing the initial secondary colors;
@@ -322,25 +322,32 @@ TEST( KmerColorSet, Random )
     // LOG_DBG << print_kmer_color_set_summary( cset );
 }
 
-TEST( KmerColorSet, Concurrency )
-{
-    // Random seed. Report it, so that in an error case, we can reproduce.
-    auto const seed = ::time(nullptr);
-    permuted_congruential_generator_init( seed );
-    LOG_INFO << "Seed: " << seed;
+// =================================================================================================
+//     Concurrency Tests
+// =================================================================================================
 
-    // Params of the color set.
-    size_t const p = 16;
-    size_t const r = 1048576;
-
-    // Params of the loops.
-    auto const n = 10000;
+void kmer_color_set_concurrency_test_(
+    size_t p, // number of elements
+    size_t r, // max number of colors
+    size_t n  // number of requests per thread
+) {
     const int num_threads = 8;
 
     // Init the color set
     auto cset = KmerColorSet( p, r );
     add_secondary_colors_with_binary_reduction( cset );
     // auto const initial_cset_size = cset.get_color_list().size();
+
+    // Debugging and benchmarking output
+    std::atomic<size_t> total_calls{0};
+    cset.set_on_gamut_start_callback( [&total_calls, n, num_threads](){
+        auto const tcp = 100.0 * total_calls.load() / (n * num_threads);
+        LOG_DBG << "starting gamut with total calls: " << total_calls.load() << " = " << tcp << "%";
+    });
+    cset.set_on_gamut_filled_callback( [&total_calls, n, num_threads](){
+        auto const tcp = 100.0 * total_calls.load() / (n * num_threads);
+        LOG_DBG << "filled gamut with total calls: " << total_calls.load() << " = " << tcp << "%";
+    });
 
     // Prepare async tasks that will run in parallel accessing the set
     std::atomic<int> worker_ready{0};
@@ -355,7 +362,7 @@ TEST( KmerColorSet, Concurrency )
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_done[i] = std::async(
                 std::launch::async,
-                [ready, &worker_ready, &mtx, &cset]() {
+                [ready, &worker_ready, &mtx, &cset, p, r, n, &total_calls]() {
                     // Wait for all workers to be ready
                     ++worker_ready;
                     ready.wait();
@@ -368,8 +375,11 @@ TEST( KmerColorSet, Concurrency )
                         auto const e = permuted_congruential_generator( max_color_index );
                         auto const b = permuted_congruential_generator( p - 1 );
 
-                        // Protect the data!
+                        // Protect the data - no longer needed, as the color set
+                        // now has built-in locking for extra fast concurrency.
                         // std::lock_guard<std::mutex> lock( mtx );
+
+                        ++total_calls;
                         cset.get_joined_color_index( e, b );
                     }
                 }
@@ -400,7 +410,33 @@ TEST( KmerColorSet, Concurrency )
     // LOG_DBG << print_kmer_color_list( cset );
     // LOG_DBG << print_kmer_color_lookup( cset );
     // LOG_DBG << print_kmer_color_gamut( cset );
-    // LOG_DBG << print_kmer_color_set_summary( cset );
+    LOG_DBG << print_kmer_color_set_summary( cset );
+}
+
+TEST( KmerColorSet, Concurrency )
+{
+    // Deactivate logging output for regular tests.
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_DBG << "Seed: " << seed;
+
+    // Params of the color set.
+    // size_t const p = 16;
+    // size_t const r = 1048576;
+    // auto const n = 10000;
+
+    // Run test that does not saturate the colors
+    kmer_color_set_concurrency_test_( 16, 1024 * 1024, 10000 );
+
+    // Run a test that satures the colors and starts the gamut,
+    // but does not fill it completely.
+    kmer_color_set_concurrency_test_( 16, 1024, 5000 );
+
+    // Run a test that saturates the colors, and (very likely) fills the gamut.
+    kmer_color_set_concurrency_test_( 16, 256, 20000 );
 }
 
 #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
