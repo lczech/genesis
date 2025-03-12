@@ -280,6 +280,13 @@ private:
         size_t additive_element_index
     );
 
+    size_t set_gamut_entry_(
+        size_t existing_color_index,
+        size_t additive_element_index,
+        size_t target_color_index,
+        std::atomic<size_t>& stat_counter
+    );
+
     size_t find_minimal_superset_(
         Bitvector const& target_elements
     ) const;

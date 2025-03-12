@@ -634,31 +634,9 @@ size_t KmerColorSet::get_gamut_entry_(
     );
     assert( matching_index < colors_.size() );
     if( matching_index > 0 ) {
-        // We re-aquire the lock. In the meantime, the entry can have changed from some other thread.
-        // If everything is working correctly, that should have given the same result as we found
-        // here, so all good. But for safety, we check and throw otherwise.
-        auto lock = gamut_guard_.get_lock_guard( cell_index );
-        auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
-        if( gamut_entry == 0 ) {
-            gamut_( existing_color_index, additive_element_index ) = matching_index;
-            ++gamut_stats_.real_color_count;
-
-            // Now we have set another entry in the gamut. Check if it is full now,
-            // so that we can switch to an even faster retrieve-only mode.
-            auto const total_count = gamut_stats_.real_color_count + gamut_stats_.imag_color_count;
-            if( total_count == gamut_.size() ) {
-                if( gamut_filled_.load( std::memory_order_acquire )) {
-                    throw std::runtime_error( "Gamut initialization flag has already been set" );
-                }
-                gamut_filled_.store( true, std::memory_order_release );
-                if( on_gamut_filled_callback_ ) {
-                    on_gamut_filled_callback_();
-                }
-            }
-        } else if( gamut_entry != matching_index ){
-            throw std::runtime_error( "Inconsistent state of the gamut matrix in real color" );
-        }
-        return matching_index;
+        return set_gamut_entry_(
+            existing_color_index, additive_element_index, matching_index, gamut_stats_.real_color_count
+        );
     }
 
     // ...or, if none exists, find the imaginary color representing the minimal fitting superset.
@@ -683,31 +661,58 @@ size_t KmerColorSet::get_gamut_entry_(
         );
     }
 
-    // Finally, update the gamut with the new imaginary color entry.
-    // Same locking procedure as above, with the same safeguards.
-    {
-        auto lock = gamut_guard_.get_lock_guard( cell_index );
-        auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
-        if( gamut_entry == 0 ) {
-            gamut_( existing_color_index, additive_element_index ) = superset_index;
-            ++gamut_stats_.imag_color_count;
+    // Finally, update the gamut with the new imaginary color entry, and return its index.
+    return set_gamut_entry_(
+        existing_color_index, additive_element_index, superset_index, gamut_stats_.imag_color_count
+    );
+}
 
-            // Same as above: Check if the gamut is full, and if so, go into fast retrieval mode.
-            auto const total_count = gamut_stats_.real_color_count + gamut_stats_.imag_color_count;
-            if( total_count == gamut_.size() ) {
-                if( gamut_filled_.load( std::memory_order_acquire )) {
-                    throw std::runtime_error( "Gamut initialization flag has already been set" );
-                }
-                gamut_filled_.store( true, std::memory_order_release );
-                if( on_gamut_filled_callback_ ) {
-                    on_gamut_filled_callback_();
-                }
-            }
-        } else if( gamut_entry != superset_index ){
-            throw std::runtime_error( "Inconsistent state of the gamut matrix in imag color" );
+// -------------------------------------------------------------------------
+//     set_gamut_entry_
+// -------------------------------------------------------------------------
+
+size_t KmerColorSet::set_gamut_entry_(
+    size_t existing_color_index,
+    size_t additive_element_index,
+    size_t target_color_index,
+    std::atomic<size_t>& stat_counter
+) {
+    // We re-aquire the lock for the current gamut cell.
+    auto const cell_index = gamut_.index( existing_color_index, additive_element_index );
+    auto lock = gamut_guard_.get_lock_guard( cell_index );
+
+    // In the meantime, the entry can have changed from some other thread.
+    // If everything is working correctly, that should have given the same result as we found
+    // here, so all good, no need to save it again. For safety, we check and throw otherwise.
+    auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
+    if( gamut_entry != 0 ){
+        if( gamut_entry == target_color_index ) {
+            return target_color_index;
+        } else {
+            throw std::runtime_error( "Inconsistent state of the gamut matrix" );
         }
-        return superset_index;
     }
+
+    // Set the entry in the gamut, and increment the real/imag counter.
+    assert( gamut_entry == 0 );
+    assert( target_color_index != 0 );
+    gamut_( existing_color_index, additive_element_index ) = target_color_index;
+    ++stat_counter;
+
+    // Check if it is full now, so that we can switch to an even faster retrieve-only mode.
+    auto const total_count = gamut_stats_.real_color_count + gamut_stats_.imag_color_count;
+    if( total_count == gamut_.size() ) {
+        if( gamut_filled_.load( std::memory_order_acquire )) {
+            throw std::runtime_error( "Gamut initialization flag already set" );
+        }
+        if( on_gamut_filled_callback_ ) {
+            on_gamut_filled_callback_();
+        }
+        gamut_filled_.store( true, std::memory_order_release );
+    } else if( total_count > gamut_.size() ) {
+        throw std::runtime_error( "Gamut overflow" );
+    }
+    return target_color_index;
 }
 
 // -------------------------------------------------------------------------
