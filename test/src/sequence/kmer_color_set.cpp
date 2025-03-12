@@ -354,7 +354,7 @@ void kmer_color_set_concurrency_test_(
     std::promise<void> go;
     std::shared_future<void> ready(go.get_future());
     auto worker_done = std::vector<std::future<void>>(num_threads);
-    std::mutex mtx;
+    // std::mutex mtx;
 
     try
     {
