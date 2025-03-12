@@ -192,7 +192,14 @@ public:
 
     size_t get_color_list_size() const
     {
-        std::shared_lock lock( color_mutex_ );
+        // Read access to the colors. We only need the lock if we have not started with the gamut,
+        // as after that, the colors are not changing any more.
+        // This function does not really need to be optimized that much for realistic use cases,
+        // but we use it in the internal benchmarking, and do not want to bias those with this.
+        std::shared_lock read_lock( color_mutex_, std::defer_lock );
+        if( ! gamut_started_.load( std::memory_order_acquire )) {
+            read_lock.lock();
+        }
         return colors_.size();
     }
 
@@ -334,6 +341,8 @@ private:
     // Then, once we have saturated the colors and switch to the gamut, we instead use a more
     // fine-grained locking of the gamut matrix cells instead, using the vector guard.
     mutable std::shared_timed_mutex color_mutex_;
+    mutable std::atomic<bool> gamut_started_ = false;
+    mutable std::atomic<bool> gamut_filled_ = false;
     mutable utils::ConcurrentVectorGuard gamut_guard_;
 
 };
