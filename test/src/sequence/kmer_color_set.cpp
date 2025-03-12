@@ -331,7 +331,7 @@ void kmer_color_set_concurrency_test_(
     size_t r, // max number of colors
     size_t n  // number of requests per thread
 ) {
-    const int num_threads = 8;
+    int num_threads = 8;
 
     // Init the color set
     auto cset = KmerColorSet( p, r );
@@ -362,7 +362,7 @@ void kmer_color_set_concurrency_test_(
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_done[i] = std::async(
                 std::launch::async,
-                [ready, &worker_ready, &mtx, &cset, p, r, n, &total_calls]() {
+                [ready, &worker_ready, &cset, p, r, n, &total_calls]() {
                     // Wait for all workers to be ready
                     ++worker_ready;
                     ready.wait();
