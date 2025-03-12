@@ -123,11 +123,11 @@ public:
 
     ~KmerColorSet() = default;
 
-    KmerColorSet( KmerColorSet const& ) = default;
-    KmerColorSet( KmerColorSet&& )      = default;
+    KmerColorSet( KmerColorSet const& ) = delete;
+    KmerColorSet( KmerColorSet&& )      = delete;
 
-    KmerColorSet& operator= ( KmerColorSet const& ) = default;
-    KmerColorSet& operator= ( KmerColorSet&& )      = default;
+    KmerColorSet& operator= ( KmerColorSet const& ) = delete;
+    KmerColorSet& operator= ( KmerColorSet&& )      = delete;
 
     // -------------------------------------------------------------------------
     //     Settings
