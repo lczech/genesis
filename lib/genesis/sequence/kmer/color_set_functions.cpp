@@ -334,7 +334,9 @@ std::string print_kmer_color_set_summary( KmerColorSet const& cset )
     size_t const percent_width = (
         gamut.empty()
         ? 3
-        : std::ceil( std::log10( std::max({ real_per, imag_per, empt_per }))) + 2
+        : std::ceil( std::log10( std::max({
+            std::ceil( real_per ), std::ceil( imag_per ), std::ceil( empt_per  )
+        }))) + 2
     );
 
     // Count all colors
@@ -343,7 +345,7 @@ std::string print_kmer_color_set_summary( KmerColorSet const& cset )
     ss << "Colors:      " << cset.get_color_list().size() << "\n";
     ss << "Max colors:  " << cset.get_max_color_count() << "\n";
     ss << "Unique keys: " << count_unique_lookup_keys( cset ) << "\n";
-    ss << "Gamut size:  " << gamut.rows() << "x" << gamut.cols() << "\n";
+    ss << "Gamut size:  " << gamut.rows() << " x " << gamut.cols() << "\n";
     ss << std::fixed << std::setprecision(1);
     ss << "Gamut real:  " << std::setw(gamut_width) << stats.real_color_count;
     ss << " (" << std::setw(percent_width) << real_per << "%)\n";

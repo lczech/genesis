@@ -108,6 +108,19 @@ public:
         init_primary_colors_();
     }
 
+    KmerColorSet( size_t element_count, std::vector<Bitvector>&& secondary_colors )
+        : KmerColorSet( element_count, 1 + element_count + secondary_colors.size() )
+    {
+        // We call the other constructor first, which sets up the primary colors,
+        // and initializes the max colors to exactly what we need here:
+        // One empty, all primary colors, and the list of secondary colors.
+        // That is, with this constructor, we declare to only use the given colors,
+        // and immedately use the gamut without ever adding any additional colors.
+        for( auto& sec_col : secondary_colors ) {
+            add_color( std::move( sec_col ));
+        }
+    }
+
     ~KmerColorSet() = default;
 
     KmerColorSet( KmerColorSet const& ) = default;
@@ -120,10 +133,16 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
-    void set_on_saturation_callback(
+    void set_on_gamut_start_callback(
         std::function<void()> callback
     ) {
-        on_saturation_callback_ = callback;
+        on_gamut_start_callback_ = callback;
+    }
+
+    void set_on_gamut_filled_callback(
+        std::function<void()> callback
+    ) {
+        on_gamut_filled_callback_ = callback;
     }
 
     // -------------------------------------------------------------------------
@@ -173,7 +192,7 @@ public:
 
     size_t get_color_list_size() const
     {
-        std::shared_lock lock( mutex_ );
+        std::shared_lock lock( color_mutex_ );
         return colors_.size();
     }
 
@@ -284,8 +303,10 @@ private:
     std::unordered_multimap<size_t, size_t> lookup_;
 
     // For user reporting purposes, we have a callback when the gamut was initialized,
-    // so that we can see when in our data processing we have saturated the colors.
-    std::function<void()> on_saturation_callback_;
+    // so that we can see when in our data processing we have saturated the colors,
+    // and one when it is completely filled.
+    std::function<void()> on_gamut_start_callback_;
+    std::function<void()> on_gamut_filled_callback_;
 
     // Once we have filled the list of colors up to the max, we freeze it, and only ever return
     // already existing colors upon lookup. For this, for each color, we use the minimal subset that
@@ -308,11 +329,11 @@ private:
     // We have a bit of a tricky concurrency situation here. Not only do we want reader/writer
     // shared/exclusive access for the color list and lookup, but also differenciate between
     // the color accumualtion phase and the gamut phase...
-    // The mutex_ is used for shared/exclusive locking during the color collection phase,
+    // The color_mutex_ is used for shared/exclusive locking during the color collection phase,
     // such that the color list and lookup can grow under concurrent access.
     // Then, once we have saturated the colors and switch to the gamut, we instead use a more
     // fine-grained locking of the gamut matrix cells instead, using the vector guard.
-    mutable std::shared_timed_mutex mutex_;
+    mutable std::shared_timed_mutex color_mutex_;
     mutable utils::ConcurrentVectorGuard gamut_guard_;
 
 };

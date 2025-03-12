@@ -53,6 +53,11 @@ namespace sequence {
 
 size_t KmerColorSet::add_color( utils::Bitvector&& elements )
 {
+    // Obtain write lock. Usually not needed here, as this function is meant to be called
+    // before starting any concurrent access, but maybe there is a use case where the caller
+    // has multiple threads filling in colors, and it does not hurt to have this here.
+    std::unique_lock write_lock( color_mutex_ );
+
     // Only add new colors if we have not yet saturated the amount of colors.
     if( ! gamut_.empty() ) {
         assert( max_color_count_ > 0 );
@@ -114,7 +119,7 @@ size_t KmerColorSet::add_merged_color( size_t index_1, size_t index_2 )
 
 size_t KmerColorSet::find_existing_color( utils::Bitvector const& target_elements ) const
 {
-    std::shared_lock lock( mutex_ );
+    std::shared_lock read_lock( color_mutex_ );
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
@@ -131,7 +136,7 @@ size_t KmerColorSet::find_existing_color( utils::Bitvector const& target_element
 
 size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target_elements ) const
 {
-    std::shared_lock lock( mutex_ );
+    std::shared_lock read_lock( color_mutex_ );
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
@@ -157,7 +162,7 @@ size_t KmerColorSet::get_joined_color_index(
 
     // Sanity checks of the user input, needs shared locking.
     {
-        std::shared_lock lock( mutex_ );
+        std::shared_lock read_lock( color_mutex_ );
         if( existing_color_index >= colors_.size() ) {
             throw std::invalid_argument(
                 "Invalid color index " + std::to_string( existing_color_index )
@@ -188,7 +193,7 @@ size_t KmerColorSet::get_joined_color_index(
         // either in the color list, or in the gamut, if we have started with that yet.
         // If so, we are done already and can return, without needed exclusive locking.
         {
-            std::shared_lock lock( mutex_ );
+            std::shared_lock read_lock( color_mutex_ );
             auto const matching_index = get_joined_color_index_read_(
                 existing_color_index, additive_element_index, target_elements, target_hash
             );
@@ -201,8 +206,8 @@ size_t KmerColorSet::get_joined_color_index(
         // We need to add it to our color set, either as a new secondary color, or,
         // if we are out of space for those, start the gamut, and add it as an imaginary color.
         // This has to happen with the exclusive write lock being held.
-        std::unique_lock unique_lock( mutex_, std::defer_lock );
-        if( unique_lock.try_lock_for( std::chrono::milliseconds( attempt ))) {
+        std::unique_lock write_lock( color_mutex_, std::defer_lock );
+        if( write_lock.try_lock_for( std::chrono::milliseconds( attempt ))) {
             // We have a gap in locking between the above and this block. Maybe in the future,
             // we can use an upgradable lock here, but that on the other hand might be too slow.
             // But with the current design, we unfortunately need to re-do the above checks,
@@ -492,9 +497,6 @@ size_t KmerColorSet::add_color_( utils::Bitvector&& elements, size_t hash )
     lookup_.insert({ hash, index });
     assert( colors_.size() == lookup_.size() );
     assert( colors_.size() == index + 1 );
-
-    // We here return the real index in the list, not the one that the color points to,
-    // and leave the decision about that to the caller.
     return index;
 }
 
@@ -513,14 +515,14 @@ void KmerColorSet::init_gamut_()
     }
 
     // Report to the user that we have saturated the list of colors, and are creating the gamut.
-    if( on_saturation_callback_ ) {
-        on_saturation_callback_();
+    if( on_gamut_start_callback_ ) {
+        on_gamut_start_callback_();
     }
 
     // Set up the vector guard for accessing the gamut. We use the square root of the number
     // of total entries in the gamut matrix to get a large enough number of buckets for the
     // guards to avoid collision. Probably overkill, and super ad-hoc, but let's see if it works.
-    gamut_guard_ = utils::ConcurrentVectorGuard( 10 * std::sqrt( colors_.size() * element_count_ ));
+    gamut_guard_ = utils::ConcurrentVectorGuard( std::sqrt( colors_.size() * element_count_ ));
 
     // For each color, we create a row where the columns correspond to each of the elements being set.
     // Wherever the original color (of the row) already has the bit set anyway, the color is
@@ -564,8 +566,8 @@ size_t KmerColorSet::get_gamut_entry_(
     assert( ! gamut_.empty() );
 
     // Below, we need read and write acces to the cells in the gamut matrix. Protect against
-    // concurrent calling for the same bucket of entries in the gamut matrix. We use the index
-    // in the (linearized) matrix to obtain the guard.
+    // concurrent calling for the same entry in the gamut matrix. We use the index in the
+    // (linearized) matrix to obtain a guard that is unique for a bucket of entries.
     auto const cell_index = gamut_.index( existing_color_index, additive_element_index );
 
     // If the entry is already in the gamut, we just return that.
@@ -598,6 +600,10 @@ size_t KmerColorSet::get_gamut_entry_(
         if( gamut_entry == 0 ) {
             gamut_( existing_color_index, additive_element_index ) = matching_index;
             ++gamut_stats_.real_color_count;
+            auto const total_count = gamut_stats_.real_color_count + gamut_stats_.imag_color_count;
+            if( on_gamut_filled_callback_ && total_count == gamut_.size() ) {
+                on_gamut_filled_callback_();
+            }
         } else if( gamut_entry != matching_index ){
             throw std::runtime_error( "Inconsistent state of the gamut matrix in real color" );
         }
@@ -634,6 +640,10 @@ size_t KmerColorSet::get_gamut_entry_(
         if( gamut_entry == 0 ) {
             gamut_( existing_color_index, additive_element_index ) = superset_index;
             ++gamut_stats_.imag_color_count;
+            auto const total_count = gamut_stats_.real_color_count + gamut_stats_.imag_color_count;
+            if( on_gamut_filled_callback_ && total_count == gamut_.size() ) {
+                on_gamut_filled_callback_();
+            }
         } else if( gamut_entry != superset_index ){
             throw std::runtime_error( "Inconsistent state of the gamut matrix in imag color" );
         }

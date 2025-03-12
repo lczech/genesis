@@ -117,12 +117,12 @@ void add_secondary_colors_from_hac(
     }
 }
 
-void add_secondary_colors_from_phylogeny()
+void add_secondary_colors_from_taxonomy()
 {
     // TODO
 }
 
-void add_secondary_colors_from_taxonomy()
+void add_secondary_colors_from_phylogeny()
 {
     // TODO
 }
