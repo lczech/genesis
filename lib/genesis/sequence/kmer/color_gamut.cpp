@@ -28,10 +28,10 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/color_set.hpp"
+#include "genesis/sequence/kmer/color_gamut.hpp"
 #include "genesis/utils/core/logging.hpp"
 
-// The KmerColorSet class is only available from C++17 onwards.
+// The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 #include <algorithm>
@@ -51,7 +51,7 @@ namespace sequence {
 //     add_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::add_color( utils::Bitvector&& elements )
+size_t KmerColorGamut::add_color( utils::Bitvector&& elements )
 {
     // Obtain write lock. Usually not needed here, as this function is meant to be called
     // before starting any concurrent access, but maybe there is a use case where the caller
@@ -95,7 +95,7 @@ size_t KmerColorSet::add_color( utils::Bitvector&& elements )
 //     add_merged_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::add_merged_color( size_t index_1, size_t index_2 )
+size_t KmerColorGamut::add_merged_color( size_t index_1, size_t index_2 )
 {
     // Helper function that takes two colors, merges them, and adds them to the list.
     // First check that the colors are valid entries.
@@ -106,7 +106,7 @@ size_t KmerColorSet::add_merged_color( size_t index_1, size_t index_2 )
         throw std::runtime_error( "Invalid color indices for merging" );
     }
 
-    // Merge a pair using bitwise OR on the color set.
+    // Merge a pair using bitwise OR on the color gamut.
     // We call the above user-facing function, as that does some additional checks for us.
     // We are not expecting this function here to be called after initialization anyway,
     // so being a bit more thorough here is better, and doesn't hurt performance much.
@@ -117,13 +117,13 @@ size_t KmerColorSet::add_merged_color( size_t index_1, size_t index_2 )
 //     find_existing_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_existing_color( utils::Bitvector const& target_elements ) const
+size_t KmerColorGamut::find_existing_color( utils::Bitvector const& target_elements ) const
 {
     std::shared_lock read_lock( color_mutex_ );
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
-            " in color set that has " + std::to_string( element_count_ ) + " elements"
+            " in Color Gamut that has " + std::to_string( element_count_ ) + " elements"
         );
     }
     auto const target_hash = utils::bitvector_hash( target_elements );
@@ -134,13 +134,13 @@ size_t KmerColorSet::find_existing_color( utils::Bitvector const& target_element
 //     find_minimal_superset
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target_elements ) const
+size_t KmerColorGamut::find_minimal_superset( utils::Bitvector const& target_elements ) const
 {
     std::shared_lock read_lock( color_mutex_ );
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
-            " in color set that has " + std::to_string( element_count_ ) + " elements"
+            " in Color Gamut that has " + std::to_string( element_count_ ) + " elements"
         );
     }
     return find_minimal_superset_( target_elements );
@@ -150,7 +150,7 @@ size_t KmerColorSet::find_minimal_superset( utils::Bitvector const& target_eleme
 //     get_joined_color_index
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::get_joined_color_index(
+size_t KmerColorGamut::get_joined_color_index(
     size_t existing_color_index,
     size_t additive_element_index
 ) {
@@ -223,7 +223,7 @@ size_t KmerColorSet::get_joined_color_index(
         }
 
         // If the new color is not in our list yet, this is a yet unseen secondary color.
-        // We need to add it to our color set, either as a new secondary color, or,
+        // We need to add it to our color gamut, either as a new secondary color, or,
         // if we are out of space for those, start the gamut, and add it as an imaginary color.
         // This has to happen with the exclusive write lock being held.
         // In order to avoid starvation here, we use a timed lock with an increasing time
@@ -265,7 +265,7 @@ size_t KmerColorSet::get_joined_color_index(
 //     init_primary_colors
 // -------------------------------------------------------------------------
 
-void KmerColorSet::init_primary_colors_()
+void KmerColorGamut::init_primary_colors_()
 {
     // Sanity checks.
     if( ! colors_.empty() ) {
@@ -298,7 +298,7 @@ void KmerColorSet::init_primary_colors_()
 //     get_joined_color_index_read_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::get_joined_color_index_read_(
+size_t KmerColorGamut::get_joined_color_index_read_(
     size_t     existing_color_index,
     size_t     additive_element_index,
     Bitvector& target_elements,
@@ -332,7 +332,7 @@ size_t KmerColorSet::get_joined_color_index_read_(
 //     find_matching_color_write_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::get_joined_color_index_write_(
+size_t KmerColorGamut::get_joined_color_index_write_(
     size_t     existing_color_index,
     size_t     additive_element_index,
     Bitvector& target_elements,
@@ -389,7 +389,7 @@ size_t KmerColorSet::get_joined_color_index_write_(
 //     find_matching_color_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_matching_color_(
+size_t KmerColorGamut::find_matching_color_(
     size_t     existing_color_index,
     size_t     additive_element_index,
     Bitvector& target_elements,
@@ -436,7 +436,7 @@ size_t KmerColorSet::find_matching_color_(
 //     populate_target_color_
 // -------------------------------------------------------------------------
 
-void KmerColorSet::populate_target_color_(
+void KmerColorGamut::populate_target_color_(
     size_t     existing_color_index,
     size_t     additive_element_index,
     Bitvector& target_elements,
@@ -464,7 +464,7 @@ void KmerColorSet::populate_target_color_(
 //     find_existing_color_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_existing_color_( utils::Bitvector const& target, size_t hash ) const
+size_t KmerColorGamut::find_existing_color_( utils::Bitvector const& target, size_t hash ) const
 {
     // Sanity checks.
     assert( target.size() == element_count_ );
@@ -493,7 +493,7 @@ size_t KmerColorSet::find_existing_color_( utils::Bitvector const& target, size_
 //     add_color_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::add_color_( utils::Bitvector&& elements, size_t hash )
+size_t KmerColorGamut::add_color_( utils::Bitvector&& elements, size_t hash )
 {
     // Sanity checks.
     assert( colors_.size() == lookup_.size() );
@@ -530,7 +530,7 @@ size_t KmerColorSet::add_color_( utils::Bitvector&& elements, size_t hash )
 //     init_gamut_
 // -------------------------------------------------------------------------
 
-void KmerColorSet::init_gamut_()
+void KmerColorGamut::init_gamut_()
 {
     // Only call this if we have saturated our color list.
     if( max_color_count_ == 0 || colors_.size() != max_color_count_ ) {
@@ -588,7 +588,7 @@ void KmerColorSet::init_gamut_()
 //     get_gamut_entry_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::get_gamut_entry_(
+size_t KmerColorGamut::get_gamut_entry_(
     size_t existing_color_index,
     size_t additive_element_index
 ) {
@@ -671,7 +671,7 @@ size_t KmerColorSet::get_gamut_entry_(
 //     set_gamut_entry_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::set_gamut_entry_(
+size_t KmerColorGamut::set_gamut_entry_(
     size_t existing_color_index,
     size_t additive_element_index,
     size_t target_color_index,
@@ -719,7 +719,7 @@ size_t KmerColorSet::set_gamut_entry_(
 //     find_minimal_superset_
 // -------------------------------------------------------------------------
 
-size_t KmerColorSet::find_minimal_superset_( utils::Bitvector const& target_elements ) const
+size_t KmerColorGamut::find_minimal_superset_( utils::Bitvector const& target_elements ) const
 {
     // Sanity check.
     assert( target_elements.size() == element_count_ );

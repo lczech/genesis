@@ -32,8 +32,8 @@
 
 #include "genesis/sequence/kmer/kmer.hpp"
 #include "genesis/sequence/kmer/canonical_encoding.hpp"
-#include "genesis/sequence/kmer/color_set.hpp"
-#include "genesis/sequence/kmer/color_set_functions.hpp"
+#include "genesis/sequence/kmer/color_gamut.hpp"
+#include "genesis/sequence/kmer/color_gamut_functions.hpp"
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/utils/math/bitvector.hpp"
@@ -41,7 +41,7 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/random.hpp"
 
-// The KmerColorSet class is only available from C++17 onwards.
+// The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 #include <algorithm>
@@ -62,27 +62,27 @@ using namespace genesis::utils;
 //     Functionality Tests
 // =================================================================================================
 
-TEST( KmerColorSet, Basics )
+TEST( KmerColorGamut, Basics )
 {
     // We test up one more than a power of two, which are the points
     // where the binary reduction algorithm is interesting.
     for( size_t p = 1; p <= 17; ++p ) {
         // LOG_DBG << "============================================";
-        auto cset = KmerColorSet( p );
+        auto gamut = KmerColorGamut( p );
 
         // LOG_DBG << "init_primary_colors";
-        // cset.init_primary_colors( p );
-        // print_kmer_color_list( cset );
+        // gamut.init_primary_colors( p );
+        // print_kmer_color_list( gamut );
 
         // LOG_DBG << "init_secondary_colors_with_binary_reduction";
-        add_secondary_colors_with_binary_reduction( cset );
-        auto const initial_cset_size = cset.get_color_list().size();
+        add_secondary_colors_with_binary_reduction( gamut );
+        auto const initial_gamut_size = gamut.get_color_list().size();
 
         // Now we find all existing colors. The find function
         // should return exctly the color that we started with.
-        for( size_t i = 0; i < initial_cset_size; ++i ) {
-            auto const& color = cset.get_color_at(i);
-            EXPECT_EQ( i, cset.find_existing_color( color.elements ));
+        for( size_t i = 0; i < initial_gamut_size; ++i ) {
+            auto const& color = gamut.get_color_at(i);
+            EXPECT_EQ( i, gamut.find_existing_color( color.elements ));
         }
 
         // For more than two elements, we did not add a color
@@ -92,36 +92,36 @@ TEST( KmerColorSet, Basics )
             auto non_existing = Bitvector( p );
             non_existing.set( 0 );
             non_existing.set( p-1 );
-            EXPECT_EQ( 0, cset.find_existing_color( non_existing ));
+            EXPECT_EQ( 0, gamut.find_existing_color( non_existing ));
         }
 
         // Test that all primary colors can be retrieved.
-        // That should also not change our color set size.
+        // That should also not change our color gamut size.
         for( size_t i = 0; i < p; ++i ) {
-            EXPECT_EQ( i + 1, cset.get_joined_color_index( 0, i ));
+            EXPECT_EQ( i + 1, gamut.get_joined_color_index( 0, i ));
         }
-        EXPECT_EQ( initial_cset_size, cset.get_color_list().size() );
-        EXPECT_EQ( 2 * p, cset.get_color_list().size() );
+        EXPECT_EQ( initial_gamut_size, gamut.get_color_list().size() );
+        EXPECT_EQ( 2 * p, gamut.get_color_list().size() );
 
         // Print results
-        verify_unique_colors( cset );
-        // LOG_DBG << print_kmer_color_list( cset );
-        // LOG_DBG << print_kmer_color_lookup( cset );
-        // LOG_DBG << print_kmer_color_gamut( cset );
-        // LOG_DBG << print_kmer_color_set_summary( cset );
+        verify_unique_colors( gamut );
+        // LOG_DBG << print_kmer_color_list( gamut );
+        // LOG_DBG << print_kmer_color_lookup( gamut );
+        // LOG_DBG << print_kmer_color_gamut( gamut );
+        // LOG_DBG << print_kmer_color_gamut_summary( gamut );
     }
 }
 
-TEST( KmerColorSet, Example )
+TEST( KmerColorGamut, Example )
 {
     auto const p = 10;
     auto const r = 60;
 
     // Set up a manual example that tests every code path of the get_joined_color_index function
-    auto cset = KmerColorSet( p, r );
-    add_secondary_colors_with_binary_reduction( cset );
-    auto const initial_cset_size = cset.get_color_list().size();
-    EXPECT_EQ( 2 * p, initial_cset_size );
+    auto gamut = KmerColorGamut( p, r );
+    add_secondary_colors_with_binary_reduction( gamut );
+    auto const initial_gamut_size = gamut.get_color_list().size();
+    EXPECT_EQ( 2 * p, initial_gamut_size );
 
     // Initial list of colors and their bitvectors
     //   0  E   0  00000000 00
@@ -147,17 +147,17 @@ TEST( KmerColorSet, Example )
 
     // Test special case of existing color index 0
     for( size_t i = 0; i < p; ++i ) {
-        EXPECT_EQ( i + 1, cset.get_joined_color_index( 0, i ));
+        EXPECT_EQ( i + 1, gamut.get_joined_color_index( 0, i ));
     }
 
     // For every color that already exists in the set, look up that color and
     // each of its bits as the new target. As the bits are coming from the color,
     // this should always return the color itself.
-    for( size_t i = 0; i < cset.get_color_list().size(); ++i ) {
-        auto const& color = cset.get_color_at(i);
+    for( size_t i = 0; i < gamut.get_color_list().size(); ++i ) {
+        auto const& color = gamut.get_color_at(i);
         for( size_t b = 0; b < p; ++b ) {
             if( color.elements.get(b) ) {
-                EXPECT_EQ( i, cset.get_joined_color_index( i, b ));
+                EXPECT_EQ( i, gamut.get_joined_color_index( i, b ));
             }
         }
     }
@@ -169,32 +169,32 @@ TEST( KmerColorSet, Example )
     // respecitive second bit being set, which gives colors 11 to 15 above.
     for( size_t i = 0; i < p; ++i ) {
         // The primary colors have an offset of one, and one bit set.
-        auto const& color = cset.get_color_at( i + 1 );
+        auto const& color = gamut.get_color_at( i + 1 );
         EXPECT_EQ( 1, pop_count( color.elements ));
 
         // For the even-indexed primary numbers, we ask for the odd bit, and vice versa.
         if( i % 2 == 0 ) {
-            EXPECT_EQ( 11 + i / 2, cset.get_joined_color_index( i + 1, i + 1 ));
+            EXPECT_EQ( 11 + i / 2, gamut.get_joined_color_index( i + 1, i + 1 ));
         } else {
-            EXPECT_EQ( 11 + i / 2, cset.get_joined_color_index( i + 1, i - 1 ));
+            EXPECT_EQ( 11 + i / 2, gamut.get_joined_color_index( i + 1, i - 1 ));
         }
     }
 
     // Up until now, we have only asked for existing colors.
     // Check that all the above did not add any extra colors yet.
-    EXPECT_EQ( initial_cset_size, cset.get_color_list().size() );
+    EXPECT_EQ( initial_gamut_size, gamut.get_color_list().size() );
 
     // Now let's ask for colors that do not exist yet, and need to be created.
     // We do this by going through all two-bit colors, and ask for a third bit,
     // of which none exist in the above init.
     for( size_t i = 11; i <= 15; ++i ) {
-        auto color = cset.get_color_at(i);
+        auto color = gamut.get_color_at(i);
         EXPECT_EQ( 2, pop_count( color.elements ));
 
         for( size_t b = 0; b < p; ++b ) {
             // If this is an existing bit, we expect the color index to be the same as before.
             if( color.elements.get( b )) {
-                EXPECT_EQ( i, cset.get_joined_color_index( i, b ));
+                EXPECT_EQ( i, gamut.get_joined_color_index( i, b ));
                 continue;
             }
 
@@ -202,15 +202,15 @@ TEST( KmerColorSet, Example )
             // so the size of the color list before will be its index.
             // We run the lookup twice, as the second time should do nothing,
             // which we want to check here.
-            auto const exp_idx = cset.get_color_list().size();
-            EXPECT_EQ( exp_idx, cset.get_joined_color_index( i, b ));
-            EXPECT_EQ( exp_idx, cset.get_joined_color_index( i, b ));
+            auto const exp_idx = gamut.get_color_list().size();
+            EXPECT_EQ( exp_idx, gamut.get_joined_color_index( i, b ));
+            EXPECT_EQ( exp_idx, gamut.get_joined_color_index( i, b ));
         }
     }
 
     // There are 5 secondary colors with two bits that we iterated above,
     // and for each of them, we asked for the color with each of the eight missing bits.
-    EXPECT_EQ( initial_cset_size + 5 * 8, cset.get_color_list().size() );
+    EXPECT_EQ( initial_gamut_size + 5 * 8, gamut.get_color_list().size() );
 
     // At this point, we have exactly 60 colors: 1 empty, 10 primary, 9 initial secondary,
     // and 40 new secondary. We have set the real color limit to 60, so that we have exactly
@@ -219,7 +219,7 @@ TEST( KmerColorSet, Example )
     // indices 16 and 17 (see above), and adding another bit to either of them yields new colors.
     // These will be imaginary and in the gamut, and the closest fit will either be color 18 or 19.
     for( size_t i = 16; i <= 17; ++i ) {
-        auto color = cset.get_color_at(i);
+        auto color = gamut.get_color_at(i);
         EXPECT_EQ( 4, pop_count( color.elements ));
 
         for( size_t b = 0; b < p; ++b ) {
@@ -232,34 +232,34 @@ TEST( KmerColorSet, Example )
             // Again, we run the lookup twice, as this shall not add new colors the second time,
             // but give the same result both times.
             auto const exp_idx = ( b < 8 ? 18 : 19 );
-            EXPECT_EQ( exp_idx, cset.get_joined_color_index( i, b ));
-            EXPECT_EQ( exp_idx, cset.get_joined_color_index( i, b ));
+            EXPECT_EQ( exp_idx, gamut.get_joined_color_index( i, b ));
+            EXPECT_EQ( exp_idx, gamut.get_joined_color_index( i, b ));
         }
     }
 
     // We added 12 imaginary colors now, and have switched to gamut now.
-    EXPECT_EQ( initial_cset_size + 5 * 8, cset.get_color_list().size() );
-    EXPECT_EQ( r, cset.get_gamut().rows() );
-    EXPECT_EQ( p, cset.get_gamut().cols() );
-    EXPECT_EQ(  0, cset.get_gamut_statistics().real_color_count );
-    EXPECT_EQ( 12, cset.get_gamut_statistics().imag_color_count );
+    EXPECT_EQ( initial_gamut_size + 5 * 8, gamut.get_color_list().size() );
+    EXPECT_EQ( r, gamut.get_gamut().rows() );
+    EXPECT_EQ( p, gamut.get_gamut().cols() );
+    EXPECT_EQ(  0, gamut.get_gamut_statistics().real_color_count );
+    EXPECT_EQ( 12, gamut.get_gamut_statistics().imag_color_count );
 
     // Finally check that we did not get any duplicates.
-    verify_unique_colors( cset );
-    // LOG_DBG << print_kmer_color_list( cset );
-    // LOG_DBG << print_kmer_color_lookup( cset );
-    // LOG_DBG << print_kmer_color_gamut( cset );
-    // LOG_DBG << print_kmer_color_set_summary( cset );
+    verify_unique_colors( gamut );
+    // LOG_DBG << print_kmer_color_list( gamut );
+    // LOG_DBG << print_kmer_color_lookup( gamut );
+    // LOG_DBG << print_kmer_color_gamut( gamut );
+    // LOG_DBG << print_kmer_color_gamut_summary( gamut );
 }
 
-TEST( KmerColorSet, Random )
+TEST( KmerColorGamut, Random )
 {
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_DBG << "Seed: " << seed;
 
-    // Params of the color set.
+    // Params of the color gamut.
     // We are only allowing the initial secondary colors;
     // everything after that (in the loop) will be an imaginary color.
     auto const p = 8;
@@ -268,9 +268,9 @@ TEST( KmerColorSet, Random )
     // Params of the loops.
     auto const n = 1000000;
 
-    auto cset = KmerColorSet( p, r );
-    add_secondary_colors_with_binary_reduction( cset );
-    // auto const initial_cset_size = cset.get_color_list().size();
+    auto gamut = KmerColorGamut( p, r );
+    add_secondary_colors_with_binary_reduction( gamut );
+    // auto const initial_gamut_size = gamut.get_color_list().size();
 
     //   0  E   0  00000000
     //   1  P   1  10000000
@@ -292,20 +292,20 @@ TEST( KmerColorSet, Random )
     for( size_t i = 0; i < n; ++i ) {
         // Pick a random entry, and a random bit, and look it up. As we have limited
         // the max colors  to the inital ones, we immedately go into gamut mode.
-        auto const e = permuted_congruential_generator( cset.get_color_list().size() - 1 );
+        auto const e = permuted_congruential_generator( gamut.get_color_list().size() - 1 );
         // auto const e = permuted_congruential_generator( r - 1 );
         auto const b = permuted_congruential_generator( p - 1 );
-        cset.get_joined_color_index( e, b );
+        gamut.get_joined_color_index( e, b );
     }
-    // LOG_DBG << print_kmer_color_list( cset );
+    // LOG_DBG << print_kmer_color_list( gamut );
 
     // We have run the loop enough that we can be virtually sure to have requested
     // every color in the 8 bit range that we are using here, so the gamut should be full.
-    EXPECT_EQ( 16, cset.get_color_list().size() );
-    EXPECT_EQ( 16, cset.get_gamut().rows() );
-    EXPECT_EQ(  8, cset.get_gamut().cols() );
+    EXPECT_EQ( 16, gamut.get_color_list().size() );
+    EXPECT_EQ( 16, gamut.get_gamut().rows() );
+    EXPECT_EQ(  8, gamut.get_gamut().cols() );
     auto img_idx_counts = std::vector<size_t>( 16, 0 );
-    for( auto c : cset.get_gamut() ) {
+    for( auto c : gamut.get_gamut() ) {
         ++img_idx_counts[c];
     }
 
@@ -315,36 +315,36 @@ TEST( KmerColorSet, Random )
     EXPECT_EQ( 16, img_idx_counts[14] );
     EXPECT_EQ( 64, img_idx_counts[15] );
 
-    verify_unique_colors( cset );
-    // LOG_DBG << print_kmer_color_list( cset );
-    // LOG_DBG << print_kmer_color_lookup( cset );
-    // LOG_DBG << print_kmer_color_gamut( cset );
-    // LOG_DBG << print_kmer_color_set_summary( cset );
+    verify_unique_colors( gamut );
+    // LOG_DBG << print_kmer_color_list( gamut );
+    // LOG_DBG << print_kmer_color_lookup( gamut );
+    // LOG_DBG << print_kmer_color_gamut( gamut );
+    // LOG_DBG << print_kmer_color_gamut_summary( gamut );
 }
 
 // =================================================================================================
 //     Concurrency Tests
 // =================================================================================================
 
-void kmer_color_set_concurrency_test_(
+void kmer_color_gamut_concurrency_test_(
     size_t p, // number of elements
     size_t r, // max number of colors
     size_t n  // number of requests per thread
 ) {
     size_t num_threads = 8;
 
-    // Init the color set
-    auto cset = KmerColorSet( p, r );
-    add_secondary_colors_with_binary_reduction( cset );
-    // auto const initial_cset_size = cset.get_color_list().size();
+    // Init the color gamut
+    auto gamut = KmerColorGamut( p, r );
+    add_secondary_colors_with_binary_reduction( gamut );
+    // auto const initial_gamut_size = gamut.get_color_list().size();
 
     // Debugging and benchmarking output
     std::atomic<size_t> total_calls{0};
-    cset.set_on_gamut_start_callback( [&total_calls, n, num_threads](){
+    gamut.set_on_gamut_start_callback( [&total_calls, n, num_threads](){
         auto const tcp = 100.0 * total_calls.load() / (n * num_threads);
         LOG_DBG << "starting gamut with total calls: " << total_calls.load() << " = " << tcp << "%";
     });
-    cset.set_on_gamut_filled_callback( [&total_calls, n, num_threads](){
+    gamut.set_on_gamut_filled_callback( [&total_calls, n, num_threads](){
         auto const tcp = 100.0 * total_calls.load() / (n * num_threads);
         LOG_DBG << "filled gamut with total calls: " << total_calls.load() << " = " << tcp << "%";
     });
@@ -362,25 +362,25 @@ void kmer_color_set_concurrency_test_(
         for( size_t i = 0; i < num_threads; ++i ) {
             worker_done[i] = std::async(
                 std::launch::async,
-                [ready, &worker_ready, &cset, p, r, n, &total_calls]() {
+                [ready, &worker_ready, &gamut, p, r, n, &total_calls]() {
                     // Wait for all workers to be ready
                     ++worker_ready;
                     ready.wait();
 
-                    // Then run some async stress on the color set!
+                    // Then run some async stress on the color gamut!
                     for( size_t i = 0; i < n; ++i ) {
                         // Pick a random entry, and a random bit, and look it up. This time,
                         // we only pick secondary colors, and ignore existing imaginary colors.
-                        auto max_color_index = std::min( cset.get_color_list_size() - 1, r - 1 );
+                        auto max_color_index = std::min( gamut.get_color_list_size() - 1, r - 1 );
                         auto const e = permuted_congruential_generator( max_color_index );
                         auto const b = permuted_congruential_generator( p - 1 );
 
-                        // Protect the data - no longer needed, as the color set
+                        // Protect the data - no longer needed, as the color gamut
                         // now has built-in locking for extra fast concurrency.
                         // std::lock_guard<std::mutex> lock( mtx );
 
                         ++total_calls;
-                        cset.get_joined_color_index( e, b );
+                        gamut.get_joined_color_index( e, b );
                     }
                 }
             );
@@ -406,14 +406,14 @@ void kmer_color_set_concurrency_test_(
     }
 
     // Let's see what we got!
-    verify_unique_colors( cset );
-    // LOG_DBG << print_kmer_color_list( cset );
-    // LOG_DBG << print_kmer_color_lookup( cset );
-    // LOG_DBG << print_kmer_color_gamut( cset );
-    LOG_DBG << print_kmer_color_set_summary( cset );
+    verify_unique_colors( gamut );
+    // LOG_DBG << print_kmer_color_list( gamut );
+    // LOG_DBG << print_kmer_color_lookup( gamut );
+    // LOG_DBG << print_kmer_color_gamut( gamut );
+    LOG_DBG << print_kmer_color_gamut_summary( gamut );
 }
 
-TEST( KmerColorSet, Concurrency )
+TEST( KmerColorGamut, Concurrency )
 {
     // Deactivate logging output for regular tests.
     LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
@@ -423,20 +423,20 @@ TEST( KmerColorSet, Concurrency )
     permuted_congruential_generator_init( seed );
     LOG_DBG << "Seed: " << seed;
 
-    // Params of the color set.
+    // Params of the color gamut.
     // size_t const p = 16;
     // size_t const r = 1048576;
     // auto const n = 10000;
 
     // Run test that does not saturate the colors
-    kmer_color_set_concurrency_test_( 16, 1024 * 1024, 10000 );
+    kmer_color_gamut_concurrency_test_( 16, 1024 * 1024, 10000 );
 
     // Run a test that satures the colors and starts the gamut,
     // but does not fill it completely.
-    kmer_color_set_concurrency_test_( 16, 1024, 5000 );
+    kmer_color_gamut_concurrency_test_( 16, 1024, 5000 );
 
     // Run a test that saturates the colors, and (very likely) fills the gamut.
-    kmer_color_set_concurrency_test_( 16, 256, 20000 );
+    kmer_color_gamut_concurrency_test_( 16, 256, 20000 );
 }
 
 #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17

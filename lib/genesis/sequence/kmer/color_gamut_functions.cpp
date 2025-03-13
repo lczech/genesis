@@ -28,10 +28,10 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/color_set_functions.hpp"
+#include "genesis/sequence/kmer/color_gamut_functions.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 
-// The KmerColorSet class is only available from C++17 onwards.
+// The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 #include <algorithm>
@@ -47,7 +47,7 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Color Set Initialization
+//     Color Gamut Initialization
 // =================================================================================================
 
 // -------------------------------------------------------------------------
@@ -55,7 +55,7 @@ namespace sequence {
 // -------------------------------------------------------------------------
 
 void add_secondary_colors_with_binary_reduction(
-    KmerColorSet& cset
+    KmerColorGamut& cset
 ) {
     // In the absence of a phylogeny or taxonomy to group our primary colors by,
     // we use a binary reduction, essentially creating a complete binary tree
@@ -63,7 +63,7 @@ void add_secondary_colors_with_binary_reduction(
     // to call it if no other secondary colors have been added to the set yet.
     if( cset.get_color_list().size() != 1 + cset.get_element_count() ) {
         throw std::invalid_argument(
-            "Cannot initialize Kmer Color Set with binary reduction "
+            "Cannot initialize Kmer Color Gamut with binary reduction "
             "if other colors have already been added"
         );
     }
@@ -136,7 +136,7 @@ void add_secondary_colors_with_binary_reduction(
 // -------------------------------------------------------------------------
 
 void add_secondary_colors_from_bitvectors(
-    KmerColorSet& cset,
+    KmerColorGamut& cset,
     std::vector<utils::Bitvector> const& bitvecs,
     bool test_for_all_set_color
 ) {
@@ -149,13 +149,13 @@ void add_secondary_colors_from_bitvectors(
         // Validity checks
         if( bv.size() != cset.get_element_count() ) {
             throw std::invalid_argument(
-                "Cannot initialize Kmer Color Set with Bitvectors of size "
+                "Cannot initialize Kmer Color Gamut with Bitvectors of size "
                 "that does not match the element count"
             );
         }
         if( utils::pop_count( bv ) < 2 ) {
             throw std::invalid_argument(
-                "Cannot initialize Kmer Color Set with Bitvectors representing "
+                "Cannot initialize Kmer Color Gamut with Bitvectors representing "
                 "the empty color or primary colors (i.e., zero or single bit set)"
             );
         }
@@ -171,7 +171,7 @@ void add_secondary_colors_from_bitvectors(
     // Final check for the all-set color, such that our minimal superset always succeeds.
     if( test_for_all_set_color && ! found_all_set ) {
         throw std::invalid_argument(
-            "Cannot initialize Kmer Color Set with Bitvectors "
+            "Cannot initialize Kmer Color Gamut with Bitvectors "
             "that do not contain an all-set bitvector"
         );
     }
@@ -182,7 +182,7 @@ void add_secondary_colors_from_bitvectors(
 // -------------------------------------------------------------------------
 
 void add_secondary_colors_from_groups(
-    KmerColorSet& cset,
+    KmerColorGamut& cset,
     std::vector<std::vector<size_t>> const& groups,
     bool test_for_all_set_color
 ) {
@@ -197,10 +197,10 @@ void add_secondary_colors_from_groups(
 }
 
 // =================================================================================================
-//     Color Set Functions
+//     Color Gamut Functions
 // =================================================================================================
 
-size_t count_unique_lookup_keys( KmerColorSet const& cset )
+size_t count_unique_lookup_keys( KmerColorGamut const& cset )
 {
     // Loop over the entire multimap, but "jump" over groups of the same key.
     auto const& lookup = cset.get_color_lookup();
@@ -212,7 +212,7 @@ size_t count_unique_lookup_keys( KmerColorSet const& cset )
     return cnt;
 }
 
-void verify_unique_colors( KmerColorSet const& cset )
+void verify_unique_colors( KmerColorGamut const& cset )
 {
     // We copy to a set for this. Using a pairwise comparison between all colors of the same hash
     // would be far more efficient, but this function is mostly for debugging only anyway.
@@ -222,7 +222,7 @@ void verify_unique_colors( KmerColorSet const& cset )
         elements_bvs.insert( color.elements );
     }
     if( cset.get_color_list().size() != elements_bvs.size() ) {
-        throw std::runtime_error( "Kmer Color Set contains duplicate colors" );
+        throw std::runtime_error( "Kmer Color Gamut contains duplicate colors" );
     }
 }
 
@@ -230,7 +230,7 @@ void verify_unique_colors( KmerColorSet const& cset )
 //     Printing
 // =================================================================================================
 
-std::string print_kmer_color_list( KmerColorSet const& cset )
+std::string print_kmer_color_list( KmerColorGamut const& cset )
 {
     assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
 
@@ -246,7 +246,7 @@ std::string print_kmer_color_list( KmerColorSet const& cset )
     return ss.str();
 }
 
-std::string print_kmer_color_lookup( KmerColorSet const& cset )
+std::string print_kmer_color_lookup( KmerColorGamut const& cset )
 {
     assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
 
@@ -278,7 +278,7 @@ std::string print_kmer_color_lookup( KmerColorSet const& cset )
     return ss.str();
 }
 
-std::string print_kmer_color_gamut( KmerColorSet const& cset )
+std::string print_kmer_color_gamut( KmerColorGamut const& cset )
 {
     auto const gamut = cset.get_gamut();
     if( gamut.empty() ) {
@@ -310,7 +310,7 @@ std::string print_kmer_color_gamut( KmerColorSet const& cset )
     return ss.str();
 }
 
-std::string print_kmer_color_set_summary( KmerColorSet const& cset )
+std::string print_kmer_color_gamut_summary( KmerColorGamut const& cset )
 {
     assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
 

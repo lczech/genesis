@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_KMER_COLOR_SET_H_
-#define GENESIS_SEQUENCE_KMER_COLOR_SET_H_
+#ifndef GENESIS_SEQUENCE_KMER_COLOR_GAMUT_H_
+#define GENESIS_SEQUENCE_KMER_COLOR_GAMUT_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -61,10 +61,10 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Kmer Color Set
+//     Kmer Color Gamut
 // =================================================================================================
 
-class KmerColorSet
+class KmerColorGamut
 {
 public:
 
@@ -86,7 +86,7 @@ public:
         // size_t occurrence = 0;
     };
 
-    struct GamutStatistics
+    struct Statistics
     {
         size_t real_color_count = 0;
         size_t imag_color_count = 0;
@@ -96,9 +96,9 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    // KmerColorSet() = default;
+    // KmerColorGamut() = default;
 
-    KmerColorSet( size_t element_count, size_t max_color_count = 0 )
+    KmerColorGamut( size_t element_count, size_t max_color_count = 0 )
         : element_count_( element_count )
         , max_color_count_( max_color_count )
     {
@@ -108,8 +108,8 @@ public:
         init_primary_colors_();
     }
 
-    KmerColorSet( size_t element_count, std::vector<Bitvector>&& secondary_colors )
-        : KmerColorSet( element_count, 1 + element_count + secondary_colors.size() )
+    KmerColorGamut( size_t element_count, std::vector<Bitvector>&& secondary_colors )
+        : KmerColorGamut( element_count, 1 + element_count + secondary_colors.size() )
     {
         // We call the other constructor first, which sets up the primary colors,
         // and initializes the max colors to exactly what we need here:
@@ -121,13 +121,13 @@ public:
         }
     }
 
-    ~KmerColorSet() = default;
+    ~KmerColorGamut() = default;
 
-    KmerColorSet( KmerColorSet const& ) = delete;
-    KmerColorSet( KmerColorSet&& )      = delete;
+    KmerColorGamut( KmerColorGamut const& ) = delete;
+    KmerColorGamut( KmerColorGamut&& )      = delete;
 
-    KmerColorSet& operator= ( KmerColorSet const& ) = delete;
-    KmerColorSet& operator= ( KmerColorSet&& )      = delete;
+    KmerColorGamut& operator= ( KmerColorGamut const& ) = delete;
+    KmerColorGamut& operator= ( KmerColorGamut&& )      = delete;
 
     // -------------------------------------------------------------------------
     //     Settings
@@ -218,10 +218,10 @@ public:
         return gamut_;
     }
 
-    GamutStatistics get_gamut_statistics() const
+    Statistics get_gamut_statistics() const
     {
         // Copy over the state, so that the caller does not have to deal with atomics.
-        GamutStatistics stats;
+        Statistics stats;
         stats.real_color_count = gamut_stats_.real_color_count.load();
         stats.imag_color_count = gamut_stats_.imag_color_count.load();
         return stats;
@@ -333,12 +333,12 @@ private:
 
     // For debugging and performance assessment, we keep track of statis of the gamut.
     // We use a private atomic variant of this, as we are writing the gamut concurrently.
-    struct GamutStatisticsAtomic
+    struct StatisticsAtomic
     {
         std::atomic<size_t> real_color_count = 0;
         std::atomic<size_t> imag_color_count = 0;
     };
-    GamutStatisticsAtomic gamut_stats_;
+    StatisticsAtomic gamut_stats_;
 
     // We have a bit of a tricky concurrency situation here. Not only do we want reader/writer
     // shared/exclusive access for the color list and lookup, but also differenciate between

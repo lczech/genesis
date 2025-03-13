@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_KMER_COLOR_SET_FUNCTIONS_H_
-#define GENESIS_SEQUENCE_KMER_COLOR_SET_FUNCTIONS_H_
+#ifndef GENESIS_SEQUENCE_KMER_COLOR_GAMUT_FUNCTIONS_H_
+#define GENESIS_SEQUENCE_KMER_COLOR_GAMUT_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,12 +31,12 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/color_set.hpp"
+#include "genesis/sequence/kmer/color_gamut.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 
-// The KmerColorSet class is only available from C++17 onwards.
+// The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 #include <array>
@@ -50,24 +50,24 @@ namespace sequence {
 // =================================================================================================
 
 void add_secondary_colors_with_binary_reduction(
-    KmerColorSet& cset
+    KmerColorGamut& cset
 );
 
 void add_secondary_colors_from_bitvectors(
-    KmerColorSet& cset,
+    KmerColorGamut& cset,
     std::vector<utils::Bitvector> const& bitvecs,
     bool test_for_all_set_color = true
 );
 
 void add_secondary_colors_from_groups(
-    KmerColorSet& cset,
+    KmerColorGamut& cset,
     std::vector<std::vector<size_t>> const& groups,
     bool test_for_all_set_color = true
 );
 
 template <typename T>
 void add_secondary_colors_from_hac(
-    KmerColorSet& cset,
+    KmerColorGamut& cset,
     utils::HierarchicalAgglomerativeClustering<T> const& hac,
     bool test_for_all_set_color = true
 ) {
@@ -131,13 +131,13 @@ void add_secondary_colors_from_phylogeny()
 //     Color Set Functions
 // =================================================================================================
 
-size_t count_unique_lookup_keys( KmerColorSet const& cset );
-void verify_unique_colors( KmerColorSet const& cset );
+size_t count_unique_lookup_keys( KmerColorGamut const& cset );
+void verify_unique_colors( KmerColorGamut const& cset );
 
-std::string print_kmer_color_list( KmerColorSet const& cset );
-std::string print_kmer_color_lookup( KmerColorSet const& cset );
-std::string print_kmer_color_gamut( KmerColorSet const& cset );
-std::string print_kmer_color_set_summary( KmerColorSet const& cset );
+std::string print_kmer_color_list( KmerColorGamut const& cset );
+std::string print_kmer_color_lookup( KmerColorGamut const& cset );
+std::string print_kmer_color_gamut( KmerColorGamut const& cset );
+std::string print_kmer_color_gamut_summary( KmerColorGamut const& cset );
 
 } // namespace sequence
 } // namespace genesis
