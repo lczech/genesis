@@ -595,6 +595,14 @@ std::string indent(
 );
 
 /**
+ * @brief Indent each line of `text` with @p num_spaces many spaces and return the result.
+ */
+std::string indent(
+    std::string const& text,
+    size_t num_spaces
+);
+
+/**
  * @brief Return a copy of a string, where all occurrences of a search string
  * are replaced by a replace string.
  */

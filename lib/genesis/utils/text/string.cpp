@@ -624,6 +624,13 @@ std::string indent(
     return trim_right( ret, indentation );
 }
 
+std::string indent(
+    std::string const& text,
+    size_t num_spaces
+) {
+    return indent( text, std::string( num_spaces, ' ' ));
+}
+
 std::string replace_all (
     std::string const& text, std::string const& search, std::string const& replace
 ) {
