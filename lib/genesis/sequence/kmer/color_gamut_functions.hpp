@@ -66,7 +66,7 @@ void add_secondary_colors_from_groups(
     bool test_for_all_set_color = true
 );
 
-std::vector<utils::Bitvector> make_seconary_colors_from_taxonomy(
+std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
     taxonomy::Taxonomy const& tax,
     size_t power_set_limit = 10,
     bool omit_primary_colors = true

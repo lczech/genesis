@@ -183,10 +183,29 @@ void add_secondary_colors_from_bitvectors(
 }
 
 // -------------------------------------------------------------------------
-//     make_seconary_colors_from_taxonomy
+//     add_secondary_colors_from_groups
 // -------------------------------------------------------------------------
 
-std::vector<utils::Bitvector> make_seconary_colors_from_taxonomy(
+void add_secondary_colors_from_groups(
+    KmerColorGamut& cset,
+    std::vector<std::vector<size_t>> const& groups,
+    bool test_for_all_set_color
+) {
+    // Quick and dirty: create bitvectors from the indices, then forward to the bitvector function.
+    // We are currently not expecting more than a few hundred or thousand initial colors, so this
+    // should be fine for initialization. If extended to more colors, might need optimization.
+    std::vector<utils::Bitvector> bitvecs;
+    for( auto const& group_indices : groups ) {
+        bitvecs.emplace_back( utils::Bitvector( cset.get_element_count(), group_indices ));
+    }
+    add_secondary_colors_from_bitvectors( cset, bitvecs, test_for_all_set_color );
+}
+
+// -------------------------------------------------------------------------
+//     make_secondary_colors_from_taxonomy
+// -------------------------------------------------------------------------
+
+std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
     taxonomy::Taxonomy const& tax,
     size_t power_set_limit,
     bool omit_primary_colors
@@ -375,25 +394,6 @@ std::vector<utils::Bitvector> make_seconary_colors_from_taxonomy(
     }
 
     return colors;
-}
-
-// -------------------------------------------------------------------------
-//     add_secondary_colors_from_groups
-// -------------------------------------------------------------------------
-
-void add_secondary_colors_from_groups(
-    KmerColorGamut& cset,
-    std::vector<std::vector<size_t>> const& groups,
-    bool test_for_all_set_color
-) {
-    // Quick and dirty: create bitvectors from the indices, then forward to the bitvector function.
-    // We are currently not expecting more than a few hundred or thousand initial colors, so this
-    // should be fine for initialization. If extended to more colors, might need optimization.
-    std::vector<utils::Bitvector> bitvecs;
-    for( auto const& group_indices : groups ) {
-        bitvecs.emplace_back( utils::Bitvector( cset.get_element_count(), group_indices ));
-    }
-    add_secondary_colors_from_bitvectors( cset, bitvecs, test_for_all_set_color );
 }
 
 // =================================================================================================
