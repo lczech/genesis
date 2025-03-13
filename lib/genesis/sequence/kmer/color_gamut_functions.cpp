@@ -34,6 +34,8 @@
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/io/deserializer.hpp"
+#include "genesis/utils/io/serializer.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 
 // The KmerColorGamut class is only available from C++17 onwards.
@@ -60,13 +62,13 @@ namespace sequence {
 // -------------------------------------------------------------------------
 
 void add_secondary_colors_with_binary_reduction(
-    KmerColorGamut& cset
+    KmerColorGamut& gamut
 ) {
     // In the absence of a phylogeny or taxonomy to group our primary colors by,
     // we use a binary reduction, essentially creating a complete binary tree
     // through recursive pairwise grouping of the elements. We currently only allow
     // to call it if no other secondary colors have been added to the set yet.
-    if( cset.get_color_list().size() != 1 + cset.get_element_count() ) {
+    if( gamut.get_color_list().size() != 1 + gamut.get_element_count() ) {
         throw std::invalid_argument(
             "Cannot initialize Kmer Color Gamut with binary reduction "
             "if other colors have already been added"
@@ -80,19 +82,19 @@ void add_secondary_colors_with_binary_reduction(
     {
         // Base case: no merge needed if no more elements are left.
         assert( first <= last );
-        assert( last == cset.get_color_list().size() );
+        assert( last == gamut.get_color_list().size() );
         if( last - first == 0 ) {
             return;
         }
 
         // Record the starting index of the new block that will be appended,
         // and process elements pairwise in the current block [first, last).
-        size_t new_start = cset.get_color_list().size();
+        size_t new_start = gamut.get_color_list().size();
         for( size_t i = first; i < last; i += 2 ) {
 
             // Default case: two groups to merge into a new color.
             if( i + 1 < last ) {
-                cset.add_merged_color( i, i+1 );
+                gamut.add_merged_color( i, i+1 );
                 continue;
             }
 
@@ -109,31 +111,31 @@ void add_secondary_colors_with_binary_reduction(
             if( leftover_index == 0 ) {
                 leftover_index = i;
             } else {
-                cset.add_merged_color( i, leftover_index );
+                gamut.add_merged_color( i, leftover_index );
                 leftover_index = 0;
             }
         }
 
         // Recursively merge the newly created block.
-        recursive_merge_( new_start, cset.get_color_list().size() );
+        recursive_merge_( new_start, gamut.get_color_list().size() );
     };
 
     // Start the recursive merging using the entire initial range of primary colors.
     // That is, we start after the empty color, and stop at the color index that corresponds
     // to  the last primary (single bit set) color. This is an ugly hard-coded dependency
     // on the inner workings of the class... but well, good enough for now.
-    recursive_merge_( 1, cset.get_color_list().size() );
+    recursive_merge_( 1, gamut.get_color_list().size() );
 
     // At the end, there should be no leftover color; all should be in some secondary color.
     // Due to the exit condition of the recursive function, the leftover is set to the last
     // element that has all colors set (which is hence not really a leftover).
-    assert( leftover_index == cset.get_color_list().size() - 1 );
+    assert( leftover_index == gamut.get_color_list().size() - 1 );
 
     // A binary tree has one fewer inner nodes than tips. We have added those as colors,
     // and have the empty color, so our total is now double the number of primary colors.
     // Also, the last secondary color should contain _all_ primary colors.
-    assert( cset.get_color_list().size() == 2 * cset.get_element_count() );
-    assert( all_set( cset.get_color_list().back().elements ));
+    assert( gamut.get_color_list().size() == 2 * gamut.get_element_count() );
+    assert( all_set( gamut.get_color_list().back().elements ));
 }
 
 // -------------------------------------------------------------------------
@@ -141,7 +143,7 @@ void add_secondary_colors_with_binary_reduction(
 // -------------------------------------------------------------------------
 
 void add_secondary_colors_from_bitvectors(
-    KmerColorGamut& cset,
+    KmerColorGamut& gamut,
     std::vector<utils::Bitvector> const& bitvecs,
     bool test_for_all_set_color
 ) {
@@ -152,7 +154,7 @@ void add_secondary_colors_from_bitvectors(
     // Add all bitvectors as secondary colors
     for( auto const& bv : bitvecs ) {
         // Validity checks
-        if( bv.size() != cset.get_element_count() ) {
+        if( bv.size() != gamut.get_element_count() ) {
             throw std::invalid_argument(
                 "Cannot initialize Kmer Color Gamut with Bitvectors of size "
                 "that does not match the element count"
@@ -170,7 +172,7 @@ void add_secondary_colors_from_bitvectors(
 
         // Add a new color for the bitvector, which also checks that it is not a duplicate.
         auto cp = bv;
-        cset.add_color( std::move( cp ));
+        gamut.add_color( std::move( cp ));
     }
 
     // Final check for the all-set color, such that our minimal superset always succeeds.
@@ -187,7 +189,7 @@ void add_secondary_colors_from_bitvectors(
 // -------------------------------------------------------------------------
 
 void add_secondary_colors_from_groups(
-    KmerColorGamut& cset,
+    KmerColorGamut& gamut,
     std::vector<std::vector<size_t>> const& groups,
     bool test_for_all_set_color
 ) {
@@ -196,9 +198,9 @@ void add_secondary_colors_from_groups(
     // should be fine for initialization. If extended to more colors, might need optimization.
     std::vector<utils::Bitvector> bitvecs;
     for( auto const& group_indices : groups ) {
-        bitvecs.emplace_back( utils::Bitvector( cset.get_element_count(), group_indices ));
+        bitvecs.emplace_back( utils::Bitvector( gamut.get_element_count(), group_indices ));
     }
-    add_secondary_colors_from_bitvectors( cset, bitvecs, test_for_all_set_color );
+    add_secondary_colors_from_bitvectors( gamut, bitvecs, test_for_all_set_color );
 }
 
 // -------------------------------------------------------------------------
@@ -310,7 +312,7 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
             } else {
                 throw std::runtime_error( "Empty group at root" );
             }
-        } else  if( child_indices.size() <= power_set_limit ) {
+        } else if( child_indices.size() <= power_set_limit ) {
             // We add the power set of all immediate child groups of this taxon as colors.
             // For this, we set up a counter (mask) that we go through, and add a color for each
             // value, activating the elements in the color corresponding to all group children.
@@ -400,10 +402,10 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
 //     Color Gamut Functions
 // =================================================================================================
 
-size_t count_unique_lookup_keys( KmerColorGamut const& cset )
+size_t count_unique_lookup_keys( KmerColorGamut const& gamut )
 {
     // Loop over the entire multimap, but "jump" over groups of the same key.
-    auto const& lookup = cset.get_color_lookup();
+    auto const& lookup = gamut.get_color_lookup();
     size_t cnt = 0;
     for (auto it = lookup.begin(); it != lookup.end(); ) {
         ++cnt;
@@ -412,16 +414,16 @@ size_t count_unique_lookup_keys( KmerColorGamut const& cset )
     return cnt;
 }
 
-void verify_unique_colors( KmerColorGamut const& cset )
+void verify_unique_colors( KmerColorGamut const& gamut )
 {
     // We copy to a set for this. Using a pairwise comparison between all colors of the same hash
     // would be far more efficient, but this function is mostly for debugging only anyway.
-    assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
+    assert( gamut.get_color_list().size() == gamut.get_color_lookup().size() );
     std::unordered_set<utils::Bitvector> elements_bvs;
-    for( auto const& color : cset.get_color_list() ) {
+    for( auto const& color : gamut.get_color_list() ) {
         elements_bvs.insert( color.elements );
     }
-    if( cset.get_color_list().size() != elements_bvs.size() ) {
+    if( gamut.get_color_list().size() != elements_bvs.size() ) {
         throw std::runtime_error( "Kmer Color Gamut contains duplicate colors" );
     }
 }
@@ -430,15 +432,15 @@ void verify_unique_colors( KmerColorGamut const& cset )
 //     Printing
 // =================================================================================================
 
-std::string print_kmer_color_list( KmerColorGamut const& cset )
+std::string print_kmer_color_list( KmerColorGamut const& gamut )
 {
-    assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
+    assert( gamut.get_color_list().size() == gamut.get_color_lookup().size() );
 
-    size_t const int_width = std::ceil( std::log10( cset.get_color_list().size() ));
+    size_t const int_width = std::ceil( std::log10( gamut.get_color_list().size() ));
     std::stringstream ss;
-    ss << "Colors: " << cset.get_color_list().size() << "\n";
-    for( size_t i = 0; i < cset.get_color_list().size(); ++i ) {
-        auto const& color = cset.get_color_at(i);
+    ss << "Colors: " << gamut.get_color_list().size() << "\n";
+    for( size_t i = 0; i < gamut.get_color_list().size(); ++i ) {
+        auto const& color = gamut.get_color_at(i);
         ss << std::setw( int_width ) << i;
         ss << " " << utils::to_bit_string( color.elements );
         ss << "\n";
@@ -446,17 +448,17 @@ std::string print_kmer_color_list( KmerColorGamut const& cset )
     return ss.str();
 }
 
-std::string print_kmer_color_lookup( KmerColorGamut const& cset )
+std::string print_kmer_color_lookup( KmerColorGamut const& gamut )
 {
-    assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
+    assert( gamut.get_color_list().size() == gamut.get_color_lookup().size() );
 
     std::stringstream ss;
-    ss << "Colors: " << cset.get_color_list().size();
-    ss << ", unique keys: " << count_unique_lookup_keys( cset );
+    ss << "Colors: " << gamut.get_color_list().size();
+    ss << ", unique keys: " << count_unique_lookup_keys( gamut );
     ss << "\n";
 
     // Outer loop: iterate over the hashes while "jumping" over groups of duplicate keys.
-    auto const& lookup = cset.get_color_lookup();
+    auto const& lookup = gamut.get_color_lookup();
     for( auto it = lookup.begin(); it != lookup.end(); ) {
         auto range = lookup.equal_range(it->first);
 
@@ -478,31 +480,31 @@ std::string print_kmer_color_lookup( KmerColorGamut const& cset )
     return ss.str();
 }
 
-std::string print_kmer_color_gamut( KmerColorGamut const& cset )
+std::string print_kmer_color_gamut( KmerColorGamut const& gamut )
 {
-    auto const gamut = cset.get_gamut();
-    if( gamut.empty() ) {
+    auto const gamut_matrix = gamut.get_gamut();
+    if( gamut_matrix.empty() ) {
         return "";
     }
 
     // Proper alignment for nicer output
-    auto const max_gamut = *std::max_element( gamut.begin(), gamut.end() );
-    size_t const first_width = std::ceil( std::log10( gamut.rows() ));
-    size_t const col_width = std::ceil( std::log10( std::max( max_gamut, gamut.cols() )));
+    auto const max_gamut = *std::max_element( gamut_matrix.begin(), gamut_matrix.end() );
+    size_t const first_width = std::ceil( std::log10( gamut_matrix.rows() ));
+    size_t const col_width = std::ceil( std::log10( std::max( max_gamut, gamut_matrix.cols() )));
 
     // Write header line with the element indices
     std::stringstream ss;
     ss << std::string( first_width, ' ' );
-    for( size_t c = 0; c < gamut.cols(); ++c ) {
+    for( size_t c = 0; c < gamut_matrix.cols(); ++c ) {
         ss << " " << std::setw( col_width ) << c;
     }
     ss << "\n";
 
     // Write the content of the gamut, with an extra first column for the color indices.
-    for( size_t r = 0; r < gamut.rows(); ++r ) {
+    for( size_t r = 0; r < gamut_matrix.rows(); ++r ) {
         ss << std::setw( first_width ) << r;
-        for( size_t c = 0; c < gamut.cols(); ++c ) {
-            ss << " " << std::setw( col_width ) << gamut( r, c );
+        for( size_t c = 0; c < gamut_matrix.cols(); ++c ) {
+            ss << " " << std::setw( col_width ) << gamut_matrix( r, c );
         }
         ss << "\n";
     }
@@ -510,14 +512,14 @@ std::string print_kmer_color_gamut( KmerColorGamut const& cset )
     return ss.str();
 }
 
-std::string print_kmer_color_gamut_summary( KmerColorGamut const& cset )
+std::string print_kmer_color_gamut_summary( KmerColorGamut const& gamut )
 {
-    assert( cset.get_color_list().size() == cset.get_color_lookup().size() );
+    assert( gamut.get_color_list().size() == gamut.get_color_lookup().size() );
 
     // Report how many of the gamut are real and how many are imaginar numbers
-    auto const& gamut = cset.get_gamut();
-    auto const& stats = cset.get_gamut_statistics();
-    auto const gamut_size = gamut.rows() * gamut.cols();
+    auto const& gamut_matrix = gamut.get_gamut();
+    auto const& stats = gamut.get_gamut_statistics();
+    auto const gamut_size = gamut_matrix.rows() * gamut_matrix.cols();
     auto const gamut_empty = gamut_size - ( stats.real_color_count + stats.imag_color_count);
     auto const real_per = gamut_size == 0 ? 0.0 : 100.0 * stats.real_color_count / gamut_size;
     auto const imag_per = gamut_size == 0 ? 0.0 : 100.0 * stats.imag_color_count / gamut_size;
@@ -525,14 +527,14 @@ std::string print_kmer_color_gamut_summary( KmerColorGamut const& cset )
 
     // Proper alignment for nicer output
     size_t const gamut_width = (
-        gamut.empty()
+        gamut_matrix.empty()
         ? 1
         : std::ceil( std::log10( std::max({
             stats.real_color_count, stats.imag_color_count, gamut_empty
         })))
     );
     size_t const percent_width = (
-        gamut.empty()
+        gamut_matrix.empty()
         ? 3
         : std::ceil( std::log10( std::max({
             std::ceil( real_per ), std::ceil( imag_per ), std::ceil( empt_per  )
@@ -541,11 +543,11 @@ std::string print_kmer_color_gamut_summary( KmerColorGamut const& cset )
 
     // Count all colors
     std::stringstream ss;
-    ss << "Elements:    " << cset.get_element_count() << "\n";
-    ss << "Colors:      " << cset.get_color_list().size() << "\n";
-    ss << "Max colors:  " << cset.get_max_color_count() << "\n";
-    ss << "Unique keys: " << count_unique_lookup_keys( cset ) << "\n";
-    ss << "Gamut size:  " << gamut.rows() << " x " << gamut.cols() << "\n";
+    ss << "Elements:    " << gamut.get_element_count() << "\n";
+    ss << "Colors:      " << gamut.get_color_list().size() << "\n";
+    ss << "Max colors:  " << gamut.get_max_color_count() << "\n";
+    ss << "Unique keys: " << count_unique_lookup_keys( gamut ) << "\n";
+    ss << "Gamut size:  " << gamut_matrix.rows() << " x " << gamut_matrix.cols() << "\n";
     ss << std::fixed << std::setprecision(1);
     ss << "Gamut real:  " << std::setw(gamut_width) << stats.real_color_count;
     ss << " (" << std::setw(percent_width) << real_per << "%)\n";

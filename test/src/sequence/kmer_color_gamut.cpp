@@ -372,6 +372,7 @@ void test_kmer_color_taxonomy_(
 
     // Use the colors to construct a gamut
     auto gamut = KmerColorGamut( num_groups, std::move( bvs ));
+    verify_unique_colors( gamut );
     // LOG_DBG << print_kmer_color_gamut_summary( gamut );
     EXPECT_EQ( exp_total_colors, gamut.get_color_list_size() );
 }

@@ -33,6 +33,8 @@
 
 #include "genesis/sequence/kmer/color_gamut.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
@@ -51,17 +53,17 @@ namespace sequence {
 // =================================================================================================
 
 void add_secondary_colors_with_binary_reduction(
-    KmerColorGamut& cset
+    KmerColorGamut& gamut
 );
 
 void add_secondary_colors_from_bitvectors(
-    KmerColorGamut& cset,
+    KmerColorGamut& gamut,
     std::vector<utils::Bitvector> const& bitvecs,
     bool test_for_all_set_color = true
 );
 
 void add_secondary_colors_from_groups(
-    KmerColorGamut& cset,
+    KmerColorGamut& gamut,
     std::vector<std::vector<size_t>> const& groups,
     bool test_for_all_set_color = true
 );
@@ -74,7 +76,7 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
 
 template <typename T>
 void add_secondary_colors_from_hac(
-    KmerColorGamut& cset,
+    KmerColorGamut& gamut,
     utils::HierarchicalAgglomerativeClustering<T> const& hac,
     bool test_for_all_set_color = true
 ) {
@@ -84,7 +86,7 @@ void add_secondary_colors_from_hac(
 
     // Starting conditions. We assume that no early deactivation via keep_active_function()
     // was used in the HAC though, such that all observations are clustered into one tree.
-    if( cset.get_element_count() != hac_observations ) {
+    if( gamut.get_element_count() != hac_observations ) {
         throw std::invalid_argument(
             "Primary color count in Kmer Color Set does not match "
             "the number of observations in the Hierarchical Agglomerative Clustering."
@@ -108,7 +110,7 @@ void add_secondary_colors_from_hac(
 
         // We simply use the two cluster indices that were merged, and merge
         // our corresponding colors. Due to the empty color, we need an offset of one here.
-        cset.add_merged_color(
+        gamut.add_merged_color(
             1 + merger.cluster_index_a,
             1 + merger.cluster_index_b
         );
@@ -116,7 +118,7 @@ void add_secondary_colors_from_hac(
 
     // The last merger we added should have led to an entry of all primary colors,
     // such that we have at least one hit when searching for imaginary colors.
-    if( test_for_all_set_color && ! utils::all_set( cset.get_color_list().back().elements )) {
+    if( test_for_all_set_color && ! utils::all_set( gamut.get_color_list().back().elements )) {
         throw std::runtime_error(
             "Invalid Hierarchical Agglomerative Clustering for initializing secondary colors "
             "of a Kmer Color Set, as the last merger does not comprise all observerations."
@@ -128,13 +130,13 @@ void add_secondary_colors_from_hac(
 //     Color Set Functions
 // =================================================================================================
 
-size_t count_unique_lookup_keys( KmerColorGamut const& cset );
-void verify_unique_colors( KmerColorGamut const& cset );
+size_t count_unique_lookup_keys( KmerColorGamut const& gamut );
+void verify_unique_colors( KmerColorGamut const& gamut );
 
-std::string print_kmer_color_list( KmerColorGamut const& cset );
-std::string print_kmer_color_lookup( KmerColorGamut const& cset );
-std::string print_kmer_color_gamut( KmerColorGamut const& cset );
-std::string print_kmer_color_gamut_summary( KmerColorGamut const& cset );
+std::string print_kmer_color_list( KmerColorGamut const& gamut );
+std::string print_kmer_color_lookup( KmerColorGamut const& gamut );
+std::string print_kmer_color_gamut( KmerColorGamut const& gamut );
+std::string print_kmer_color_gamut_summary( KmerColorGamut const& gamut );
 
 } // namespace sequence
 } // namespace genesis
