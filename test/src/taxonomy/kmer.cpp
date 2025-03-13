@@ -37,6 +37,7 @@
 #include "genesis/taxonomy/printers/nested.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -44,6 +45,8 @@
 #include <stdexcept>
 #include <iomanip>
 #include <sstream>
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 using namespace genesis;
 using namespace genesis::sequence;
@@ -117,3 +120,5 @@ TEST( Taxonomy, KmerColors )
         1822
     );
 }
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
