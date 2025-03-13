@@ -32,6 +32,7 @@
  */
 
 #include "genesis/sequence/kmer/color_gamut.hpp"
+#include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
@@ -63,6 +64,12 @@ void add_secondary_colors_from_groups(
     KmerColorGamut& cset,
     std::vector<std::vector<size_t>> const& groups,
     bool test_for_all_set_color = true
+);
+
+std::vector<utils::Bitvector> make_seconary_colors_from_taxonomy(
+    taxonomy::Taxonomy const& tax,
+    size_t power_set_limit = 10,
+    bool omit_primary_colors = true
 );
 
 template <typename T>
@@ -116,16 +123,6 @@ void add_secondary_colors_from_hac(
         );
     }
 }
-
-// void add_secondary_colors_from_taxonomy()
-// {
-//     // TODO
-// }
-//
-// void add_secondary_colors_from_phylogeny()
-// {
-//     // TODO
-// }
 
 // =================================================================================================
 //     Color Set Functions

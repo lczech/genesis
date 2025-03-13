@@ -29,6 +29,11 @@
  */
 
 #include "genesis/sequence/kmer/color_gamut_functions.hpp"
+#include "genesis/taxonomy/functions/kmer.hpp"
+#include "genesis/taxonomy/functions/taxonomy.hpp"
+#include "genesis/taxonomy/taxon.hpp"
+#include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 
 // The KmerColorGamut class is only available from C++17 onwards.
@@ -175,6 +180,201 @@ void add_secondary_colors_from_bitvectors(
             "that do not contain an all-set bitvector"
         );
     }
+}
+
+// -------------------------------------------------------------------------
+//     make_seconary_colors_from_taxonomy
+// -------------------------------------------------------------------------
+
+std::vector<utils::Bitvector> make_seconary_colors_from_taxonomy(
+    taxonomy::Taxonomy const& tax,
+    size_t power_set_limit,
+    bool omit_primary_colors
+) {
+    using namespace utils;
+    using namespace taxonomy;
+
+    // Cautionary check of computational limits within this function. If this function ever
+    // gets called with a power set limit of even close to 64, it would explode the memory
+    // anyway... but we leave that to the user, and only check the technical limits here.
+    if( power_set_limit == 0 || power_set_limit > 63 ) {
+        throw std::invalid_argument( "Invalid power_set_limit" );
+    }
+
+    // Prepare the result and get the number of bits per bitvector, i.e., the number of groups.
+    // We also need to keep track of the group indices below each taxon, for later accumulation.
+    // We do that in a map from the taxon to the list of _all_ group indices below it.
+    std::vector<utils::Bitvector> colors;
+    auto const num_groups = count_taxon_groups( tax );
+    if( num_groups == 0 ) {
+        return colors;
+    }
+
+    // Recurse the taxonomy. At each stage, we collect all group indices, and build bitvectors.
+    std::function<void(Taxonomy const&, std::vector<size_t>&)> recursion_ = [&](
+        Taxonomy const& taxon,
+        std::vector<size_t>& group_indices
+    ) {
+        // Collect all grouped children of the current taxon. For extended taxa, we collect all
+        // group indices below them, and treat them as a single group for the power set.
+        std::vector<std::vector<size_t>> child_indices;
+        for( auto const& child : taxon ) {
+            auto const& data = child.data<KmerTaxonData>();
+            switch( data.group_status ) {
+                case KmerTaxonData::GroupStatus::kAssigned: {
+                    if( data.group_index > num_groups ) {
+                        throw std::invalid_argument(
+                            "Invalid KmerTaxonData::GroupStatus, invalid group index > num groups"
+                        );
+                    }
+
+                    // For taxa that have been assigned to a group, collect their indices.
+                    // As multiple taxa can be assigned to the same group (if the combined
+                    // sizes are still within the limits of TaxonGroupingLimits), we need
+                    // to count unique group indices here. Could be made more efficient,
+                    // but good enough for now.
+                    bool found_group_index = false;
+                    for( auto const& ci : child_indices ) {
+                        assert( !ci.empty() );
+                        if( ci.size() == 1 && ci[0] == data.group_index ) {
+                            found_group_index = true;
+                        }
+                    }
+                    if( ! found_group_index ) {
+                        child_indices.emplace_back( std::vector<size_t>( 1, data.group_index ));
+
+                        // This is the first time that we are processing this particular group,
+                        // and it is a singleton, i.e., a taxon without further children.
+                        // We hence might want to add it as a primary color.
+                        if( ! omit_primary_colors ) {
+                            auto group_elements = Bitvector( num_groups );
+                            group_elements.set( data.group_index );
+                            colors.push_back( std::move( group_elements ));
+                        }
+                    }
+                    break;
+                }
+                case KmerTaxonData::GroupStatus::kExpanded: {
+                    // For taxa that have been expanded (because they are too big), we recurse,
+                    // which processes all groups below them, and then collect these groups.
+                    child_indices.emplace_back();
+                    recursion_( child, child_indices.back() );
+                    break;
+                }
+                case KmerTaxonData::GroupStatus::kUnprocessed:
+                default: {
+                    throw std::invalid_argument(
+                        "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
+                    );
+                }
+            }
+        }
+
+        // Sort by the first element. Probably not really needed, but might
+        // improve visual order of the taxonomy is not sorted by groups already.
+        std::sort(
+            child_indices.begin(), child_indices.end(),
+            []( std::vector<size_t> const& lhs, std::vector<size_t> const& rhs ){
+                if( lhs.empty() || rhs.empty() ) {
+                    throw std::runtime_error( "Empty taxon child group" );
+                }
+                return lhs[0] < rhs[0];
+            }
+        );
+
+        // Now we have a list of all child group indices of the current taxon.
+        // We can build their power set (or just flag all-set bitvector, if too big).
+        if( child_indices.empty() ) {
+            auto const* taxon_ptr = dynamic_cast<Taxon const*>( &taxon );
+            if( taxon_ptr ) {
+                throw std::runtime_error( "Empty group at taxon " + taxon_ptr->name() );
+            } else {
+                throw std::runtime_error( "Empty group at root" );
+            }
+        } else  if( child_indices.size() <= power_set_limit ) {
+            // We add the power set of all immediate child groups of this taxon as colors.
+            // For this, we set up a counter (mask) that we go through, and add a color for each
+            // value, activating the elements in the color corresponding to all group children.
+            auto const max_mask = static_cast<size_t>( 1 ) << child_indices.size();
+            for( size_t mask = 0; mask < max_mask; ++mask ) {
+                auto group_elements = Bitvector( num_groups );
+
+                // Check each bit of the mask, and if it is set, that means that in this iteration,
+                // we set all elements in the bitvector corresponding to all indices of this group.
+                size_t activated_groups = 0;
+                for( size_t a = 0; a < child_indices.size(); ++a ) {
+                    assert( ! child_indices[a].empty() );
+                    if(( mask & (static_cast<size_t>( 1 ) << a )) == 0 ) {
+                        continue;
+                    }
+                    ++activated_groups;
+
+                    // We have a set bit in the mask, meaning that this group of inidices needs
+                    // to be added for this color in the power set.
+                    for( auto cigi : child_indices[a] ) {
+                        assert( cigi < group_elements.size() );
+                        assert( group_elements.get( cigi ) == false );
+                        group_elements.set( cigi );
+                    }
+                }
+
+                // Only add the color if it only contains more than one group.
+                if( activated_groups > 1 ) {
+                    colors.push_back( std::move( group_elements ));
+                }
+            }
+        } else {
+            // Here we have a taxon which has more than the limit many immediate child groups.
+            // We do not want to build a power set for all of them (that would give too many colors),
+            // and instead just include it as a single all-set bitvector of the groups.
+            auto group_elements = Bitvector( num_groups );
+            for( auto const& ci : child_indices ) {
+                assert( ! ci.empty() );
+                for( auto cigi : ci ) {
+                    assert( cigi < group_elements.size() );
+                    assert( group_elements.get( cigi ) == false );
+                    group_elements.set( cigi );
+                }
+            }
+            colors.push_back( std::move( group_elements ));
+        }
+
+        // Lastly, we also need to add all child indices that we found to our returned
+        // group index list, so that the higher-up call of the recursion can use those.
+        for( auto const& ci : child_indices ) {
+            assert( ! ci.empty() );
+            for( auto cigi : ci ) {
+                assert( cigi < num_groups );
+                group_indices.push_back( cigi );
+            }
+        }
+
+        // We now sort the group indices, mainly just so that our downstream bitvectors
+        // are also sorted. Also, we check that all indices are unique, which they need
+        // to be, as we excluded duplicate sibling indices. If we find duplicates here still,
+        // that means that duplicate group indices are distributed across non-silbing taxa.
+        std::sort( group_indices.begin(), group_indices.end() );
+        if( contains_duplicates( group_indices )) {
+            throw std::runtime_error( "Duplicate group indices that are not siblings" );
+        }
+    };
+    std::vector<size_t> group_indices;
+    recursion_( tax, group_indices );
+    assert( group_indices.size()  == num_groups );
+    assert( group_indices.front() == 0 );
+    assert( group_indices.back()  == num_groups - 1 );
+    assert( std::is_sorted( group_indices.begin(), group_indices.end() ));
+    assert( ! contains_duplicates( group_indices ));
+
+    // Lastly, we need to check that the all-set color is part of the color set, in order for
+    // the kmer color gamut to work properly. This is the case if there is one single highest
+    // taxon such as "root" that contains all others. But if the taxonomy starts at, say, the
+    // domain level, then we'd have three top level taxa, but none that contained all others.
+    if( ! colors.empty() && ! all_set( colors.back() )) {
+        colors.push_back( Bitvector( num_groups, true ));
+    }
+
+    return colors;
 }
 
 // -------------------------------------------------------------------------
