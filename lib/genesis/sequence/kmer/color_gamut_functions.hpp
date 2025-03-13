@@ -117,15 +117,15 @@ void add_secondary_colors_from_hac(
     }
 }
 
-void add_secondary_colors_from_taxonomy()
-{
-    // TODO
-}
-
-void add_secondary_colors_from_phylogeny()
-{
-    // TODO
-}
+// void add_secondary_colors_from_taxonomy()
+// {
+//     // TODO
+// }
+//
+// void add_secondary_colors_from_phylogeny()
+// {
+//     // TODO
+// }
 
 // =================================================================================================
 //     Color Set Functions

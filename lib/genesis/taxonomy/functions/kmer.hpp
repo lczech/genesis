@@ -34,6 +34,7 @@
 #include "genesis/taxonomy/functions/kmer_data.hpp"
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/output_target.hpp"
+#include "genesis/utils/math/bitvector.hpp"
 
 #include <cstddef>
 #include <string>
@@ -213,6 +214,19 @@ size_t count_taxon_groups( Taxonomy const& tax );
  * that belong to that group form the entries of the sub-vector at that index.
  */
 std::vector<std::vector<Taxon const*>> taxononmy_group_taxa_list( Taxonomy const& tax );
+
+// -------------------------------------------------------------------------
+//     Color Gamut
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Produce a set of Bitvectors that can be used to initialize a KmerColorGamut.
+ */
+std::vector<utils::Bitvector> make_kmer_color_gamut_seconary_colors(
+    Taxonomy const& tax,
+    size_t power_set_limit = 10,
+    bool omit_primary_colors = true
+);
 
 // =================================================================================================
 //     User Reporting
