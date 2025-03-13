@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -213,8 +213,11 @@ bool FastaReader::parse_sequence(
     } else if( site_casing_ == SiteCasing::kToLower ) {
         sequence.sites() = utils::to_lower_ascii( buffer_ );
     } else {
-        // We could do a move here instead, but this way, we save some memory, which might be
-        // more reasonable for big sequences files than the small gain in speed.
+        // We could do a move here instead, but this way, we save some memory,
+        // as a copy-constructed string usually only allocates the space it needs.
+        // This might be more reasonable for big sequences files. And without the
+        // allocation here, we'd instead have to re-allocate the buffer in the
+        // next iteration anyway, so it wouldn't even get around that.
         // sequence.sites() = std::move(sites);
         sequence.sites() = buffer_;
     }

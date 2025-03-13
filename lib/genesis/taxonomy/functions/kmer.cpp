@@ -74,7 +74,8 @@ void accumulate_taxon_sizes( Taxonomy& tax )
 {
     // Postorder travesal, so that we accumulate values from the outside in,
     // i.e., from lower ranks upwards to the higher ranks.
-    postorder_for_each( tax, []( Taxon& taxon ){
+    postorder_for_each( tax, []( Taxon& taxon )
+    {
         // Cast to our data type. Throws an exception if this is not the data type of the taxon.
         auto& data = taxon.data<KmerTaxonData>();
 
@@ -242,7 +243,8 @@ void group_by_taxon_sizes(
     accumulate_taxon_sizes( tax );
 
     // Initialize all group assignments to the unprocessed status.
-    preorder_for_each( tax, []( Taxon& taxon ){
+    preorder_for_each( tax, []( Taxon& taxon )
+    {
         auto& data = taxon.data<KmerTaxonData>();
         data.group_status = KmerTaxonData::GroupStatus::kUnprocessed;
         data.group_index = std::numeric_limits<size_t>::max();
@@ -405,7 +407,8 @@ size_t count_taxon_groups( Taxonomy const& tax )
     // Iterate the taxonomy, recursing on expanded taxa, and counting unique group indices
     // for the taxa that are assigned to groups.
     std::unordered_set<size_t> group_indices;
-    std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon ){
+    std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon )
+    {
         for( auto const& child : taxon ) {
             auto const& data = child.data<KmerTaxonData>();
             switch( data.group_status ) {
@@ -465,7 +468,8 @@ std::vector<std::vector<Taxon const*>> taxononmy_group_taxa_list( Taxonomy const
 
     // Iterate the taxonomy, recursing on expanded taxa,
     // and collecting pointers to the top-most assigned taxa.
-    std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon ){
+    std::function<void(Taxonomy const&)> recursion_ = [&]( Taxonomy const& taxon )
+    {
         for( auto const& child : taxon ) {
             auto const& data = child.data<KmerTaxonData>();
             switch( data.group_status ) {
@@ -503,7 +507,8 @@ std::vector<std::vector<Taxon const*>> taxononmy_group_taxa_list( Taxonomy const
     // Assert that we have found all groups, i.e., there are no empty inner vectors left.
     assert( std::none_of(
         result.begin(), result.end(),
-        []( std::vector<Taxon const*> const& taxa ){
+        []( std::vector<Taxon const*> const& taxa )
+        {
             return taxa.empty();
         }
     ));
@@ -787,7 +792,7 @@ void write_kmer_taxonomy_to_json(
     auto json_writer = TaxonomyJsonWriter();
     json_writer.taxon_to_json = [with_group_data](
         Taxon const& tax, JsonDocument::ObjectType& obj
-    ){
+    ) {
         auto const& data = tax.data<KmerTaxonData>();
         obj[ "num_sequences" ] = JsonDocument::number_unsigned(
             data.num_sequences
@@ -825,7 +830,8 @@ void write_kmer_taxonomy_to_json(
         }
     };
     if( only_trunk ) {
-        json_writer.recurse_taxon_condition = []( Taxon const& tax ){
+        json_writer.recurse_taxon_condition = []( Taxon const& tax )
+        {
             // If we only want to print the scaffold of the taxonomy after grouping,
             // we set a condition on the recursion such that we only recurse if the taxon
             // is expanded. If it is not expanded, we still write it (as it will be visited
@@ -854,7 +860,8 @@ Taxonomy read_kmer_taxonomy_from_json(
     std::shared_ptr<utils::BaseInputSource> source
 ) {
     auto json_reader = TaxonomyJsonReader();
-    json_reader.json_to_taxon = []( utils::JsonDocument::ObjectType const& obj, Taxon& tax ){
+    json_reader.json_to_taxon = []( utils::JsonDocument::ObjectType const& obj, Taxon& tax )
+    {
         tax.reset_data( KmerTaxonData::create() );
         auto& data = tax.data<KmerTaxonData>();
         data.num_sequences = obj.at( "num_sequences" ).get_number_unsigned();
