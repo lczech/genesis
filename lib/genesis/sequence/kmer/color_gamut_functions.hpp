@@ -33,7 +33,10 @@
 
 #include "genesis/sequence/kmer/color_gamut.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
@@ -137,6 +140,24 @@ std::string print_kmer_color_list( KmerColorGamut const& gamut );
 std::string print_kmer_color_lookup( KmerColorGamut const& gamut );
 std::string print_kmer_color_gamut( KmerColorGamut const& gamut );
 std::string print_kmer_color_gamut_summary( KmerColorGamut const& gamut );
+
+void serialize_kmer_color_gamut_colors(
+    KmerColorGamut const& gamut,
+    std::shared_ptr<utils::BaseOutputTarget> output_target
+);
+
+void serialize_kmer_color_gamut_matrix(
+    KmerColorGamut const& gamut,
+    std::shared_ptr<utils::BaseOutputTarget> output_target
+);
+
+std::vector<utils::Bitvector> deserialize_kmer_color_gamut_colors(
+    std::shared_ptr<utils::BaseInputSource> input_source
+);
+
+utils::Matrix<size_t> deserialize_kmer_color_gamut_matrix(
+    std::shared_ptr<utils::BaseInputSource> input_source
+);
 
 } // namespace sequence
 } // namespace genesis

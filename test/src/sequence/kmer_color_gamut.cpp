@@ -51,6 +51,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdio>
 #include <future>
 #include <iomanip>
 #include <ios>
@@ -127,6 +128,7 @@ TEST( KmerColorGamut, Basics )
 
 TEST( KmerColorGamut, Example )
 {
+    NEEDS_TEST_DATA;
     auto const p = 10;
     auto const r = 60;
 
@@ -252,8 +254,8 @@ TEST( KmerColorGamut, Example )
 
     // We added 12 imaginary colors now, and have switched to gamut now.
     EXPECT_EQ( initial_gamut_size + 5 * 8, gamut.get_color_list().size() );
-    EXPECT_EQ( r, gamut.get_gamut().rows() );
-    EXPECT_EQ( p, gamut.get_gamut().cols() );
+    EXPECT_EQ( r, gamut.get_gamut_matrix().rows() );
+    EXPECT_EQ( p, gamut.get_gamut_matrix().cols() );
     EXPECT_EQ(  0, gamut.get_gamut_statistics().real_color_count );
     EXPECT_EQ( 12, gamut.get_gamut_statistics().imag_color_count );
 
@@ -263,6 +265,25 @@ TEST( KmerColorGamut, Example )
     // LOG_DBG << print_kmer_color_lookup( gamut );
     // LOG_DBG << print_kmer_color_gamut( gamut );
     // LOG_DBG << print_kmer_color_gamut_summary( gamut );
+
+    // Test the serialization
+    auto const colors_file = environment->data_dir + "sequence/gamut_example_colors.bin";
+    auto const matrix_file = environment->data_dir + "sequence/gamut_example_matrix.bin";
+    serialize_kmer_color_gamut_colors( gamut, to_file( colors_file ));
+    serialize_kmer_color_gamut_matrix( gamut, to_file( matrix_file ));
+    auto const deser_colors = deserialize_kmer_color_gamut_colors( from_file( colors_file ));
+    auto const deser_matrix = deserialize_kmer_color_gamut_matrix( from_file( matrix_file ));
+    EXPECT_EQ( 0, std::remove( colors_file.c_str() ));
+    EXPECT_EQ( 0, std::remove( matrix_file.c_str() ));
+    EXPECT_EQ( initial_gamut_size + 5 * 8, deser_colors.size() );
+    EXPECT_EQ( gamut.get_color_list().size(), deser_colors.size() );
+    for( size_t i = 0; i < deser_colors.size(); ++i ) {
+        EXPECT_EQ( p, deser_colors[i].size() );
+        EXPECT_EQ( gamut.get_color_at(i).elements, deser_colors[i] );
+    }
+    EXPECT_EQ( r, deser_matrix.rows() );
+    EXPECT_EQ( p, deser_matrix.cols() );
+    EXPECT_EQ( gamut.get_gamut_matrix(), deser_matrix );
 }
 
 // -------------------------------------------------------------------------
@@ -319,10 +340,10 @@ TEST( KmerColorGamut, Random )
     // We have run the loop enough that we can be virtually sure to have requested
     // every color in the 8 bit range that we are using here, so the gamut should be full.
     EXPECT_EQ( 16, gamut.get_color_list().size() );
-    EXPECT_EQ( 16, gamut.get_gamut().rows() );
-    EXPECT_EQ(  8, gamut.get_gamut().cols() );
+    EXPECT_EQ( 16, gamut.get_gamut_matrix().rows() );
+    EXPECT_EQ(  8, gamut.get_gamut_matrix().cols() );
     auto img_idx_counts = std::vector<size_t>( 16, 0 );
-    for( auto c : gamut.get_gamut() ) {
+    for( auto c : gamut.get_gamut_matrix() ) {
         ++img_idx_counts[c];
     }
 

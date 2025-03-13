@@ -213,7 +213,7 @@ public:
         return lookup_;
     }
 
-    utils::Matrix<size_t> const& get_gamut() const
+    utils::Matrix<size_t> const& get_gamut_matrix() const
     {
         return gamut_;
     }

@@ -33,6 +33,7 @@
 #include "genesis/taxonomy/functions/taxonomy.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/io/deserializer.hpp"
 #include "genesis/utils/io/serializer.hpp"
@@ -482,7 +483,7 @@ std::string print_kmer_color_lookup( KmerColorGamut const& gamut )
 
 std::string print_kmer_color_gamut( KmerColorGamut const& gamut )
 {
-    auto const gamut_matrix = gamut.get_gamut();
+    auto const gamut_matrix = gamut.get_gamut_matrix();
     if( gamut_matrix.empty() ) {
         return "";
     }
@@ -517,7 +518,7 @@ std::string print_kmer_color_gamut_summary( KmerColorGamut const& gamut )
     assert( gamut.get_color_list().size() == gamut.get_color_lookup().size() );
 
     // Report how many of the gamut are real and how many are imaginar numbers
-    auto const& gamut_matrix = gamut.get_gamut();
+    auto const& gamut_matrix = gamut.get_gamut_matrix();
     auto const& stats = gamut.get_gamut_statistics();
     auto const gamut_size = gamut_matrix.rows() * gamut_matrix.cols();
     auto const gamut_empty = gamut_size - ( stats.real_color_count + stats.imag_color_count);
@@ -556,6 +557,56 @@ std::string print_kmer_color_gamut_summary( KmerColorGamut const& gamut )
     ss << "Gamut empty: " << std::setw(gamut_width) << gamut_empty;
     ss << " (" << std::setw(percent_width) << empt_per << "%)\n";
     return ss.str();
+}
+
+// =================================================================================================
+//     Serialization
+// =================================================================================================
+
+void serialize_kmer_color_gamut_colors(
+    KmerColorGamut const& gamut,
+    std::shared_ptr<utils::BaseOutputTarget> output_target
+) {
+    // We need to iterate through the color vector manually here,
+    // as the Bitvectors are wrapped in a struct for future compatibility.
+    auto ser = utils::Serializer( output_target );
+    auto const& color_list = gamut.get_color_list();
+    ser << color_list.size();
+    for( auto const& color : color_list ) {
+        ser << color.elements;
+    }
+}
+
+void serialize_kmer_color_gamut_matrix(
+    KmerColorGamut const& gamut,
+    std::shared_ptr<utils::BaseOutputTarget> output_target
+) {
+    // Functionality for std::vector and Matrix is already
+    // implemented in the respective classes and functions.
+    auto ser = utils::Serializer( output_target );
+    ser << gamut.get_gamut_matrix();
+}
+
+std::vector<utils::Bitvector> deserialize_kmer_color_gamut_colors(
+    std::shared_ptr<utils::BaseInputSource> input_source
+) {
+    // Functionality for std::vector and Bitvector is already
+    // implemented in the respective classes and functions.
+    std::vector<utils::Bitvector> result;
+    auto deser = utils::Deserializer( input_source );
+    deser >> result;
+    return result;
+}
+
+utils::Matrix<size_t> deserialize_kmer_color_gamut_matrix(
+    std::shared_ptr<utils::BaseInputSource> input_source
+) {
+    // Functionality for std::vector and Matrix is already
+    // implemented in the respective classes and functions.
+    utils::Matrix<size_t> result;
+    auto deser = utils::Deserializer( input_source );
+    deser >> result;
+    return result;
 }
 
 } // namespace sequence
