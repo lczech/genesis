@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -80,21 +80,54 @@ public:
      */
     class LockGuard {
     public:
-        // Constructor acquires the semaphore
+
+        // Default constructor for deferred locking.
+        LockGuard() = default;
+
+        // Constructor acquires the semaphore.
         LockGuard( LightweightSemaphore& semaphore )
-            : semaphore(semaphore)
+            : semaphore_(&semaphore)
         {
-            semaphore.wait();
+            semaphore_->wait();
         }
 
-        // Destructor releases the semaphore
+        // Custom move constructor to make sure we don't prematurely unlock.
+        LockGuard( LockGuard&& other ) noexcept
+            : semaphore_(other.semaphore_)
+        {
+            other.semaphore_ = nullptr;
+        }
+
+        // Custom move assignment operator to make sure we don't prematurely unlock.
+        LockGuard& operator=( LockGuard&& other ) noexcept
+        {
+            if( this != &other ) {
+                // Release any currently held semaphore.
+                if( semaphore_ ) {
+                    semaphore_->signal();
+                }
+
+                // Transfer ownership.
+                semaphore_ = other.semaphore_;
+                other.semaphore_ = nullptr;
+            }
+            return *this;
+        }
+
+        // No copies!
+        LockGuard( LockGuard const& ) = delete;
+        LockGuard& operator= ( LockGuard const& ) = delete;
+
+        // Destructor releases the semaphore.
         ~LockGuard()
         {
-            semaphore.signal();
+            if( semaphore_ ) {
+                semaphore_->signal();
+            }
         }
 
     private:
-        LightweightSemaphore& semaphore;
+        LightweightSemaphore* semaphore_ = nullptr;
     };
 
     // -------------------------------------------------------------
