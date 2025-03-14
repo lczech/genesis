@@ -211,7 +211,7 @@ void add_secondary_colors_from_groups(
 std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
     taxonomy::Taxonomy const& tax,
     size_t power_set_limit,
-    bool omit_primary_colors
+    bool add_primary_colors
 ) {
     using namespace utils;
     using namespace taxonomy;
@@ -268,7 +268,7 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
                         // This is the first time that we are processing this particular group,
                         // and it is a singleton, i.e., a taxon without further children.
                         // We hence might want to add it as a primary color.
-                        if( ! omit_primary_colors ) {
+                        if( add_primary_colors ) {
                             auto group_elements = Bitvector( num_groups );
                             group_elements.set( data.group_index );
                             colors.push_back( std::move( group_elements ));

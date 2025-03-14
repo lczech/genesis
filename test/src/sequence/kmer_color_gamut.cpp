@@ -380,7 +380,7 @@ void test_kmer_color_taxonomy_(
     // printer.indent_string( "    " );
     // LOG_DBG << printer( tax );
 
-    // auto const bvs = make_secondary_colors_from_taxonomy( tax, 10, false );
+    // auto const bvs = make_secondary_colors_from_taxonomy( tax, 10, true );
     auto bvs = make_secondary_colors_from_taxonomy( tax );
     EXPECT_EQ( exp_secondary_colors, bvs.size() );
 

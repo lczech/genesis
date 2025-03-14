@@ -74,7 +74,7 @@ void add_secondary_colors_from_groups(
 std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
     taxonomy::Taxonomy const& tax,
     size_t power_set_limit = 10,
-    bool omit_primary_colors = true
+    bool add_primary_colors = false
 );
 
 template <typename T>
