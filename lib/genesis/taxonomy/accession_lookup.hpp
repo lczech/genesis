@@ -372,8 +372,11 @@ private:
             return it;
         }
         if( also_look_up_first_word ) {
-            auto const acc_first = utils::split( accession, "\t ", true )[0];
-            return map_.find( acc_first );
+            auto const words = utils::split( accession, "\t ", true );
+            if( words.empty() ) {
+                return map_.end();
+            }
+            return map_.find( words[0] );
         }
         return map_.end();
     }
