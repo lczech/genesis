@@ -257,6 +257,48 @@ size_t KmerColorGamut::get_joined_color_index(
     }
 }
 
+// -------------------------------------------------------------------------
+//     precompute_gamut
+// -------------------------------------------------------------------------
+
+void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread_pool )
+{
+    // We can only init the gamut once there will be no more colors added.
+    if( max_color_count_ == 0 || colors_.size() < max_color_count_ ) {
+        throw std::invalid_argument(
+            "Cannot precompute the gamut before the colors have been saturated"
+        );
+    }
+
+    // Precompute the gamut - multi-threaded if possible. We can deactivate the internal locking
+    // during the gamut computation here, as this loop is only accessing each cell once.
+    init_gamut_();
+    if( thread_pool ) {
+        utils::parallel_for(
+            0, colors_.size(),
+            [this]( size_t color_index )
+            {
+                // Parallelize over colors, i.e., rows of the matrix, then compute the cells
+                // along the columns in one thread. Should minimize false sharing issues.
+                for( size_t element_index = 0; element_index < element_count_; ++element_index ) {
+                    get_gamut_entry_( color_index, element_index, false );
+                }
+            },
+            thread_pool
+        ).get();
+    } else {
+        // Serial version of the above.
+        for( size_t color_index = 0; color_index < colors_.size(); ++color_index ) {
+            for( size_t element_index = 0; element_index < element_count_; ++element_index ) {
+                get_gamut_entry_( color_index, element_index, false );
+            }
+        }
+    }
+
+    assert( ! gamut_.empty() );
+    assert( gamut_filled_.load() );
+}
+
 // ================================================================================================
 //     Internal Members
 // ================================================================================================
@@ -565,23 +607,6 @@ void KmerColorGamut::init_gamut_()
         throw std::runtime_error( "Gamut initialization flag has already been set" );
     }
     gamut_started_.store( true, std::memory_order_release );
-
-    // Potential parallel implementation to pre-compute the gamut matrix.
-    // However, in the current design, this will likely deadlock in our intended use case,
-    // as the outside kmer iteration will already occupy all threads in the pool, and our
-    // internal locking here will not let any of them make progress. Hence, the table would
-    // only be computed by the single thread that was the unlucky one that called this function.
-    // Not efficient, and right now, no easy solution in sight without yet another re-design.
-    // But lucky for us, the on-demand lookup might be the better choice anyway.
-    // utils::parallel_for(
-    //     0, colors_.size(),
-    //     [this]( size_t color_index )
-    //     {
-    //         for( size_t elem_index = 0; elem_index < element_count_; ++elem_index ) {
-    //             gamut_( color_index, elem_index ) = get_gamut_entry_( color_index, elem_index );
-    //         }
-    //     }
-    // ).get();
 }
 
 // -------------------------------------------------------------------------
@@ -590,7 +615,8 @@ void KmerColorGamut::init_gamut_()
 
 size_t KmerColorGamut::get_gamut_entry_(
     size_t existing_color_index,
-    size_t additive_element_index
+    size_t additive_element_index,
+    bool needs_locking
 ) {
     // The usual sanity checks. Can be done without a lock, as they all only depend on conditions
     // that we consider const within the context of this function. If there is a concurrency issue
@@ -614,7 +640,10 @@ size_t KmerColorGamut::get_gamut_entry_(
 
     // If the entry is already in the gamut, we just return that.
     {
-        auto lock = gamut_guard_.get_lock_guard( cell_index );
+        utils::ConcurrentVectorGuard::LockGuard lock;
+        if( needs_locking ) {
+            lock = gamut_guard_.get_lock_guard( cell_index );
+        }
         auto const gamut_entry = gamut_( existing_color_index, additive_element_index );
         assert( gamut_entry < colors_.size() );
         if( gamut_entry > 0 ) {
@@ -635,7 +664,8 @@ size_t KmerColorGamut::get_gamut_entry_(
     assert( matching_index < colors_.size() );
     if( matching_index > 0 ) {
         return set_gamut_entry_(
-            existing_color_index, additive_element_index, matching_index, gamut_stats_.real_color_count
+            existing_color_index, additive_element_index, matching_index,
+            gamut_stats_.real_color_count, needs_locking
         );
     }
 
@@ -663,7 +693,8 @@ size_t KmerColorGamut::get_gamut_entry_(
 
     // Finally, update the gamut with the new imaginary color entry, and return its index.
     return set_gamut_entry_(
-        existing_color_index, additive_element_index, superset_index, gamut_stats_.imag_color_count
+        existing_color_index, additive_element_index, superset_index,
+        gamut_stats_.imag_color_count, needs_locking
     );
 }
 
@@ -675,11 +706,15 @@ size_t KmerColorGamut::set_gamut_entry_(
     size_t existing_color_index,
     size_t additive_element_index,
     size_t target_color_index,
-    std::atomic<size_t>& stat_counter
+    std::atomic<size_t>& stat_counter,
+    bool needs_locking
 ) {
     // We re-aquire the lock for the current gamut cell.
     auto const cell_index = gamut_.index( existing_color_index, additive_element_index );
-    auto lock = gamut_guard_.get_lock_guard( cell_index );
+    utils::ConcurrentVectorGuard::LockGuard lock;
+    if( needs_locking ) {
+        lock = gamut_guard_.get_lock_guard( cell_index );
+    }
 
     // In the meantime, the entry can have changed from some other thread.
     // If everything is working correctly, that should have given the same result as we found

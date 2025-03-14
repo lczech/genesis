@@ -41,6 +41,8 @@
 #include "genesis/taxonomy/printers/nested.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
@@ -440,7 +442,8 @@ TEST( KmerColorGamut, Taxonomy )
 void kmer_color_gamut_concurrency_test_(
     size_t p, // number of elements
     size_t r, // max number of colors
-    size_t n  // number of requests per thread
+    size_t n, // number of requests per thread
+    bool precompute_gamut = false
 ) {
     size_t num_threads = 8;
 
@@ -459,6 +462,13 @@ void kmer_color_gamut_concurrency_test_(
         auto const tcp = 100.0 * total_calls.load() / (n * num_threads);
         LOG_DBG << "filled gamut with total calls: " << total_calls.load() << " = " << tcp << "%";
     });
+
+    // If needed, precompute the gamut
+    if( precompute_gamut ) {
+        auto thread_pool = Options::get().global_thread_pool();
+        EXPECT_NE( nullptr, thread_pool );
+        gamut.precompute_gamut( thread_pool );
+    }
 
     // Prepare async tasks that will run in parallel accessing the set
     std::atomic<size_t> worker_ready{0};
@@ -548,6 +558,9 @@ TEST( KmerColorGamut, Concurrency )
 
     // Run a test that saturates the colors, and (very likely) fills the gamut.
     kmer_color_gamut_concurrency_test_( 16, 256, 20000 );
+
+    // Run a test with precomputation of the gamut
+    kmer_color_gamut_concurrency_test_( 16, 32, 20000, true );
 }
 
 #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17

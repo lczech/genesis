@@ -38,6 +38,8 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/hac.hpp"
 #include "genesis/utils/threading/concurrent_vector_guard.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
 
 // This whole class is only available from C++17 onwards,
 // as we are using std::shared_mutex and other features from there.
@@ -165,6 +167,10 @@ public:
         size_t additive_element_index
     );
 
+    void precompute_gamut(
+        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr
+    );
+
     // -------------------------------------------------------------------------
     //     Data Access
     // -------------------------------------------------------------------------
@@ -277,14 +283,16 @@ private:
 
     size_t get_gamut_entry_(
         size_t existing_color_index,
-        size_t additive_element_index
+        size_t additive_element_index,
+        bool needs_locking = true
     );
 
     size_t set_gamut_entry_(
         size_t existing_color_index,
         size_t additive_element_index,
         size_t target_color_index,
-        std::atomic<size_t>& stat_counter
+        std::atomic<size_t>& stat_counter,
+        bool needs_locking = true
     );
 
     size_t find_minimal_superset_(
