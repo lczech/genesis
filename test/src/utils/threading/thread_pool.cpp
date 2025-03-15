@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
  */
 
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <numeric>
 #include <vector>
@@ -37,6 +38,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"
 #include "genesis/utils/threading/thread_functions.hpp"
@@ -585,6 +587,128 @@ TEST( ThreadPool, NestedFuzzy )
         LOG_DBG << "=============================";
         thread_pool_nested_fuzzy_work_();
     }
+}
+
+// =================================================================================================
+//     Parallel For Throttled
+// =================================================================================================
+
+void burn_cpu_for( std::chrono::milliseconds duration )
+{
+    // Function that produces 100% CPU load for the given duration,
+    // for visual testing of the throttling. The busy loop uses
+    // an atomic to prevent the compiler from optimizing the loop away.
+    std::atomic<int> dummy{0};
+    auto start = std::chrono::steady_clock::now();
+    while( std::chrono::steady_clock::now() - start < duration ) {
+        ++dummy;
+    }
+}
+
+void test_thread_pool_parallel_for_each_throttled_(
+    size_t num_threads, size_t num_tasks, size_t max_concurrent, bool range
+) {
+    LOG_DBG1 << "num_tasks " << num_tasks << " max_concurrent " << max_concurrent;
+
+    // Make a list of numbers for testing.
+    std::vector<int> numbers( num_tasks );
+    std::iota( numbers.begin(), numbers.end(), 1 );
+    auto const exp = 2 * std::accumulate( numbers.begin(), numbers.end(), 0 );
+
+    // For testing, we can keep the cpu busy for a bit, to see what is going on.
+    auto burn_time = 0;
+
+    // Prepare a poll and do some parallel computation.
+    // We offer to use both version, the range and the container overload of the loop.
+    // They interally use the normal for loop, so this is testing that one as well.
+    auto pool = std::make_shared<ThreadPool>( num_threads );
+    if( range ) {
+        parallel_for_each_throttled(
+            numbers.begin(), numbers.end(),
+            max_concurrent,
+            [burn_time]( int& elem )
+            {
+                LOG_DBG2 << "elem " << elem;
+                burn_cpu_for( std::chrono::seconds{ burn_time });
+                elem *= 2;
+                LOG_DBG2 << "done " << (elem/2);
+            },
+            pool
+        );
+    } else {
+        parallel_for_each_throttled(
+            numbers,
+            max_concurrent,
+            [burn_time]( int& elem )
+            {
+                LOG_DBG2 << "elem " << elem;
+                burn_cpu_for( std::chrono::seconds{ burn_time });
+                elem *= 2;
+                LOG_DBG2 << "done " << elem;
+            },
+            pool
+        );
+    }
+
+    // Aggregate the result per block.
+    auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
+    EXPECT_EQ( exp, total );
+}
+
+void test_thread_pool_parallel_for_each_throttled_( bool range )
+{
+    Logging::details.time = true;
+
+    // Manual test case. There is currently a minor issue with the throttled parallel for,
+    // in cases where the task queue is empty except for the stuff submitted via the function.
+    // In these cases, the main (submitting) thread might get into a busy wait.
+    // For some reason, it does not do that on the first pass (submitting tasks until the max
+    // concurrent is reached the first time), but on subsequent iterations through its submission
+    // loop, it seems to get into busy waiting. Not sure why that is the case. Leaving this for now,
+    // as we proably usually have other tasks in the queue to keep the main busy anyway.
+    // test_thread_pool_parallel_for_each_throttled_( 4, 10, 4, range );
+    // return;
+
+    // Some crazy looping
+    for( size_t num_threads = 1; num_threads < 10; ++num_threads ) {
+        LOG_DBG << "num_threads " << num_threads;
+
+        // Test the border cases
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 0, 1, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 0, 2, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 0, 3, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 1, 1, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 1, 2, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 1, 3, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 2, 1, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 2, 2, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 2, 3, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 3, 1, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 3, 2, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 3, 3, range );
+
+        // Test some extreme cases
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 0,   100, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 1,   100, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 2,   100, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 3,   100, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 100,   1, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 100,   2, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 100,   3, range );
+        test_thread_pool_parallel_for_each_throttled_( num_threads, 100, 100, range );
+    }
+}
+
+TEST( ThreadPool, ParallelForEachThrottledRange )
+{
+    // LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    test_thread_pool_parallel_for_each_throttled_( true );
+}
+
+TEST( ThreadPool, ParallelForEachThrottledContainer )
+{
+    // LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    test_thread_pool_parallel_for_each_throttled_( false );
 }
 
 // =================================================================================================
