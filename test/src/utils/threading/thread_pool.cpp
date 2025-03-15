@@ -701,13 +701,13 @@ void test_thread_pool_parallel_for_each_throttled_( bool range )
 
 TEST( ThreadPool, ParallelForEachThrottledRange )
 {
-    // LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
     test_thread_pool_parallel_for_each_throttled_( true );
 }
 
 TEST( ThreadPool, ParallelForEachThrottledContainer )
 {
-    // LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
     test_thread_pool_parallel_for_each_throttled_( false );
 }
 
