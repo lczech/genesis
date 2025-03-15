@@ -119,7 +119,10 @@ size_t KmerColorGamut::add_merged_color( size_t index_1, size_t index_2 )
 
 size_t KmerColorGamut::find_existing_color( utils::Bitvector const& target_elements ) const
 {
-    std::shared_lock read_lock( color_mutex_ );
+    std::shared_lock read_lock( color_mutex_, std::defer_lock );
+    if( ! gamut_started_.load( std::memory_order_acquire )) {
+        read_lock.lock();
+    }
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
@@ -136,7 +139,10 @@ size_t KmerColorGamut::find_existing_color( utils::Bitvector const& target_eleme
 
 size_t KmerColorGamut::find_minimal_superset( utils::Bitvector const& target_elements ) const
 {
-    std::shared_lock read_lock( color_mutex_ );
+    std::shared_lock read_lock( color_mutex_, std::defer_lock );
+    if( ! gamut_started_.load( std::memory_order_acquire )) {
+        read_lock.lock();
+    }
     if( target_elements.size() != element_count_ ) {
         throw std::invalid_argument(
             "Cannot find bitvector of size " + std::to_string( target_elements.size() ) +
