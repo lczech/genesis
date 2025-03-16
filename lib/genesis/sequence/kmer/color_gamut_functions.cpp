@@ -29,15 +29,20 @@
  */
 
 #include "genesis/sequence/kmer/color_gamut_functions.hpp"
+#include "genesis/taxonomy/functions/kmer_data.hpp"
 #include "genesis/taxonomy/functions/kmer.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"
+#include "genesis/taxonomy/iterator/preorder.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/io/deserializer.hpp"
 #include "genesis/utils/io/serializer.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -47,9 +52,13 @@
 #include <cmath>
 #include <iomanip>
 #include <ios>
+#include <limits>
+#include <queue>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <unordered_set>
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -205,10 +214,10 @@ void add_secondary_colors_from_groups(
 }
 
 // -------------------------------------------------------------------------
-//     make_secondary_colors_from_taxonomy
+//     make_secondary_colors_from_taxonomy_bottom_up
 // -------------------------------------------------------------------------
 
-std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
+std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
     taxonomy::Taxonomy const& tax,
     size_t power_set_limit,
     bool add_primary_colors
@@ -224,8 +233,6 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
     }
 
     // Prepare the result and get the number of bits per bitvector, i.e., the number of groups.
-    // We also need to keep track of the group indices below each taxon, for later accumulation.
-    // We do that in a map from the taxon to the list of _all_ group indices below it.
     std::vector<utils::Bitvector> colors;
     auto const num_groups = count_taxon_groups( tax );
     if( num_groups == 0 ) {
@@ -394,6 +401,440 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
     // domain level, then we'd have three top level taxa, but none that contained all others.
     if( ! colors.empty() && ! all_set( colors.back() )) {
         colors.push_back( Bitvector( num_groups, true ));
+    }
+
+    return colors;
+}
+
+// -------------------------------------------------------------------------
+//     make_secondary_colors_from_taxonomy_top_down
+// -------------------------------------------------------------------------
+
+// -------------------------------------------------------
+//     collect_taxa_bitvectors_top_down_experiment_
+// -------------------------------------------------------
+
+std::vector<utils::Bitvector> collect_taxa_bitvectors_top_down_experiment_(
+    taxonomy::Taxonomy const& tax,
+    size_t power_set_taxa,
+    bool use_num_sequences,
+    size_t num_groups
+) {
+    using namespace utils;
+    using namespace taxonomy;
+
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    //     EXPERIMENTAL. UNFINISHED. BROKEN.
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    // We always want to split the largest taxon group, until we have reached our power set number
+    // of items. For that, we keep a priority queue sorted by the size of the clade (either in sum
+    // of seq length, or number of sequences in the taxon), pointing to the respective clade.
+    assert( power_set_taxa > 0 );
+    assert( num_groups >= power_set_taxa );
+
+    // Define a struct to hold the size to sort by, and a list of pointers to the Taxa.
+    // That list at first only contains the single taxon that we are interested in.
+    // However, in the end of the taxonomy splitting, we might have a taxon that contains
+    // many children, and whose splitting would overshoot our power limit. If that happens,
+    // we instead graft all its small children together, as an ad-hoc solution to this issue.
+    struct Clade {
+        size_t clade_size;
+        std::vector<Taxon const*> clade_taxa;
+    };
+    struct CompareClade {
+        bool operator()( Clade const& lhs, Clade const& rhs ) const
+        {
+            // Ensure uniqueness or consistent ordering by using
+            // the taxon pointer as an arbitrary but constant tie breaker.
+            // Not really needed with a priority queue, but kept here for reference.
+            // if( lhs.clade_size == rhs.clade_size ) {
+            //     assert( !lhs.clade_taxa.empty() );
+            //     assert( !rhs.clade_taxa.empty() );
+            //     return lhs.clade_taxa.front() < rhs.clade_taxa.front();
+            // }
+            return lhs.clade_size < rhs.clade_size;
+        }
+    };
+
+    // Instanciate the queue, and a helper to add items to it. We always add all children of a
+    // given taxon. However, if that means that we overshoot our power limit, we collect all
+    // the smallest ones and group them together, so that we end up with exaclty the right number.
+    std::priority_queue<Clade, std::vector<Clade>, CompareClade> clades;
+    auto add_children_to_queue_ = [&]( Taxonomy const& tax )
+    {
+        LOG_DBG1 << "add_children_to_queue_ " << ( dynamic_cast<Taxon const*>( &tax )  ? dynamic_cast<Taxon const*>( &tax )->name() : " root" );
+        // We first build a temporary vector of the taxa and their data.
+        std::vector<Clade> temp;
+        for( auto const& child : tax ) {
+            LOG_DBG2 << "loop " << dynamic_cast<Taxon const*>( &child )->name();
+            auto const& data = child.data<KmerTaxonData>();
+            auto const clade_size = (
+                use_num_sequences ? data.clade_num_sequences : data.clade_sum_seq_lengths
+            );
+            // temp.push_back({ clade_size, { &child }});
+
+            size_t group_pos = temp.size();
+            for( size_t i = 0; i < temp.size(); ++i ) {
+                if( temp[i].clade_taxa.front()->data<KmerTaxonData>().group_index == data.group_index ) {
+                    assert( group_pos == temp.size() );
+                    group_pos = i;
+                }
+            }
+            if( group_pos < temp.size() ) {
+                temp[group_pos].clade_size += clade_size;
+                temp[group_pos].clade_taxa.push_back( &child );
+            } else {
+                temp.push_back({ clade_size, { &child }});
+            }
+        }
+
+        // Sort backwards, largest one first
+        std::sort(
+            temp.begin(), temp.end(),
+            []( Clade const& lhs, Clade const& rhs ){
+                return lhs.clade_size > rhs.clade_size;
+                // return ! CompareClade()( lhs, rhs );
+            }
+        );
+
+        // Now, if adding all elements of the vector would overshot the power limit,
+        // we need to remove stuff first again. We do this by merging the small elements
+        // at the back of the vector. This could be a bit more optimized by doing this
+        // not just backwards, as at some point, the accumulated element might not be
+        // the smallest any more. But well, good enough for now. This all can only happen
+        // if there are two or more elements to being with, as otherwise, we'd not be here.
+        while( clades.size() + temp.size() > power_set_taxa - 1 ) {
+            LOG_DBG2 << "merge " << clades.size() << " + " << temp.size() << " > " << power_set_taxa;
+            assert( temp.size() >= 2 );
+            auto const last = temp.back();
+            temp.pop_back();
+            temp.back().clade_size += last.clade_size;
+            temp.back().clade_taxa.push_back( last.clade_taxa.front() );
+        }
+
+        // Now we can add all elements to the queue.
+        assert( clades.size() + temp.size() <= power_set_taxa );
+        for( auto& elem : temp ) {
+            LOG_DBG2 << "push";
+            clades.push( std::move( elem ));
+        }
+        assert( clades.size() <= power_set_taxa );
+    };
+
+    // Initialize the priority queue with the root taxa.
+    LOG_DBG << "add_children_to_queue_( tax );";
+    add_children_to_queue_( tax );
+    if( !clades.empty() && clades.top().clade_size == 0 ) {
+        throw std::invalid_argument( "Cannot make colors from taxonomy without any group sizes" );
+    }
+
+    // Now loop until we have reached enough elements in the queue. This might overshoot
+    // if there is a clade with many immediate children, but we take care of that later.
+    LOG_DBG << "while( clades.size() < power_set_taxa )";
+    assert( !clades.empty() );
+    while( clades.size() < power_set_taxa ) {
+        LOG_DBG1 << "while " << clades.size() << " < " << power_set_taxa;
+        // We repeatedly pop the top element (largest), and insert its children instead.
+        // The taxon vector always contains exactly one element, as we only add multiple
+        // at the very end of this loop.
+        // auto const top = clades.top();
+        // clades.pop();
+        // assert( top.clade_taxa.size() == 1 );
+        // add_children_to_queue_( *top.clade_taxa.front() );
+        // for( auto const& taxon : *top.clade_taxa.front() ) {
+        //     add_children_to_queue_( taxon );
+        // }
+
+        // New approach that can handle multiple taxa in a clade
+        auto top = clades.top();
+        clades.pop();
+        assert( top.clade_taxa.size() >= 1 );
+        while( top.clade_taxa.size() > 0 && clades.size() < power_set_taxa - 1 ) {
+            auto back = top.clade_taxa.back();
+            top.clade_taxa.pop_back();
+            add_children_to_queue_( *back );
+        }
+        if( !top.clade_taxa.empty() ) {
+            clades.push(top);
+        }
+        // for( auto const& ct : top.clade_taxa ) {
+        //     add_children_to_queue_( *ct );
+        // }
+        assert( !clades.empty() );
+    }
+    LOG_DBG << "finished loop at " << clades.size();
+    if( clades.empty() ) {
+        // This should not happen, as we check for an empty taxonomy first.
+        // But if this triggers for some other reason, it's better to check for stability.
+        throw std::invalid_argument( "Cannot make colors from taxonomy without any taxa" );
+    }
+    assert( clades.size() == power_set_taxa );
+
+    // Helper function to set the bit corresponding to a taxon group in a bitvector.
+    auto set_taxon_group_bit_ = [num_groups]( Taxon const& taxon, Bitvector& bv )
+    {
+        assert( bv.size() == num_groups );
+        auto const& data = taxon.data<KmerTaxonData>();
+        if( data.group_status != KmerTaxonData::GroupStatus::kAssigned ) {
+            return;
+        }
+        if( data.group_index > num_groups ) {
+            throw std::invalid_argument(
+                "Invalid KmerTaxonData::GroupStatus, invalid group index > num groups"
+            );
+        }
+        // LOG_DBG2 << "set_taxon_group_bit_ " << data.group_index << " " << dynamic_cast<Taxon const*>( &taxon )->name();
+        bv.set( data.group_index );
+    };
+
+    // We now add the elements, top to bottom, to our result vector. We stop early here
+    // as the above loop might have overdone it in case that a clade contains too many children.
+    // We add a bitvector for every taxon, containing all bits set of the groups that are children
+    // of this taxon. This allows us later to efficiently construct our wanted colors, instead
+    // of having to repeatedly traverse the taxonomy there - we only need to do it once here.
+    std::vector<Bitvector> result;
+    result.reserve( power_set_taxa );
+    auto control = Bitvector( num_groups );
+    LOG_DBG << "while( clades.size() > 0 )";
+    while( clades.size() > 0 ) {
+        LOG_DBG1 << "clades.size() == " << clades.size();
+        // Add all groups that are part of the taxon, including itself. That is important
+        // if the taxon is a leaf itself, which could happen if it contains a lot of sequences,
+        // and hence got its own entry in the queue.
+        auto group_elements = Bitvector( num_groups );
+        assert( ! clades.top().clade_taxa.empty() );
+        for( auto const& taxon : clades.top().clade_taxa ) {
+            LOG_DBG2 << "set_taxon_group_bit_ " << taxon->data<KmerTaxonData>().group_index << " " << taxon->name() << " and children";
+            set_taxon_group_bit_( *taxon, group_elements );
+            for( auto const& child : taxonomy::preorder( *taxon )) {
+                set_taxon_group_bit_( child, group_elements );
+            }
+        }
+        clades.pop();
+
+        LOG_DBG1 << "ctr " << to_bit_string( control, false, '-' );
+        LOG_DBG1 << "grp " << to_bit_string( group_elements, false, '-' );
+
+        // We also check that there is no overlap with any previous bitvector
+        // which would mean that a group is in multiple non-sibling taxa, which is wrong.
+        if( any_set( control & group_elements )) {
+            throw std::runtime_error( "Invalid groups with same group number in non-silbing clades" );
+        }
+        control |= group_elements;
+
+        // Finally, add the bitvector to our result list.
+        result.push_back( std::move( group_elements ));
+    }
+    assert( result.size() == power_set_taxa );
+
+    // Finally, we must have set all bits in the control, as we have added all groups.
+    if( ! all_set( control )) {
+        LOG_DBG1 << "ctr " << to_bit_string( control, false, '-' );
+        // throw std::runtime_error( "Missing or non-consecutive group numbers in taxonomy" );
+        LOG_WARN << "Missing or non-consecutive group numbers in taxonomy";
+    }
+    return result;
+}
+
+// -------------------------------------------------------
+//     collect_taxa_bitvectors_top_down_
+// -------------------------------------------------------
+
+std::vector<utils::Bitvector> collect_taxa_bitvectors_top_down_(
+    taxonomy::Taxonomy const& tax,
+    size_t power_set_taxa,
+    bool use_num_sequences,
+    size_t num_groups
+) {
+    using namespace utils;
+    using namespace taxonomy;
+    assert( power_set_taxa > 0 );
+    assert( num_groups >= power_set_taxa );
+
+    // Ad hoc solution that might be good enough for now: split taxa up until their size is below
+    // the required average clade size that we want... then merge back the smallest pair of neighbors
+    // until we have our desired number of groups. As we add elements in taxonomic order,
+    // the hope is that the merged neighbors are taxonomically not too far. Will not always be true,
+    // but might be good enough?
+    struct Clade {
+        size_t clade_size;
+        std::vector<Taxon const*> clade_taxa;
+    };
+    std::vector<Clade> clades;
+
+    // Get the total size of the taxonomy.
+    size_t total_size = 0;
+    for( auto const& taxon : tax ) {
+        auto const& data = taxon.data<KmerTaxonData>();
+        total_size += (
+            use_num_sequences ? data.clade_num_sequences : data.clade_sum_seq_lengths
+        );
+    }
+
+    // Fill the clades list will all taxa that are small enough
+    std::function<void(Taxon const&)> fill_clades_ = [&]( Taxon const& taxon )
+    {
+        for( auto const& child : taxon ) {
+            auto const& child_data = child.data<KmerTaxonData>();
+            auto const child_size = (
+                use_num_sequences ? child_data.clade_num_sequences : child_data.clade_sum_seq_lengths
+            );
+            if(
+                child_data.group_status == KmerTaxonData::GroupStatus::kAssigned ||
+                child_size < total_size / num_groups
+            ) {
+                clades.push_back({ child_size, { &child }});
+            } else {
+                fill_clades_( child );
+            }
+        }
+    };
+    for( auto const& taxon : tax ) {
+        fill_clades_( taxon );
+    }
+    assert( clades.size() > 0 );
+
+    // Now merge the smallest pair of neighbors until we have the required num of groups.
+    while( clades.size() > power_set_taxa ) {
+        // Find the smallest neighboring pair of entries.
+        size_t first_index = 0;
+        size_t combined_size = std::numeric_limits<size_t>::max();
+        for( size_t i = 0; i < clades.size() - 1; ++i ) {
+            if( clades[i].clade_size + clades[i+1].clade_size < combined_size ) {
+                first_index = i;
+                combined_size = clades[i].clade_size + clades[i+1].clade_size;
+            }
+        }
+        assert( combined_size != std::numeric_limits<size_t>::max() );
+
+        // Combine the pair into the first, and erase the second.
+        clades[first_index].clade_size += clades[first_index+1].clade_size;
+        clades[first_index].clade_taxa.insert(
+            clades[first_index].clade_taxa.end(),
+            clades[first_index+1].clade_taxa.begin(),
+            clades[first_index+1].clade_taxa.end()
+        );
+        clades.erase(clades.begin() + first_index+1);
+    }
+    assert( clades.size() == power_set_taxa );
+
+    // Helper function to set the bit corresponding to a taxon group in a bitvector.
+    auto set_taxon_group_bit_ = [num_groups]( Taxon const& taxon, Bitvector& bv )
+    {
+        assert( bv.size() == num_groups );
+        auto const& data = taxon.data<KmerTaxonData>();
+        if( data.group_status != KmerTaxonData::GroupStatus::kAssigned ) {
+            return;
+        }
+        if( data.group_index > num_groups ) {
+            throw std::invalid_argument(
+                "Invalid KmerTaxonData::GroupStatus, invalid group index > num groups"
+            );
+        }
+        bv.set( data.group_index );
+    };
+
+    // We create bitvectors for each clade, containing all bits set of the groups that are children
+    // of the taxa in that clade. This allows us later  to efficiently construct our wanted colors,
+    // instead of having to repeatedly traverse the taxonomy there - we only need to do it once here.
+    std::vector<Bitvector> result;
+    result.reserve( power_set_taxa );
+    auto control = Bitvector( num_groups );
+    for( auto const& clade : clades ) {
+        // Add all groups that are part of the taxon, including itself. That is important
+        // if the taxon is a leaf itself, which could happen if it contains a lot of sequences,
+        // and hence got its own entry in the queue.
+        auto group_elements = Bitvector( num_groups );
+        for( auto const& taxon : clade.clade_taxa ) {
+            set_taxon_group_bit_( *taxon, group_elements );
+            for( auto const& child : taxonomy::preorder( *taxon )) {
+                set_taxon_group_bit_( child, group_elements );
+            }
+        }
+
+        // We also check that there is no overlap with any previous bitvector
+        // which would mean that a group is in multiple non-sibling taxa, which is wrong.
+        // Nope, in the above algorithm, we can have neighboring clades that got assigned to
+        // different groups here, so there can be overlap. Doesn't matter for this purpose though,
+        // as that just means the color is a bit less specific than it could be, but not by much.
+        // if( any_set( control & group_elements )) {
+        //     throw std::runtime_error( "Invalid groups with same group number in non-silbing clades" );
+        // }
+        control |= group_elements;
+
+        // Finally, add the bitvector to our result list.
+        result.push_back( std::move( group_elements ));
+    }
+    assert( result.size() == power_set_taxa );
+
+    // Finally, we must have set all bits in the control, as we have added all groups.
+    if( ! all_set( control )) {
+        throw std::runtime_error( "Missing or non-consecutive group numbers in taxonomy" );
+    }
+    return result;
+}
+
+// -------------------------------------------------------
+//     make_secondary_colors_from_taxonomy_top_down
+// -------------------------------------------------------
+
+std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_top_down(
+    taxonomy::Taxonomy const& tax,
+    size_t power_set_taxa,
+    bool use_num_sequences
+) {
+    using namespace utils;
+    using namespace taxonomy;
+
+    // Similar to above: Cautionary check of computational limits within this function.
+    if( power_set_taxa == 0 || power_set_taxa > 63 ) {
+        throw std::invalid_argument( "Invalid power_set_taxa" );
+    }
+
+    // Prepare the result and get the number of bits per bitvector, i.e., the number of groups.
+    std::vector<utils::Bitvector> colors;
+    auto const num_groups = count_taxon_groups( tax );
+    if( num_groups < power_set_taxa ) {
+        throw std::invalid_argument(
+            "Cannot make colors from taxonomy if number of groups "
+            "is smaller than requested power set size"
+        );
+    }
+
+    // Get the list of taxa that we want to run the power set on. It could be smaller than what
+    // we want if the taxonomy is small, but never bigger. Update the limit to the actual size.
+    auto const top_taxa = collect_taxa_bitvectors_top_down_(
+        tax, power_set_taxa, use_num_sequences, num_groups
+    );
+    assert( top_taxa.size() > 0 );
+    assert( top_taxa.size() <= power_set_taxa );
+    power_set_taxa = top_taxa.size();
+    assert( power_set_taxa > 0 );
+
+    // We now run a similar algorithm to iterate the power set as in the above bottom-up approach.
+    // For this, we set up a counter (mask) that we go through, and add a color for each
+    // value, adding _all_ groups in the active taxa.
+    auto const max_mask = static_cast<size_t>( 1 ) << top_taxa.size();
+    for( size_t mask = 0; mask < max_mask; ++mask ) {
+        auto group_elements = Bitvector( num_groups );
+
+        // Check each bit of the mask, and if it is set, that means that in this iteration,
+        // we set all elements in the bitvector corresponding to all indices of this group.
+        size_t activated_groups = 0;
+        for( size_t a = 0; a < top_taxa.size(); ++a ) {
+            if(( mask & (static_cast<size_t>( 1 ) << a )) == 0 ) {
+                continue;
+            }
+            ++activated_groups;
+
+            // We have a set bit in the mask, meaning that this group of inidices (all groups
+            // below the index taxon) needs to be added for this color in the power set.
+            // As we have computed all groups of the taxa as bitvectors already, this is a
+            // simple OR operation.
+            group_elements |= top_taxa[a];
+        }
+        colors.push_back( std::move( group_elements ));
     }
 
     return colors;

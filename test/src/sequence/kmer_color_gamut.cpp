@@ -46,7 +46,9 @@
 #include "genesis/utils/math/bitvector.hpp"
 #include "genesis/utils/math/bitvector/functions.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
+#include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
+#include "genesis/utils/text/string.hpp"
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -382,19 +384,32 @@ void test_kmer_color_taxonomy_(
     // printer.indent_string( "    " );
     // LOG_DBG << printer( tax );
 
-    // auto const bvs = make_secondary_colors_from_taxonomy( tax, 10, true );
-    auto bvs = make_secondary_colors_from_taxonomy( tax );
-    EXPECT_EQ( exp_secondary_colors, bvs.size() );
+    // auto const bvs = make_secondary_colors_from_taxonomy_bottom_up( tax, 10, true );
+    auto bvs_bottom_up = make_secondary_colors_from_taxonomy_bottom_up( tax );
+    EXPECT_EQ( exp_secondary_colors, bvs_bottom_up.size() );
 
     // Debugging output
-    // LOG_DBG << "secondary colors: " << bvs.size();
-    // LOG_DBG << indent( bit_string_header( bvs[0].size() ), 8 );
-    // for( size_t i = 0; i < bvs.size(); ++i ) {
-    //     LOG_DBG << std::setw( 4 ) << i << "    " << to_bit_string( bvs[i], false );
+    // LOG_DBG << "bottom up colors: " << bvs_bottom_up.size();
+    // LOG_DBG << indent( bit_string_header( bvs_bottom_up[0].size() ), 8 );
+    // for( size_t i = 0; i < bvs_bottom_up.size(); ++i ) {
+    //     LOG_DBG << std::setw( 4 ) << i << "    " << to_bit_string( bvs_bottom_up[i], false );
+    // }
+
+    // We currently only test the setup of the below top-down approach,
+    // and assume that it works as a set of colors as well.
+    size_t power_set_taxa = 10;
+    auto bvs_top_down = make_secondary_colors_from_taxonomy_top_down( tax, power_set_taxa );
+    EXPECT_EQ( int_pow( 2, power_set_taxa ), bvs_top_down.size() );
+
+    // Debugging output
+    // LOG_DBG << "top down colors: " << bvs_top_down.size();
+    // LOG_DBG << indent( bit_string_header( bvs_top_down[0].size() ), 8 );
+    // for( size_t i = 0; i < bvs_top_down.size(); ++i ) {
+    //     LOG_DBG << std::setw( 4 ) << i << "    " << to_bit_string( bvs_top_down[i], false, '-' );
     // }
 
     // Use the colors to construct a gamut
-    auto gamut = KmerColorGamut( num_groups, std::move( bvs ));
+    auto gamut = KmerColorGamut( num_groups, std::move( bvs_bottom_up ));
     verify_unique_colors( gamut );
     // LOG_DBG << print_kmer_color_gamut_summary( gamut );
     EXPECT_EQ( exp_total_colors, gamut.get_color_list_size() );
@@ -468,6 +483,9 @@ void kmer_color_gamut_concurrency_test_(
         auto thread_pool = Options::get().global_thread_pool();
         EXPECT_NE( nullptr, thread_pool );
         gamut.precompute_gamut( thread_pool );
+        for( auto const& e : gamut.get_gamut_matrix() ) {
+            EXPECT_NE( 0, e );
+        }
     }
 
     // Prepare async tasks that will run in parallel accessing the set

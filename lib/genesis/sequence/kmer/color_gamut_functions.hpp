@@ -71,12 +71,6 @@ void add_secondary_colors_from_groups(
     bool test_for_all_set_color = true
 );
 
-std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy(
-    taxonomy::Taxonomy const& tax,
-    size_t power_set_limit = 10,
-    bool add_primary_colors = false
-);
-
 template <typename T>
 void add_secondary_colors_from_hac(
     KmerColorGamut& gamut,
@@ -128,6 +122,18 @@ void add_secondary_colors_from_hac(
         );
     }
 }
+
+std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
+    taxonomy::Taxonomy const& tax,
+    size_t power_set_limit = 10,
+    bool add_primary_colors = false
+);
+
+std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_top_down(
+    taxonomy::Taxonomy const& tax,
+    size_t power_set_taxa = 10,
+    bool use_num_sequences = false
+);
 
 // =================================================================================================
 //     Color Set Functions
