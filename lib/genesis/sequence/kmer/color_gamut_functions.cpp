@@ -250,9 +250,9 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
         std::vector<std::vector<size_t>> child_indices;
         for( auto const& child : taxon ) {
             auto const& data = child.data<KmerTaxonData>();
-            switch( data.group_status ) {
-                case KmerTaxonData::GroupStatus::kAssigned: {
-                    if( data.group_index > num_groups ) {
+            switch( data.status ) {
+                case KmerTaxonData::Status::kGroupAssigned: {
+                    if( data.index > num_groups ) {
                         throw std::invalid_argument(
                             "Invalid KmerTaxonData::GroupStatus, invalid group index > num groups"
                         );
@@ -263,35 +263,35 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
                     // sizes are still within the limits of TaxonGroupingLimits), we need
                     // to count unique group indices here. Could be made more efficient,
                     // but good enough for now.
-                    bool found_group_index = false;
+                    bool found_index = false;
                     for( auto const& ci : child_indices ) {
                         assert( !ci.empty() );
-                        if( ci.size() == 1 && ci[0] == data.group_index ) {
-                            found_group_index = true;
+                        if( ci.size() == 1 && ci[0] == data.index ) {
+                            found_index = true;
                         }
                     }
-                    if( ! found_group_index ) {
-                        child_indices.emplace_back( std::vector<size_t>( 1, data.group_index ));
+                    if( ! found_index ) {
+                        child_indices.emplace_back( std::vector<size_t>( 1, data.index ));
 
                         // This is the first time that we are processing this particular group,
                         // and it is a singleton, i.e., a taxon without further children.
                         // We hence might want to add it as a primary color.
                         if( add_primary_colors ) {
                             auto group_elements = Bitvector( num_groups );
-                            group_elements.set( data.group_index );
+                            group_elements.set( data.index );
                             colors.push_back( std::move( group_elements ));
                         }
                     }
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kExpanded: {
+                case KmerTaxonData::Status::kGroupExpanded: {
                     // For taxa that have been expanded (because they are too big), we recurse,
                     // which processes all groups below them, and then collect these groups.
                     child_indices.emplace_back();
                     recursion_( child, child_indices.back() );
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kUnprocessed:
+                case KmerTaxonData::Status::kUnprocessed:
                 default: {
                     throw std::invalid_argument(
                         "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
@@ -477,7 +477,7 @@ std::vector<utils::Bitvector> collect_taxa_bitvectors_top_down_experiment_(
 
             size_t group_pos = temp.size();
             for( size_t i = 0; i < temp.size(); ++i ) {
-                if( temp[i].clade_taxa.front()->data<KmerTaxonData>().group_index == data.group_index ) {
+                if( temp[i].clade_taxa.front()->data<KmerTaxonData>().index == data.index ) {
                     assert( group_pos == temp.size() );
                     group_pos = i;
                 }
@@ -577,16 +577,16 @@ std::vector<utils::Bitvector> collect_taxa_bitvectors_top_down_experiment_(
     {
         assert( bv.size() == num_groups );
         auto const& data = taxon.data<KmerTaxonData>();
-        if( data.group_status != KmerTaxonData::GroupStatus::kAssigned ) {
+        if( data.status != KmerTaxonData::Status::kGroupAssigned ) {
             return;
         }
-        if( data.group_index > num_groups ) {
+        if( data.index > num_groups ) {
             throw std::invalid_argument(
                 "Invalid KmerTaxonData::GroupStatus, invalid group index > num groups"
             );
         }
-        // LOG_DBG2 << "set_taxon_group_bit_ " << data.group_index << " " << dynamic_cast<Taxon const*>( &taxon )->name();
-        bv.set( data.group_index );
+        // LOG_DBG2 << "set_taxon_group_bit_ " << data.index << " " << dynamic_cast<Taxon const*>( &taxon )->name();
+        bv.set( data.index );
     };
 
     // We now add the elements, top to bottom, to our result vector. We stop early here
@@ -606,7 +606,7 @@ std::vector<utils::Bitvector> collect_taxa_bitvectors_top_down_experiment_(
         auto group_elements = Bitvector( num_groups );
         assert( ! clades.top().clade_taxa.empty() );
         for( auto const& taxon : clades.top().clade_taxa ) {
-            LOG_DBG2 << "set_taxon_group_bit_ " << taxon->data<KmerTaxonData>().group_index << " " << taxon->name() << " and children";
+            LOG_DBG2 << "set_taxon_group_bit_ " << taxon->data<KmerTaxonData>().index << " " << taxon->name() << " and children";
             set_taxon_group_bit_( *taxon, group_elements );
             for( auto const& child : taxonomy::preorder( *taxon )) {
                 set_taxon_group_bit_( child, group_elements );
@@ -682,7 +682,7 @@ std::vector<utils::Bitvector> collect_taxa_bitvectors_top_down_(
                 use_num_sequences ? child_data.clade_num_sequences : child_data.clade_sum_seq_lengths
             );
             if(
-                child_data.group_status == KmerTaxonData::GroupStatus::kAssigned ||
+                child_data.status == KmerTaxonData::Status::kGroupAssigned ||
                 child_size < total_size / num_groups
             ) {
                 clades.push_back({ child_size, { &child }});
@@ -725,15 +725,15 @@ std::vector<utils::Bitvector> collect_taxa_bitvectors_top_down_(
     {
         assert( bv.size() == num_groups );
         auto const& data = taxon.data<KmerTaxonData>();
-        if( data.group_status != KmerTaxonData::GroupStatus::kAssigned ) {
+        if( data.status != KmerTaxonData::Status::kGroupAssigned ) {
             return;
         }
-        if( data.group_index > num_groups ) {
+        if( data.index > num_groups ) {
             throw std::invalid_argument(
                 "Invalid KmerTaxonData::GroupStatus, invalid group index > num groups"
             );
         }
-        bv.set( data.group_index );
+        bv.set( data.index );
     };
 
     // We create bitvectors for each clade, containing all bits set of the groups that are children

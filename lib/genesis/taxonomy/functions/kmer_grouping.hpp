@@ -194,7 +194,7 @@ size_t count_taxon_groups( Taxonomy const& tax );
  * TaxonGroupingLimits::merge_sibling_taxa was used when grouping the taxa; all of them will be
  * sibling though, i.e., they are all children of the same parent taxon.
  *
- * The resulting vector is indexed by the KmerTaxonData::group_index of each group.
+ * The resulting vector is indexed by the KmerTaxonData::index of each group.
  * That is, for one group (at the indices of the vector), all highest-ranking (sibling) taxa
  * that belong to that group form the entries of the sub-vector at that index.
  */
@@ -244,7 +244,7 @@ std::string grouped_taxonomy_report( Taxonomy const& tax );
  */
 struct TaxonomyGroupData
 {
-    size_t group_index;
+    size_t index;
     size_t num_sequences;
     size_t sum_seq_lengths;
     std::vector<std::string> taxa;

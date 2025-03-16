@@ -125,20 +125,20 @@ void write_kmer_taxonomy_to_json(
             obj[ "clade_sum_seq_lengths" ] = JsonDocument::number_unsigned(
                 data.clade_sum_seq_lengths
             );
-            switch( data.group_status ) {
-                case KmerTaxonData::GroupStatus::kUnprocessed: {
-                    obj[ "group_status" ] = JsonDocument::string( "unprocessed" );
+            switch( data.status ) {
+                case KmerTaxonData::Status::kUnprocessed: {
+                    obj[ "status" ] = JsonDocument::string( "unprocessed" );
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kAssigned: {
-                    obj[ "group_status" ] = JsonDocument::string( "assigned" );
-                    obj[ "group_index" ] = JsonDocument::number_unsigned(
-                        data.group_index
+                case KmerTaxonData::Status::kGroupAssigned: {
+                    obj[ "status" ] = JsonDocument::string( "assigned" );
+                    obj[ "index" ] = JsonDocument::number_unsigned(
+                        data.index
                     );
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kExpanded: {
-                    obj[ "group_status" ] = JsonDocument::string( "expanded" );
+                case KmerTaxonData::Status::kGroupExpanded: {
+                    obj[ "status" ] = JsonDocument::string( "expanded" );
                     break;
                 }
                 default: {
@@ -156,15 +156,15 @@ void write_kmer_taxonomy_to_json(
             // in the TaxonomyJsonWriter), but do not recurse.
             auto const& data = tax.data<KmerTaxonData>();
             if(
-                data.group_status != KmerTaxonData::GroupStatus::kAssigned &&
-                data.group_status != KmerTaxonData::GroupStatus::kExpanded
+                data.status != KmerTaxonData::Status::kGroupAssigned &&
+                data.status != KmerTaxonData::Status::kGroupExpanded
             ) {
                 throw std::invalid_argument(
                     "Taxonomy has not been grouped, as the group status of a taxon is set to "
-                    "KmerTaxonData::GroupStatus::kUnprocessed"
+                    "KmerTaxonData::Status::kUnprocessed"
                 );
             }
-            return ( data.group_status == KmerTaxonData::GroupStatus::kExpanded );
+            return ( data.status == KmerTaxonData::Status::kGroupExpanded );
         };
     }
     json_writer.write( tax, target );
@@ -197,20 +197,20 @@ Taxonomy read_kmer_taxonomy_from_json(
         if(( it = obj.find( "clade_sum_seq_lengths" )) != obj.end() ) {
             data.clade_sum_seq_lengths = it->second.get_number_unsigned();
         }
-        if(( it = obj.find( "group_index" )) != obj.end() ) {
-            data.group_index = it->second.get_number_unsigned();
+        if(( it = obj.find( "index" )) != obj.end() ) {
+            data.index = it->second.get_number_unsigned();
         }
-        if(( it = obj.find( "group_status" )) != obj.end() ) {
-            auto const& group_status = it->second.get_string();
-            if( group_status == "unprocessed" ) {
-                data.group_status = KmerTaxonData::GroupStatus::kUnprocessed;
-            } else if( group_status == "assigned" ) {
-                data.group_status = KmerTaxonData::GroupStatus::kAssigned;
-            } else if( group_status == "expanded" ) {
-                data.group_status = KmerTaxonData::GroupStatus::kExpanded;
+        if(( it = obj.find( "status" )) != obj.end() ) {
+            auto const& status = it->second.get_string();
+            if( status == "unprocessed" ) {
+                data.status = KmerTaxonData::Status::kUnprocessed;
+            } else if( status == "assigned" ) {
+                data.status = KmerTaxonData::Status::kGroupAssigned;
+            } else if( status == "expanded" ) {
+                data.status = KmerTaxonData::Status::kGroupExpanded;
             } else {
                 throw std::invalid_argument(
-                    "Invalid KmerTaxonData::GroupStatus == " + group_status
+                    "Invalid KmerTaxonData::GroupStatus == " + status
                 );
             }
         }

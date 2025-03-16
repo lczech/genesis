@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ public:
      *
      * @see group_by_taxon_sizes()
      */
-    enum class GroupStatus
+    enum class Status
     {
         /**
          * @brief Initial status: The Taxon has not yet been processed.
@@ -92,7 +92,7 @@ public:
          *
          * This is used for Taxa whose sizes are within the set limits.
          */
-        kAssigned,
+        kGroupAssigned,
 
         /**
          * @brief The Taxon is not assigned to a group, but expanded into smaller groups instead.
@@ -100,7 +100,7 @@ public:
          * This is used for higher ranks, which contain too much data to be a single group.
          * Instead, its children will be assigned to separate groups of smaller sizes.
          */
-        kExpanded
+        kGroupExpanded
     };
 
     // -------------------------------------------------------------------
@@ -166,18 +166,18 @@ public:
     size_t clade_sum_seq_lengths = 0;
 
     /**
-     * @brief Status of the taxon with respect to its group.
+     * @brief Status of the taxon with respect to its group or partition.
      *
      * @see group_by_taxon_sizes()
      */
-    GroupStatus group_status = GroupStatus::kUnprocessed;
+    Status status = Status::kUnprocessed;
 
     /**
-     * @brief Index of the taxon, if grouped.
+     * @brief Index of the taxon, if grouped or partitioned.
      *
      * @see group_by_taxon_sizes()
      */
-    size_t group_index = std::numeric_limits<size_t>::max();
+    size_t index = std::numeric_limits<size_t>::max();
 
 };
 

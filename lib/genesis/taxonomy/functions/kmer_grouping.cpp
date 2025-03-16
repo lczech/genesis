@@ -103,8 +103,8 @@ void assign_children_to_group_(
 ) {
     // Get the data and assert that we are in the right type of taxon
     auto& data = taxon.data<KmerTaxonData>();
-    assert( data.group_status == KmerTaxonData::GroupStatus::kAssigned );
-    assert( data.group_index != std::numeric_limits<size_t>::max() );
+    assert( data.status == KmerTaxonData::Status::kGroupAssigned );
+    assert( data.index != std::numeric_limits<size_t>::max() );
 
     // In some previous iteration of the procedur, we already decided that this taxon here is
     // small enough to fit in a group. So all we have to do is to assign that same group to its
@@ -113,8 +113,8 @@ void assign_children_to_group_(
     // data set to point to the same group index.
     for( auto& child : taxon ) {
         auto& child_data = child.data<KmerTaxonData>();
-        child_data.group_status = data.group_status;
-        child_data.group_index = data.group_index;
+        child_data.status = data.status;
+        child_data.index = data.index;
         assign_children_to_group_( child );
     }
 }
@@ -155,7 +155,7 @@ void group_by_taxon_sizes_process_taxon_(
             limits, child_data.clade_num_sequences, child_data.clade_sum_seq_lengths
         );
         if( exceeds_limits && !taxon_is_single_lineage( child_taxon )) {
-            child_data.group_status = KmerTaxonData::GroupStatus::kExpanded;
+            child_data.status = KmerTaxonData::Status::kGroupExpanded;
             group_by_taxon_sizes_process_taxon_( limits, child_taxon, next_index );
 
         } else {
@@ -166,7 +166,7 @@ void group_by_taxon_sizes_process_taxon_(
             // In a sense, out of all siblings that are smaller than the max size, we are
             // solving the knappsack problem here, greedily by assigning groups on a first come
             // first served basis to the lowest index group that has space for the new sibling.
-            auto sibling_group_index = std::numeric_limits<size_t>::max();
+            auto sibling_index = std::numeric_limits<size_t>::max();
             if( limits.merge_sibling_taxa ) {
                 for( size_t i = 0; i < sibling_groups.size(); ++i ) {
                     auto const& sibling_group = sibling_groups[i];
@@ -179,7 +179,7 @@ void group_by_taxon_sizes_process_taxon_(
                         child_data.clade_sum_seq_lengths
                     );
                     if( ! exceeds_group_sizes_( limits, proposed_num_seq, proposed_seq_len )) {
-                        sibling_group_index = i;
+                        sibling_index = i;
                         break;
                     }
                 }
@@ -188,8 +188,8 @@ void group_by_taxon_sizes_process_taxon_(
             // If there was no such index, either we do not want to merge siblings, or all groups
             // are already filled to a point where adding this taxon would exceed the limit, or
             // the list is still empty. Either way, we want to make a new group then for the taxon.
-            if( sibling_group_index == std::numeric_limits<size_t>::max() ) {
-                sibling_group_index = sibling_groups.size();
+            if( sibling_index == std::numeric_limits<size_t>::max() ) {
+                sibling_index = sibling_groups.size();
                 sibling_groups.emplace_back();
                 sibling_groups.back().index = next_index;
                 ++next_index;
@@ -197,11 +197,11 @@ void group_by_taxon_sizes_process_taxon_(
 
             // Now we know the group that we want to put this taxon into.
             // Set this, and then recursively set this group for all its children as well.
-            auto& sibling_group = sibling_groups[sibling_group_index];
+            auto& sibling_group = sibling_groups[sibling_index];
             sibling_group.clade_num_sequences += child_data.clade_num_sequences;
             sibling_group.clade_sum_seq_lengths += child_data.clade_sum_seq_lengths;
-            child_data.group_status = KmerTaxonData::GroupStatus::kAssigned;
-            child_data.group_index = sibling_group.index;
+            child_data.status = KmerTaxonData::Status::kGroupAssigned;
+            child_data.index = sibling_group.index;
             assign_children_to_group_( child_taxon );
         }
     }
@@ -223,8 +223,8 @@ void group_by_taxon_sizes(
     preorder_for_each( tax, []( Taxon& taxon )
     {
         auto& data = taxon.data<KmerTaxonData>();
-        data.group_status = KmerTaxonData::GroupStatus::kUnprocessed;
-        data.group_index = std::numeric_limits<size_t>::max();
+        data.status = KmerTaxonData::Status::kUnprocessed;
+        data.index = std::numeric_limits<size_t>::max();
     });
 
     // We will be assigning consecutive indices to groups.
@@ -388,27 +388,27 @@ size_t count_taxon_groups( Taxonomy const& tax )
     {
         for( auto const& child : taxon ) {
             auto const& data = child.data<KmerTaxonData>();
-            switch( data.group_status ) {
-                case KmerTaxonData::GroupStatus::kAssigned: {
+            switch( data.status ) {
+                case KmerTaxonData::Status::kGroupAssigned: {
                     // For taxa that have been assigned to a group, collect their indices.
                     // As multiple taxa can be assigned to the same group (if the combined
                     // sizes are still within the limits of TaxonGroupingLimits),
                     // we need to count unique group indices here.
-                    if( data.group_index == std::numeric_limits<size_t>::max() ) {
+                    if( data.index == std::numeric_limits<size_t>::max() ) {
                         throw std::invalid_argument(
                             "Invalid KmerTaxonData::GroupStatus, invalid group index"
                         );
                     }
-                    group_indices.insert( data.group_index );
+                    group_indices.insert( data.index );
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kExpanded: {
+                case KmerTaxonData::Status::kGroupExpanded: {
                     // For taxa that have been expanded (because they are too big),
                     // we recurse instead.
                     recursion_( child );
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kUnprocessed:
+                case KmerTaxonData::Status::kUnprocessed:
                 default: {
                     throw std::invalid_argument(
                         "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
@@ -449,28 +449,28 @@ std::vector<std::vector<Taxon const*>> taxononmy_group_taxa_list( Taxonomy const
     {
         for( auto const& child : taxon ) {
             auto const& data = child.data<KmerTaxonData>();
-            switch( data.group_status ) {
-                case KmerTaxonData::GroupStatus::kAssigned: {
+            switch( data.status ) {
+                case KmerTaxonData::Status::kGroupAssigned: {
                     // For taxa that have been assigned to a group, collect their taxa.
                     // As multiple taxa can be assigned to the same group (if the combined
                     // sizes are still within the limits of TaxonGroupingLimits),
                     // we need to add all those taxa to the vector for that group.
-                    if( data.group_index == std::numeric_limits<size_t>::max() ) {
+                    if( data.index == std::numeric_limits<size_t>::max() ) {
                         throw std::invalid_argument(
                             "Invalid KmerTaxonData::GroupStatus, invalid group index"
                         );
                     }
-                    assert( data.group_index < result.size() );
-                    result[ data.group_index ].push_back( &child );
+                    assert( data.index < result.size() );
+                    result[ data.index ].push_back( &child );
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kExpanded: {
+                case KmerTaxonData::Status::kGroupExpanded: {
                     // For taxa that have been expanded (because they are too big),
                     // we recurse instead.
                     recursion_( child );
                     break;
                 }
-                case KmerTaxonData::GroupStatus::kUnprocessed:
+                case KmerTaxonData::Status::kUnprocessed:
                 default: {
                     throw std::invalid_argument(
                         "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
@@ -510,24 +510,24 @@ void grouped_taxonomy_trunk_( Taxonomy const& tax, Taxonomy& result )
     // This way, in each step, we only have to deal with entries at the same level.
     for( auto const& child : tax ) {
         auto& data = child.data<KmerTaxonData>();
-        switch( data.group_status ) {
-            case KmerTaxonData::GroupStatus::kAssigned: {
+        switch( data.status ) {
+            case KmerTaxonData::Status::kGroupAssigned: {
                 // For a taxon that is part of a group, we want to add a group as a pseudo-taxon
                 // to the resulting taxonomy. This is a bit cumbersome, as it does not really fit
                 // well with how taxonomies usually work...
 
                 // First, make sure that a pseudo-taxon with the group name exists.
-                std::string const group_name = "group_" + std::to_string( data.group_index );
+                std::string const group_name = "group_" + std::to_string( data.index );
                 Taxon* group_tax = nullptr;
                 if( result.has_child( group_name )) {
                     group_tax = &result.get_child( group_name );
-                    assert( group_tax->data<KmerTaxonData>().group_index == data.group_index );
+                    assert( group_tax->data<KmerTaxonData>().index == data.index );
                 } else {
                     group_tax = &result.add_child( group_name );
                     group_tax->reset_data( KmerTaxonData::create() );
                     auto& group_tax_data = group_tax->data<KmerTaxonData>();
-                    group_tax_data.group_status = KmerTaxonData::GroupStatus::kAssigned;
-                    group_tax_data.group_index = data.group_index;
+                    group_tax_data.status = KmerTaxonData::Status::kGroupAssigned;
+                    group_tax_data.index = data.index;
                 }
 
                 // Then, accumulate the sizes of the current taxon to the group.
@@ -536,14 +536,14 @@ void grouped_taxonomy_trunk_( Taxonomy const& tax, Taxonomy& result )
                 group_tax_data.clade_sum_seq_lengths += data.clade_sum_seq_lengths;
                 break;
             }
-            case KmerTaxonData::GroupStatus::kExpanded: {
+            case KmerTaxonData::Status::kGroupExpanded: {
                 assert( !result.has_child( child.name() ));
                 auto& exp_tax = result.add_child( child.name() );
                 exp_tax.reset_data( child.data<KmerTaxonData>().clone() );
                 grouped_taxonomy_trunk_( child, exp_tax );
                 break;
             }
-            case KmerTaxonData::GroupStatus::kUnprocessed:
+            case KmerTaxonData::Status::kUnprocessed:
             default: {
                 throw std::invalid_argument(
                     "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
@@ -579,8 +579,8 @@ std::string grouped_taxonomy_report( Taxonomy const& tax )
     // Traverse the taxonomy to get all data
     for( auto const& taxon : preorder( tax )) {
         auto& data = taxon.data<KmerTaxonData>();
-        switch( data.group_status ) {
-            case KmerTaxonData::GroupStatus::kAssigned: {
+        switch( data.status ) {
+            case KmerTaxonData::Status::kGroupAssigned: {
                 // The input to this function shall come from grouped_taxonomy_trunk(),
                 // which creates pseudo-groups with this name prefix. Check this.
                 if( !utils::starts_with( taxon.name(), "group_" )) {
@@ -593,13 +593,13 @@ std::string grouped_taxonomy_report( Taxonomy const& tax )
                 group_sum_seq_lengths.push_back( data.clade_sum_seq_lengths );
                 break;
             }
-            case KmerTaxonData::GroupStatus::kExpanded: {
+            case KmerTaxonData::Status::kGroupExpanded: {
                 ++num_ungrouped_taxa;
                 ungrouped_num_sequences += data.num_sequences;
                 ungrouped_sum_seq_lengths += data.sum_seq_lengths;
                 break;
             }
-            case KmerTaxonData::GroupStatus::kUnprocessed:
+            case KmerTaxonData::Status::kUnprocessed:
             default: {
                 throw std::invalid_argument(
                     "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
@@ -670,14 +670,14 @@ void fill_json_array_with_taxonomy_groups_(
     // Iterate the children, adding their data to the groups they were assigned to.
     for( auto const& child : tax ) {
         auto& data = child.data<KmerTaxonData>();
-        switch( data.group_status ) {
-            case KmerTaxonData::GroupStatus::kAssigned: {
+        switch( data.status ) {
+            case KmerTaxonData::Status::kGroupAssigned: {
                 // Create entries in the resulting json array for the indices of groups up until
                 // we have an entry for the group of the current taxon, and init as needed.
-                while( array.size() <= data.group_index ) {
+                while( array.size() <= data.index ) {
                     array.push_back( JsonDocument::object() );
                     auto& obj = array.back().get_object();
-                    obj["group_index"] = JsonDocument::number_unsigned( array.size() - 1 );
+                    obj["index"] = JsonDocument::number_unsigned( array.size() - 1 );
                     obj["taxa"] = JsonDocument::array();
                     obj["num_sequences"] = JsonDocument::number_unsigned( 0 );
                     obj["sum_seq_lengths"] = JsonDocument::number_unsigned( 0 );
@@ -685,9 +685,9 @@ void fill_json_array_with_taxonomy_groups_(
 
                 // We now have an entry in the array for the group index we need.
                 // Amend that entry with the data of the current taxon.
-                assert( array.size() > data.group_index );
-                auto& entry = array[data.group_index].get_object();
-                assert( entry["group_index"].get_number_unsigned() == data.group_index );
+                assert( array.size() > data.index );
+                auto& entry = array[data.index].get_object();
+                assert( entry["index"].get_number_unsigned() == data.index );
                 entry["taxa"].get_array().push_back( JsonDocument::string(
                     TaxopathGenerator().to_string( child )
                 ));
@@ -698,12 +698,12 @@ void fill_json_array_with_taxonomy_groups_(
                 // sum variables, and we only want to store the highest tax rank of the taxon.
                 break;
             }
-            case KmerTaxonData::GroupStatus::kExpanded: {
+            case KmerTaxonData::Status::kGroupExpanded: {
                 // If the child is not in a group itself, but was expanded, we recurse.
                 fill_json_array_with_taxonomy_groups_( child, array );
                 break;
             }
-            case KmerTaxonData::GroupStatus::kUnprocessed:
+            case KmerTaxonData::Status::kUnprocessed:
             default: {
                 throw std::invalid_argument(
                     "Invalid KmerTaxonData::GroupStatus, Taxonomy not properly processed"
@@ -735,12 +735,12 @@ std::vector<TaxonomyGroupData> read_taxonomy_grouping_from_json(
     result.reserve( arr.size() );
     for( auto& child : arr ) {
         TaxonomyGroupData elem;
-        elem.group_index = child.at( "group_index" ).get_number_unsigned();
-        if( elem.group_index != result.size() ) {
+        elem.index = child.at( "index" ).get_number_unsigned();
+        if( elem.index != result.size() ) {
             throw std::runtime_error(
                 "Taxonomy grouping json file contains " + std::to_string( result.size() ) +
                 "entries, but with non-consecutive group indices. "
-                "Found group_index" + std::to_string( elem.group_index )
+                "Found index" + std::to_string( elem.index )
             );
         }
         elem.num_sequences = child.at( "num_sequences" ).get_number_unsigned();
