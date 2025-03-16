@@ -110,7 +110,11 @@ public:
         init_primary_colors_();
     }
 
-    KmerColorGamut( size_t element_count, std::vector<Bitvector>&& secondary_colors )
+    KmerColorGamut(
+        size_t element_count,
+        std::vector<Bitvector>&& secondary_colors,
+        bool ignore_duplicates = false
+    )
         : KmerColorGamut( element_count, 1 + element_count + secondary_colors.size() )
     {
         // We call the other constructor first, which sets up the primary colors,
@@ -119,8 +123,15 @@ public:
         // That is, with this constructor, we declare to only use the given colors,
         // and immedately use the gamut without ever adding any additional colors.
         for( auto& sec_col : secondary_colors ) {
-            add_color( std::move( sec_col ));
+            add_color( std::move( sec_col ), ignore_duplicates );
         }
+
+        // After adding all colors, we re-set the max color count, as there might have been
+        // duplicates in there, so that the current number of colors is less than what we thought
+        // initially. Bit weird in terms of internal interactions here, but good enough for now.
+        assert( colors_.size() >= 1 + element_count );
+        assert( colors_.size() <= 1 + element_count + secondary_colors.size() );
+        max_color_count_ = colors_.size();
     }
 
     ~KmerColorGamut() = default;
@@ -151,8 +162,16 @@ public:
     //     Lookup & Modification
     // -------------------------------------------------------------------------
 
-    size_t add_color( Bitvector&& elements );
-    size_t add_merged_color( size_t color_index_1, size_t color_index_2 );
+    size_t add_color(
+        Bitvector&& elements,
+        bool ignore_duplicates = false
+    );
+
+    size_t add_merged_color(
+        size_t color_index_1,
+        size_t color_index_2,
+        bool ignore_duplicates = false
+    );
 
     size_t find_existing_color(
         Bitvector const& target_elements

@@ -51,7 +51,7 @@ namespace sequence {
 //     add_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::add_color( utils::Bitvector&& elements )
+size_t KmerColorGamut::add_color( utils::Bitvector&& elements, bool ignore_duplicates )
 {
     // Obtain write lock. Usually not needed here, as this function is meant to be called
     // before starting any concurrent access, but maybe there is a use case where the caller
@@ -74,7 +74,7 @@ size_t KmerColorGamut::add_color( utils::Bitvector&& elements )
             "Cannot add color with bitvector of size that does not match the element count"
         );
     }
-    if( utils::pop_count( elements ) < 2 ) {
+    if( (!ignore_duplicates) && utils::pop_count( elements ) < 2 ) {
         throw std::invalid_argument(
             "Cannot add color with bitvector representing the empty color or primary colors "
             "(i.e., zero or single bit set)"
@@ -84,7 +84,11 @@ size_t KmerColorGamut::add_color( utils::Bitvector&& elements )
     // Check if the color already exists.
     auto const hash = utils::bitvector_hash( elements );
     if( find_existing_color_( elements, hash ) > 0 ) {
-        throw std::invalid_argument( "Cannot add duplicate color" );
+        if( ignore_duplicates ) {
+            return 0;
+        } else {
+            throw std::invalid_argument( "Cannot add duplicate color" );
+        }
     }
 
     // Use the internal function to perform the actual work.
@@ -95,7 +99,7 @@ size_t KmerColorGamut::add_color( utils::Bitvector&& elements )
 //     add_merged_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::add_merged_color( size_t index_1, size_t index_2 )
+size_t KmerColorGamut::add_merged_color( size_t index_1, size_t index_2, bool ignore_duplicates )
 {
     // Helper function that takes two colors, merges them, and adds them to the list.
     // First check that the colors are valid entries.
@@ -110,7 +114,7 @@ size_t KmerColorGamut::add_merged_color( size_t index_1, size_t index_2 )
     // We call the above user-facing function, as that does some additional checks for us.
     // We are not expecting this function here to be called after initialization anyway,
     // so being a bit more thorough here is better, and doesn't hurt performance much.
-    return add_color( colors_[ index_1 ].elements | colors_[ index_2 ].elements );
+    return add_color( colors_[ index_1 ].elements | colors_[ index_2 ].elements, ignore_duplicates );
 }
 
 // -------------------------------------------------------------------------
@@ -281,17 +285,32 @@ void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread
     init_gamut_();
     if( thread_pool ) {
         utils::parallel_for(
-            0, colors_.size(),
-            [this]( size_t color_index )
+            0, element_count_,
+            [this]( size_t element_idx )
             {
-                // Parallelize over colors, i.e., rows of the matrix, then compute the cells
-                // along the columns in one thread. Should minimize false sharing issues.
-                for( size_t element_index = 0; element_index < element_count_; ++element_index ) {
-                    get_gamut_entry_( color_index, element_index, false );
+                // Parallelize over elements, as the colors tend to have very different amounts of
+                // bits set, and hence very different times they need to find the minimal superset.
+                // This here gave better parallel throughput in our tests.
+                // There is false sharing going on between the neighboring cells of the matrix,
+                // but adding an offset to avoid this did not improve speed, so we keep it simple.
+                for( size_t color_idx = 0; color_idx < colors_.size(); ++color_idx ) {
+                    get_gamut_entry_( color_idx, element_idx, false );
                 }
             },
             thread_pool
         ).get();
+        // utils::parallel_for(
+        //     0, colors_.size(),
+        //     [this]( size_t color_index )
+        //     {
+        //         // Parallelize over colors, i.e., rows of the matrix, then compute the cells
+        //         // along the columns in one thread. Should minimize false sharing issues.
+        //         for( size_t element_index = 0; element_index < element_count_; ++element_index ) {
+        //             get_gamut_entry_( color_index, element_index, false );
+        //         }
+        //     },
+        //     thread_pool
+        // ).get();
     } else {
         // Serial version of the above.
         for( size_t color_index = 0; color_index < colors_.size(); ++color_index ) {
