@@ -659,13 +659,7 @@ void test_thread_pool_parallel_for_each_throttled_( bool range )
 {
     Logging::details.time = true;
 
-    // Manual test case. There is currently a minor issue with the throttled parallel for,
-    // in cases where the task queue is empty except for the stuff submitted via the function.
-    // In these cases, the main (submitting) thread might get into a busy wait.
-    // For some reason, it does not do that on the first pass (submitting tasks until the max
-    // concurrent is reached the first time), but on subsequent iterations through its submission
-    // loop, it seems to get into busy waiting. Not sure why that is the case. Leaving this for now,
-    // as we proably usually have other tasks in the queue to keep the main busy anyway.
+    // Manual test case.
     // test_thread_pool_parallel_for_each_throttled_( 4, 10, 4, range );
     // return;
 

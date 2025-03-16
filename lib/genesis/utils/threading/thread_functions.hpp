@@ -458,16 +458,21 @@ void parallel_for_throttled(
     // Helper function: Wait for any task to complete.
     auto wait_for_any_ = [&futures]() -> size_t
     {
-        // If any future is ready, return its index in the list.
-        for( size_t i = 0; i < futures.size(); ++i ) {
-            if( futures[i].ready() ) {
-                return i;
+        // Loop until one of the futures is ready.
+        while( true ) {
+            assert( ! futures.empty() );
+
+            // If any future is ready, return its index in the list.
+            for( size_t i = 0; i < futures.size(); ++i ) {
+                if( futures[i].ready() ) {
+                    return i;
+                }
             }
+
+            // Otherwise, block on the first future, which will trigger the proactive work stealing.
+            assert( ! futures.empty() );
+            futures.front().wait();
         }
-        // Otherwise, block on the first future, which will trigger the proactive work stealing.
-        assert( ! futures.empty() );
-        futures.front().wait();
-        return 0;
     };
 
     // Loop over the integer range, submitting up to the max tasks at a time.
