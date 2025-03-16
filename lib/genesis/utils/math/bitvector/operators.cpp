@@ -180,12 +180,12 @@ std::string bit_string_header( size_t n, bool with_dec_line )
     return result;
 }
 
-std::string to_bit_string( Bitvector const& bv, bool with_line_breaks )
+std::string to_bit_string( Bitvector const& bv, bool with_line_breaks, char zero, char one )
 {
     // std::string res = ( with_size ? "[" + std::to_string( bv.size() ) + "]\n" : "" );
     std::string res;
     for( size_t i = 0; i < bv.size(); ++i ) {
-        res += bv[i] ? "1" : "0";
+        res += bv[i] ? one : zero;
         if( with_line_breaks && i+1 < bv.size() && (i+1) % 64 == 0 ) {
             res += "\n";
         } else if( i+1 < bv.size() && (i+1) % 8 == 0 ) {

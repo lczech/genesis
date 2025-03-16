@@ -144,7 +144,9 @@ std::string bit_string_header( size_t n, bool with_dec_line = true );
 /**
  * @brief Print the bits of a Bitvector to a string.
  */
-std::string to_bit_string( Bitvector const& bv, bool with_line_breaks = true );
+std::string to_bit_string(
+    Bitvector const& bv, bool with_line_breaks = true, char zero = '0', char one = '1'
+);
 
 /**
  * @brief Insertion operator that outputs a Bitvector as a string of '0's and '1's.
