@@ -30,6 +30,7 @@
 
 #include "genesis/sequence/kmer/color_gamut_functions.hpp"
 #include "genesis/taxonomy/functions/kmer_data.hpp"
+#include "genesis/taxonomy/functions/kmer_grouping.hpp"
 #include "genesis/taxonomy/functions/kmer.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"
 #include "genesis/taxonomy/iterator/preorder.hpp"

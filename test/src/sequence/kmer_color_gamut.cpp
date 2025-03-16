@@ -36,6 +36,8 @@
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/kmer.hpp"
+#include "genesis/taxonomy/functions/kmer_data.hpp"
+#include "genesis/taxonomy/functions/kmer_grouping.hpp"
 #include "genesis/taxonomy/functions/kmer.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"
 #include "genesis/taxonomy/printers/nested.hpp"
