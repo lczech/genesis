@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,8 +34,11 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <functional>
+#include <iterator>
 #include <numeric>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -169,6 +172,74 @@ insert_sorted( std::vector<T> & vec, T const& item, Pred pred )
        std::upper_bound( vec.begin(), vec.end(), item, pred ),
        item
     );
+}
+
+// =================================================================================================
+//     Concatenate
+// =================================================================================================
+
+/**
+ * @brief Helper functions to append one container to the result container.
+ *
+ * Overload for lvalue containers (copying elements).
+ */
+template<typename Container>
+void append_container( Container& result, Container const& c )
+{
+    // Insert using copy iterators.
+    result.insert(result.end(), c.begin(), c.end());
+}
+
+/**
+ * @brief Helper functions to append one container to the result container.
+ *
+ * Overload for rvalue containers (moving elements).
+ */
+template<typename Container>
+void append_container( Container& result, Container&& c )
+{
+    // Insert using move iterators.
+    result.insert(
+        result.end(),
+        std::make_move_iterator( c.begin() ),
+        std::make_move_iterator( c.end() )
+    );
+}
+
+/**
+ * @brief Concatenate elements in containers.
+ *
+ * This function takes two or more containers of the same type and
+ * returns a new container with all elements concatenated in order.
+ *
+ * The return type is deduced from the decayed type of the first argument.
+ * Elements are either copied or moved based on the value category of
+ * each argument (lvalue => copy, rvalue => move).
+ */
+template<typename Container, typename... Containers>
+auto concatenate(Container&& c, Containers&&... cs)
+    -> typename std::decay<Container>::type
+{
+    // Define the type of the container that we will return.
+    typedef typename std::decay<Container>::type ContainerType;
+    ContainerType result;
+
+    // Calculate the total size (assumes the container type supports size()).
+    std::size_t total_size = std::forward<Container>(c).size();
+
+    // Use an initializer list to expand the parameter pack.
+    using expander = int[];
+    (void) expander {0, (total_size += std::forward<Containers>(cs).size(), 0)...};
+
+    // Reserve enough memory to avoid multiple reallocations.
+    result.reserve(total_size);
+
+    // Append the first container.
+    append_container(result, std::forward<Container>(c));
+    // Append the rest of the containers.
+    (void) expander {0, (append_container(result, std::forward<Containers>(cs)), 0)...};
+
+    return result;
 }
 
 // =================================================================================================
