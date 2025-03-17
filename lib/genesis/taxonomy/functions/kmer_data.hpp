@@ -100,7 +100,18 @@ public:
          * This is used for higher ranks, which contain too much data to be a single group.
          * Instead, its children will be assigned to separate groups of smaller sizes.
          */
-        kGroupExpanded
+        kGroupExpanded,
+
+        /**
+         * @brief For partitioning, the Taxon and all its children belong to the same partition.
+         */
+        kPartitionMonophyletic,
+
+        /**
+         * @brief For partitioning, there are children of this Taxon that belong to a different
+         * partition.
+         */
+        kPartitionParaphyletic
     };
 
     // -------------------------------------------------------------------

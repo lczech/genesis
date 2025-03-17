@@ -378,7 +378,7 @@ void test_kmer_color_taxonomy_(
 ) {
     // Read the test taxonomy
     auto const tax = taxonomy::read_kmer_taxonomy_from_json( from_file( infile ));
-    auto const num_groups = taxonomy::count_taxon_groups( tax );
+    auto const num_groups = taxonomy::count_taxon_groups_or_partitions( tax );
     EXPECT_EQ( exp_num_groups, num_groups );
 
     // Debugging output

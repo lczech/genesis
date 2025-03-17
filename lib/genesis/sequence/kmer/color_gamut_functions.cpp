@@ -235,7 +235,7 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
 
     // Prepare the result and get the number of bits per bitvector, i.e., the number of groups.
     std::vector<utils::Bitvector> colors;
-    auto const num_groups = count_taxon_groups( tax );
+    auto const num_groups = count_taxon_groups_or_partitions( tax );
     if( num_groups == 0 ) {
         return colors;
     }
@@ -795,7 +795,7 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_top_down(
 
     // Prepare the result and get the number of bits per bitvector, i.e., the number of groups.
     std::vector<utils::Bitvector> colors;
-    auto const num_groups = count_taxon_groups( tax );
+    auto const num_groups = count_taxon_groups_or_partitions( tax );
     if( num_groups < power_set_taxa ) {
         throw std::invalid_argument(
             "Cannot make colors from taxonomy if number of groups "
