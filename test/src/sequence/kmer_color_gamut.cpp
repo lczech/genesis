@@ -399,9 +399,14 @@ void test_kmer_color_taxonomy_(
 
     // We currently only test the setup of the below top-down approach,
     // and assume that it works as a set of colors as well.
+    // TODO: Right now, the experimental algorithm (first) adds an all-set color at the end,
+    // while the interval algorithm does not, as it is already included in its power set.
+    // Bit ugly, fix later.
     size_t power_set_taxa = 10;
-    auto bvs_top_down = make_secondary_colors_from_taxonomy_top_down( tax, power_set_taxa );
-    EXPECT_EQ( int_pow( 2, power_set_taxa ), bvs_top_down.size() );
+    auto bvs_top_down_e = make_secondary_colors_from_taxonomy_top_down( tax, 'e', power_set_taxa );
+    EXPECT_EQ( 1 + int_pow( 2, power_set_taxa ), bvs_top_down_e.size() );
+    auto bvs_top_down_i = make_secondary_colors_from_taxonomy_top_down( tax, 'i', power_set_taxa );
+    EXPECT_EQ( 0 + int_pow( 2, power_set_taxa ), bvs_top_down_i.size() );
 
     // Debugging output
     // LOG_DBG << "top down colors: " << bvs_top_down.size();

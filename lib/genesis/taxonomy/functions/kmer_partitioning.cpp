@@ -108,8 +108,15 @@ void partition_taxonomy(
     {
         for( auto& child : tax ) {
             auto& child_data = child.data<KmerTaxonData>();
-            // Take taxon_is_single_lineage( child ) into account here? Probably not.
-            if( child_data.clade_sum_seq_lengths < total_size / num_partitions  ) {
+            // If the child is smaller than our target avg clade size, we add it
+            // as a monophyletic clade. Also, if it does not contain any children,
+            // which is an extra condition needed for leaf taxa that are very big.
+            // Otherwise, we have a clade that we want to break apart, so it will
+            // be paraphyletic.
+            if(
+                child_data.clade_sum_seq_lengths < total_size / num_partitions ||
+                child.size() == 0
+            ) {
                 child_data.status = KmerTaxonData::Status::kPartitionMonophyletic;
                 clades.push_back({ child_data.clade_sum_seq_lengths, { &child }});
             } else {

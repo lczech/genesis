@@ -131,6 +131,7 @@ std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
 
 std::vector<utils::Bitvector> make_secondary_colors_from_taxonomy_top_down(
     taxonomy::Taxonomy const& tax,
+    char method,
     size_t power_set_taxa = 10,
     bool use_num_sequences = false
 );

@@ -104,7 +104,7 @@ void accumulate_taxon_sizes( Taxonomy& tax )
 //     count_taxon_groups_or_partitions
 // --------------------------------------------------------------------------
 
-size_t count_taxon_groups_or_partitions( Taxonomy const& tax )
+size_t count_taxon_groups_or_partitions( Taxonomy const& tax, bool is_subtaxonomy )
 {
     // Iterate the taxonomy, recursing on expanded taxa, and counting
     // unique group/partition indices for the taxa that are assigned to groups.
@@ -122,7 +122,8 @@ size_t count_taxon_groups_or_partitions( Taxonomy const& tax )
                     // we need to count unique group indices here.
                     if( data.index == std::numeric_limits<size_t>::max() ) {
                         throw std::invalid_argument(
-                            "Invalid KmerTaxonData::Status, invalid group index"
+                            "Invalid KmerTaxonData, invalid group index " +
+                            std::to_string( data.index ) + " at taxon " + child.name()
                         );
                     }
                     indices.insert( data.index );
@@ -147,7 +148,8 @@ size_t count_taxon_groups_or_partitions( Taxonomy const& tax )
                 case KmerTaxonData::Status::kUnprocessed:
                 default: {
                     throw std::invalid_argument(
-                        "Invalid KmerTaxonData::Status, Taxonomy not properly processed"
+                        "Invalid KmerTaxonData::Status == kUnprocessed, taxonomy not properly "
+                        "processed, at taxon " + child.name()
                     );
                 }
             }
@@ -156,9 +158,11 @@ size_t count_taxon_groups_or_partitions( Taxonomy const& tax )
     recursion_( tax );
 
     // Make sure that group indices are consecutive.
-    for( size_t i = 0; i < indices.size(); ++i ) {
-        if( indices.count( i ) == 0 ) {
-            throw std::runtime_error( "Taxonomy contains non-consecutive group/partition indices" );
+    if( !is_subtaxonomy ) {
+        for( size_t i = 0; i < indices.size(); ++i ) {
+            if( indices.count( i ) == 0 ) {
+                throw std::runtime_error( "Taxonomy contains non-consecutive group/partition indices" );
+            }
         }
     }
 

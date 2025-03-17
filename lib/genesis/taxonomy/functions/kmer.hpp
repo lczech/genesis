@@ -79,8 +79,12 @@ void accumulate_taxon_sizes( Taxonomy& tax );
 /**
  * @brief Count the number of groups or partitions that were constructed by group_by_taxon_sizes()
  * or partition_by_taxon_sizes().
+ *
+ * By default, we assume that the taxonomy is given at the root, and check that the indices found
+ * are all present as expected (starting at zero, consecutive numbers). However, if this function
+ * is run on a sub-taxonomy (one clade) only, that check can be deactivated with @p is_subtaxonomy
  */
-size_t count_taxon_groups_or_partitions( Taxonomy const& tax );
+size_t count_taxon_groups_or_partitions( Taxonomy const& tax, bool is_subtaxonomy = false );
 
 /**
  * @brief For each Taxon group/partition constructed with group_by_taxon_sizes() or
