@@ -47,6 +47,7 @@
 #include "genesis/taxonomy/functions/kmer_data.hpp"
 #include "genesis/taxonomy/functions/kmer_grouping.hpp"
 #include "genesis/taxonomy/functions/kmer.hpp"
+#include "genesis/taxonomy/functions/kmer_partitioning.hpp"
 #include "genesis/taxonomy/functions/operators.hpp"
 #include "genesis/taxonomy/functions/ranks.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"

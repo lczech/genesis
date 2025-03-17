@@ -296,6 +296,10 @@ void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread
                 for( size_t color_idx = 0; color_idx < colors_.size(); ++color_idx ) {
                     get_gamut_entry_( color_idx, element_idx, false );
                 }
+                // auto const offset = colors_.size() * element_idx / element_count_;
+                // for( size_t color_idx = offset; color_idx < colors_.size() + offset; ++color_idx ) {
+                //     get_gamut_entry_( color_idx % colors_.size(), element_idx, false );
+                // }
             },
             thread_pool
         ).get();
