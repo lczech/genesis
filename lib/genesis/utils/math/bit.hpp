@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,12 @@
 
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
 #    include <bit>
+#endif
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+    #define GENESIS_IF_CONSTEXPR constexpr
+#else
+    #define GENESIS_IF_CONSTEXPR
 #endif
 
 // #include <immintrin.h>  // _pext_u64
@@ -89,21 +95,22 @@ namespace utils {
 // Following the preprocessor documentation for __has_builtin
 // https://gcc.gnu.org/onlinedocs/cpp/_005f_005fhas_005fbuiltin.html
 #ifdef __has_builtin
-#  if __has_builtin(__builtin_popcount) && __has_builtin(__builtin_popcountl) && __has_builtin(__builtin_popcountll)
-#    define GENESIS_HAS_BUILTIN_POPCOUNT
-#  endif
+    #if __has_builtin(__builtin_popcount) && __has_builtin(__builtin_popcountl) && __has_builtin(__builtin_popcountll)
+        #define GENESIS_HAS_BUILTIN_POPCOUNT
+    #endif
+#endif
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+    #define GENESIS_POP_COUNT_CONSTEXPR constexpr
+#else
+    #define GENESIS_POP_COUNT_CONSTEXPR
 #endif
 
 /**
  * @brief Compute the pop count (Hamming weight) of an unsigned int.
  */
-template <typename T>
-inline
-#if GENESIS_CPP_STD >= GENESIS_CPP_STD_14 && ( defined(__cpp_lib_bitops) || defined(GENESIS_HAS_BUILTIN_POPCOUNT) )
-constexpr
-#endif
-typename std::enable_if<std::is_unsigned<T>::value, uint64_t>::type
-pop_count( T n )
+template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+inline GENESIS_POP_COUNT_CONSTEXPR size_t pop_count( T n )
 {
     #if defined(__cpp_lib_bitops)
 
@@ -151,6 +158,126 @@ pop_count( T n )
 #undef GENESIS_HAS_BUILTIN_POPCOUNT
 
 // ================================================================================================
+//     Count Trailing/Leading Bits
+// ================================================================================================
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+    #define GENESIS_COUNT_BITS_CONSTEXPR constexpr
+#else
+    #define GENESIS_COUNT_BITS_CONSTEXPR
+#endif
+
+/**
+ * @brief Returns the number of consecutive 0 bits starting from the least significant
+ */
+template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_trailing_zeros(T x)
+{
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
+
+        return std::countr_zero(x);
+
+    #elif defined(__GNUC__) || defined(__clang__)
+
+        // __builtin_ctzll is undefined for x==0, so handle that.
+        if (x == 0) {
+            return sizeof(T) * 8;
+        }
+        if GENESIS_IF_CONSTEXPR (sizeof(T) <= sizeof(unsigned int)) {
+            return __builtin_ctz(static_cast<unsigned int>(x));
+        } else if GENESIS_IF_CONSTEXPR (sizeof(T) <= sizeof(unsigned long)) {
+            return __builtin_ctzl(static_cast<unsigned long>(x));
+        } else {
+            return __builtin_ctzll(static_cast<unsigned long long>(x));
+        }
+
+    #else
+
+        // Fallback for counting trailing zeros for any unsigned type.
+        if( x == 0 ) {
+            // All bits are zero.
+            return sizeof(T) * 8;
+        }
+        size_t count = 0;
+        while( (x & T(1)) == 0 ) {
+            ++count;
+            x >>= 1;
+        }
+        return count;
+
+    #endif
+}
+
+/**
+ * @brief Returns the number of consecutive 0 bits starting from the most significant bit.
+ */
+template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_leading_zeros(T x)
+{
+    #if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
+
+        return std::countl_zero(x);
+
+    #elif defined(__GNUC__) || defined(__clang__)
+
+        // __builtin_clzll is undefined for x==0, so handle that.
+        if (x == 0) {
+            return sizeof(T) * 8;
+        }
+        if GENESIS_IF_CONSTEXPR (sizeof(T) <= sizeof(unsigned int)) {
+            return __builtin_clz(static_cast<unsigned int>(x));
+        } else if GENESIS_IF_CONSTEXPR (sizeof(T) <= sizeof(unsigned long)) {
+            return __builtin_clzl(static_cast<unsigned long>(x));
+        } else {
+            return __builtin_clzll(static_cast<unsigned long long>(x));
+        }
+
+    #else
+
+        // Fallback for counting leading zeros for any unsigned type.
+        size_t total = sizeof(T) * 8;
+        size_t count = 0;
+        // Check bits from the most significant (bit total-1) down to bit 0.
+        for( size_t i = static_cast<int>(total) - 1; i >= 0; --i ) {
+            if( x & (T(1) << i) ) {
+                break;
+            }
+            ++count;
+        }
+        return count;
+
+    #endif
+}
+
+/**
+ * @briefR eturns the number of consecutive 1 bits starting from the least significant bit.
+ */
+template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_trailing_ones(T x)
+{
+    // If x is 0, there are no trailing ones.
+    if( x == 0 ) {
+        return 0;
+    }
+    // Trailing ones in x equal trailing zeros in the bitwise NOT of x.
+    return count_trailing_zeros(~x);
+}
+
+/**
+ * @brief Returns the number of consecutive 1 bits starting from the most significant bit.
+ */
+template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_leading_ones(T x)
+{
+    // If x is all ones, then all bits are ones.
+    if( x == static_cast<T>(~T(0)) ) {
+        return sizeof(T) * 8;
+    }
+    // Leading ones in x equal leading zeros in the bitwise NOT of x.
+    return count_leading_zeros(~x);
+}
+
+// ================================================================================================
 //     Bit Extract
 // ================================================================================================
 
@@ -195,5 +322,7 @@ pop_count( T n )
 
 } // namespace utils
 } // namespace genesis
+
+#undef GENESIS_IF_CONSTEXPR
 
 #endif // include guard
