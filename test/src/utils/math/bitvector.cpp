@@ -960,6 +960,93 @@ TEST( Bitvector, FindFirstLastSet )
     }
 }
 
+TEST( Bitvector, ForEachSetBit )
+{
+    // Test case: Empty bitvector should not call the callback.
+    {
+        Bitvector bitvector;
+        size_t count = 0;
+        for_each_set_bit(
+            bitvector,
+            [&](size_t pos)
+            {
+                (void) pos;
+                ++count;
+            }
+        );
+        EXPECT_EQ(count, 0);
+    }
+
+    // Test case: Bitvector with no set bits.
+    {
+        auto bitvector = Bitvector( 180 );
+        size_t count = 0;
+        for_each_set_bit(
+            bitvector,
+            [&](size_t pos)
+            {
+                (void) pos;
+                ++count;
+            }
+        );
+        EXPECT_EQ(count, 0);
+    }
+
+    // Test case: Single 64-bit word with a few set bits.
+    // Example: 0b101010 has bits set at positions 1, 3, and 5.
+    {
+        auto bitvector = Bitvector( "0101001" );
+        std::vector<size_t> positions;
+        for_each_set_bit(
+            bitvector,
+            [&](size_t pos)
+            {
+                positions.push_back(pos);
+            }
+        );
+        std::vector<size_t> expected = {1, 3, 6};
+        EXPECT_EQ(positions, expected);
+    }
+
+    // Test cases: All bits set
+    {
+        for( size_t i = 1; i < 256; ++i ) {
+            auto bitvector = Bitvector( i, true );
+            size_t count = 0;
+            for_each_set_bit(
+                bitvector,
+                [&](size_t pos)
+                {
+                    EXPECT_EQ( pos, count );
+                    ++count;
+                }
+            );
+            EXPECT_EQ(count, i);
+        }
+    }
+
+    // Test case: Multiple words with various set bits.
+    // First word: 0b1010 (bits 1 and 3 set)
+    // Second word: 0b1001 (bits 0 and 3 set) => overall positions: 64+0 = 64, 64+3 = 67
+    {
+        auto bitvector = Bitvector( 96 );
+        bitvector.set(  1 );
+        bitvector.set(  3 );
+        bitvector.set( 64 );
+        bitvector.set( 67 );
+        std::vector<size_t> positions;
+        for_each_set_bit(
+            bitvector,
+            [&](size_t pos)
+            {
+                positions.push_back(pos);
+            }
+        );
+        std::vector<size_t> expected = {1, 3, 64, 67};
+        EXPECT_EQ(positions, expected);
+    }
+}
+
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
