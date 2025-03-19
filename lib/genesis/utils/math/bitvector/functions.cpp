@@ -418,7 +418,11 @@ size_t find_next_set( Bitvector const& bv, size_t start )
 
 void for_each_set_bit( Bitvector const& bitvector, std::function<void(size_t)> const& callback )
 {
-    static_assert( sizeof(Bitvector::IntType) == sizeof(uint64_t) );
+    static_assert(
+        sizeof(Bitvector::IntType) == sizeof(uint64_t),
+        "sizeof(Bitvector::IntType) == sizeof(uint64_t)"
+    );
+
     for( size_t word_index = 0; word_index < bitvector.data().size(); ++word_index ) {
         uint64_t word = bitvector.data()[word_index];
         while( word != 0 ) {
