@@ -110,7 +110,7 @@ namespace utils {
 /**
  * @brief Compute the pop count (Hamming weight) of an unsigned int.
  */
-template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+template <typename T, typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 inline GENESIS_POP_COUNT_CONSTEXPR size_t pop_count( T n )
 {
     #if defined(__cpp_lib_bitops)
@@ -172,7 +172,7 @@ inline GENESIS_POP_COUNT_CONSTEXPR size_t pop_count( T n )
 /**
  * @brief Returns the number of consecutive 0 bits starting from the least significant
  */
-template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+template <typename T, typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_trailing_zeros(T x)
 {
     #if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
@@ -213,7 +213,7 @@ inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_trailing_zeros(T x)
 /**
  * @brief Returns the number of consecutive 0 bits starting from the most significant bit.
  */
-template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+template <typename T, typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_leading_zeros(T x)
 {
     #if GENESIS_CPP_STD >= GENESIS_CPP_STD_20
@@ -254,7 +254,7 @@ inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_leading_zeros(T x)
 /**
  * @briefR eturns the number of consecutive 1 bits starting from the least significant bit.
  */
-template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+template <typename T, typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_trailing_ones(T x)
 {
     // If x is 0, there are no trailing ones.
@@ -268,7 +268,7 @@ inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_trailing_ones(T x)
 /**
  * @brief Returns the number of consecutive 1 bits starting from the most significant bit.
  */
-template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+template <typename T, typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_leading_ones(T x)
 {
     // If x is all ones, then all bits are ones.
