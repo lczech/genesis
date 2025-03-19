@@ -94,6 +94,7 @@ namespace utils {
 
 // Following the preprocessor documentation for __has_builtin
 // https://gcc.gnu.org/onlinedocs/cpp/_005f_005fhas_005fbuiltin.html
+// Nope, changed to just check for gcc or cland. Should work.
 #ifdef __has_builtin
     #if __has_builtin(__builtin_popcount) && __has_builtin(__builtin_popcountl) && __has_builtin(__builtin_popcountll)
         #define GENESIS_HAS_BUILTIN_POPCOUNT
@@ -119,7 +120,8 @@ inline GENESIS_POP_COUNT_CONSTEXPR size_t pop_count( T n )
         // https://en.cppreference.com/w/cpp/numeric/popcount
         return std::popcount(n);
 
-    #elif defined(GENESIS_HAS_BUILTIN_POPCOUNT)
+    #elif defined(__GNUC__) || defined(__clang__)
+    // #elif defined(GENESIS_HAS_BUILTIN_POPCOUNT)
 
         // Otherwise, use GCC/Clang intrinsic if available.
         if (sizeof(T) <= sizeof(unsigned int)) {
