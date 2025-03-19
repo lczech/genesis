@@ -72,7 +72,7 @@ TEST( Bit, CountBits )
         EXPECT_EQ(count_trailing_ones(T(0)), 0u);
         EXPECT_EQ(count_trailing_ones(T(1)), 1u);
         EXPECT_EQ(count_trailing_ones(T(3)), 2u);       // Binary: 11
-        EXPECT_EQ(count_trailing_ones(T(0b1011)), 2u);    // Trailing "11"
+        EXPECT_EQ(count_trailing_ones(T(0xB)), 2u);    // Trailing "11", 0b1011
         EXPECT_EQ(count_trailing_ones(T(~0u)), sizeof(T) * 8);
     }
 
@@ -112,7 +112,7 @@ TEST( Bit, CountBits )
         EXPECT_EQ(count_trailing_ones(T(0)), 0u);
         EXPECT_EQ(count_trailing_ones(T(1)), 1u);
         EXPECT_EQ(count_trailing_ones(T(3)), 2u);
-        EXPECT_EQ(count_trailing_ones(T(0b1011ULL)), 2u);
+        EXPECT_EQ(count_trailing_ones(T(0xBULL)), 2u); // 0b1011
         EXPECT_EQ(count_trailing_ones(T(~0ULL)), sizeof(T) * 8);
     }
 
