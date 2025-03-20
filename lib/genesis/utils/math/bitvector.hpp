@@ -118,7 +118,7 @@ public:
      * @brief Constructor that takes a size and an optional bool value to initialize the Bitvector,
      * false by default.
      */
-    Bitvector( size_t size, bool initial_value = false)
+    explicit Bitvector( size_t size, bool initial_value = false)
         : size_(size)
     {
         // Edge case.
