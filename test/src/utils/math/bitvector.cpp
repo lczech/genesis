@@ -456,6 +456,43 @@ TEST( Bitvector, SetOperators )
     EXPECT_EQ( Bitvector( "0110" ), symmetric_difference( p1, p2 ));
 }
 
+TEST( Bitvector, SetMinus )
+{
+    // Test Case 1: Basic functionality test.
+    {
+        // Test with two simple bitvectors.
+        auto A = Bitvector("1011011100");
+        auto B = Bitvector("1000111010");
+        // Expected result computed manually:
+        // Block 0: 0b101101 & ~0b100011 = 0b101101 & 0b011100 = 0b001100
+        // Block 1: 0b1100   & ~0b1010   = 0b1100   & 0b0101   = 0b0100
+        auto expected = Bitvector("0011000100");
+
+        auto result = set_minus(A, B);
+        EXPECT_EQ(result, expected);
+    }
+
+    // Test Case 2: Test with empty vectors.
+    {
+        Bitvector A;
+        Bitvector B;
+        Bitvector expected;
+
+        auto result = set_minus(A, B);
+        EXPECT_EQ(result, expected);
+    }
+
+    // Test Case 3: When A has all bits set and B is zero.
+    {
+        auto const A = Bitvector(64, true);  // All bits set.
+        auto const B = Bitvector(64, false); // No bits set.
+        Bitvector expected = A; // The result should be identical to A.
+
+        auto result = set_minus(A, B);
+        EXPECT_EQ(result, expected);
+    }
+}
+
 TEST( Bitvector, StrictSubset )
 {
     // 1. Both vectors empty (identical): not a strict subset.

@@ -444,10 +444,20 @@ void for_each_set_bit( Bitvector const& bitvector, std::function<void(size_t)> c
 
 Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
 {
+    if( lhs.size() != rhs.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute set difference between Bitvectors of different size"
+        );
+    }
+    auto result = Bitvector( lhs.size() );
+    for( size_t i = 0; i < lhs.data().size(); ++i ) {
+        result.data()[i] = (lhs.data()[i]) & ~(rhs.data()[i]);
+    }
+    result.unset_padding_bits();
+    return result;
+
     // Not efficient, as it creates temporary vectors...
-    // but not needed in any performance relevant way at the moment,
-    // so let's keep it like this for now.
-    return lhs & (~rhs);
+    // return lhs & (~rhs);
 }
 
 Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs )
