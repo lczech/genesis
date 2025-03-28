@@ -113,9 +113,11 @@ TEST( SerialTaskQueue, EnqueueDetached )
             std::ref(counter), 1
         );
     }
+
     // Enqueue a final task to ensure all previous tasks have run.
-    auto future = queue.enqueue_and_retrieve([](){});
-    future.get();
+    // auto future = queue.enqueue_and_retrieve([](){});
+    // future.get();
+    pool->wait_for_all_pending_tasks();
 
     EXPECT_EQ(counter.load(), num_tasks);
 }
@@ -151,9 +153,11 @@ TEST( SerialTaskQueue, StressTest )
     for (auto &t : enqueuers) {
         t.join();
     }
+
     // Enqueue a final task to wait for the serial queue to drain.
-    auto future = queue.enqueue_and_retrieve([](){});
-    future.get();
+    // auto future = queue.enqueue_and_retrieve([](){});
+    // future.get();
+    pool->wait_for_all_pending_tasks();
 
     EXPECT_EQ(counter.load(), total_tasks);
 }
