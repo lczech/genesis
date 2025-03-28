@@ -190,6 +190,7 @@
 #include "genesis/utils/threading/lightweight_semaphore.hpp"
 #include "genesis/utils/threading/multi_future.hpp"
 #include "genesis/utils/threading/sequential_output_buffer.hpp"
+#include "genesis/utils/threading/serial_task_queue.hpp"
 #include "genesis/utils/threading/thread_functions.hpp"
 #include "genesis/utils/threading/thread_local_cache.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"
