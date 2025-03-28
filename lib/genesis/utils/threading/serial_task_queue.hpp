@@ -81,11 +81,38 @@ public:
 
     ~SerialTaskQueue() noexcept = default;
 
-    SerialTaskQueue( SerialTaskQueue&& ) noexcept = default;
+    // Deleted copies
     SerialTaskQueue( SerialTaskQueue const& ) = delete;
-
-    SerialTaskQueue& operator=( SerialTaskQueue&& ) noexcept = default;
     SerialTaskQueue& operator=( SerialTaskQueue const& ) = delete;
+
+    // Move constructor.
+    SerialTaskQueue( SerialTaskQueue&& other ) noexcept
+    {
+        // Lock the other object to safely move its state.
+        std::lock_guard<std::mutex> lock( other.mutex_ );
+        pool_ = std::move( other.pool_ );
+        tasks_ = std::move( other.tasks_ );
+        running_ = other.running_;
+        other.running_ = false;
+    }
+
+    // Move assignment operator.
+    SerialTaskQueue& operator=( SerialTaskQueue&& other ) noexcept
+    {
+        if( this == &other ) {
+            return *this;
+        }
+
+        // Lock both mutexes without deadlock.
+        std::lock( mutex_, other.mutex_ );
+        std::lock_guard<std::mutex> lock1( mutex_, std::adopt_lock );
+        std::lock_guard<std::mutex> lock2( other.mutex_, std::adopt_lock );
+        pool_ = std::move( other.pool_ );
+        tasks_ = std::move( other.tasks_ );
+        running_ = other.running_;
+        other.running_ = false;
+        return *this;
+    }
 
     // -------------------------------------------------------------
     //     Pool Functionality

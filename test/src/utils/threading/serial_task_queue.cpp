@@ -50,77 +50,74 @@ using namespace genesis::utils;
 //     Basics
 // =================================================================================================
 
-TEST( SerialTaskQueue, Basics )
+TEST( SerialTaskQueue, SequentialExecution )
 {
-    // SequentialExecution
-    {
-        auto pool = std::make_shared<ThreadPool>(4);
-        SerialTaskQueue queue(pool);
+    auto pool = std::make_shared<ThreadPool>(4);
+    SerialTaskQueue queue(pool);
 
-        std::mutex vec_mutex;
-        std::vector<int> execution_order;
-        const int num_tasks = 1000;
+    std::mutex vec_mutex;
+    std::vector<int> execution_order;
+    const int num_tasks = 1000;
 
-        // Enqueue tasks that push their index into a vector.
-        for (int i = 0; i < num_tasks; ++i) {
-            queue.enqueue_detached([i, &execution_order, &vec_mutex]() {
-                std::lock_guard<std::mutex> lock(vec_mutex);
-                execution_order.push_back(i);
-            });
-        }
-        // Enqueue a final task (via enqueue_and_retrieve) to wait until all tasks finish.
-        auto future = queue.enqueue_and_retrieve([](){});
-        future.get();
-
-        // Check that tasks executed in the order they were enqueued.
-        ASSERT_EQ(execution_order.size(), static_cast<size_t>(num_tasks));
-        for (int i = 0; i < num_tasks; ++i) {
-            EXPECT_EQ(execution_order[i], i);
-        }
+    // Enqueue tasks that push their index into a vector.
+    for (int i = 0; i < num_tasks; ++i) {
+        queue.enqueue_detached([i, &execution_order, &vec_mutex]() {
+            std::lock_guard<std::mutex> lock(vec_mutex);
+            execution_order.push_back(i);
+        });
     }
+    // Enqueue a final task (via enqueue_and_retrieve) to wait until all tasks finish.
+    auto future = queue.enqueue_and_retrieve([](){});
+    future.get();
 
-    // EnqueueAndRetrieve
-    {
-        auto pool = std::make_shared<ThreadPool>(4);
-        SerialTaskQueue queue(pool);
+    // Check that tasks executed in the order they were enqueued.
+    ASSERT_EQ(execution_order.size(), static_cast<size_t>(num_tasks));
+    for (int i = 0; i < num_tasks; ++i) {
+        EXPECT_EQ(execution_order[i], i);
+    }
+}
 
-        // Enqueue a simple lambda that returns a computed value.
-        auto future = queue.enqueue_and_retrieve(
-            [](int a, int b)
+TEST( SerialTaskQueue, EnqueueAndRetrieve )
+{
+    auto pool = std::make_shared<ThreadPool>(4);
+    SerialTaskQueue queue(pool);
+
+    // Enqueue a simple lambda that returns a computed value.
+    auto future = queue.enqueue_and_retrieve(
+        [](int a, int b)
+        {
+            return a + b;
+        },
+        10, 32
+    );
+
+    int result = future.get();
+    EXPECT_EQ(result, 42);
+}
+
+TEST( SerialTaskQueue, EnqueueDetached )
+{
+    auto pool = std::make_shared<ThreadPool>(4);
+    SerialTaskQueue queue(pool);
+
+    std::atomic<int> counter(0);
+    const int num_tasks = 100;
+
+    // Enqueue detached tasks that increment the counter.
+    for (int i = 0; i < num_tasks; ++i) {
+        queue.enqueue_detached(
+            [](std::atomic<int>& cnt, int increment)
             {
-                return a + b;
+                cnt.fetch_add(increment, std::memory_order_relaxed);
             },
-            10, 32
+            std::ref(counter), 1
         );
-
-        int result = future.get();
-        EXPECT_EQ(result, 42);
     }
+    // Enqueue a final task to ensure all previous tasks have run.
+    auto future = queue.enqueue_and_retrieve([](){});
+    future.get();
 
-    // EnqueueDetached
-    {
-        auto pool = std::make_shared<ThreadPool>(4);
-        SerialTaskQueue queue(pool);
-
-        std::atomic<int> counter(0);
-        const int num_tasks = 100;
-
-        // Enqueue detached tasks that increment the counter.
-        for (int i = 0; i < num_tasks; ++i) {
-            queue.enqueue_detached(
-                [](std::atomic<int>& cnt, int increment)
-                {
-                    cnt.fetch_add(increment, std::memory_order_relaxed);
-                },
-                std::ref(counter), 1
-            );
-        }
-        // Enqueue a final task to ensure all previous tasks have run.
-        auto future = queue.enqueue_and_retrieve([](){});
-        future.get();
-
-        EXPECT_EQ(counter.load(), num_tasks);
-    }
+    EXPECT_EQ(counter.load(), num_tasks);
 }
 
 // =================================================================================================
