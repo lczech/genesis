@@ -262,8 +262,6 @@ private:
             return 0;
         };
 
-        LOG_DBG << info_process_current_memory_usage();
-
         std::stringstream ss;
         ss << (num_counter_++);
         ss << "\t" << current_date();
