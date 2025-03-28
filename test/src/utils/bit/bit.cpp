@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/math/bit.hpp"
+#include "genesis/utils/bit/bit.hpp"
 
 using namespace genesis::utils;
 

@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_MATH_BIT_H_
-#define GENESIS_UTILS_MATH_BIT_H_
+#ifndef GENESIS_UTILS_BIT_BIT_H_
+#define GENESIS_UTILS_BIT_BIT_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

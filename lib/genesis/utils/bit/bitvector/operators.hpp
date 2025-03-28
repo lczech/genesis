@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_MATH_BITVECTOR_OPERATORS_H_
-#define GENESIS_UTILS_MATH_BITVECTOR_OPERATORS_H_
+#ifndef GENESIS_UTILS_BIT_BITVECTOR_OPERATORS_H_
+#define GENESIS_UTILS_BIT_BITVECTOR_OPERATORS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/bitvector.hpp"
-#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
+#include "genesis/utils/bit/bitvector/functions.hpp"
 #include "genesis/utils/io/deserializer.hpp"
 #include "genesis/utils/io/serializer.hpp"
 

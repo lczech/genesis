@@ -28,8 +28,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/bitvector/operators.hpp"
-#include "genesis/utils/math/bit.hpp"
+#include "genesis/utils/bit/bitvector/operators.hpp"
+#include "genesis/utils/bit/bit.hpp"
 
 #include <algorithm>
 #include <cassert>

@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_MATH_BITVECTOR_FUNCTIONS_H_
-#define GENESIS_UTILS_MATH_BITVECTOR_FUNCTIONS_H_
+#ifndef GENESIS_UTILS_BIT_BITVECTOR_FUNCTIONS_H_
+#define GENESIS_UTILS_BIT_BITVECTOR_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
 #include "genesis/utils/core/std.hpp"
 
 #include <cstddef>

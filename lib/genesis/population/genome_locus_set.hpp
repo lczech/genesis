@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,8 +43,8 @@
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/genome_region_list.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/math/bitvector.hpp"
-#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
+#include "genesis/utils/bit/bitvector/functions.hpp"
 
 namespace genesis {
 namespace population {

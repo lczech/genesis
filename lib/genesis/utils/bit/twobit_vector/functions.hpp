@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_TWOBIT_VECTOR_FUNCTIONS_H_
-#define GENESIS_UTILS_MATH_TWOBIT_VECTOR_FUNCTIONS_H_
+#ifndef GENESIS_UTILS_BIT_TWOBIT_VECTOR_FUNCTIONS_H_
+#define GENESIS_UTILS_BIT_TWOBIT_VECTOR_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/twobit_vector.hpp"
+#include "genesis/utils/bit/twobit_vector.hpp"
 
 #include <string>
 

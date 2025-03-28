@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/bipartition/bipartition.hpp"
-#include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
 
 #include <string>
 #include <vector>

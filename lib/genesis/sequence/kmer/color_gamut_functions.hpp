@@ -38,9 +38,9 @@
 #include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/math/bitvector.hpp"
-#include "genesis/utils/math/bitvector/functions.hpp"
-#include "genesis/utils/math/bitvector/operators.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
+#include "genesis/utils/bit/bitvector/functions.hpp"
+#include "genesis/utils/bit/bitvector/operators.hpp"
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
