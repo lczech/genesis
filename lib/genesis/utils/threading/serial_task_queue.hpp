@@ -120,7 +120,7 @@ public:
     //     Pool Functionality
     // -------------------------------------------------------------
 
-    inline void enqueue( Task task )
+    inline void enqueue( Task&& task )
     {
         {
             // Scoped lock to add the task to the queue and
