@@ -32,6 +32,7 @@
  */
 
 #include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/std.hpp"
 
 #include <atomic>
@@ -138,12 +139,16 @@ public:
         auto future_result = ProactiveFuture<result_type>( wrapped_task->get_future(), *pool_ );
 
         // Enqueue the packaged task, and return the future.
+        LOG_DBG << "enqueue_and_retrieve A";
         enqueue_(
             [wrapped_task]()
             {
+                LOG_DBG << "enqueue_and_retrieve B";
                 (*wrapped_task)();
+                LOG_DBG << "enqueue_and_retrieve C";
             }
         );
+        LOG_DBG << "enqueue_and_retrieve D";
         return future_result;
     }
 
@@ -157,12 +162,16 @@ public:
         );
 
         // Capture the shared_ptr in the lambda so that the callable’s state is maintained.
+        LOG_DBG << "enqueue_detached A";
         enqueue_(
             [task_ptr]()
             {
+                LOG_DBG << "enqueue_detached B";
                 (*task_ptr)();
+                LOG_DBG << "enqueue_detached C";
             }
         );
+        LOG_DBG << "enqueue_detached D";
     }
 
     // -------------------------------------------------------------
@@ -176,11 +185,15 @@ private:
         {
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
+            LOG_DBG << "enqueue_ A";
             std::lock_guard<std::mutex> lock( mutex_ );
             tasks_.push( std::move( task ));
+            LOG_DBG << "enqueue_ B";
             if( running_ ) {
+                LOG_DBG << "enqueue_ C";
                 return;
             }
+            LOG_DBG << "enqueue_ D";
             running_ = true;
         }
 
@@ -190,25 +203,34 @@ private:
         pool_->enqueue_detached(
             [this]
             {
+                LOG_DBG << "enqueue_ E";
                 process_tasks_();
+                LOG_DBG << "enqueue_ F";
             }
         );
     }
 
     void process_tasks_()
     {
+        LOG_DBG << "process_tasks_ A";
         while( true ) {
+            LOG_DBG << "process_tasks_ B";
             Task current_task;
             {
+                LOG_DBG << "process_tasks_ C";
                 std::lock_guard<std::mutex> lock(mutex_);
                 if( tasks_.empty() ) {
+                    LOG_DBG << "process_tasks_ D";
                     running_ = false;
                     break;
                 }
+                LOG_DBG << "process_tasks_ E";
                 current_task = std::move( tasks_.front() );
                 tasks_.pop();
+                LOG_DBG << "process_tasks_ F";
             }
             current_task();
+            LOG_DBG << "process_tasks_ G";
         }
     }
 
