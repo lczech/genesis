@@ -34,6 +34,7 @@
 #include "genesis/utils/threading/thread_pool.hpp"
 #include "genesis/utils/core/std.hpp"
 
+#include <atomic>
 #include <cassert>
 #include <functional>
 #include <future>
@@ -92,8 +93,8 @@ public:
         std::lock_guard<std::mutex> lock( other.mutex_ );
         pool_ = std::move( other.pool_ );
         tasks_ = std::move( other.tasks_ );
-        running_ = other.running_;
-        other.running_ = false;
+        running_ = other.running_.load( std::memory_order_relaxed );
+        other.running_.store( false, std::memory_order_relaxed );
     }
 
     // Move assignment operator.
@@ -109,8 +110,8 @@ public:
         std::lock_guard<std::mutex> lock2( other.mutex_, std::adopt_lock );
         pool_ = std::move( other.pool_ );
         tasks_ = std::move( other.tasks_ );
-        running_ = other.running_;
-        other.running_ = false;
+        running_ = other.running_.load( std::memory_order_relaxed );
+        other.running_.store( false, std::memory_order_relaxed );
         return *this;
     }
 
@@ -157,7 +158,7 @@ public:
 
         // Capture the shared_ptr in the lambda so that the callable’s state is maintained.
         enqueue_(
-            [task_ptr]() mutable
+            [task_ptr]()
             {
                 (*task_ptr)();
             }
@@ -214,7 +215,7 @@ private:
     std::shared_ptr<ThreadPool> pool_;
     std::queue<Task> tasks_;
     std::mutex mutex_;
-    bool running_;
+    std::atomic<bool> running_;
 };
 
 } // namespace utils
