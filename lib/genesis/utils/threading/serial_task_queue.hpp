@@ -126,7 +126,13 @@ public:
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
             std::lock_guard<std::mutex> lock( mutex_ );
-            tasks_.push( std::move( task ));
+
+            // Capture the function in a shared pointer in a lambda, in order to
+            // circumvent stupid macos apple clang lambda capture bug.
+            auto task_ptr = std::make_shared<Task>( std::move( task ));
+            tasks_.push([task_ptr]() { (*task_ptr)(); });
+            // tasks_.push( std::move( task ));
+
             if( running_ ) {
                 return;
             }
