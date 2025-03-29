@@ -74,8 +74,6 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------
 
-    using Task = std::function<void()>;
-
     explicit SerialTaskQueue( std::shared_ptr<ThreadPool> pool )
         : pool_( std::move( pool ))
         , running_( false )
@@ -120,7 +118,7 @@ public:
     //     Pool Functionality
     // -------------------------------------------------------------
 
-    inline void enqueue( Task&& task )
+    inline void enqueue( std::function<void()>&& task )
     {
         {
             // Scoped lock to add the task to the queue and
@@ -129,9 +127,12 @@ public:
 
             // Capture the function in a shared pointer in a lambda, in order to
             // circumvent stupid macos apple clang lambda capture bug.
-            auto task_ptr = std::make_shared<Task>( std::move( task ));
-            tasks_.push([task_ptr]() { (*task_ptr)(); });
+            // auto task_ptr = std::make_shared<Task>( std::move( task ));
+            // tasks_.push([task_ptr]() { (*task_ptr)(); });
             // tasks_.push( std::move( task ));
+            WrappedTask wrapped_task;
+            wrapped_task.function = std::move( task );
+            tasks_.push( std::move( wrapped_task ));
 
             if( running_ ) {
                 return;
@@ -239,7 +240,7 @@ private:
     void process_tasks_()
     {
         while( true ) {
-            Task current_task;
+            WrappedTask current_task;
             {
                 std::lock_guard<std::mutex> lock(mutex_);
                 if( tasks_.empty() ) {
@@ -249,13 +250,18 @@ private:
                 current_task = std::move( tasks_.front() );
                 tasks_.pop();
             }
-            assert( current_task );
-            current_task();
+            assert( current_task.function );
+            current_task.function();
         }
     }
 
+    struct WrappedTask
+    {
+        std::function<void()> function;
+    };
+
     std::shared_ptr<ThreadPool> pool_;
-    std::queue<Task> tasks_;
+    std::queue<WrappedTask> tasks_;
     std::mutex mutex_;
     std::atomic<bool> running_;
 };
