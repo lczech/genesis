@@ -126,8 +126,7 @@ public:
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
             std::lock_guard<std::mutex> lock( mutex_ );
-            tasks_.push( task );
-            // tasks_.push( std::move( task ));
+            tasks_.push( std::move( task ));
             if( running_ ) {
                 return;
             }
@@ -241,8 +240,7 @@ private:
                     running_ = false;
                     break;
                 }
-                current_task = tasks_.front();
-                // current_task = std::move( tasks_.front() );
+                current_task = std::move( tasks_.front() );
                 tasks_.pop();
             }
             assert( current_task );
