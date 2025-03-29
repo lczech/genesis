@@ -74,7 +74,7 @@ public:
      * @brief  Default constructor creates an empty string ("")
      */
     LightString()
-        : data_( std::make_unique<char[]>( 1 ))
+        : data_( ::genesis::utils::make_unique<char[]>( 1 ))
     {
         data_[0] = '\0';
     }
@@ -87,11 +87,11 @@ public:
         if( str ) {
             // Get the length of the string and allocate space (including null terminator)
             size_t len = std::strlen(str);
-            data_ = std::make_unique<char[]>(len + 1);
+            data_ = ::genesis::utils::make_unique<char[]>(len + 1);
             std::memcpy(data_.get(), str, len + 1);
         } else {
             // If null pointer provided, create an empty string
-            data_ = std::make_unique<char[]>(1);
+            data_ = ::genesis::utils::make_unique<char[]>(1);
             data_[0] = '\0';
         }
     }
@@ -111,7 +111,7 @@ public:
     explicit LightString( std::string_view sv )
     {
         size_t len = sv.size();
-        data_ = std::make_unique<char[]>(len + 1);
+        data_ = ::genesis::utils::make_unique<char[]>(len + 1);
         std::memcpy(data_.get(), sv.data(), len);
         data_[len] = '\0';
     }
@@ -125,7 +125,7 @@ public:
     {
         assert( other.data_ );
         size_t len = std::strlen(other.data_.get());
-        data_ = std::make_unique<char[]>(len + 1);
+        data_ = ::genesis::utils::make_unique<char[]>(len + 1);
         std::memcpy(data_.get(), other.data_.get(), len + 1);
     }
 
@@ -144,7 +144,7 @@ public:
         assert( other.data_ );
         if( this != &other ) {
             size_t len = std::strlen(other.data_.get());
-            data_ = std::make_unique<char[]>(len + 1);
+            data_ = ::genesis::utils::make_unique<char[]>(len + 1);
             std::memcpy(data_.get(), other.data_.get(), len + 1);
         }
         return *this;
@@ -751,7 +751,7 @@ inline LightString operator+( LightString const& lhs, LightString const& rhs )
     // Allocate memory for the concatenated string (including null terminator),
     // and copy over the data of both.
     size_t new_size = lhs.size() + rhs.size();
-    auto buffer = std::make_unique<char[]>(new_size + 1);
+    auto buffer = ::genesis::utils::make_unique<char[]>(new_size + 1);
     std::memcpy(buffer.get(), lhs.c_str(), lhs.size());
     std::memcpy(buffer.get() + lhs.size(), rhs.c_str(), rhs.size());
     buffer[new_size] = '\0';
