@@ -61,17 +61,21 @@ TEST( SerialTaskQueue, SequentialExecution )
 
     // Enqueue tasks that push their index into a vector.
     for (int i = 0; i < num_tasks; ++i) {
-        LOG_DBG << "queue.enqueue_detached A";
-        queue.enqueue_detached([i, &execution_order, &vec_mutex]()
+        // queue.enqueue_detached([i, &execution_order, &vec_mutex]()
+        // {
+        //     std::lock_guard<std::mutex> lock(vec_mutex);
+        //     execution_order.push_back(i);
+        // });
+        queue.enqueue([i, &execution_order, &vec_mutex]()
         {
-            LOG_DBG << "execution_order.push_back";
             std::lock_guard<std::mutex> lock(vec_mutex);
             execution_order.push_back(i);
         });
     }
     // Enqueue a final task (via enqueue_and_retrieve) to wait until all tasks finish.
-    auto future = queue.enqueue_and_retrieve([](){});
-    future.get();
+    // auto future = queue.enqueue_and_retrieve([](){});
+    // future.get();
+    pool->wait_for_all_pending_tasks();
 
     // Check that tasks executed in the order they were enqueued.
     ASSERT_EQ(execution_order.size(), static_cast<size_t>(num_tasks));
@@ -80,23 +84,23 @@ TEST( SerialTaskQueue, SequentialExecution )
     }
 }
 
-TEST( SerialTaskQueue, EnqueueAndRetrieve )
-{
-    auto pool = std::make_shared<ThreadPool>(4);
-    SerialTaskQueue queue(pool);
-
-    // Enqueue a simple lambda that returns a computed value.
-    auto future = queue.enqueue_and_retrieve(
-        [](int a, int b)
-        {
-            return a + b;
-        },
-        10, 32
-    );
-
-    int result = future.get();
-    EXPECT_EQ(result, 42);
-}
+// TEST( SerialTaskQueue, EnqueueAndRetrieve )
+// {
+//     auto pool = std::make_shared<ThreadPool>(4);
+//     SerialTaskQueue queue(pool);
+//
+//     // Enqueue a simple lambda that returns a computed value.
+//     auto future = queue.enqueue_and_retrieve(
+//         [](int a, int b)
+//         {
+//             return a + b;
+//         },
+//         10, 32
+//     );
+//
+//     int result = future.get();
+//     EXPECT_EQ(result, 42);
+// }
 
 TEST( SerialTaskQueue, EnqueueDetached )
 {
@@ -108,16 +112,19 @@ TEST( SerialTaskQueue, EnqueueDetached )
 
     // Enqueue detached tasks that increment the counter.
     for (int i = 0; i < num_tasks; ++i) {
-        LOG_DBG << "queue.enqueue_detached A";
-        queue.enqueue_detached(
-            [](std::atomic<int>& cnt, int increment)
+        // queue.enqueue_detached(
+        //     [](std::atomic<int>& cnt, int increment)
+        //     {
+        //         cnt.fetch_add(increment, std::memory_order_relaxed);
+        //     },
+        //     std::ref(counter), 1
+        // );
+        queue.enqueue(
+            [&counter]()
             {
-                LOG_DBG << "counter.fetch_add";
-                cnt.fetch_add(increment, std::memory_order_relaxed);
-            },
-            std::ref(counter), 1
+                counter.fetch_add(1, std::memory_order_relaxed);
+            }
         );
-        LOG_DBG << "queue.enqueue_detached B";
     }
 
     // Enqueue a final task to ensure all previous tasks have run.
@@ -135,8 +142,8 @@ TEST( SerialTaskQueue, EnqueueDetached )
 TEST( SerialTaskQueue, StressTest )
 {
     std::atomic<int> counter(0);
-    const int total_tasks = 128;
-    // const int total_tasks = 100000;
+    // const int total_tasks = 128;
+    const int total_tasks = 100000;
     const int num_threads = 8;
     int tasks_per_thread = total_tasks / num_threads;
 
@@ -146,23 +153,19 @@ TEST( SerialTaskQueue, StressTest )
     // Launch multiple threads that concurrently enqueue detached tasks.
     std::vector<std::thread> enqueuers;
     for (int i = 0; i < num_threads; ++i) {
-        LOG_DBG << "enqueuers.emplace_back A";
         enqueuers.emplace_back(
             [&queue, &counter, tasks_per_thread]()
             {
-                LOG_DBG << "enqueuers.emplace_back B";
                 for (int j = 0; j < tasks_per_thread; ++j) {
-                    LOG_DBG << "queue.enqueue_detached A";
-                    queue.enqueue_detached([&counter]() {
-                        LOG_DBG << "counter.fetch_add";
+                    // queue.enqueue_detached([&counter]() {
+                    //     counter.fetch_add(1, std::memory_order_relaxed);
+                    // });
+                    queue.enqueue([&counter]() {
                         counter.fetch_add(1, std::memory_order_relaxed);
                     });
-                    LOG_DBG << "queue.enqueue_detached B";
                 }
-                LOG_DBG << "enqueuers.emplace_back C";
             }
         );
-        LOG_DBG << "enqueuers.emplace_back D";
     }
     for (auto &t : enqueuers) {
         t.join();

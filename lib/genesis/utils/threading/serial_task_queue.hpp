@@ -120,85 +120,17 @@ public:
     //     Pool Functionality
     // -------------------------------------------------------------
 
-    template<typename F, typename... Args>
-    inline auto enqueue_and_retrieve( F&& f, Args&&... args )
-    -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
-    {
-        using result_type = typename genesis_invoke_result<F, Args...>::type;
-
-        // Bind the function and its arguments and wrap it in a std::function,
-        // using a shared pointer because otherwise macos does not capture this correctly...
-        auto task_ptr = std::make_shared<std::function<result_type()>>(
-            std::bind( std::forward<F>(f), std::forward<Args>(args)... )
-        );
-        assert( *task_ptr );
-
-        // Create a packaged_task that calls the callable via the shared_ptr.
-        auto wrapped_task = std::make_shared<std::packaged_task<result_type()>>(
-            [task_ptr]() { return (*task_ptr)(); }
-        );
-        auto future_result = ProactiveFuture<result_type>( wrapped_task->get_future(), *pool_ );
-
-        // Enqueue the packaged task, and return the future.
-        LOG_DBG << "enqueue_and_retrieve A";
-        enqueue_(
-            [wrapped_task]()
-            {
-                LOG_DBG << "enqueue_and_retrieve B";
-                // assert( *wrapped_task );
-                (*wrapped_task)();
-                LOG_DBG << "enqueue_and_retrieve C";
-            }
-        );
-        LOG_DBG << "enqueue_and_retrieve D";
-        return future_result;
-    }
-
-    template<typename F, typename... Args>
-    inline void enqueue_detached( F&& f, Args&&... args )
-    {
-        // Bind the function and its arguments and wrap it in a std::function,
-        // using a shared pointer because otherwise macos does not capture this correctly...
-        auto task_ptr = std::make_shared<std::function<void()>>(
-            std::bind( std::forward<F>(f), std::forward<Args>(args)... )
-        );
-        assert( *task_ptr );
-
-        // Capture the shared_ptr in the lambda so that the callable’s state is maintained.
-        LOG_DBG << "enqueue_detached A";
-        enqueue_(
-            [task_ptr]()
-            {
-                LOG_DBG << "enqueue_detached B";
-                assert( *task_ptr );
-                (*task_ptr)();
-                LOG_DBG << "enqueue_detached C";
-            }
-        );
-        LOG_DBG << "enqueue_detached D";
-    }
-
-    // -------------------------------------------------------------
-    //     Internals
-    // -------------------------------------------------------------
-
-private:
-
-    inline void enqueue_( Task task )
+    inline void enqueue( Task task )
     {
         {
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
-            LOG_DBG << "enqueue_ A";
             std::lock_guard<std::mutex> lock( mutex_ );
             tasks_.push( task );
             // tasks_.push( std::move( task ));
-            LOG_DBG << "enqueue_ B";
             if( running_ ) {
-                LOG_DBG << "enqueue_ C";
                 return;
             }
-            LOG_DBG << "enqueue_ D";
             running_ = true;
         }
 
@@ -208,36 +140,113 @@ private:
         pool_->enqueue_detached(
             [this]
             {
-                LOG_DBG << "enqueue_ E";
                 process_tasks_();
-                LOG_DBG << "enqueue_ F";
             }
         );
     }
 
+    // All the below niceness does not seem to work on macos. For whatever reason,
+    // the task function ends up being valid but empty, and so gets executed without
+    // any effect. No idea what is going on there, and not worth fixing now.
+    // Hence, for now, we just offer a simple interface here. Stupid macos compiler.
+
+    // template<typename F, typename... Args>
+    // inline auto enqueue_and_retrieve( F&& f, Args&&... args )
+    // -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
+    // {
+    //     using result_type = typename genesis_invoke_result<F, Args...>::type;
+    //
+    //     // Bind the function and its arguments and wrap it in a std::function,
+    //     // using a shared pointer because otherwise macos does not capture this correctly...
+    //     auto task_ptr = std::make_shared<std::function<result_type()>>(
+    //         std::bind( std::forward<F>(f), std::forward<Args>(args)... )
+    //     );
+    //     assert( *task_ptr );
+    //
+    //     // Create a packaged_task that calls the callable via the shared_ptr.
+    //     auto wrapped_task = std::make_shared<std::packaged_task<result_type()>>(
+    //         [task_ptr]() { return (*task_ptr)(); }
+    //     );
+    //     auto future_result = ProactiveFuture<result_type>( wrapped_task->get_future(), *pool_ );
+    //
+    //     // Enqueue the packaged task, and return the future.
+    //     enqueue_(
+    //         [wrapped_task]()
+    //         {
+    //             // assert( *wrapped_task );
+    //             (*wrapped_task)();
+    //         }
+    //     );
+    //     return future_result;
+    // }
+    //
+    // template<typename F, typename... Args>
+    // inline void enqueue_detached( F&& f, Args&&... args )
+    // {
+    //     // Bind the function and its arguments and wrap it in a std::function,
+    //     // using a shared pointer because otherwise macos does not capture this correctly...
+    //     auto task_ptr = std::make_shared<std::function<void()>>(
+    //         std::bind( std::forward<F>(f), std::forward<Args>(args)... )
+    //     );
+    //     assert( *task_ptr );
+    //
+    //     // Capture the shared_ptr in the lambda so that the callable’s state is maintained.
+    //     enqueue_(
+    //         [task_ptr]()
+    //         {
+    //             assert( *task_ptr );
+    //             (*task_ptr)();
+    //         }
+    //     );
+    // }
+
+    // -------------------------------------------------------------
+    //     Internals
+    // -------------------------------------------------------------
+
+private:
+
+    // inline void enqueue_( Task task )
+    // {
+    //     {
+    //         // Scoped lock to add the task to the queue and
+    //         // signal that we are processing now.
+    //         std::lock_guard<std::mutex> lock( mutex_ );
+    //         tasks_.push( task );
+    //         // tasks_.push( std::move( task ));
+    //         if( running_ ) {
+    //             return;
+    //         }
+    //         running_ = true;
+    //     }
+    //
+    //     // We only reach this point if there isn't already
+    //     // a thread processing the queue. In that case, start one.
+    //     assert( pool_ );
+    //     pool_->enqueue_detached(
+    //         [this]
+    //         {
+    //             process_tasks_();
+    //         }
+    //     );
+    // }
+
     void process_tasks_()
     {
-        LOG_DBG << "process_tasks_ A";
         while( true ) {
-            LOG_DBG << "process_tasks_ B";
             Task current_task;
             {
-                LOG_DBG << "process_tasks_ C";
                 std::lock_guard<std::mutex> lock(mutex_);
                 if( tasks_.empty() ) {
-                    LOG_DBG << "process_tasks_ D";
                     running_ = false;
                     break;
                 }
-                LOG_DBG << "process_tasks_ E";
                 current_task = tasks_.front();
                 // current_task = std::move( tasks_.front() );
                 tasks_.pop();
-                LOG_DBG << "process_tasks_ F";
             }
             assert( current_task );
             current_task();
-            LOG_DBG << "process_tasks_ G";
         }
     }
 
