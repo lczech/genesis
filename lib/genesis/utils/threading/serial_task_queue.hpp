@@ -131,6 +131,7 @@ public:
         auto task_ptr = std::make_shared<std::function<result_type()>>(
             std::bind( std::forward<F>(f), std::forward<Args>(args)... )
         );
+        assert( *task_ptr );
 
         // Create a packaged_task that calls the callable via the shared_ptr.
         auto wrapped_task = std::make_shared<std::packaged_task<result_type()>>(
@@ -144,6 +145,7 @@ public:
             [wrapped_task]()
             {
                 LOG_DBG << "enqueue_and_retrieve B";
+                // assert( *wrapped_task );
                 (*wrapped_task)();
                 LOG_DBG << "enqueue_and_retrieve C";
             }
@@ -160,6 +162,7 @@ public:
         auto task_ptr = std::make_shared<std::function<void()>>(
             std::bind( std::forward<F>(f), std::forward<Args>(args)... )
         );
+        assert( *task_ptr );
 
         // Capture the shared_ptr in the lambda so that the callable’s state is maintained.
         LOG_DBG << "enqueue_detached A";
@@ -167,6 +170,7 @@ public:
             [task_ptr]()
             {
                 LOG_DBG << "enqueue_detached B";
+                assert( *task_ptr );
                 (*task_ptr)();
                 LOG_DBG << "enqueue_detached C";
             }
@@ -180,14 +184,15 @@ public:
 
 private:
 
-    void enqueue_( Task task )
+    inline void enqueue_( Task task )
     {
         {
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
             LOG_DBG << "enqueue_ A";
             std::lock_guard<std::mutex> lock( mutex_ );
-            tasks_.push( std::move( task ));
+            tasks_.push( task );
+            // tasks_.push( std::move( task ));
             LOG_DBG << "enqueue_ B";
             if( running_ ) {
                 LOG_DBG << "enqueue_ C";
@@ -225,10 +230,12 @@ private:
                     break;
                 }
                 LOG_DBG << "process_tasks_ E";
-                current_task = std::move( tasks_.front() );
+                current_task = tasks_.front();
+                // current_task = std::move( tasks_.front() );
                 tasks_.pop();
                 LOG_DBG << "process_tasks_ F";
             }
+            assert( current_task );
             current_task();
             LOG_DBG << "process_tasks_ G";
         }
