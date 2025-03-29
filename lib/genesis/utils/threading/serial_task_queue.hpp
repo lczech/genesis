@@ -124,9 +124,15 @@ public:
     {
         using result_type = typename genesis_invoke_result<F, Args...>::type;
 
-        // Wrap the function and its arguments in a packaged_task.
-        auto wrapped_task = std::make_shared<std::packaged_task<result_type()>>(
+        // Bind the function and its arguments and wrap it in a std::function,
+        // using a shared pointer because otherwise macos does not capture this correctly...
+        auto task_ptr = std::make_shared<std::function<result_type()>>(
             std::bind( std::forward<F>(f), std::forward<Args>(args)... )
+        );
+
+        // Create a packaged_task that calls the callable via the shared_ptr.
+        auto wrapped_task = std::make_shared<std::packaged_task<result_type()>>(
+            [task_ptr]() { return (*task_ptr)(); }
         );
         auto future_result = ProactiveFuture<result_type>( wrapped_task->get_future(), *pool_ );
 
@@ -143,13 +149,17 @@ public:
     template<typename F, typename... Args>
     inline void enqueue_detached( F&& f, Args&&... args )
     {
-        // Bind the function with its arguments,
-        // wrap the bound task in a lambda and enqueue it.
-        auto bound_task = std::bind( std::forward<F>(f), std::forward<Args>(args)... );
+        // Bind the function and its arguments and wrap it in a std::function,
+        // using a shared pointer because otherwise macos does not capture this correctly...
+        auto task_ptr = std::make_shared<std::function<void()>>(
+            std::bind( std::forward<F>(f), std::forward<Args>(args)... )
+        );
+
+        // Capture the shared_ptr in the lambda so that the callable’s state is maintained.
         enqueue_(
-            [bound_task]() mutable
+            [task_ptr]() mutable
             {
-                bound_task();
+                (*task_ptr)();
             }
         );
     }
@@ -162,17 +172,11 @@ private:
 
     void enqueue_( Task task )
     {
-        // Wrap the incoming task in a shared_ptr to ensure it's heap-allocated,
-        // and create a lambda that dereferences the shared pointer.
-        // That seems necessary due to bugs in macos capture of std::bind...
-        auto task_ptr = std::make_shared<Task>( std::move( task ));
-        auto safe_task = [task_ptr]() { (*task_ptr)(); };
-
         {
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
             std::lock_guard<std::mutex> lock( mutex_ );
-            tasks_.push( std::move( safe_task ));
+            tasks_.push( std::move( task ));
             if( running_ ) {
                 return;
             }
