@@ -162,11 +162,17 @@ private:
 
     void enqueue_( Task task )
     {
+        // Wrap the incoming task in a shared_ptr to ensure it's heap-allocated,
+        // and create a lambda that dereferences the shared pointer.
+        // That seems necessary due to bugs in macos capture of std::bind...
+        auto task_ptr = std::make_shared<Task>( std::move( task ));
+        auto safe_task = [task_ptr]() { (*task_ptr)(); };
+
         {
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
-            std::lock_guard<std::mutex> lock(mutex_);
-            tasks_.push(std::move(task));
+            std::lock_guard<std::mutex> lock( mutex_ );
+            tasks_.push( std::move( safe_task ));
             if( running_ ) {
                 return;
             }
