@@ -68,11 +68,29 @@ namespace utils {
  */
 class SerialTaskQueue
 {
-public:
+    // -------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------
+
+private:
+
+    /**
+     * @brief Helper to wrap a std::function into an object
+     *
+     * This seems to be needed so that macos apple clang libc++ can properly copy/move it.
+     * Apparently, there is a bug in there where a normal lambda ends up valid but empty
+     * when copied or moved, so we need this workaround...
+     */
+    struct WrappedTask
+    {
+        std::function<void()> function;
+    };
 
     // -------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------
+
+public:
 
     explicit SerialTaskQueue( std::shared_ptr<ThreadPool> pool )
         : pool_( std::move( pool ))
@@ -118,22 +136,77 @@ public:
     //     Pool Functionality
     // -------------------------------------------------------------
 
-    inline void enqueue( std::function<void()>&& task )
+    /**
+     * @brief Enqueue a task that returns a future.
+     *
+     * This function wraps the given function and its arguments into a packaged task,
+     * enqueues it for execution, and returns a future associated with the task's result.
+     *
+     * @tparam F   The function type.
+     * @tparam Args The argument types.
+     * @param f    The function to execute.
+     * @param args The arguments to pass to the function.
+     * @return std::future<typename std::result_of<F(Args...)>::type> A future holding the result.
+     */
+    template<typename F, typename... Args>
+    inline auto enqueue_and_retrieve( F&& f, Args&&... args )
+    -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
+    {
+        // Deduce the return type of the function.
+        using result_type = typename genesis_invoke_result<F, Args...>::type;
+
+        // Create a shared pointer to a packaged task wrapping the function and its arguments.
+        auto task = std::make_shared<std::packaged_task<result_type()>>(
+            std::bind( std::forward<F>(f), std::forward<Args>(args)... )
+        );
+
+        // Retrieve the future from the task.
+        auto future_result = ProactiveFuture<result_type>( task->get_future(), *pool_ );
+
+        // Enqueue the task to be executed by the thread pool.
+        // The lambda captures the task by shared pointer to ensure it stays alive.
+        enqueue_( WrappedTask{ [task](){ (*task)(); } } );
+
+        return future_result;
+    }
+
+    /**
+     * @brief Enqueue a task to be executed without retrieving a future.
+     *
+     * This function wraps the given function and its arguments into a callable object
+     * and enqueues it for processing by the thread pool.
+     *
+     * @tparam F   The function type.
+     * @tparam Args The argument types.
+     * @param f    The function to execute.
+     * @param args The arguments to pass to the function.
+     */
+    template<typename F, typename... Args>
+    inline void enqueue_detached( F&& f, Args&&... args )
+    {
+        // Bind the function and its arguments to create a callable object.
+        auto bound_task = std::bind( std::forward<F>(f), std::forward<Args>(args)... );
+
+        // Enqueue the callable object as a WrappedTask.
+        enqueue_( WrappedTask{ [bound_task](){ bound_task(); } } );
+    }
+
+    // -------------------------------------------------------------
+    //     Internals
+    // -------------------------------------------------------------
+
+private:
+
+    /**
+     * @brief Internal enqueing that takes care of managing the worker thread.
+     */
+    inline void enqueue_( WrappedTask&& wrapped_task )
     {
         {
             // Scoped lock to add the task to the queue and
             // signal that we are processing now.
             std::lock_guard<std::mutex> lock( mutex_ );
-
-            // Capture the function in a shared pointer in a lambda, in order to
-            // circumvent stupid macos apple clang lambda capture bug.
-            // auto task_ptr = std::make_shared<Task>( std::move( task ));
-            // tasks_.push([task_ptr]() { (*task_ptr)(); });
-            // tasks_.push( std::move( task ));
-            WrappedTask wrapped_task;
-            wrapped_task.function = std::move( task );
             tasks_.push( std::move( wrapped_task ));
-
             if( running_ ) {
                 return;
             }
@@ -151,92 +224,9 @@ public:
         );
     }
 
-    // All the below niceness does not seem to work on macos. For whatever reason,
-    // the task function ends up being valid but empty, and so gets executed without
-    // any effect. No idea what is going on there, and not worth fixing now.
-    // Hence, for now, we just offer a simple interface here. Stupid macos compiler.
-
-    // template<typename F, typename... Args>
-    // inline auto enqueue_and_retrieve( F&& f, Args&&... args )
-    // -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
-    // {
-    //     using result_type = typename genesis_invoke_result<F, Args...>::type;
-    //
-    //     // Bind the function and its arguments and wrap it in a std::function,
-    //     // using a shared pointer because otherwise macos does not capture this correctly...
-    //     auto task_ptr = std::make_shared<std::function<result_type()>>(
-    //         std::bind( std::forward<F>(f), std::forward<Args>(args)... )
-    //     );
-    //     assert( *task_ptr );
-    //
-    //     // Create a packaged_task that calls the callable via the shared_ptr.
-    //     auto wrapped_task = std::make_shared<std::packaged_task<result_type()>>(
-    //         [task_ptr]() { return (*task_ptr)(); }
-    //     );
-    //     auto future_result = ProactiveFuture<result_type>( wrapped_task->get_future(), *pool_ );
-    //
-    //     // Enqueue the packaged task, and return the future.
-    //     enqueue_(
-    //         [wrapped_task]()
-    //         {
-    //             // assert( *wrapped_task );
-    //             (*wrapped_task)();
-    //         }
-    //     );
-    //     return future_result;
-    // }
-    //
-    // template<typename F, typename... Args>
-    // inline void enqueue_detached( F&& f, Args&&... args )
-    // {
-    //     // Bind the function and its arguments and wrap it in a std::function,
-    //     // using a shared pointer because otherwise macos does not capture this correctly...
-    //     auto task_ptr = std::make_shared<std::function<void()>>(
-    //         std::bind( std::forward<F>(f), std::forward<Args>(args)... )
-    //     );
-    //     assert( *task_ptr );
-    //
-    //     // Capture the shared_ptr in the lambda so that the callable’s state is maintained.
-    //     enqueue_(
-    //         [task_ptr]()
-    //         {
-    //             assert( *task_ptr );
-    //             (*task_ptr)();
-    //         }
-    //     );
-    // }
-
-    // -------------------------------------------------------------
-    //     Internals
-    // -------------------------------------------------------------
-
-private:
-
-    // inline void enqueue_( Task task )
-    // {
-    //     {
-    //         // Scoped lock to add the task to the queue and
-    //         // signal that we are processing now.
-    //         std::lock_guard<std::mutex> lock( mutex_ );
-    //         tasks_.push( task );
-    //         // tasks_.push( std::move( task ));
-    //         if( running_ ) {
-    //             return;
-    //         }
-    //         running_ = true;
-    //     }
-    //
-    //     // We only reach this point if there isn't already
-    //     // a thread processing the queue. In that case, start one.
-    //     assert( pool_ );
-    //     pool_->enqueue_detached(
-    //         [this]
-    //         {
-    //             process_tasks_();
-    //         }
-    //     );
-    // }
-
+    /**
+     * @brief Worker function that is submitted to the Thread Pool.
+     */
     void process_tasks_()
     {
         while( true ) {
@@ -255,10 +245,9 @@ private:
         }
     }
 
-    struct WrappedTask
-    {
-        std::function<void()> function;
-    };
+    // -------------------------------------------------------------
+    //     Members
+    // -------------------------------------------------------------
 
     std::shared_ptr<ThreadPool> pool_;
     std::queue<WrappedTask> tasks_;
