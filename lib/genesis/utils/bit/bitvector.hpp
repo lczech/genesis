@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_BITVECTOR_H_
-#define GENESIS_UTILS_MATH_BITVECTOR_H_
+#ifndef GENESIS_UTILS_BIT_BITVECTOR_H_
+#define GENESIS_UTILS_BIT_BITVECTOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ public:
      * @brief Constructor that takes a size and an optional bool value to initialize the Bitvector,
      * false by default.
      */
-    Bitvector( size_t size, bool initial_value = false)
+    explicit Bitvector( size_t size, bool initial_value = false)
         : size_(size)
     {
         // Edge case.
@@ -134,10 +134,21 @@ public:
     /**
      * @brief Constructor that takes a size and a list of values (positions) to be set to true.
      */
-    Bitvector( size_t size, std::initializer_list<size_t> list )
+    Bitvector( size_t size, std::initializer_list<size_t> index_list )
         : Bitvector(size, false)
     {
-        for( size_t e : list ) {
+        for( size_t e : index_list ) {
+            set(e);
+        }
+    }
+
+    /**
+     * @brief Constructor that takes a size and a list of values (positions) to be set to true.
+     */
+    Bitvector( size_t size, std::vector<size_t> index_list )
+        : Bitvector(size, false)
+    {
+        for( size_t e : index_list ) {
             set(e);
         }
     }
@@ -388,6 +399,15 @@ public:
      * it on any bitvector.
      */
     void unset_padding_bits();
+
+    /**
+     * @brief Get the mask used for unset_padding_bits()
+     *
+     * This can be useful when checking certain properties, such as if all bits are set.
+     * If the Bitvector has a size that exactly matches the underlying int type (64 bits typically),
+     * the mask is all-zero! It shall not be applied in that case.
+     */
+    IntType get_padding_mask() const;
 
     /**
      * @brief For a given numer of bits, compute the size of the internally used vector.

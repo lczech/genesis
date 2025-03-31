@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_TWOBIT_VECTOR_ITERATOR_INSERTIONS_H_
-#define GENESIS_UTILS_MATH_TWOBIT_VECTOR_ITERATOR_INSERTIONS_H_
+#ifndef GENESIS_UTILS_BIT_TWOBIT_VECTOR_ITERATOR_INSERTIONS_H_
+#define GENESIS_UTILS_BIT_TWOBIT_VECTOR_ITERATOR_INSERTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@
  */
 
 #include "genesis/utils/containers/range.hpp"
-#include "genesis/utils/math/twobit_vector.hpp"
-#include "genesis/utils/math/twobit_vector/functions.hpp"
+#include "genesis/utils/bit/twobit_vector.hpp"
+#include "genesis/utils/bit/twobit_vector/functions.hpp"
 
 #include <cassert>
 #include <iterator>

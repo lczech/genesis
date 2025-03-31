@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -195,7 +195,9 @@ public:
             assert( pattern < 16 );
 
             // Check which case we need for the initial hash, based on the pattern we found.
-            if( reverse_[pattern] ) {
+            // We used to test for if( reverse_[pattern] ) here, using a lookup table here,
+            // but as there are only a few reverse patterns, the following is faster.
+            if( pattern == 7 || pattern == 10 || pattern == 11 || pattern >= 13 ) {
                 kmercode = encode_prime_( kmer.rev_comp, l );
             } else {
                 kmercode = encode_prime_( kmer.value, l );
@@ -352,9 +354,10 @@ private:
     }};
 
     // Markers to check if we need to encode the forward or the reverse complement.
-    static constexpr std::array<uint8_t, 16> reverse_ = {{
-        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1
-    }};
+    // Replaced now with a direct value comparison for speed. Keeping this here for reference.
+    // static constexpr std::array<uint8_t, 16> reverse_ = {{
+    //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1
+    // }};
 
     // Mask to extract the remainder after having found the specifying pair. Depends on k,
     // and is created on construction. We might access positions up to k+2, hence the max size here.

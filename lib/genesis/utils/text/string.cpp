@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -533,106 +533,6 @@ size_t count_substring_occurrences( std::string const& str, std::string const& s
     return count;
 }
 
-/**
- * @brief Local function that does the work for the split cuntions.
- */
-static std::vector<std::string> split_ (
-    std::string const& string,
-    std::function<size_t ( std::string const&, size_t )> find_pos,
-    size_t advance_by,
-    const bool trim_empty
-) {
-    std::vector<std::string> result;
-
-    size_t last_pos = 0;
-    while( true ) {
-        // Find first matching char.
-        size_t pos = find_pos( string, last_pos );
-
-        // If not found, push back rest and stop.
-        if( pos == std::string::npos ) {
-           pos = string.length();
-
-           if( pos != last_pos || !trim_empty ) {
-              result.push_back( std::string( string.data() + last_pos, pos - last_pos ));
-           }
-
-           break;
-
-        // If found, push back and continue.
-        } else {
-           if( pos != last_pos || !trim_empty ) {
-              result.push_back( std::string( string.data() + last_pos, pos - last_pos ));
-           }
-        }
-
-        last_pos = pos + advance_by;
-    }
-
-    return result;
-}
-
-std::vector<std::string> split (
-    std::string const& str,
-    char delimiter,
-    const bool trim_empty
-) {
-    return split( str, std::string( 1, delimiter ), trim_empty );
-}
-
-std::vector<std::string> split (
-    std::string const& str,
-    std::string const& delimiters,
-    const bool trim_empty
-) {
-    return split_(
-        str,
-        [&]( std::string const& str, size_t last_pos ){
-            return str.find_first_of( delimiters, last_pos );
-        },
-        1,
-        trim_empty
-    );
-}
-
-std::vector<std::string> split (
-    std::string const& str,
-    std::function<bool(char)> delimiter_predicate,
-    const bool trim_empty
-) {
-    return split_(
-        str,
-        [&]( std::string const& str, size_t last_pos ){
-            // Find first matching char.
-            size_t pos = std::string::npos;
-            for( size_t i = last_pos; i < str.size(); ++i ) {
-                if( delimiter_predicate( str[i] ) ) {
-                    pos = i;
-                    break;
-                }
-            }
-            return pos;
-        },
-        1,
-        trim_empty
-    );
-}
-
-std::vector<std::string> split_at (
-    std::string const& str,
-    std::string const& delimiter,
-    const bool trim_empty
-) {
-    return split_(
-        str,
-        [&]( std::string const& str, size_t last_pos ){
-            return str.find( delimiter, last_pos );
-        },
-        delimiter.size(),
-        trim_empty
-    );
-}
-
 std::vector<size_t> split_range_list( std::string const& str )
 {
     std::vector<size_t> result;
@@ -722,6 +622,13 @@ std::string indent(
 ) {
     auto ret = indentation + replace_all( text, "\n", "\n" + indentation );
     return trim_right( ret, indentation );
+}
+
+std::string indent(
+    std::string const& text,
+    size_t num_spaces
+) {
+    return indent( text, std::string( num_spaces, ' ' ));
 }
 
 std::string replace_all (

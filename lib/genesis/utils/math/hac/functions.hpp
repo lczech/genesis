@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,12 +31,15 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/math/hac.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -45,8 +48,130 @@ namespace genesis {
 namespace utils {
 
 // ================================================================================================
-//     HAC Functions
+//     HAC Analysis and Output Functions
 // ================================================================================================
+
+/**
+ * @brief Construct a distance matrix between all clusters in a hierarchical agglomerative
+ * clustering run.
+ *
+ * In the HierarchicalAgglomerativeClustering itself, we store the distances between clusters
+ * as vectors per cluster, instead of a combined matrix. This saves memory due to the symmetry,
+ * and makes merging easier, as the rows of the matrix are independent.
+ *
+ * However, in order to analyze a clutering afterwards, it is convenient to have all pairwise
+ * distances as a matrix instead. This function creates such a matrix by copying the distances
+ * of all HierarchicalAgglomerativeClustering::Cluster::distances.
+ *
+ * Note that not all values in the matrix will be filled. During the clustering, we only compute
+ * distances between clusters that are still active. Hence, once a cluster has been merged into
+ * some new cluster in the process, all remaining distances to clusters that are created from
+ * later mergers are not computed, and hence will be zero in the matrix.
+ *
+ * @see HierarchicalAgglomerativeClustering
+ */
+template<typename T>
+Matrix<double> hac_distance_matrix(
+    HierarchicalAgglomerativeClustering<T> const& clustering
+) {
+    auto const& clusters = clustering.clusters();
+    auto const num_elem = clusters.size();
+    auto result = Matrix<double>( num_elem, num_elem, 0.0 );
+    for( size_t r = 0; r < num_elem; ++r ) {
+        for( size_t c = 0; c < r; ++c ) {
+            assert( clusters[r].distances.size() == r );
+            auto const val = clusters[r].distances[c];
+            result( r, c ) = val;
+            result( c, r ) = val;
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Write a table summarizing the clusters in a hierarchical agglomerative
+ * clustering run.
+ *
+ * This writes a table to the given @p target consisting of columns representing the
+ * HierarchicalAgglomerativeClustering::Cluster entries of the run. If @p labels are given,
+ * an additional column is added listing those labels for the initial clusters; clusters that
+ * result from merging these initial clusters during the clustering will not have a label.
+ *
+ * @see HierarchicalAgglomerativeClustering
+ */
+template<typename T>
+void hac_write_cluster_table(
+    HierarchicalAgglomerativeClustering<T> const& clustering,
+    std::shared_ptr<utils::BaseOutputTarget> target,
+    std::vector<std::string> const& labels = std::vector<std::string>{},
+    char delimiter = '\t'
+) {
+    auto const& clusters = clustering.clusters();
+    auto& os = target->ostream();
+
+    // Write header
+    os << "index" << delimiter;
+    os << ( labels.empty() ? "" : "label" ) << delimiter;
+    os << "active" << delimiter;
+    os << "merger_index\n";
+
+    // Write rows
+    for( size_t i = 0; i < clusters.size(); ++i ) {
+        os << i << delimiter;
+        if( !labels.empty() ) {
+            if( i < labels.size() ) {
+                os << labels[i] << delimiter;
+            } else {
+                os << "." << delimiter;
+            }
+        }
+        os << ( clusters[i].active ? "1" : "0" ) << delimiter;
+        if( clusters[i].merger_index < std::numeric_limits<size_t>::max() ) {
+            os << clusters[i].merger_index << "\n";
+        } else {
+            os << "NA\n";
+        }
+    }
+}
+
+/**
+ * @brief Write a table summarizing the mergers in a hierarchical agglomerative
+ * clustering run.
+ *
+ * This writes a table to the given @p target consisting of columns representing the
+ * HierarchicalAgglomerativeClustering::Merger entries of the run.
+ *
+ * @see HierarchicalAgglomerativeClustering
+ */
+template<typename T>
+void hac_write_merger_table(
+    HierarchicalAgglomerativeClustering<T> const& clustering,
+    std::shared_ptr<utils::BaseOutputTarget> target,
+    char delimiter = '\t'
+) {
+    auto const& mergers = clustering.mergers();
+    auto& os = target->ostream();
+
+    // Write header
+    os << "index" << delimiter;
+    os << "cluster_index_p" << delimiter;
+    os << "cluster_index_a" << delimiter;
+    os << "cluster_index_b" << delimiter;
+    os << "distance" << delimiter;
+    os << "branch_length_a" << delimiter;
+    os << "branch_length_b" << "\n";
+
+    // Write rows
+    for( size_t i = 0; i < mergers.size(); ++i ) {
+        os << i << "\t";
+        os << mergers[i].cluster_index_p << delimiter;
+        os << mergers[i].cluster_index_a << delimiter;
+        os << mergers[i].cluster_index_b << delimiter;
+        os << mergers[i].distance << delimiter;
+        os << mergers[i].branch_length_a << delimiter;
+        os << mergers[i].branch_length_b << "\n";
+    }
+}
 
 /**
  * @brief Build a Newick-format tree for visualizing the result of a hierarchical agglomerative
@@ -55,6 +180,8 @@ namespace utils {
  * The resulting tree is a dendrogram of the observations, i.e., each leaf node represents
  * one observation. The @p labels vector needs to contain the labels for those observations,
  * in the order of elements that was used for running the clustering.
+ *
+ * @see HierarchicalAgglomerativeClustering
  */
 template<typename T>
 std::string hac_dendrogram(

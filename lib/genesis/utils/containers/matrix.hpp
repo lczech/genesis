@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -46,17 +46,22 @@ namespace utils {
 //     Forward declarations
 // =================================================================================================
 
-template <typename T>
+template<typename T>
 class Matrix;
 
-template <typename T>
-void transpose_inplace( Matrix<T>& mat );
+template<typename T>
+void transpose_inplace( Matrix<T>& );
+
+class Deserializer;
+
+template<typename T>
+Deserializer& operator>>( Deserializer&, Matrix<T>& );
 
 // =================================================================================================
 //     Matrix
 // =================================================================================================
 
-template <typename T>
+template<typename T>
 class Matrix
 {
 public:
@@ -168,6 +173,7 @@ public:
 
     // Transpose inplace needs access to our internals.
     friend void transpose_inplace<>( Matrix<T>& );
+    friend Deserializer& operator>><>( Deserializer&, Matrix<T>& );
 
     // -------------------------------------------------------------
     //     Properties
@@ -196,6 +202,11 @@ public:
     container_type const& data() const
     {
         return data_;
+    }
+
+    inline size_t index( size_t const row, size_t const col ) const
+    {
+        return row * cols_ + col;
     }
 
     // -------------------------------------------------------------

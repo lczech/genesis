@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/sequence/formats/fai_input_stream.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/functions/dict.hpp"
@@ -103,6 +104,23 @@ TEST( SequenceDict, FaiReader )
     // Read sequence fai file and test it.
     std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.fa.fai";
     auto const dict = read_sequence_fai( utils::from_file( infile ));
+    test_tair10_dict_file( dict );
+}
+
+TEST( SequenceDict, FaiInputStream )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read sequence fai file and test it.
+    std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.fa.fai";
+
+    SequenceDict dict;
+    auto fai_str = FaiInputStream( utils::from_file( infile ));
+    fai_str.only_name_and_length( true );
+    for( auto const& rec : fai_str ) {
+        dict.add( std::string( rec.name ), rec.length );
+    }
     test_tair10_dict_file( dict );
 }
 

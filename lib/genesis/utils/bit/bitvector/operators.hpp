@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_BITVECTOR_OPERATORS_H_
-#define GENESIS_UTILS_MATH_BITVECTOR_OPERATORS_H_
+#ifndef GENESIS_UTILS_BIT_BITVECTOR_OPERATORS_H_
+#define GENESIS_UTILS_BIT_BITVECTOR_OPERATORS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/bitvector.hpp"
-#include "genesis/utils/math/bitvector/functions.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
+#include "genesis/utils/bit/bitvector/functions.hpp"
 #include "genesis/utils/io/deserializer.hpp"
 #include "genesis/utils/io/serializer.hpp"
 
@@ -136,12 +136,17 @@ Bitvector bitwise_xor(
 // -------------------------------------------------------------------------
 
 /**
- * @brief Print the bits of a Bitvector to a string.
- *
- * If @p with_size is set, the string is prefixed by the size of the string in square brackets,
- * such as `[5] 01011`, which is useful for debugging.
+ * @brief Helper for to_bit_string() to print decimals as a header
+ * for easier readability of bit positions.
  */
-std::string to_bit_string( Bitvector const& bv, bool with_size = false );
+std::string bit_string_header( size_t n, bool with_dec_line = true );
+
+/**
+ * @brief Print the bits of a Bitvector to a string.
+ */
+std::string to_bit_string(
+    Bitvector const& bv, bool with_line_breaks = true, char zero = '0', char one = '1'
+);
 
 /**
  * @brief Insertion operator that outputs a Bitvector as a string of '0's and '1's.

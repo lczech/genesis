@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -244,7 +244,7 @@ public:
         // Do the same for the first-word form as well. We always compute the label here,
         // even if not used later, so that we can do the check before actually modifying our content.
         // Slightly cleaner that way.
-        auto const label2 = utils::split( seq.label(), "\t " )[0];
+        auto const label2 = utils::split( seq.label(), "\t ", true )[0];
         if( also_look_up_first_word && lookup_.count( label2 ) > 0 ) {
             throw std::runtime_error(
                 "Reference Genome already contains sequence name \"" + label2 + "\", "

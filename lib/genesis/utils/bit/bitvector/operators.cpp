@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/bitvector/operators.hpp"
-#include "genesis/utils/math/bit.hpp"
+#include "genesis/utils/bit/bitvector/operators.hpp"
+#include "genesis/utils/bit/bit.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -157,12 +157,36 @@ Bitvector bitwise_xor(
 //     Input and Output
 // -------------------------------------------------------------------------
 
-std::string to_bit_string( Bitvector const& bv, bool with_size )
+std::string bit_string_header( size_t n, bool with_dec_line )
 {
-    std::string res = ( with_size ? "[" + std::to_string( bv.size() ) + "]\n" : "" );
+    std::string result;
+    auto const max_len = n;// std::min( n, static_cast<size_t>( 64 ));
+    if( with_dec_line ) {
+        for( size_t i = 0; i < max_len; ++i ) {
+            result += (i % 10 == 0) ? std::to_string( (i / 10) % 10 ) : " ";
+            if( i+1 < n && (i+1) % 8 == 0 ) {
+                result += " ";
+            }
+        }
+        result += "\n";
+    }
+    for( size_t i = 0; i < max_len; ++i ) {
+        result += std::to_string( i % 10 );
+        if( i+1 < n && (i+1) % 8 == 0 ) {
+            result += " ";
+        }
+    }
+    result += "\n";
+    return result;
+}
+
+std::string to_bit_string( Bitvector const& bv, bool with_line_breaks, char zero, char one )
+{
+    // std::string res = ( with_size ? "[" + std::to_string( bv.size() ) + "]\n" : "" );
+    std::string res;
     for( size_t i = 0; i < bv.size(); ++i ) {
-        res += bv[i] ? "1" : "0";
-        if( i+1 < bv.size() && (i+1) % 64 == 0 ) {
+        res += bv[i] ? one : zero;
+        if( with_line_breaks && i+1 < bv.size() && (i+1) % 64 == 0 ) {
             res += "\n";
         } else if( i+1 < bv.size() && (i+1) % 8 == 0 ) {
             res += " ";

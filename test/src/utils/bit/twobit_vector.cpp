@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@
 #include <string>
 #include <vector>
 
-#include "genesis/utils/math/twobit_vector.hpp"
-#include "genesis/utils/math/twobit_vector/functions.hpp"
-#include "genesis/utils/math/twobit_vector/iterator_deletions.hpp"
-#include "genesis/utils/math/twobit_vector/iterator_insertions.hpp"
-#include "genesis/utils/math/twobit_vector/iterator_substitutions.hpp"
+#include "genesis/utils/bit/twobit_vector.hpp"
+#include "genesis/utils/bit/twobit_vector/functions.hpp"
+#include "genesis/utils/bit/twobit_vector/iterator_deletions.hpp"
+#include "genesis/utils/bit/twobit_vector/iterator_insertions.hpp"
+#include "genesis/utils/bit/twobit_vector/iterator_substitutions.hpp"
 
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/text/string.hpp"

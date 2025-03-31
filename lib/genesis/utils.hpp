@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,15 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/utils/bit/bit.hpp"
+#include "genesis/utils/bit/bitvector/functions.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
+#include "genesis/utils/bit/bitvector/operators.hpp"
+#include "genesis/utils/bit/twobit_vector/functions.hpp"
+#include "genesis/utils/bit/twobit_vector.hpp"
+#include "genesis/utils/bit/twobit_vector/iterator_deletions.hpp"
+#include "genesis/utils/bit/twobit_vector/iterator_insertions.hpp"
+#include "genesis/utils/bit/twobit_vector/iterator_substitutions.hpp"
 #include "genesis/utils/color/color.hpp"
 #include "genesis/utils/color/functions.hpp"
 #include "genesis/utils/color/heat_map.hpp"
@@ -80,6 +89,7 @@
 #include "genesis/utils/core/info.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
+#include "genesis/utils/core/resource_logger.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/formats/bmp/writer.hpp"
@@ -138,10 +148,6 @@
 #include "genesis/utils/io/string_input_source.hpp"
 #include "genesis/utils/io/string_output_target.hpp"
 #include "genesis/utils/math/binomial.hpp"
-#include "genesis/utils/math/bit.hpp"
-#include "genesis/utils/math/bitvector/functions.hpp"
-#include "genesis/utils/math/bitvector.hpp"
-#include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/compensated_sum.hpp"
 #include "genesis/utils/math/correlation.hpp"
@@ -173,13 +179,9 @@
 #include "genesis/utils/math/regression/link.hpp"
 #include "genesis/utils/math/regression/slr.hpp"
 #include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/math/twobit_vector/functions.hpp"
-#include "genesis/utils/math/twobit_vector.hpp"
-#include "genesis/utils/math/twobit_vector/iterator_deletions.hpp"
-#include "genesis/utils/math/twobit_vector/iterator_insertions.hpp"
-#include "genesis/utils/math/twobit_vector/iterator_substitutions.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/convert.hpp"
+#include "genesis/utils/text/light_string.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/text/style.hpp"
 #include "genesis/utils/text/table.hpp"
@@ -189,6 +191,7 @@
 #include "genesis/utils/threading/lightweight_semaphore.hpp"
 #include "genesis/utils/threading/multi_future.hpp"
 #include "genesis/utils/threading/sequential_output_buffer.hpp"
+#include "genesis/utils/threading/serial_task_queue.hpp"
 #include "genesis/utils/threading/thread_functions.hpp"
 #include "genesis/utils/threading/thread_local_cache.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"

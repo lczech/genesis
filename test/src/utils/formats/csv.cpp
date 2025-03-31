@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -173,11 +173,26 @@ TEST( Csv, InputIterator )
 {
     NEEDS_TEST_DATA;
 
-    size_t count = 0;
-    auto line_it = CsvInputIterator( from_file( environment->data_dir + "utils/csv/complex.csv" ));
-    while( line_it ) {
-        ++count;
-        ++line_it;
+    // while loop
+    {
+        size_t count = 0;
+        auto line_it = CsvInputIterator( from_file( environment->data_dir + "utils/csv/complex.csv" ));
+        while( line_it ) {
+            EXPECT_EQ( 3, line_it->size() );
+            ++count;
+            ++line_it;
+        }
+        EXPECT_EQ( 10, count );
     }
-    EXPECT_EQ( 10, count );
+
+    // range based for loop
+    {
+        size_t count = 0;
+        auto line_it = CsvInputIterator( from_file( environment->data_dir + "utils/csv/complex.csv" ));
+        for( auto const& line : line_it ) {
+            EXPECT_EQ( 3, line.size() );
+            ++count;
+        }
+        EXPECT_EQ( 10, count );
+    }
 }

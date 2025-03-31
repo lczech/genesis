@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_TWOBIT_VECTOR_FUNCTIONS_H_
-#define GENESIS_UTILS_MATH_TWOBIT_VECTOR_FUNCTIONS_H_
+#ifndef GENESIS_TAXONOMY_FUNCTIONS_KMER_PARTITIONING_H_
+#define GENESIS_TAXONOMY_FUNCTIONS_KMER_PARTITIONING_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,39 +19,44 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
  * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup taxonomy
  */
 
-#include "genesis/utils/math/twobit_vector.hpp"
+#include "genesis/taxonomy/functions/kmer_data.hpp"
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
 
+#include <cstddef>
 #include <string>
+#include <vector>
 
 namespace genesis {
-namespace utils {
+namespace taxonomy {
 
 // =================================================================================================
-//     Strings
+//     Forwad Declarations
 // =================================================================================================
 
-TwobitVector::ValueType translate_from_nucleic_acid( char site );
-char                    translate_to_nucleic_acid( TwobitVector::ValueType value );
+class Taxon;
+class Taxonomy;
 
-TwobitVector from_nucleic_acids( std::string const& sequence );
-std::string to_nucleic_acids( TwobitVector const& vec );
+// =================================================================================================
+//     Taxon Count Partitioning
+// =================================================================================================
 
-std::string bitstring( TwobitVector const& vec );
-std::string bitstring( TwobitVector::WordType const& vec );
+void partition_taxonomy( Taxonomy& tax, size_t num_partitions );
 
-} // namespace utils
+} // namespace taxonomy
 } // namespace genesis
 
 #endif // include guard

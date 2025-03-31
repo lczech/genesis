@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,13 +68,16 @@
 
 #include <atomic>
 #include <cassert>
+#include <chrono>
 #include <condition_variable>
 #include <functional>
 #include <future>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -82,7 +85,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Parallel Loop
+//     Parallel Block
 // =================================================================================================
 
 /**
@@ -137,13 +140,13 @@ namespace utils {
  * This is useful for example for aggregating values, such as a parallel sum.
  */
 template<
-    typename F,
+    typename Function,
     typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type,
-    typename R = typename genesis_invoke_result<F, T, T>::type
+    typename Return = typename genesis_invoke_result<Function, T, T>::type
     // typename R = typename std::result_of<typename std::decay<F>::type(T, T)>::type
 >
-MultiFuture<R> parallel_block(
-    T1 begin, T2 end, F&& body,
+MultiFuture<Return> parallel_block(
+    T1 begin, T2 end, Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
     size_t num_blocks = 0,
     bool auto_wait = true
@@ -165,7 +168,7 @@ MultiFuture<R> parallel_block(
     // Edge case. Nothing to do.
     if( total_size == 0 ) {
         assert( begin_t == end_t );
-        return MultiFuture<R>();
+        return MultiFuture<Return>();
     }
 
     // Default block size is the number of threads in the pool plus one.
@@ -196,7 +199,7 @@ MultiFuture<R> parallel_block(
 
     // Enqueue all blocks.
     size_t current_start = 0;
-    MultiFuture<R> result( num_blocks );
+    MultiFuture<Return> result( num_blocks );
     for( size_t i = 0; i < num_blocks; ++i ) {
         // We get the length of the current block, and in the beginning also add one to their
         // length to distribute the remainder elements that did not fit evently into the blocks.
@@ -206,7 +209,7 @@ MultiFuture<R> parallel_block(
         auto const e = begin_t + static_cast<T>( current_start + l );
         assert( l > 0 );
         assert( b < e );
-        result[i] = thread_pool->enqueue_and_retrieve( std::forward<F>( body ), b, e );
+        result[i] = thread_pool->enqueue_and_retrieve( std::forward<Function>( body ), b, e );
 
         // Our next block will start where this one ended.
         current_start += l;
@@ -227,12 +230,16 @@ MultiFuture<R> parallel_block(
     return result;
 }
 
+// =================================================================================================
+//     Parallel For
+// =================================================================================================
+
 /**
  * @brief Parallel `for` over a range of positions, breaking the range into blocks for which
  * the @p body function is executed individually.
  *
- * This is almost the same as parallel_block(), but intended to be used with `for` loops that
- * do not need to compute per-block return values. The function signature of `F` is hence simply
+ * This is almost the same as parallel_block(), but intended to be used with `for` loops that do
+ * not need to compute per-block return values. The function signature of `Function` is hence simply
  * expected to be `void F( size_t i )`, and is called for every position in the processed range.
  *
  * ```
@@ -255,11 +262,11 @@ MultiFuture<R> parallel_block(
  * function behave more intuitively like an `#pragma omp parallel for` or the like.
  */
 template<
-    typename F,
+    typename Function,
     typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type
 >
 MultiFuture<void> parallel_for(
-    T1 begin, T2 end, F&& body,
+    T1 begin, T2 end, Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
     size_t num_blocks = 0,
     bool auto_wait = true
@@ -282,7 +289,7 @@ MultiFuture<void> parallel_for(
  * the @p body function is executed individually.
  *
  * This is almost the same as parallel_for(), but intended to be used with containers.
- * The function signature of `F` is hence simply expected to be `void F( T& element )` or
+ * The function signature of `Function` is hence simply expected to be `void F( T& element )` or
  * `void F( T const& element )`, and is called for every element in the container.
  *
  * ```
@@ -304,13 +311,27 @@ MultiFuture<void> parallel_for(
  * This ensures that the user cannot accidentally forget to wait for the result, making this
  * function behave more intuitively like an `#pragma omp parallel for` or the like.
  */
-template<typename F, typename T>
+template<typename Function, typename Iter>
 MultiFuture<void> parallel_for_each(
-    T const begin, T const end, F&& body,
+    Iter const begin,
+    Iter const end,
+    Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
     size_t num_blocks = 0,
     bool auto_wait = true
 ) {
+    // In the function signature, we take the `begin` and `end` iterators by const, as otherwise,
+    // we get iterator invalidity errors, likely due to template argument deduction and reference
+    // collapsing. That is, with non-const args, the original iterator is changed whenever a thread
+    // wants to progress, which changes the iterator boundaries for all other threads as well...
+    // Alternatively, it might be due to something similar to P2644R1 "Fix for Range-based for Loop",
+    // see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2644r1.pdf
+    // Either way, we experimented with making decayed copies here, but that did not work either,
+    // so we stick with the const for now, as that forces the compiler to make copies.
+    // using IterType = std::decay_t<Iter>;
+    // IterType local_begin = begin;
+    // IterType local_end = end;
+
     // Boundary checks.
     auto const total = std::distance( begin, end );
     if( total < 0 ) {
@@ -321,13 +342,6 @@ MultiFuture<void> parallel_for_each(
     }
 
     // Run the loop over elements in parallel blocks.
-    // For some reason, we need to take `begin` by const copy in the signature above,
-    // and copy it again here for the lambda. Otherwise, we run into some weird iterator
-    // invalidity issues, that might come from the threading or something... it's weird.
-    // The iterator itself is never advanced here, so that should not lead to this error...
-    // Edit: It might be due to something similar to P2644R1 "Fix for Range-based for Loop".
-    // See https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2644r1.pdf
-    // Not sure that makes sense, as we are using a function here, but it seems somehow related.
     return parallel_block(
         0, total,
         [begin, body]( size_t b, size_t e ){
@@ -367,9 +381,9 @@ MultiFuture<void> parallel_for_each(
  * This ensures that the user cannot accidentally forget to wait for the result, making this
  * function behave more intuitively like an `#pragma omp parallel for` or the like.
  */
-template<typename F, typename T>
+template<typename Function, typename Iterable>
 MultiFuture<void> parallel_for_each(
-    T& container, F&& body,
+    Iterable& container, Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
     size_t num_blocks = 0,
     bool auto_wait = true
@@ -390,6 +404,147 @@ MultiFuture<void> parallel_for_each(
         thread_pool,
         num_blocks,
         auto_wait
+    );
+}
+
+// =================================================================================================
+//     Parallel For Throttled
+// =================================================================================================
+
+/**
+ * @brief Parallel `for` loop that throttles the number of concurrently run tasks to @p max_concurrent
+ *
+ * This function is useful for instance to have an outer loop over files, such that only a max
+ * amount of files are opened and processed in parallel. In a typical use case, the tasks submitted
+ * here (such as, one per file) would then submit their own more fine grained tasks themselves.
+ *
+ * Any other tasks submitted to the thread pool are of course unaffected by this, and will run at
+ * the capacity of the thread pool.
+ */
+template<
+    typename Function,
+    typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type
+>
+void parallel_for_throttled(
+    T1 begin, T2 end,
+    size_t max_concurrent,
+    Function&& func,
+    std::shared_ptr<ThreadPool> thread_pool = nullptr
+) {
+    // Set up our internals.
+    auto begin_t = static_cast<T>( begin );
+    auto end_t = static_cast<T>( end );
+    if( begin_t > end_t ) {
+        std::swap( begin_t, end_t );
+    }
+
+    // With no concurrency, we simply run a sequential loop. That makes the below logic
+    // easier to reason about, as we can then assume that we are using the thread pool.
+    if( max_concurrent <= 1 ) {
+        for( auto i = begin_t; i < end_t; ++i ) {
+            func(i);
+        }
+        return;
+    }
+
+    // If no thread pool was provided, we use the global one.
+    if( !thread_pool ) {
+        thread_pool = Options::get().global_thread_pool();
+    }
+
+    // Keep track of what we are running in parallel.
+    std::vector<ProactiveFuture<void>> futures;
+
+    // Helper function: Wait for any task to complete.
+    auto wait_for_any_ = [&futures]() -> size_t
+    {
+        // Loop until one of the futures is ready.
+        while( true ) {
+            assert( ! futures.empty() );
+
+            // If any future is ready, return its index in the list.
+            for( size_t i = 0; i < futures.size(); ++i ) {
+                if( futures[i].ready() ) {
+                    return i;
+                }
+            }
+
+            // Otherwise, block on the first future, which will trigger the proactive work stealing.
+            assert( ! futures.empty() );
+            futures.front().wait();
+        }
+    };
+
+    // Loop over the integer range, submitting up to the max tasks at a time.
+    for( auto i = begin_t; i < end_t; ++i ) {
+        // If we have reached the max concurrent tasks, wait for one to finish.
+        // This takes into account that we are using work stealing, and hence
+        // submit one fewer than the max, as our thread here will also do work.
+        // Then, we can submit to the pool.
+        assert( max_concurrent > 0 );
+        if( futures.size() >= max_concurrent ) {
+            size_t idx = wait_for_any_();
+            futures.erase( futures.begin() + idx );
+        }
+        assert( futures.size() < max_concurrent );
+        futures.push_back(
+            thread_pool->enqueue_and_retrieve([i, &func]() {
+                func(i);
+            })
+        );
+    }
+
+    // Wait for any remaining tasks.
+    for( auto& fut : futures ) {
+        fut.wait();
+    }
+}
+
+/**
+ * @brief Parallel `for each` loop over a range, throttling the number
+ * of concurrently run tasks to @p max_concurrent
+ *
+ * @see See parallel_for_throttled() for details and typical use cases.
+ */
+template<typename RandomAccessIterator, typename Function>
+void parallel_for_each_throttled(
+    RandomAccessIterator begin,
+    RandomAccessIterator end,
+    size_t max_concurrent,
+    Function&& func,
+    std::shared_ptr<ThreadPool> thread_pool = nullptr
+) {
+    auto const total = std::distance( begin, end );
+    parallel_for_throttled(
+        0, static_cast<size_t>( total ),
+        max_concurrent,
+        [begin, &func]( size_t i ) {
+            func(*(begin + i));
+        },
+        thread_pool
+    );
+}
+
+/**
+ * @brief Parallel `for each` loop over a container, throttling the number
+ * of concurrently run tasks to @p max_concurrent
+ *
+ * @see See parallel_for_throttled() for details and typical use cases.
+ */
+template<typename Iterable, typename Function>
+void parallel_for_each_throttled(
+    Iterable& container,
+    size_t max_concurrent,
+    Function&& func,
+    std::shared_ptr<ThreadPool> thread_pool = nullptr
+) {
+    parallel_for_throttled(
+        0, static_cast<size_t>( container.size() ),
+        max_concurrent,
+        [&container, &func]( size_t i ) {
+            func(container[i]);
+        },
+        thread_pool
     );
 }
 

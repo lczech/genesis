@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/bitvector/functions.hpp"
-#include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/bit/bitvector/functions.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/math/bit.hpp"
+#include "genesis/utils/bit/bit.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -47,12 +47,8 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Bitvector Functions
-// =================================================================================================
-
-// -------------------------------------------------------------------------
 //     Creation
-// -------------------------------------------------------------------------
+// =================================================================================================
 
 std::vector<bool> make_bool_vector_from_indices( std::vector<size_t> const& indices, size_t size )
 {
@@ -104,9 +100,9 @@ Bitvector make_random_bitvector( size_t size )
     return result;
 }
 
-// -------------------------------------------------------------------------
+// =================================================================================================
 //     Modification
-// -------------------------------------------------------------------------
+// =================================================================================================
 
 void negate( Bitvector& bv )
 {
@@ -125,31 +121,34 @@ void normalize( Bitvector& bv )
     }
 }
 
-// -------------------------------------------------------------------------
+// =================================================================================================
 //     Hashing
-// -------------------------------------------------------------------------
+// =================================================================================================
 
 size_t bitvector_hash( Bitvector const& bv )
 {
-    std::size_t res = 0;
+    // We factor in the size (in bits) of the bitvector,
+    // so that two all-false bitvectors of different size
+    // also have differing hashes.
+    size_t seed = std::hash<size_t>()( bv.size() );
     for( auto word : bv.data() ) {
-        res = hash_combine( res, word );
+        seed = hash_combine( seed, word );
     }
-    return res;
+    return seed;
 }
 
 Bitvector::IntType bitvector_x_hash( Bitvector const& bv )
 {
-    Bitvector::IntType res = 0;
+    Bitvector::IntType seed = 0;
     for( auto word : bv.data() ) {
-        res ^= word;
+        seed ^= word;
     }
-    return res;
+    return seed;
 }
 
-// -------------------------------------------------------------------------
+// =================================================================================================
 //     Pop Count
-// -------------------------------------------------------------------------
+// =================================================================================================
 
 size_t pop_count( Bitvector const& bv )
 {
@@ -237,117 +236,64 @@ size_t pop_count( Bitvector const& bv, size_t first, size_t last )
     return result;
 }
 
-// -------------------------------------------------------------------------
-//     Set Operators
-// -------------------------------------------------------------------------
+// =================================================================================================
+//     Find Set Bits
+// =================================================================================================
 
-Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
+bool all_set( Bitvector const& bv )
 {
-    return lhs & (~rhs);
-}
-
-Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs )
-{
-    return (lhs | rhs) & ~(lhs & rhs);
-}
-
-bool is_strict_subset( Bitvector const& sub, Bitvector const& super )
-{
-    // Not really efficient. We could stop early in the comparison instead.
-    // But as of now, we do not need the speed, so let's keep it simple instead.
-    // Same for the other variants of this function below.
-    return ((sub & super) == sub) && (pop_count(sub) < pop_count(super));
-}
-
-bool is_strict_superset( Bitvector const& super, Bitvector const& sub )
-{
-    return is_strict_subset( sub, super );
-}
-
-bool is_subset( Bitvector const& sub, Bitvector const& super )
-{
-    return (sub == super) || is_strict_subset(sub, super);
-}
-
-bool is_superset( Bitvector const& super, Bitvector const& sub )
-{
-    return (super == sub) || is_strict_superset(super, sub);
-}
-
-// -------------------------------------------------------------------------
-//     Distances
-// -------------------------------------------------------------------------
-
-double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs )
-{
-    if( lhs.size() != rhs.size() ) {
-        throw std::invalid_argument(
-            "Cannot compute Jaccard similarity between Bitvectors of different size"
-        );
+    // Edge case. An empty bitvector has all bits set. Ex falso quodlibet.
+    if( bv.empty() ) {
+        return true;
     }
 
-    // Shorthands
-    auto const& lhs_data = lhs.data();
-    auto const& rhs_data = rhs.data();
-
-    // Use the bitvector data directly to count
-    // the number of bits in the intersection and the union
-    size_t sum_i = 0;
-    size_t sum_u = 0;
-    for( size_t i = 0; i < lhs_data.size(); ++i ) {
-        sum_i += pop_count( lhs_data[i] & rhs_data[i] );
-        sum_u += pop_count( lhs_data[i] | rhs_data[i] );
+    // Check if all words (except for the last) are one. If not, we can stop early.
+    // Due to padding, we need to check the last word differently.
+    auto const& data = bv.data();
+    for( size_t i = 0; i < data.size() - 1; ++i ) {
+        if( data[i] != Bitvector::ALL_1 ) {
+            return false;
+        }
     }
 
-    // Alternative (10x slower) way using operations on the whole bitvectors.
-    // auto const sum_i = pop_count( lhs & rhs );
-    // auto const sum_u = pop_count( lhs | rhs );
-
-    // Compute the index, taking care of the edge case.
-    if( sum_u == 0 ) {
-        assert( sum_i == 0 );
-        return 0.0;
+    // If there is a non-zero mask, we have padding, and check this.
+    // All bits are set if the padding bits are equal to the mask.
+    auto const mask = bv.get_padding_mask();
+    if( mask ) {
+        assert( bv.size() % Bitvector::IntSize != 0 );
+        return data.back() == mask;
     }
-    return static_cast<double>( sum_i ) / static_cast<double>( sum_u );
+
+    // Otherwise, it's a vector without padding, i.e., exactly a multiple of 64.
+    // In that case, the last word of the vector needs to be all 1.
+    assert( bv.size() % Bitvector::IntSize == 0 );
+    return data.back() == Bitvector::ALL_1;
 }
 
-double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs )
+bool all_unset( Bitvector const& bv )
 {
-    return 1.0 - jaccard_similarity( lhs, rhs );
-}
-
-size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs )
-{
-    if( lhs.size() != rhs.size() ) {
-        throw std::invalid_argument(
-            "Cannot compute Hamming distance between Bitvectors of different size"
-        );
+    // Here, we do not need to take care of padding, as it is zero as well.
+    for( auto word : bv.data() ) {
+        if( word != Bitvector::ALL_0 ) {
+            return false;
+        }
     }
-
-    // Shorthands
-    auto const& lhs_data = lhs.data();
-    auto const& rhs_data = rhs.data();
-
-    // Use the bitvector data directly to count the number of resulting bits.
-    size_t sum = 0;
-    for( size_t i = 0; i < lhs_data.size(); ++i ) {
-        sum += pop_count( lhs_data[i] ^ rhs_data[i] );
-    }
-    return sum;
+    return true;
 }
-
-// -------------------------------------------------------------------------
-//     Fit Set Bits
-// -------------------------------------------------------------------------
 
 bool any_set( Bitvector const& bv )
 {
-    for( auto word : bv.data() ) {
-        if( word > 0 ) {
-            return true;
-        }
-    }
-    return false;
+    return ! all_unset( bv );
+}
+
+bool any_unset( Bitvector const& bv )
+{
+    return ! all_set( bv );
+}
+
+bool none_set( Bitvector const& bv )
+{
+    return all_unset( bv );
 }
 
 size_t find_first_set( Bitvector const& bv )
@@ -468,6 +414,192 @@ size_t find_next_set( Bitvector const& bv, size_t start )
     assert( wrd_idx < bv.data().size() );
     assert( bv.data()[wrd_idx] != 0 );
     return wrd_idx * Bitvector::IntSize + find_next_set_in_word_( bv.data()[wrd_idx] );
+}
+
+void for_each_set_bit( Bitvector const& bitvector, std::function<void(size_t)> const& callback )
+{
+    static_assert(
+        sizeof(Bitvector::IntType) == sizeof(uint64_t),
+        "sizeof(Bitvector::IntType) == sizeof(uint64_t)"
+    );
+
+    for( size_t word_index = 0; word_index < bitvector.data().size(); ++word_index ) {
+        uint64_t word = bitvector.data()[word_index];
+        while( word != 0 ) {
+            // Find the number of trailing zeros which gives the offset of the lowest set bit.
+            int bit_offset = count_trailing_zeros( word );
+
+            // Compute the overall position by adding the offset to the base index of the word.
+            callback( word_index * 64 + bit_offset );
+
+            // Clear the lowest set bit.
+            word &= word - 1;
+        }
+    }
+}
+
+// =================================================================================================
+//     Set Operators
+// =================================================================================================
+
+Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs )
+{
+    if( lhs.size() != rhs.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute set difference between Bitvectors of different size"
+        );
+    }
+    auto result = Bitvector( lhs.size() );
+    for( size_t i = 0; i < lhs.data().size(); ++i ) {
+        result.data()[i] = (lhs.data()[i]) & ~(rhs.data()[i]);
+    }
+    result.unset_padding_bits();
+    return result;
+
+    // Not efficient, as it creates temporary vectors...
+    // return lhs & (~rhs);
+}
+
+Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs )
+{
+    // Symmetric difference is simply xor.
+    // We provide this function mostly for semamtics... not really used.
+    return lhs ^ rhs;
+    // return (lhs | rhs) & ~(lhs & rhs);
+}
+
+bool is_subset( Bitvector const& sub, Bitvector const& super )
+{
+    // Sanity check
+    if( sub.size() != super.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute sub/super set between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& sub_data = sub.data();
+    auto const& super_data = super.data();
+
+    // Non-strict subset: Every bit in sub must also be set in super.
+    for( size_t i = 0; i < sub_data.size(); ++i ) {
+        // If sub has any bit not set in super,
+        // then sub is not a subset, and we can return early.
+        if( sub_data[i] & ~super_data[i] ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool is_superset( Bitvector const& super, Bitvector const& sub )
+{
+    return is_subset( sub, super );
+}
+
+bool is_strict_subset( Bitvector const& sub, Bitvector const& super )
+{
+    // Sanity check
+    if( sub.size() != super.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute sub/super set between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& sub_data = sub.data();
+    auto const& super_data = super.data();
+
+    // Strict subset: sub must be a subset of super, and super must have
+    // at least one extra bit, i.e., the two vectors are not exactly equal.
+    // This is the same as the above is_subset(), but also includes an extra check
+    // for inequality. It is better to have some code duplication here,
+    // as this allows us to traverse each vector only once, for cache locality.
+    bool found_extra_bit = false;
+    for( size_t i = 0; i < sub_data.size(); ++i ) {
+        // If sub contains a bit that super does not,
+        // sub cannot be a subset, and we can return early.
+        if( sub_data[i] & ~super_data[i] ) {
+            return false;
+        }
+
+        // Check if super has any bit that sub does not.
+        // We already know that the sub/super set property is met,
+        // so if they are inequal, then sub contains extra bits.
+        found_extra_bit |= ( sub_data[i] != super_data[i] );
+        // found_extra_bit |= ( super_data[i] & ~sub_data[i] );
+        // if( !found_extra_bit && ( super_data[i] & ~sub_data[i] )) {
+        //     found_extra_bit = true;
+        // }
+    }
+    return found_extra_bit;
+}
+
+bool is_strict_superset( Bitvector const& super, Bitvector const& sub )
+{
+    return is_strict_subset( sub, super );
+}
+
+// =================================================================================================
+//     Distances
+// =================================================================================================
+
+double jaccard_similarity( Bitvector const& lhs, Bitvector const& rhs )
+{
+    if( lhs.size() != rhs.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute Jaccard similarity between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& lhs_data = lhs.data();
+    auto const& rhs_data = rhs.data();
+
+    // Use the bitvector data directly to count
+    // the number of bits in the intersection and the union
+    size_t sum_i = 0;
+    size_t sum_u = 0;
+    for( size_t i = 0; i < lhs_data.size(); ++i ) {
+        sum_i += pop_count( lhs_data[i] & rhs_data[i] );
+        sum_u += pop_count( lhs_data[i] | rhs_data[i] );
+    }
+
+    // Alternative (10x slower) way using operations on the whole bitvectors.
+    // auto const sum_i = pop_count( lhs & rhs );
+    // auto const sum_u = pop_count( lhs | rhs );
+
+    // Compute the index, taking care of the edge case.
+    if( sum_u == 0 ) {
+        assert( sum_i == 0 );
+        return 0.0;
+    }
+    return static_cast<double>( sum_i ) / static_cast<double>( sum_u );
+}
+
+double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs )
+{
+    return 1.0 - jaccard_similarity( lhs, rhs );
+}
+
+size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs )
+{
+    if( lhs.size() != rhs.size() ) {
+        throw std::invalid_argument(
+            "Cannot compute Hamming distance between Bitvectors of different size"
+        );
+    }
+
+    // Shorthands
+    auto const& lhs_data = lhs.data();
+    auto const& rhs_data = rhs.data();
+
+    // Use the bitvector data directly to count the number of resulting bits.
+    size_t sum = 0;
+    for( size_t i = 0; i < lhs_data.size(); ++i ) {
+        sum += pop_count( lhs_data[i] ^ rhs_data[i] );
+    }
+    return sum;
 }
 
 // -------------------------------------------------------------------------

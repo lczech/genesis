@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_BITVECTOR_FUNCTIONS_H_
-#define GENESIS_UTILS_MATH_BITVECTOR_FUNCTIONS_H_
+#ifndef GENESIS_UTILS_BIT_BITVECTOR_FUNCTIONS_H_
+#define GENESIS_UTILS_BIT_BITVECTOR_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,12 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/bit/bitvector.hpp"
+#include "genesis/utils/core/std.hpp"
 
 #include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <iosfwd>
 #include <vector>
 
@@ -134,6 +137,71 @@ size_t pop_count( Bitvector const& bv );
 size_t pop_count( Bitvector const& bv, size_t first, size_t last );
 
 // -------------------------------------------------------------------------
+//     Find Set Bits
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Return if all bits are set, i.e., the Bitvector is all one.
+ */
+bool all_set( Bitvector const& bv );
+
+/**
+ * @brief Return if all bits are unset, i.e., the Bitvector is all zero.
+ *
+ * Alias for none_set()
+ */
+bool all_unset( Bitvector const& bv );
+
+/**
+ * @brief Return if any bits are set, i.e., the Bitvector is not all zero.
+ */
+bool any_set( Bitvector const& bv );
+
+/**
+ * @brief Return if any bits are unset, i.e., the Bitvector is not all one.
+ */
+bool any_unset( Bitvector const& bv );
+
+/**
+ * @brief Return if no bits are set, i.e., the Bitvector is all zero.
+ *
+ * Alias for all_unset()
+ */
+bool none_set( Bitvector const& bv );
+
+/**
+ * @brief Return the index of the first bit in the Bitvector that is set.
+ *
+ * If no such position exists (because all bits are `false`), Bitvector::npos
+ * is returned.
+ */
+size_t find_first_set( Bitvector const& bv );
+
+/**
+ * @brief Return the index of the last bit in the Bitvector that is set.
+ *
+ * If no such position exists (because all bits are `false`), Bitvector::npos
+ * is returned.
+ */
+size_t find_last_set( Bitvector const& bv );
+
+/**
+ * @brief Return the index of the next position in the Bitvector that is set.
+ *
+ * This returns the first position starting at @p start, including @p start itself, that is set.
+ * If no such position exists (because all following bits are `false`), or if @p start is beyond
+ * the length of the vector, Bitvector::npos is returned instead.
+ */
+size_t find_next_set( Bitvector const& bv, size_t start );
+
+/**
+ * @brief Call a function for every bit position that is set in the @p bitvector
+ *
+ * The callback receives the overall bit position.
+ */
+void for_each_set_bit( Bitvector const& bitvector, std::function<void(size_t)> const& callback );
+
+// -------------------------------------------------------------------------
 //     Set Operators
 // -------------------------------------------------------------------------
 
@@ -148,16 +216,6 @@ Bitvector set_minus( Bitvector const& lhs, Bitvector const& rhs );
 Bitvector symmetric_difference( Bitvector const& lhs, Bitvector const& rhs );
 
 /**
- * @brief Strict subset.
- */
-bool is_strict_subset( Bitvector const& sub, Bitvector const& super );
-
-/**
- * @brief Strict superset.
- */
-bool is_strict_superset( Bitvector const& super, Bitvector const& sub );
-
-/**
  * @brief Subset or equal.
  */
 bool is_subset( Bitvector const& sub, Bitvector const& super );
@@ -166,6 +224,16 @@ bool is_subset( Bitvector const& sub, Bitvector const& super );
  * @brief Superset or equal.
  */
 bool is_superset( Bitvector const& super, Bitvector const& sub );
+
+/**
+ * @brief Strict subset.
+ */
+bool is_strict_subset( Bitvector const& sub, Bitvector const& super );
+
+/**
+ * @brief Strict superset.
+ */
+bool is_strict_superset( Bitvector const& super, Bitvector const& sub );
 
 // -------------------------------------------------------------------------
 //     Distances
@@ -192,40 +260,6 @@ double jaccard_distance( Bitvector const& lhs, Bitvector const& rhs );
  * i.e., the Hamming weight (pop count) of the `xor` of the inputs.
  */
 size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs );
-
-// -------------------------------------------------------------------------
-//     Fit Set Bits
-// -------------------------------------------------------------------------
-
-/**
- * @brief Return if any bits are set at all.
- */
-bool any_set( Bitvector const& bv );
-
-/**
- * @brief Return the index of the first bit in the Bitvector that is set.
- *
- * If no such position exists (because all bits are `false`), Bitvector::npos
- * is returned.
- */
-size_t find_first_set( Bitvector const& bv );
-
-/**
- * @brief Return the index of the last bit in the Bitvector that is set.
- *
- * If no such position exists (because all bits are `false`), Bitvector::npos
- * is returned.
- */
-size_t find_last_set( Bitvector const& bv );
-
-/**
- * @brief Return the index of the next position in the Bitvector that is set.
- *
- * This returns the first position starting at @p start, including @p start itself, that is set.
- * If no such position exists (because all following bits are `false`), or if @p start is beyond
- * the length of the vector, Bitvector::npos is returned instead.
- */
-size_t find_next_set( Bitvector const& bv, size_t start );
 
 // -------------------------------------------------------------------------
 //     Sorting

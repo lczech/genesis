@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2018-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ namespace sequence {
 // Need out-of-line definition in C++11... Just to make the compiler happy.
 
 constexpr std::array<uint64_t, 16> MinimalCanonicalEncoding::replace_;
-constexpr std::array<uint8_t, 16>  MinimalCanonicalEncoding::reverse_;
+// constexpr std::array<uint8_t, 16>  MinimalCanonicalEncoding::reverse_;
 
 } // namespace sequence
 } // namespace genesis

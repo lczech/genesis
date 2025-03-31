@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -141,19 +141,20 @@ SequenceDict read_sequence_fai( std::shared_ptr<utils::BaseInputSource> source )
         ++line_cnt;
 
         // Get the line and split it on tabs; do some basic format sanity checks.
-        auto const line = utils::split( it.get_line(), "\t" );
+        auto const line = utils::split( it.get_line(), "\t", false );
         if( line.size() == 0 ) {
             continue;
         }
-        if( line.size() != 5 ) {
+        if( line.size() != 5 && line.size() != 6 ) {
             throw std::runtime_error(
                 "Invalid sequence fai file: Line " + std::to_string( line_cnt ) +
-                " has " + std::to_string( line.size() ) + " columns instead of the expected 5 columns."
+                " has " + std::to_string( line.size() ) +
+                " columns instead of the expected 5 or 6columns."
             );
         }
 
         // Now we know that we have a valid line. Let's see if it's one that we are intersted in.
-        assert( line.size() == 5 );
+        assert( line.size() == 5 || line.size() == 6 );
         std::string const sn = line[0];
         if( ! utils::is_convertible_to_unsigned_integer( line[1] )) {
             throw std::runtime_error(

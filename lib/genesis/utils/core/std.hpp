@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
@@ -136,8 +137,12 @@ namespace utils {
 #endif
 
 // =================================================================================================
-//     Shortcomings of the C++ 11 STL...
+//     Helpers for portability between C++ 11 and later
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     make_unique
+// -------------------------------------------------------------------------
 
 /**
  * @brief Returns a std::unique_ptr for a given type.
@@ -147,38 +152,33 @@ namespace utils {
  * When using this function, make sure to specify at least the `utils` namespace, even from within
  * that namespace, in order to avoid name overloads if compiled with C++17.
  */
+// template<typename T, typename... Args>
+// std::unique_ptr<T> make_unique(Args&&... args)
+// {
+//     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+// }
+
+// For non-array types
 template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
+typename std::enable_if<!std::is_array<T>::value, std::unique_ptr<T>>::type
+make_unique(Args&&... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-/**
- * @brief Proxy class to hold an element accessible via arrow operator.
- *
- * This is useful for implementing an iterator whose arrow operator would return an r-value.
- * Inspired by https://stackoverflow.com/a/26496041/4184258
- */
-template <typename T>
-class ArrowOperatorProxy {
-public:
+// For array of unknown bound
+template<typename T>
+typename std::enable_if<std::is_array<T>::value && std::extent<T>::value == 0, std::unique_ptr<T>>::type
+make_unique(std::size_t n)
+{
+    using U = typename std::remove_extent<T>::type;
+    return std::unique_ptr<T>(new U[n]());
+}
 
-    explicit ArrowOperatorProxy( T const& v )
-        : t(v)
-    {}
-
-    T* operator ->() const {
-        return &t;
-    }
-
-private:
-
-    T t;
-};
-
-// =================================================================================================
-//     Helpers for portability between C++ 11 and later
-// =================================================================================================
+// Delete overload for array of known bound (not supported in the standard either)
+template<typename T, typename... Args>
+typename std::enable_if<std::extent<T>::value != 0, void>::type
+make_unique(Args&&...) = delete;
 
 // -------------------------------------------------------------------------
 //     invoke_result / result_of
@@ -269,6 +269,33 @@ struct has_reserve<
 template <typename T>
 struct has_reserve_v {
     static const bool value = has_reserve<T>::value;
+};
+
+// -------------------------------------------------------------------------
+//     array proxy
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Proxy class to hold an element accessible via arrow operator.
+ *
+ * This is useful for implementing an iterator whose arrow operator would return an r-value.
+ * Inspired by https://stackoverflow.com/a/26496041/4184258
+ */
+template <typename T>
+class ArrowOperatorProxy {
+public:
+
+    explicit ArrowOperatorProxy( T const& v )
+        : t(v)
+    {}
+
+    T* operator ->() const {
+        return &t;
+    }
+
+private:
+
+    T t;
 };
 
 // =================================================================================================

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,7 +45,9 @@
 #include "genesis/taxonomy/functions/entropy_data.hpp"
 #include "genesis/taxonomy/functions/entropy.hpp"
 #include "genesis/taxonomy/functions/kmer_data.hpp"
+#include "genesis/taxonomy/functions/kmer_grouping.hpp"
 #include "genesis/taxonomy/functions/kmer.hpp"
+#include "genesis/taxonomy/functions/kmer_partitioning.hpp"
 #include "genesis/taxonomy/functions/operators.hpp"
 #include "genesis/taxonomy/functions/ranks.hpp"
 #include "genesis/taxonomy/functions/taxonomy.hpp"

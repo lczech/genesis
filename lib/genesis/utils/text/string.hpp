@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,13 +31,19 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
+#include <cstdio>
 #include <functional>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -285,65 +291,284 @@ std::string tail( std::string const& text, size_t lines = 10 );
 size_t count_substring_occurrences( std::string const& str, std::string const& sub );
 
 /**
- * @brief Spilt a @p string into parts, given a @p delimiter char.
- *
- * The @p string is split using the @p delimiter char, and returned as a vector
- * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
- * excluded from the output.
- */
-std::vector<std::string> split (
-    std::string const& str,
-    char delimiter = '\t',
-    const bool trim_empty = true
-);
-
-/**
- * @brief Spilt a @p string into parts, given a @p delimiters set of chars.
- *
- * The @p string is split using any of the chars in @p delimiters, and returned as a vector
- * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
- * excluded from the output.
- */
-std::vector<std::string> split (
-    std::string const& str,
-    std::string const& delimiters,
-    const bool trim_empty = true
-);
-
-/**
- * @brief Spilt a @p string into parts, given a @p delimiter_predicate
- * that returns `true` for delimiters chars.
- *
- * The @p string is split using any of the chars for which @p delimiter_predicate is `true`,
- * and returned as a vector of strings.  If `trim_empty` is set, empty strings resulting from
- * adjacent delimiter chars are excluded from the output.
- */
-std::vector<std::string> split (
-    std::string const& str,
-    std::function<bool (char)> delimiter_predicate,
-    const bool trim_empty = true
-);
-
-/**
- * @brief Spilt a @p string into parts, given a @p delimiter string.
- *
- * The @p string is split where the whole @p delimiter string is found, and returned as a vector
- * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiters are
- * excluded from the output.
- */
-std::vector<std::string> split_at (
-    std::string const& str,
-    std::string const& delimiter,
-    const bool trim_empty = true
-);
-
-/**
  * @brief Split a string containing positive interger numbers into its parts and resolve ranges.
  *
  * For example, the string `1, 3, 5-7, 10` results in a vector of all listed numbers and the
  * ranges in between, that is `1, 3, 5, 6, 7, 10`. Whitespace is ignored; the range is sorted.
  */
 std::vector<size_t> split_range_list( std::string const& str );
+
+// -------------------------------------------------------------------------
+//     Split String Helpers
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Helper function template that does the work for the split() funtions.
+ *
+ * This is the main work horse of all string and string view splitting. It takes a functional
+ * for finding the next split token, and a length of that by which the input is advanced.
+ */
+template<class R, class S>
+inline void split_into_vector(
+    S const& str,
+    std::function<size_t ( S const&, size_t )> const& find_next_delim_pos,
+    size_t const advance_by,
+    bool const trim_empty,
+    std::vector<R>& target
+) {
+    // Clear previous entries. Does not re-allocate, which is good.
+    target.clear();
+
+    // Go through the input and find delimiters.
+    size_t last_pos = 0;
+    while( true ) {
+        // Find first matching char.
+        size_t pos = find_next_delim_pos( str, last_pos );
+
+        // If not found, push back rest and stop.
+        if( pos == std::string::npos ) {
+           pos = str.length();
+           if( pos != last_pos || !trim_empty ) {
+              target.push_back( R( str.data() + last_pos, pos - last_pos ));
+           }
+           break;
+
+        // If found, push back and continue.
+        } else {
+           if( pos != last_pos || !trim_empty ) {
+              target.push_back( R( str.data() + last_pos, pos - last_pos ));
+           }
+        }
+        last_pos = pos + advance_by;
+    }
+}
+
+/**
+ * @brief Helper function template for splitting with a delimiter character
+ */
+template<class R, class S>
+inline void split_into_vector(
+    S const& str,
+    char const delimiter_character,
+    bool const trim_empty,
+    std::vector<R>& target
+) {
+    split_into_vector<R, S>(
+        str,
+        [&]( S const& str, size_t last_pos ){
+            return str.find_first_of( std::string( 1, delimiter_character ), last_pos );
+        },
+        1,
+        trim_empty,
+        target
+    );
+}
+
+/**
+ * @brief Helper function template for splitting with a set of delimiter characters
+ */
+template<class R, class S>
+inline void split_into_vector(
+    S const& str,
+    std::string const& delimiter_characters,
+    bool const trim_empty,
+    std::vector<R>& target
+) {
+    split_into_vector<R, S>(
+        str,
+        [&]( S const& str, size_t last_pos ){
+            return str.find_first_of( delimiter_characters, last_pos );
+        },
+        1,
+        trim_empty,
+        target
+    );
+}
+
+/**
+ * @brief Helper function template for splitting with a delimiter predicate functor
+ */
+template<class R, class S>
+inline void split_into_vector(
+    S const& str,
+    std::function<bool(char)> const& delimiter_predicate,
+    bool const trim_empty,
+    std::vector<R>& target
+) {
+    split_into_vector<R, S>(
+        str,
+        [&]( S const& str, size_t last_pos ){
+            // Find first matching char.
+            size_t pos = std::string::npos;
+            for( size_t i = last_pos; i < str.size(); ++i ) {
+                if( delimiter_predicate( str[i] ) ) {
+                    pos = i;
+                    break;
+                }
+            }
+            return pos;
+        },
+        1,
+        trim_empty,
+        target
+    );
+}
+
+/**
+ * @brief Helper function template for splitting at a delimiter string
+ */
+template<class R, class S>
+inline void split_into_vector_at_delimiter(
+    S const& str,
+    std::string const& delimiter,
+    bool const trim_empty,
+    std::vector<R>& target
+) {
+    split_into_vector<R, S>(
+        str,
+        [&]( S const& str, size_t last_pos ){
+            return str.find( delimiter, last_pos );
+        },
+        delimiter.size(),
+        trim_empty,
+        target
+    );
+}
+
+// -------------------------------------------------------------------------
+//     Split into string, return vector
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Split a @p string into parts, given a @p delimiter.
+ *
+ * The @p string is split using the @p delimiter, which can either be a single char,
+ * a string of chars (of which any then is used as a potential delimiter), or a predicate
+ * determining any chars at which to split.
+ *
+ * That is, the function can be called as:
+ *
+ *   - `split( str, '\t' );`
+ *   - `split( str, ",\t" );`
+ *   - `split( str, isblank );`
+ *
+ * The result is returned as a vector of strings. If `trim_empty` is set, empty strings
+ * resulting from adjacent delimiter chars are excluded from the output.
+ */
+template<typename D>
+inline std::vector<std::string> split(
+    std::string const& str,
+    D const& delimiter,
+    bool const trim_empty = false
+) {
+    std::vector<std::string> target;
+    split_into_vector( str, delimiter, trim_empty, target );
+    return target;
+}
+
+/**
+ * @brief Split a @p string into parts, given a @p delimiter string.
+ *
+ * The @p string is split where the whole @p delimiter string is found, and returned as a vector
+ * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiters are
+ * excluded from the output.
+ */
+inline std::vector<std::string> split_at(
+    std::string const& str,
+    std::string const& delimiter,
+    bool const trim_empty = false
+) {
+    std::vector<std::string> target;
+    split_into_vector_at_delimiter(
+        str, delimiter, trim_empty, target
+    );
+    return target;
+}
+
+// -------------------------------------------------------------------------
+//     Split into string, target vector
+// -------------------------------------------------------------------------
+
+template<typename D>
+inline void split(
+    std::string const& str,
+    std::vector<std::string>& target,
+    D const& delimiter,
+    bool const trim_empty = false
+) {
+    split_into_vector( str, delimiter, trim_empty, target );
+}
+
+inline void split_at(
+    std::string const& str,
+    std::vector<std::string>& target,
+    std::string const& delimiter,
+    bool const trim_empty = false
+) {
+    split_into_vector_at_delimiter(
+        str, delimiter, trim_empty, target
+    );
+}
+
+// -------------------------------------------------------------------------
+//     Split string view into string view, return vector
+// -------------------------------------------------------------------------
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+template<typename D>
+inline std::vector<std::string_view> split_view(
+    std::string_view const& str,
+    D const& delimiter,
+    bool const trim_empty = false
+) {
+    std::vector<std::string_view> target;
+    split_into_vector( str, delimiter, trim_empty, target );
+    return target;
+}
+
+inline std::vector<std::string_view> split_view_at(
+    std::string_view const& str,
+    std::string const& delimiter,
+    bool const trim_empty = false
+) {
+    std::vector<std::string_view> target;
+    split_into_vector_at_delimiter(
+        str, delimiter, trim_empty, target
+    );
+    return target;
+}
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+// -------------------------------------------------------------------------
+//     Split string view into string view, target vector
+// -------------------------------------------------------------------------
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+template<typename D>
+inline void split_view(
+    std::string_view const& str,
+    std::vector<std::string_view>& target,
+    D const& delimiter,
+    bool const trim_empty = false
+) {
+    split_into_vector( str, delimiter, trim_empty, target );
+}
+
+inline void split_view_at(
+    std::string_view const& str,
+    std::vector<std::string_view>& target,
+    std::string const& delimiter,
+    bool const trim_empty = false
+) {
+    split_into_vector_at_delimiter(
+        str, delimiter, trim_empty, target
+    );
+}
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // =================================================================================================
 //     Manipulate
@@ -367,6 +592,14 @@ std::string wrap(
 std::string indent(
     std::string const& text,
     std::string const& indentation = "    "
+);
+
+/**
+ * @brief Indent each line of `text` with @p num_spaces many spaces and return the result.
+ */
+std::string indent(
+    std::string const& text,
+    size_t num_spaces
 );
 
 /**

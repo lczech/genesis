@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,6 +52,11 @@ Taxonomy::Taxonomy( Taxonomy const& other )
     }
    reset_parent_pointers_( nullptr );
 }
+
+Taxonomy::Taxonomy( Taxonomy&& other )
+    : children_( std::move( other.children_ ))
+    , names_( std::move( other.names_ ))
+{}
 
 // =================================================================================================
 //     Modifiers

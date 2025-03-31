@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <iostream>
@@ -39,6 +40,14 @@
 #include <string>
 #include <typeinfo>
 #include <vector>
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+    #include <charconv>
+    #include <string_view>
+    #include <system_error>
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 namespace genesis {
 namespace utils {
@@ -111,6 +120,58 @@ inline double convert_from_string<double>( std::string const& str, bool trim )
     }
     return value;
 }
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+/**
+ * @brief Converts a string-like object to a numeric value using std::from_chars from C++17.
+ *
+ * This function accepts any string-like type convertible to std::string_view (e.g., std::string,
+ * std::string_view, or even C-style strings) and behaves similarly to the standard conversion
+ * functions (like std::stoul) by throwing exceptions on errors.
+ *
+ * @tparam T The numeric type to convert to.
+ * @tparam S The string-like type (e.g., std::string, std::string_view).
+ * @param str The input string-like object.
+ * @param base Numeric base for the conversion (default is 10).
+ * @return The converted numeric value of type T.
+ * @throws std::invalid_argument If no conversion could be performed or if there are extra characters.
+ * @throws std::out_of_range If the converted value is out of range.
+ */
+template <typename T, typename S>
+T convert_from_chars( S const& str, int base = 10 )
+{
+    // Convert the input to a string_view, and convert to the output.
+    std::string_view sv{str};
+    T value{};
+    auto [ptr, ec] = std::from_chars( sv.data(), sv.data() + sv.size(), value, base );
+
+    // Check for any conversion errors
+    if( ec == std::errc::invalid_argument ) {
+        throw std::invalid_argument(
+            "Invalid argument in std::from_char: no conversion could be performed, input \"" +
+            std::string( sv ) + "\""
+        );
+    }
+    if( ec == std::errc::result_out_of_range ) {
+        throw std::out_of_range(
+            "Out of range in std::from_char: the value is too large or too small, input \"" +
+            std::string( sv ) + "\""
+        );
+    }
+
+    // Check if there are any trailing characters that weren't processed
+    if( ptr != sv.data() + sv.size() ) {
+        throw std::invalid_argument(
+            "Invalid argument in std::from_char: extra characters found after number, input \"" +
+            std::string( sv ) + "\""
+        );
+    }
+
+    return value;
+}
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 // =================================================================================================
 //     Bool Text Conversion

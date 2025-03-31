@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
 
@@ -162,7 +163,7 @@ TEST(Text, SplitDelim)
     auto mulit_delim = split("one:two three-four", ": -");
     EXPECT_EQ(4, mulit_delim.size());
 
-    auto with_empty = split("::one:two:three::four:", ":");
+    auto with_empty = split("::one:two:three::four:", ":", true);
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split("::one:two:three::four:", ":", false);
@@ -177,7 +178,7 @@ TEST(Text, SplitPredicate)
     auto simple = split( "one two\tthree four", isblank );
     EXPECT_EQ(4, simple.size());
 
-    auto with_empty = split( "one   two\t three\t four", isblank );
+    auto with_empty = split( "one   two\t three\t four", isblank, true );
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split( "one   two\t three\t four", isblank, false );
@@ -192,7 +193,7 @@ TEST(Text, SplitAt)
     auto simple = split_at( "one:two:three:four", ":" );
     EXPECT_EQ(4, simple.size());
 
-    auto with_empty = split_at("::one:two:three::four:", ":");
+    auto with_empty = split_at("::one:two:three::four:", ":", true);
     EXPECT_EQ(4, with_empty.size());
 
     auto non_empty = split_at("::one:two:three::four:", ":", false);
@@ -204,12 +205,76 @@ TEST(Text, SplitAt)
     auto simple2 = split_at( "onefootwofoothreefoofour", "foo" );
     EXPECT_EQ(4, simple2.size());
 
-    auto with_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo");
+    auto with_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo", true);
     EXPECT_EQ(4, with_empty2.size());
 
     auto non_empty2 = split_at("foofooonefootwofoothreefoofoofourfoo", "foo", false);
     EXPECT_EQ(8, non_empty2.size());
 }
+
+#if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
+
+TEST(Text, SplitViewDelim)
+{
+    auto no_delim = split_view("one:two:three:four", ",");
+    EXPECT_EQ(1, no_delim.size());
+
+    auto simple = split_view("one:two:three:four", ":");
+    EXPECT_EQ(4, simple.size());
+
+    auto mulit_delim = split_view("one:two three-four", ": -");
+    EXPECT_EQ(4, mulit_delim.size());
+
+    auto with_empty = split_view("::one:two:three::four:", ":", true);
+    EXPECT_EQ(4, with_empty.size());
+
+    auto non_empty = split_view("::one:two:three::four:", ":", false);
+    EXPECT_EQ(8, non_empty.size());
+}
+
+TEST(Text, SplitViewPredicate)
+{
+    auto no_delim = split_view( "one:two:three:four", isblank );
+    EXPECT_EQ(1, no_delim.size());
+
+    auto simple = split_view( "one two\tthree four", isblank );
+    EXPECT_EQ(4, simple.size());
+
+    auto with_empty = split_view( "one   two\t three\t four", isblank, true );
+    EXPECT_EQ(4, with_empty.size());
+
+    auto non_empty = split_view( "one   two\t three\t four", isblank, false );
+    EXPECT_EQ(8, non_empty.size());
+}
+
+TEST(Text, SplitViewAt)
+{
+    auto no_delim = split_view_at( "one:two:three:four", " " );
+    EXPECT_EQ(1, no_delim.size());
+
+    auto simple = split_view_at( "one:two:three:four", ":" );
+    EXPECT_EQ(4, simple.size());
+
+    auto with_empty = split_view_at("::one:two:three::four:", ":", true);
+    EXPECT_EQ(4, with_empty.size());
+
+    auto non_empty = split_view_at("::one:two:three::four:", ":", false);
+    EXPECT_EQ(8, non_empty.size());
+
+    auto no_delim2 = split_view_at( "one:two:three:four", "foo" );
+    EXPECT_EQ(1, no_delim2.size());
+
+    auto simple2 = split_view_at( "onefootwofoothreefoofour", "foo" );
+    EXPECT_EQ(4, simple2.size());
+
+    auto with_empty2 = split_view_at("foofooonefootwofoothreefoofoofourfoo", "foo", true);
+    EXPECT_EQ(4, with_empty2.size());
+
+    auto non_empty2 = split_view_at("foofooonefootwofoothreefoofoofourfoo", "foo", false);
+    EXPECT_EQ(8, non_empty2.size());
+}
+
+#endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
 TEST( Text, SplitRangeList )
 {

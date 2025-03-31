@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -42,6 +42,10 @@
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/io/deserializer.hpp"
+#include "genesis/utils/io/input_source.hpp"
+#include "genesis/utils/io/output_target.hpp"
+#include "genesis/utils/io/serializer.hpp"
 
 namespace genesis {
 namespace utils {
@@ -204,6 +208,10 @@ bool is_symmetric( Matrix<T> const& data )
     return true;
 }
 
+// =================================================================================================
+//     Input Output
+// =================================================================================================
+
 /**
  * @brief Print the elements of a Matrix to a stream, using `operator <<` for each element.
  */
@@ -287,6 +295,38 @@ std::string print( Matrix<T> const& matrix, size_t rows = 10, size_t cols = 10 )
     std::ostringstream out;
     print( out, matrix, rows, cols );
     return out.str();
+}
+
+template<typename T>
+Serializer& operator<<( Serializer& serializer, Matrix<T> const& mat )
+{
+    // We write the number of rows and cols first.
+    // Then, the data serialization will additionally store the size of the underlying vector
+    // that is used in the Matrix, which is a bit of overhead, but we live with that for now.
+    serializer << mat.rows();
+    serializer << mat.cols();
+    serializer << mat.data();
+    return serializer;
+}
+
+template<typename T>
+Deserializer& operator>>( Deserializer& deserializer, Matrix<T>& mat )
+{
+    // This funciton is a friend of the Matrix class, so that we can write to its data directly.
+    // Otherwise, we'd need special constructors etc, which is a bit cumbersome.
+    deserializer >> mat.rows_;
+    deserializer >> mat.cols_;
+    deserializer >> mat.data_;
+
+    // Check that the input was actually valid.
+    if( mat.rows_ * mat.cols_ != mat.data_.size() ) {
+        throw std::invalid_argument(
+            "Cannot deserialize Matrix of expected size " + std::to_string( mat.rows_ ) +
+            " * " + std::to_string( mat.cols_ ) + " = " + std::to_string( mat.rows_ * mat.cols_ ) +
+            " with data of size " + std::to_string( mat.data_.size() )
+        );
+    }
+    return deserializer;
 }
 
 // =================================================================================================

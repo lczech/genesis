@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
  */
 
 #include "genesis/sequence/counts.hpp"
+#include "genesis/sequence/formats/fai_input_stream.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/formats/fasta_writer.hpp"
 #include "genesis/sequence/formats/fastq_reader.hpp"
@@ -56,6 +57,8 @@
 #include "genesis/sequence/kmer/alphabet.hpp"
 #include "genesis/sequence/kmer/bitfield.hpp"
 #include "genesis/sequence/kmer/canonical_encoding.hpp"
+#include "genesis/sequence/kmer/color_gamut_functions.hpp"
+#include "genesis/sequence/kmer/color_gamut.hpp"
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/kmer.hpp"

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,7 +124,7 @@ public:
     */
     explicit operator bool() const
     {
-        return good_;
+        return input_stream_ != nullptr;
     }
 
     // -------------------------------------------------------------------------
@@ -197,7 +197,7 @@ public:
         // Check whether the input stream is good (not end-of-stream) and can be read from.
         // If not, we reached its end, so we stop reading in the next iteration.
         if( ! input_stream_ || ! *input_stream_ ) {
-            good_ = false;
+            input_stream_ = nullptr;
             return;
         }
 
@@ -208,11 +208,10 @@ public:
     //     Data Members
     // -------------------------------------------------------------------------
 
-    private:
+private:
 
     std::shared_ptr<utils::InputStream> input_stream_;
 
-    bool            good_ = true;
     CsvReader       reader_;
     CsvReader::Line line_;
 };
