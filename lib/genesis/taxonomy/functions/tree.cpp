@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -59,54 +59,44 @@ namespace taxonomy {
  */
 static void add_subtaxonomy_(
     Taxonomy const& taxonomy,
-    bool keep_singleton_inner_nodes,
-    bool keep_inner_node_names,
-    int max_level,
+    TaxonomyToTreeParams params,
     int parent_level,
     tree::NewickBroker& broker
 ) {
     for( auto const& taxon : taxonomy ) {
         auto const level = parent_level + 1;
 
-        if( max_level > -1 && taxon_level( taxon ) >= static_cast<size_t>( max_level )) {
+        if( params.max_level > -1 && taxon_level( taxon ) >= static_cast<size_t>( params.max_level )) {
             // Here, we are at a taxon that is at the max level.
             // Do not recurse, but add the name of the taxon to the tree. The taxon is possibly
             // an inner one (phylum, class, etc), which is what we want to happen if there is
             // a max level set.
             broker.push_bottom({ taxon.name(), level });
 
-        } else if( ! keep_singleton_inner_nodes && taxon.size() == 1 ) {
+        } else if( ! params.keep_singleton_inner_nodes && taxon.size() == 1 ) {
             // Here, we are at a taxon that only contains a single child taxon, which would
             // add a branch to the tree that does not furcate in any way. If the option to drop
             // such entities is set, we simply recurse to the single child, without adding it
             // to the tree.
-            add_subtaxonomy_(
-                taxon, keep_singleton_inner_nodes, keep_inner_node_names, max_level,
-                parent_level, broker
-            );
+            add_subtaxonomy_( taxon, params, parent_level, broker );
 
         } else {
             // Here, we are in the default case: A taxon to be added to the tree.
             // Whether we set a name or not depends on whether it is an inner one or has children.
             std::string const tax_name = (
-                ( ! keep_inner_node_names && taxon.size() > 0 )
+                ( ! params.keep_inner_node_names && taxon.size() > 0 )
                 ? ""
                 : taxon.name()
             );
             broker.push_bottom({ tax_name, level });
-            add_subtaxonomy_(
-                taxon, keep_singleton_inner_nodes, keep_inner_node_names, max_level,
-                level, broker
-            );
+            add_subtaxonomy_( taxon, params, level, broker );
         }
     }
 }
 
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
-    bool keep_singleton_inner_nodes,
-    bool keep_inner_node_names,
-    int  max_level
+    TaxonomyToTreeParams params
 ) {
     using namespace genesis::tree;
 
@@ -122,9 +112,7 @@ tree::Tree taxonomy_to_tree(
     // Recursively add taxa. We could try something non-recursive here (see below for an example),
     // but this makes early stopping for the max level a bit difficult.
     // Taxonomies are not that deep, so this should not yield any trouble at all.
-    add_subtaxonomy_(
-        taxonomy, keep_singleton_inner_nodes, keep_inner_node_names, max_level, 1, broker
-    );
+    add_subtaxonomy_( taxonomy, params, 1, broker );
     broker.assign_ranks();
 
     // Non-recursive way of adding taxa, that however does not easily support
@@ -145,9 +133,7 @@ tree::Tree taxonomy_to_tree(
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
     std::unordered_map<std::string, Taxopath> const& extra_taxa,
-    bool keep_singleton_inner_nodes,
-    bool keep_inner_node_names,
-    int  max_level,
+    TaxonomyToTreeParams params,
     bool add_extra_taxa_parents
 ) {
     // We are lazy. Just make a copy of the whole taxonomy (they are usually not that big),
@@ -174,20 +160,16 @@ tree::Tree taxonomy_to_tree(
         tax->add_child( tp.first );
     }
 
-    return taxonomy_to_tree( copy, keep_singleton_inner_nodes, keep_inner_node_names, max_level );
+    return taxonomy_to_tree( copy, params );
 }
 
 tree::Tree taxonomy_to_tree(
     std::unordered_map<std::string, Taxopath> const& taxon_map,
-    bool keep_singleton_inner_nodes,
-    bool keep_inner_node_names,
-    int  max_level
+    TaxonomyToTreeParams params
 ) {
     // Use an empty dummy taxonomy that gets filled as needed.
     Taxonomy tmp;
-    return taxonomy_to_tree(
-        tmp, taxon_map, keep_singleton_inner_nodes, keep_inner_node_names, max_level, true
-    );
+    return taxonomy_to_tree( tmp, taxon_map, params, true );
 }
 
 } // namespace taxonomy

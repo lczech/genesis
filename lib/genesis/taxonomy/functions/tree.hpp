@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -52,31 +52,53 @@ class Taxopath;
 // =================================================================================================
 
 /**
+ * @brief Parameters for taxonomy_to_tree()
+ *
+ * This struct simply collects the different parameters for the function,
+ * in order to have a nicer interface. See there for details.
+ */
+struct TaxonomyToTreeParams
+{
+    /**
+     *  @brief Keep singleton inner nodes.
+     *
+     * It might happen that a taxonomic path goes down several levels with just one taxon at each level.
+     * This would create inner nodes in the tree that just connect two other nodes, that is, nodes that
+     * do not furcate at all. Many downstream programs might have problems with such trees.
+     * By default, such nodes are collapsed. `keep_singleton_inner_nodes` can be used to include these
+     * inner nodes in the tree, instead of immediately adding their children.
+     */
+    bool keep_singleton_inner_nodes = false;
+
+    /**
+     * @brief Kepp inner node names.
+     *
+     * A Taxonomy contains names at every level, while a Tree usually does not contain
+     * inner node names. Thus, inner node are not named by default. Use `keep_inner_node_names`
+     * to still set the inner taxonomic labels in the tree.
+     */
+    bool keep_inner_node_names = false;
+
+    /**
+     * @brief Maximum level of the taxonomy to use for the tree.
+     *
+     * This be used to only turn the first few (highest) levels (starting at 0) of the
+     * Taxonomy to the tree, and stopping after that. By default, the whole Taxonomy (all levels)
+     * is turned into a Tree.
+     */
+    int max_level = -1;
+};
+
+/**
  * @brief Turn a Taxonomy into a (possibly multifurcating) Tree.
  *
  * A Taxonomy is a hierarchy that can be interpreted as a rooted tree. Using this function, such
  * a tree is created and returned. It can be used to construct a taxonomic constraint tree
  * for tree inference.
- *
- * It might happen that a taxonomic path goes down several levels with just one taxon at each level.
- * This would create inner nodes in the tree that just connect two other nodes, that is, nodes that
- * do not furcate at all. Many downstream programs might have problems with such trees.
- * By default, such nodes are collapsed. @p keep_singleton_inner_nodes can be used to include these
- * inner nodes in the tree, instead of immediately adding their children.
- *
- * Furthermore, a Taxonomy contains names at every level, while a Tree usually does not contain
- * inner node names. Thus, inner node are not named by default. Use @p keep_inner_node_names
- * to still set the inner taxonomic labels in the tree.
- *
- * Lastly, @p max_level can be used to only turn the first few levels (starting at 0) of the
- * Taxonomy to the tree, and stopping after that. By default, the whole Taxonomy (all levels)
- * is turned into a Tree.
  */
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
-    bool keep_singleton_inner_nodes = false,
-    bool keep_inner_node_names = false,
-    int  max_level = -1
+    TaxonomyToTreeParams params = TaxonomyToTreeParams{}
 );
 
 /**
@@ -106,9 +128,7 @@ tree::Tree taxonomy_to_tree(
 tree::Tree taxonomy_to_tree(
     Taxonomy const& taxonomy,
     std::unordered_map<std::string, Taxopath> const& extra_taxa,
-    bool keep_singleton_inner_nodes = false,
-    bool keep_inner_node_names = false,
-    int  max_level = -1,
+    TaxonomyToTreeParams params = TaxonomyToTreeParams{},
     bool add_extra_taxa_parents = true
 );
 
@@ -127,9 +147,7 @@ tree::Tree taxonomy_to_tree(
  */
 tree::Tree taxonomy_to_tree(
     std::unordered_map<std::string, Taxopath> const& taxon_map,
-    bool keep_singleton_inner_nodes = false,
-    bool keep_inner_node_names = false,
-    int  max_level = -1
+    TaxonomyToTreeParams params = TaxonomyToTreeParams{}
 );
 
 } // namespace taxonomy

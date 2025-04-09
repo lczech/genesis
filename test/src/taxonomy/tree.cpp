@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -73,7 +73,11 @@ TEST( Taxonomy, Tree )
     );
 
     // LOG_DBG << "false, true, -1";
-    auto const t2 = taxonomy_to_tree( tax, true, false, -1 );
+    TaxonomyToTreeParams params_1;
+    params_1.keep_singleton_inner_nodes = true;
+    params_1.keep_inner_node_names = false;
+    params_1.max_level = -1;
+    auto const t2 = taxonomy_to_tree( tax, params_1 );
     // LOG_DBG << nw.to_string( t2 );
     // nw.to_file( t2, "/home/lucas/t2.newick" );
     EXPECT_EQ(
@@ -82,7 +86,11 @@ TEST( Taxonomy, Tree )
     );
 
     // LOG_DBG << "true, false, -1";
-    auto const t3 = taxonomy_to_tree( tax, false, true, -1 );
+    TaxonomyToTreeParams params_2;
+    params_2.keep_singleton_inner_nodes = false;
+    params_2.keep_inner_node_names = true;
+    params_2.max_level = -1;
+    auto const t3 = taxonomy_to_tree( tax, params_2 );
     // LOG_DBG << nw.to_string( t3 );
     // nw.to_file( t3, "/home/lucas/t3.newick" );
     EXPECT_EQ(
@@ -91,7 +99,11 @@ TEST( Taxonomy, Tree )
     );
 
     // LOG_DBG << "false, false, 2";
-    auto const t4 = taxonomy_to_tree( tax, true, true, 2 );
+    TaxonomyToTreeParams params_3;
+    params_3.keep_singleton_inner_nodes = true;
+    params_3.keep_inner_node_names = true;
+    params_3.max_level = 2;
+    auto const t4 = taxonomy_to_tree( tax, params_3 );
     // LOG_DBG << nw.to_string( t4 );
     // nw.to_file( t4, "/home/lucas/t4.newick" );
     EXPECT_EQ(
