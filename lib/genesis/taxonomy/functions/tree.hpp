@@ -35,6 +35,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace genesis {
 namespace taxonomy {
@@ -48,7 +49,7 @@ class Taxonomy;
 class Taxopath;
 
 // =================================================================================================
-//     Tree
+//     Parameters
 // =================================================================================================
 
 /**
@@ -88,6 +89,10 @@ struct TaxonomyToTreeParams
      */
     int max_level = -1;
 };
+
+// =================================================================================================
+//     Basic
+// =================================================================================================
 
 /**
  * @brief Turn a Taxonomy into a (possibly multifurcating) Tree.
@@ -147,6 +152,32 @@ tree::Tree taxonomy_to_tree(
  */
 tree::Tree taxonomy_to_tree(
     std::unordered_map<std::string, Taxopath> const& taxon_map,
+    TaxonomyToTreeParams params = TaxonomyToTreeParams{}
+);
+
+// =================================================================================================
+//     Advanced
+// =================================================================================================
+
+/**
+ * @brief Turn a Taxonomy into a Tree, and gather all @link Taxon Taxa@endlink in the node order
+ * of the Tree.
+ *
+ * This function is for advanced use cases on top of the basic functionality of converting
+ * a Taxonomy into a Tree. For some purposes, it might be necessary to transfer data from the
+ * Taxonomy to the Tree, or otherwise be able to obtain a mapping of which taxa ended up as which
+ * nodes in the tree.
+ *
+ * To this end, this function fills the given @p per_node_taxa vector with the @link Taxon Taxa@endlink
+ * of the Taxonomy that were used to build the Tree, in the order of the Tree node indices.
+ * This one-to-one mapping of nodes in the tree to the taxa those nodes were created from can be
+ * used downstream. It allows to process the taxon data (via the pointers in that list) in the same
+ * order as the tree (via its node indices), and make use of the taxon data, for instance when
+ * visualizing the tree.
+ */
+tree::Tree taxonomy_to_tree(
+    Taxonomy const& taxonomy,
+    std::vector<Taxon const*>& per_node_taxa,
     TaxonomyToTreeParams params = TaxonomyToTreeParams{}
 );
 

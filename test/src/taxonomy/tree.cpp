@@ -46,7 +46,7 @@ using namespace genesis::taxonomy;
 using namespace genesis::tree;
 using namespace genesis::utils;
 
-TEST( Taxonomy, Tree )
+TEST( Taxonomy, TreeBasic )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -110,4 +110,36 @@ TEST( Taxonomy, Tree )
         "((Thermoprotei)Crenarchaeota,Ancient_Archaeal_Group_AAG,(Terrestrial_Hot_Spring_Gp_THSCG,Aigarchaeota_Incertae_Sedis)Aigarchaeota,(Deep_Sea_Euryarchaeotic_Group_DSEG,Aenigmarchaeota_Incertae_Sedis)Aenigmarchaeota)Archaea;",
         nw.to_string( t4 )
     );
+}
+
+TEST( Taxonomy, TreeAdvanced )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string const infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.clean";
+
+    // Read the taxonomy and check its properties
+    auto const reader = TaxonomyReader();
+    Taxonomy tax;
+    EXPECT_NO_THROW( reader.read( from_file( infile ), tax ));
+    EXPECT_EQ( 32, total_taxa_count(tax) );
+    sort_by_name( tax );
+    EXPECT_TRUE( validate( tax ));
+
+    // Turn the taxonomy into a tree, and collect the list of taxa,
+    // in the order of the nodes of the tree.
+    TaxonomyToTreeParams params;
+    params.keep_singleton_inner_nodes = true;
+    params.keep_inner_node_names = true;
+    params.max_level = -1;
+    std::vector<Taxon const*> per_node_taxa;
+    auto const tax_tree = taxonomy_to_tree( tax, per_node_taxa, params );
+
+    // Check that the list of taxa corresponds to the correct nodes.
+    EXPECT_EQ( 32, per_node_taxa.size() );
+    ASSERT_EQ( per_node_taxa.size(), tax_tree.node_count() );
+    for( size_t i = 0; i < tax_tree.node_count(); ++i ) {
+        ASSERT_TRUE( per_node_taxa[i] );
+        EXPECT_EQ( per_node_taxa[i]->name(), tax_tree.node_at(i).data<CommonNodeData>().name );
+    }
 }

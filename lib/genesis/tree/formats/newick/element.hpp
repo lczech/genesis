@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -135,6 +136,18 @@ public:
      * @brief Depth of the node in the tree, i.e. its distance from the root.
      */
     long depth;
+
+    /**
+     * @brief Identifier for the element.
+     *
+     * This is an arbitrary number that can be assigned to the element, as a helper to keep track
+     * of elements throughout their processing. This can be used for instance to create a NewickBroker
+     * with elements first, and then find them later in the NewickReader when turning the broker
+     * into a tree, by for instance using the identifier in the NewickReader::element_to_node_function
+     *
+     * By default, it is initialized to max size_t, to make sure that any unset values are obvious.
+     */
+    size_t identifier = std::numeric_limits<size_t>::max();
 
     // -------------------------------------------------------------------------
     //     Additional Members
