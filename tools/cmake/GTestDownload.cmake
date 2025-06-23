@@ -33,12 +33,13 @@
 cmake_minimum_required( VERSION 3.8 )
 project( googletest-download NONE )
 
+cmake_policy(SET CMP0135 NEW)
 include(ExternalProject)
 
 # Download a fixed release instead of the current master,
 # so that we know that it works for us.
 ExternalProject_Add( googletest
-    URL https://github.com/google/googletest/archive/release-1.8.0.zip
+    URL https://github.com/google/googletest/archive/release-1.12.0.zip
     SOURCE_DIR        "${CMAKE_BINARY_DIR}/googletest-src"
     BINARY_DIR        "${CMAKE_BINARY_DIR}/googletest-build"
     CONFIGURE_COMMAND ""

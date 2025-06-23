@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2024 Lucas Czech
+# Copyright (C) 2014-2025 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -59,6 +59,8 @@ set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
 # Include extra functionality.
+# Set the new policy, mostly to silence the warning.
+cmake_policy(SET CMP0135 NEW)
 include(ExternalProject)
 
 # Include our own extra CMake functionality.
