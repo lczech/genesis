@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2022 Lucas Czech
+# Copyright (C) 2014-2025 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 
 # This min requirement is less than what we expect in the main CMakeList file,
 # so we should be good. We state it here for re-use of this script.
-cmake_minimum_required( VERSION 2.8.12 )
+cmake_minimum_required(VERSION 3.8)
 
 project( pybind11-download NONE )
 
