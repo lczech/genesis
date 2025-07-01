@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /*
@@ -244,14 +244,13 @@ MultiFuture<Return> parallel_block(
  *
  * ```
  * std::vector<int> numbers( 100 );
- * auto futures = pool->parallel_for(
+ * auto futures = parallel_for(
  *     0, numbers.size(),
  *     [&numbers]( size_t i )
  *     {
  *         numbers[i] *= 2;
  *     }
  * );
- * futures.get();
  * ```
  *
  * This makes it a convenience function; see also parallel_for_each() for container-based data.
@@ -259,7 +258,8 @@ MultiFuture<Return> parallel_block(
  * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
  * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
  * This ensures that the user cannot accidentally forget to wait for the result, making this
- * function behave more intuitively like an `#pragma omp parallel for` or the like.
+ * function behave more intuitively like an `#pragma omp parallel for` or the like. If this is not
+ * intended, `futures.get();` will have to be called on the returned `futures` object first.
  */
 template<
     typename Function,
@@ -294,14 +294,13 @@ MultiFuture<void> parallel_for(
  *
  * ```
  * std::vector<int> numbers( 100 );
- * auto futures = pool->parallel_for_each(
+ * auto futures = parallel_for_each(
  *     numbers.begin(), numbers.end(),
  *     []( int& element )
  *     {
  *         element *= 2;
  *     }
  * );
- * futures.get();
  * ```
  *
  * This makes it a convenience function.
@@ -309,7 +308,8 @@ MultiFuture<void> parallel_for(
  * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
  * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
  * This ensures that the user cannot accidentally forget to wait for the result, making this
- * function behave more intuitively like an `#pragma omp parallel for` or the like.
+ * function behave more intuitively like an `#pragma omp parallel for` or the like. If this is not
+ * intended, `futures.get();` will have to be called on the returned `futures` object first.
  */
 template<typename Function, typename Iter>
 MultiFuture<void> parallel_for_each(
@@ -364,14 +364,13 @@ MultiFuture<void> parallel_for_each(
  *
  * ```
  * std::vector<int> numbers( 100 );
- * auto futures = pool->parallel_for_each(
+ * auto futures = parallel_for_each(
  *     numbers,
  *     []( int& element )
  *     {
  *         element *= 2;
  *     }
  * );
- * futures.get();
  * ```
  *
  * This makes it a convenience function.
@@ -379,7 +378,8 @@ MultiFuture<void> parallel_for_each(
  * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
  * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
  * This ensures that the user cannot accidentally forget to wait for the result, making this
- * function behave more intuitively like an `#pragma omp parallel for` or the like.
+ * function behave more intuitively like an `#pragma omp parallel for` or the like. If this is not
+ * intended, `futures.get();` will have to be called on the returned `futures` object first.
  */
 template<typename Function, typename Iterable>
 MultiFuture<void> parallel_for_each(

@@ -38,6 +38,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"
@@ -462,6 +463,34 @@ TEST( ThreadPool, ParallelForFuzzy )
         // LOG_DBG << "Test " << test_num;
         thread_pool_for_loop_fuzzy_work_();
     }
+}
+
+// =================================================================================================
+//     Matrix Nested
+// =================================================================================================
+
+TEST( ThreadPool, NestedMatrix )
+{
+    // Large empty matrix
+    size_t const n = 1000;
+    auto mat = Matrix<size_t>( n, n, 0 );
+    std::atomic<size_t> cnt = 0;
+
+    // Nested loop over all elements
+    parallel_for( 0, n, [&](size_t i) {
+        parallel_for( 0, n, [&](size_t j) {
+            mat(i,j) = i*j;
+            ++cnt;
+        });
+    });
+
+    // Check that all entries are as intended
+    for( size_t i = 0; i < n; ++i ) {
+        for( size_t j = 0; j < n; ++j ) {
+            EXPECT_EQ( mat(i,j), i*j );
+        }
+    }
+    EXPECT_EQ( cnt, n*n );
 }
 
 // =================================================================================================
