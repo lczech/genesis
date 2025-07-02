@@ -302,7 +302,7 @@ void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread
                 // }
             },
             thread_pool
-        ).get();
+        );
         // utils::parallel_for(
         //     0, colors_.size(),
         //     [this]( size_t color_index )
@@ -314,7 +314,7 @@ void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread
         //         }
         //     },
         //     thread_pool
-        // ).get();
+        // );
     } else {
         // Serial version of the above.
         for( size_t color_index = 0; color_index < colors_.size(); ++color_index ) {

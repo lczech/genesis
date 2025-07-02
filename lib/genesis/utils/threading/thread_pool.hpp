@@ -272,14 +272,15 @@ private:
  * This simple implementation offer a standing pool of worker threads that pick up tasks.
  *
  * For reasons explained below, it is recommended to initialize a global thread pool via
- * Options::get().global_thread_pool(), with one fewer threads than intended to maximally use,
- * as the main thread will also be able to do work while waiting for tasks via our work-stealing
- * ProactiveFuture. Use guess_number_of_threads() for obtaining the adequate number of total threads
- * to run, and subtract one to get the number to use this class with.
+ * Options::get().global_thread_pool(), which sets up a thread pool with one fewer threads than
+ * intended to maximally use, as the main thread will also be able to do work while waiting for
+ * tasks via our work-stealing ProactiveFuture. Use guess_number_of_threads() for obtaining the
+ * adequate number of total threads to run.
  *
  * Example
  *
  *     // Create a thread pool with 3 worker threads, on a 4 core system.
+ *     // Automatically taken care of if you use Options::get().global_thread_pool() instead.
  *     ThreadPool thread_pool( 3 );
  *
  *     // Enqueue a new task by providing a function and its arguments, and store its future result.
@@ -326,10 +327,11 @@ private:
  * size of the task queue, as explained next.
  *
  * Lastly, if upon construction a maximum queue size is provided, only that many tasks will be
- * queued at a time (with a bit of leeway, due to concurrency). If a thread calls enqueue_and_retrieve()
- * or enqueue_detached() when the queue is already filled with waiting tasks up to the maximum size,
- * the caller instead waits for the queue to be below the specified max, and while waiting, starts
- * processing tasks of its own, so that the waiting time is spend productively.
+ * queued at a time (with a bit of leeway, due to concurrency). If a thread calls
+ * enqueue_and_retrieve() or enqueue_detached() when the queue is already filled with waiting tasks
+ * up to the maximum size, the caller instead waits for the queue to be below the specified max,
+ * and while waiting, starts processing tasks of its own, so that the waiting time is spend
+ * productively.
  *
  * This is meant as a mechanism to allow a main thread to just keep queueing work without capturing
  * the futures and waiting for them, while avoiding to endlessly queue new tasks, with the workers

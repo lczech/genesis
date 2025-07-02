@@ -120,7 +120,7 @@ void test_thread_pool_parallel_block_( size_t num_threads, size_t num_tasks, siz
     auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Do some parallel computation.
-    auto mult_fut = parallel_block(
+    auto mult_fut = parallel_block_async(
         0, num_tasks,
         [&numbers]( size_t b, size_t e )
         {
@@ -212,7 +212,7 @@ void test_thread_pool_parallel_for_( size_t num_threads, size_t num_tasks, size_
     auto pool = std::make_shared<ThreadPool>( num_threads );
 
     // Do some parallel computation.
-    auto mult_fut = parallel_for(
+    parallel_for(
         0, num_tasks,
         [&numbers]( size_t i )
         {
@@ -224,7 +224,6 @@ void test_thread_pool_parallel_for_( size_t num_threads, size_t num_tasks, size_
     );
 
     // Aggregate the result per block.
-    mult_fut.get();
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
     EXPECT_EQ( exp, total );
 
@@ -254,6 +253,7 @@ TEST( ThreadPool, ParallelFor )
         test_thread_pool_parallel_for_( num_threads, 3, 1 );
         test_thread_pool_parallel_for_( num_threads, 3, 2 );
         test_thread_pool_parallel_for_( num_threads, 3, 3 );
+        test_thread_pool_parallel_for_( num_threads, 3, 4 );
 
         // Test some extreme cases
         test_thread_pool_parallel_for_( num_threads, 0, 100 );
@@ -277,6 +277,8 @@ TEST( ThreadPool, ParallelFor )
         test_thread_pool_parallel_for_( num_threads, 100, 18 );
         test_thread_pool_parallel_for_( num_threads, 100, 19 );
         test_thread_pool_parallel_for_( num_threads, 100, 20 );
+        test_thread_pool_parallel_for_( num_threads, 100, 100 );
+        test_thread_pool_parallel_for_( num_threads, 100, 101 );
     }
 }
 
@@ -299,9 +301,8 @@ void test_thread_pool_parallel_for_each_(
 
     // Do some parallel computation.
     // We offer to use both version, the range and the container overload of the loop.
-    MultiFuture<void> mult_fut;
     if( range ) {
-        mult_fut = parallel_for_each(
+        parallel_for_each(
             numbers.begin(), numbers.end(),
             []( int& elem )
             {
@@ -312,7 +313,7 @@ void test_thread_pool_parallel_for_each_(
             num_blocks
         );
     } else {
-        mult_fut = parallel_for_each(
+        parallel_for_each(
             numbers,
             []( int& elem )
             {
@@ -325,7 +326,6 @@ void test_thread_pool_parallel_for_each_(
     }
 
     // Aggregate the result per block.
-    mult_fut.get();
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
     EXPECT_EQ( exp, total );
 
@@ -423,7 +423,7 @@ void thread_pool_for_loop_fuzzy_work_()
     ;
 
     // Do the parallel computation.
-    auto mult_fut = parallel_for(
+    parallel_for(
         0, num_tasks,
         [&numbers]( size_t i )
         {
@@ -434,7 +434,6 @@ void thread_pool_for_loop_fuzzy_work_()
         pool,
         num_blocks
     );
-    mult_fut.get();
 
     // Aggregate the result and check that we got the correct sum.
     auto const total = std::accumulate( numbers.begin(), numbers.end(), 0 );
@@ -532,7 +531,7 @@ void thread_pool_compute_nested_fuzzy_work_(
     LOG_DBG << "#" << cnt << " begin=" << begin << " end=" << end << " num_blocks=" << num_blocks;
 
     // Submit tasks.
-    auto mult_fut = parallel_block(
+    auto mult_fut = parallel_block_async(
         begin, end,
         [&]( size_t begin, size_t end )
         {

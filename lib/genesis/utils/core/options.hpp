@@ -220,23 +220,21 @@ public:
         // We then reduce it by one to account for the main thread doing work as well.
         auto const num_threads = guess_number_of_threads();
         assert( num_threads > 0 );
-        if( num_threads == 0 ) {
-            init_global_thread_pool( 0 );
-        } else {
-            init_global_thread_pool( num_threads - 1, 10 * num_threads );
-        }
+        init_global_thread_pool( num_threads, 10 * num_threads );
     }
 
     /**
      * @brief Initialize the global thread pool to be used for parallel computations.
      *
-     * This initializes the pool to have exactly as many threads as provided by @p num_threads here.
-     * Note that the main thread will also do work, so it is recommended to keep the @p num_threads
-     * at at least one fewer than the hardware concurrency (or other upper limit of threads, such as
-     * from OpenMP or Slum, that you might want to keep). Use the overload init_global_thread_pool()
-     * without any arguments to do this automatically.
+     * This initializes the pool to have one fewer thread as provided by @p num_threads here.
+     * Note that the main thread will also do work, so this is recommended, and keeps
+     * the @p num_threads at at least one fewer than the hardware concurrency (or other upper
+     * limit of threads, such as from OpenMP or Slum, that you might want to keep). Use the
+     * overload init_global_thread_pool() without any arguments, or call this function with value
+     * `0` to determine the number of threads automatically via guess_number_of_threads().
      *
-     * If @p num_threads is `0`, the thread pool is initialized with no threads at all, meaning that
+     * If @p num_threads is `1`, we take this to mean that we only want to use the single main
+     * thread, and hence the thread pool is initialized with no threads at all, meaning that
      * all enqueued work will instead be processed by the main thread once it wants to obtain the
      * results of tasks. This essentially renders the thread pool into a lazy evaluating task queue.
      *
@@ -251,7 +249,12 @@ public:
                 "Cannot call Options::get().init_global_thread_pool() multiple times."
             );
         }
-        thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads, max_queue_size );
+        if( num_threads == 0 ) {
+            init_global_thread_pool();
+            return;
+        }
+        assert( num_threads > 0 );
+        thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads - 1, max_queue_size );
     }
 
     /**
@@ -276,6 +279,15 @@ public:
             );
         }
         return thread_pool_;
+    }
+
+    /**
+     * @brief Return if a global thread pool has been initialized, i.e., if init_global_thread_pool()
+     * has already been called.
+     */
+    bool has_global_thread_pool() const
+    {
+        return static_cast<bool>( thread_pool_ );
     }
 
     /**

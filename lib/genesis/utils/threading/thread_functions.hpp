@@ -110,18 +110,13 @@ namespace utils {
  *
  * The @p thread_pool defaults to using the Options::get().global_thread_pool(). This requires to
  * call Options::get().init_global_thread_pool() first.
- *
  * The @p num_blocks determines the number of blocks to split the loop body into. Default is
  * to use the number of threads in the pool.
  *
- * By default, @p auto_wait is set to `true`, meaning that the function blocks until the results
- * are ready. This is meant as a convenience and safety mechanism, as otherwise the user might
- * forget to wait, and continue with other things while the thread pool is still working on the
- * blocks.
- *
  * The function returns a MultiFuture that can be used to obtian the results for all the blocks.
- * If `auto_wait == false`, this also can be used to call wait() on the returned MultiFuture to
- * wait for all blocks to finish.
+ * You need to call wait() on the returned MultiFuture to wait for all blocks to finish.
+ * See parallel_block_sync() for an alternative that waits for all blocks to finish processing
+ * before returning, and which can also be used without a global thread pool.
  *
  * If the loop body returns a value, the MultiFuture can also be used to obtain the values
  * returned by each block, for example:
@@ -145,11 +140,10 @@ template<
     typename Return = typename genesis_invoke_result<Function, T, T>::type
     // typename R = typename std::result_of<typename std::decay<F>::type(T, T)>::type
 >
-MultiFuture<Return> parallel_block(
+MultiFuture<Return> parallel_block_async(
     T1 begin, T2 end, Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0,
-    bool auto_wait = true
+    size_t num_blocks = 0
 ) {
     // If no thread pool was provided, we use the global one.
     if( !thread_pool ) {
@@ -220,14 +214,47 @@ MultiFuture<Return> parallel_block(
     // Check this, then return the future.
     assert( current_start == total_size );
     assert( begin_t + static_cast<T>( current_start ) == end_t );
-
-    // If requested, we block here until everything is ready.
-    // This is a proactive waiting, meaning the calling thread will process tasks from the
-    // thread pool while waiting here.
-    if( auto_wait ) {
-        result.wait();
-    }
     return result;
+}
+
+/**
+ * @brief Parallel block over a range of elements, breaking the range into blocks for which
+ * the @p body function is executed individually.
+ *
+ * This is similar to parallel_block_async(), but waits for all blocks to finish processing before
+ * returning, and can also be used without a global thread pool.
+ * That is, the @p thread_pool defaults to using the Options::get().global_thread_pool() if a
+ * `nullptr` is provided; if there is no global thread pool though, the loop is executed directly *
+ * here, i.e., not multithreaded. This is to enable usage of the library without having to set up
+ * the thread pool.
+ */
+template<
+    typename Function,
+    typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type
+>
+void parallel_block_sync(
+    T1 begin, T2 end, Function&& body,
+    std::shared_ptr<ThreadPool> thread_pool = nullptr,
+    size_t num_blocks = 0
+) {
+    // See if we have a thread pool provided; if not, we want to use the global thread pool instead,
+    // but if that is also not available, we just run everything in a simple loop instead.
+    if( !thread_pool && Options::get().has_global_thread_pool() ) {
+        thread_pool = Options::get().global_thread_pool();
+    }
+
+    // If there is still no thread pool, run locally. Otherwise, use the async version.
+    if( thread_pool ) {
+        // Delegate to the async version that uses the thread pool.
+        auto result = parallel_block_async( begin, end, body, thread_pool, num_blocks );
+
+        // This is a proactive waiting, meaning the calling thread
+        // will process tasks from the thread pool while waiting here.
+        result.wait();
+    } else {
+        // Just call the body here for the full rance.
+        body( begin, end );
+    }
 }
 
 // =================================================================================================
@@ -241,10 +268,13 @@ MultiFuture<Return> parallel_block(
  * This is almost the same as parallel_block(), but intended to be used with `for` loops that do
  * not need to compute per-block return values. The function signature of `Function` is hence simply
  * expected to be `void F( size_t i )`, and is called for every position in the processed range.
+ * We also do not return a MultiFuture here, and instead internally block until the loop is fully
+ * executed. This hence is in line with a standard for-loop, which itself also does not return
+ * values.
  *
  * ```
  * std::vector<int> numbers( 100 );
- * auto futures = parallel_for(
+ * parallel_for(
  *     0, numbers.size(),
  *     [&numbers]( size_t i )
  *     {
@@ -254,24 +284,17 @@ MultiFuture<Return> parallel_block(
  * ```
  *
  * This makes it a convenience function; see also parallel_for_each() for container-based data.
- *
- * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
- * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
- * This ensures that the user cannot accidentally forget to wait for the result, making this
- * function behave more intuitively like an `#pragma omp parallel for` or the like. If this is not
- * intended, `futures.get();` will have to be called on the returned `futures` object first.
  */
 template<
     typename Function,
     typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type
 >
-MultiFuture<void> parallel_for(
+void parallel_for(
     T1 begin, T2 end, Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0,
-    bool auto_wait = true
+    size_t num_blocks = 0
 ) {
-    return parallel_block(
+    parallel_block_sync(
         begin, end,
         [body]( T b, T e ){
             for( T i = b; i < e; ++i ) {
@@ -279,8 +302,7 @@ MultiFuture<void> parallel_for(
             }
         },
         thread_pool,
-        num_blocks,
-        auto_wait
+        num_blocks
     );
 }
 
@@ -294,7 +316,7 @@ MultiFuture<void> parallel_for(
  *
  * ```
  * std::vector<int> numbers( 100 );
- * auto futures = parallel_for_each(
+ * parallel_for_each(
  *     numbers.begin(), numbers.end(),
  *     []( int& element )
  *     {
@@ -304,21 +326,14 @@ MultiFuture<void> parallel_for(
  * ```
  *
  * This makes it a convenience function.
- *
- * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
- * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
- * This ensures that the user cannot accidentally forget to wait for the result, making this
- * function behave more intuitively like an `#pragma omp parallel for` or the like. If this is not
- * intended, `futures.get();` will have to be called on the returned `futures` object first.
  */
 template<typename Function, typename Iter>
-MultiFuture<void> parallel_for_each(
+void parallel_for_each(
     Iter const begin,
     Iter const end,
     Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0,
-    bool auto_wait = true
+    size_t num_blocks = 0
 ) {
     // In the function signature, we take the `begin` and `end` iterators by const, as otherwise,
     // we get iterator invalidity errors, likely due to template argument deduction and reference
@@ -338,11 +353,11 @@ MultiFuture<void> parallel_for_each(
         throw std::invalid_argument( "Cannot use parallel_for_each() with a reverse range." );
     }
     if( total == 0 ) {
-        return MultiFuture<void>();
+        return;
     }
 
     // Run the loop over elements in parallel blocks.
-    return parallel_block(
+    parallel_block_sync(
         0, total,
         [begin, body]( size_t b, size_t e ){
             for( size_t i = b; i < e; ++i ) {
@@ -350,8 +365,7 @@ MultiFuture<void> parallel_for_each(
             }
         },
         thread_pool,
-        num_blocks,
-        auto_wait
+        num_blocks
     );
 }
 
@@ -364,7 +378,7 @@ MultiFuture<void> parallel_for_each(
  *
  * ```
  * std::vector<int> numbers( 100 );
- * auto futures = parallel_for_each(
+ * parallel_for_each(
  *     numbers,
  *     []( int& element )
  *     {
@@ -374,27 +388,20 @@ MultiFuture<void> parallel_for_each(
  * ```
  *
  * This makes it a convenience function.
- *
- * By default, @p auto_wait is set to `true`, meaning that the function first waits for all results
- * to be ready, and only returns afterwards. Then, the returned future is ready immediately.
- * This ensures that the user cannot accidentally forget to wait for the result, making this
- * function behave more intuitively like an `#pragma omp parallel for` or the like. If this is not
- * intended, `futures.get();` will have to be called on the returned `futures` object first.
  */
 template<typename Function, typename Iterable>
-MultiFuture<void> parallel_for_each(
+void parallel_for_each(
     Iterable& container, Function&& body,
     std::shared_ptr<ThreadPool> thread_pool = nullptr,
-    size_t num_blocks = 0,
-    bool auto_wait = true
+    size_t num_blocks = 0
 ) {
     // Boundary checks.
     if( container.size() == 0 ) {
-        return MultiFuture<void>();
+        return;
     }
 
     // Run the loop over elements in parallel blocks.
-    return parallel_block(
+    parallel_block_sync(
         0, container.size(),
         [&container, body]( size_t b, size_t e ) {
             for( size_t i = b; i < e; ++i ) {
@@ -402,8 +409,7 @@ MultiFuture<void> parallel_for_each(
             }
         },
         thread_pool,
-        num_blocks,
-        auto_wait
+        num_blocks
     );
 }
 
@@ -438,18 +444,18 @@ void parallel_for_throttled(
         std::swap( begin_t, end_t );
     }
 
+    // If no thread pool was provided, we use the global one.
+    if( !thread_pool && Options::get().has_global_thread_pool() ) {
+        thread_pool = Options::get().global_thread_pool();
+    }
+
     // With no concurrency, we simply run a sequential loop. That makes the below logic
     // easier to reason about, as we can then assume that we are using the thread pool.
-    if( max_concurrent <= 1 ) {
+    if( max_concurrent <= 1 || !thread_pool ) {
         for( auto i = begin_t; i < end_t; ++i ) {
             func(i);
         }
         return;
-    }
-
-    // If no thread pool was provided, we use the global one.
-    if( !thread_pool ) {
-        thread_pool = Options::get().global_thread_pool();
     }
 
     // Keep track of what we are running in parallel.
@@ -619,7 +625,7 @@ private:
 // Macro to define a tag and create a ThreadCriticalSection instance
 #define GENESIS_THREAD_CRITICAL_SECTION(TagName) \
     struct TagName {}; \
-    ThreadCriticalSection<TagName> genesis_critical_section_##TagName;
+    ::genesis::utils::ThreadCriticalSection<TagName> genesis_critical_section_##TagName;
 
 } // namespace utils
 } // namespace genesis
