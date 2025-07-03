@@ -73,8 +73,7 @@ namespace placement {
 
 double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
 {
-    std::atomic<double> result = 0.0;
-
+    double result = 0.0;
     utils::parallel_for( 0, pquery.placement_size(), [&]( size_t i ) {
         for( size_t j = i + 1; j < pquery.placement_size(); ++j ) {
 
@@ -82,7 +81,11 @@ double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
             auto const& place_j = pquery.placement_at(j);
 
             auto const dist = placement_distance( place_i, place_j, node_distances );
-            result += place_i.like_weight_ratio * place_j.like_weight_ratio * dist;
+            auto const segm = place_i.like_weight_ratio * place_j.like_weight_ratio * dist;
+            {
+                GENESIS_THREAD_CRITICAL_SECTION( GENESIS_PLACEMENT_EDPL )
+                result += segm;
+            }
         }
     });
 

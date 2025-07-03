@@ -147,7 +147,7 @@ void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
 
 double mass_tree_center_masses_on_branches( MassTree& tree )
 {
-    std::atomic<double> work = 0.0;
+    double work = 0.0;
     utils::parallel_for( 0, tree.edge_count(), [&]( size_t i )
     {
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
@@ -160,7 +160,10 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
             local_work += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
-        work += local_work;
+        {
+            GENESIS_THREAD_CRITICAL_SECTION( GENESIS_TREE_MASS_TREE )
+            work += local_work;
+        }
 
         edge_data.masses.clear();
         edge_data.masses[ branch_center ] = central_mass;
@@ -170,8 +173,7 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
 
 double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
 {
-    std::atomic<double> work = 0.0;
-
+    double work = 0.0;
     utils::parallel_for( 0, tree.edge_count(), [&]( size_t i )
     {
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
@@ -202,7 +204,10 @@ double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
         for( auto const& mass : edge_data.masses ) {
             local_work += mass.second * std::abs( mass_center - mass.first );
         }
-        work += local_work;
+        {
+            GENESIS_THREAD_CRITICAL_SECTION( GENESIS_TREE_MASS_TREE )
+            work += local_work;
+        }
 
         // Set the new mass at the mass center.
         edge_data.masses.clear();
@@ -232,7 +237,7 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
         return ( std::floor( pn ) * bl / nb ) + ( bl / nb / 2.0 );
     };
 
-    std::atomic<double> work = 0.0;
+    double work = 0.0;
     utils::parallel_for( 0, tree.edge_count(), [&]( size_t i )
     {
 
@@ -248,7 +253,10 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
             local_work += mass.second * std::abs( bin - mass.first );
             new_masses[ bin ] += mass.second;
         }
-        work += local_work;
+        {
+            GENESIS_THREAD_CRITICAL_SECTION( GENESIS_TREE_MASS_TREE )
+            work += local_work;
+        }
 
         // Replace masses by new accumuated ones.
         edge_data.masses = new_masses;
