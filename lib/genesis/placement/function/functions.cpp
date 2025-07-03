@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -49,10 +49,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -184,7 +180,6 @@ void adjust_branch_lengths( Sample& sample, tree::Tree const& source )
 
     // First, adjust the placement positions,
     // because we need the old branch lengths of the sample for correct scaling.
-    #pragma omp parallel for
     for( size_t i = 0; i < sample.size(); ++i ) {
         auto& pquery = sample.at(i);
 
@@ -198,7 +193,6 @@ void adjust_branch_lengths( Sample& sample, tree::Tree const& source )
     }
 
     // Now adjust the reference tree branch lengths.
-    #pragma omp parallel for
     for( size_t edge_idx = 0; edge_idx < source.edge_count(); ++edge_idx ) {
         auto const new_bl = source.edge_at(edge_idx).data<tree::CommonEdgeData>().branch_length;
         sample.tree().edge_at(edge_idx).data<PlacementEdgeData>().branch_length = new_bl;

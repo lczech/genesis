@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -31,12 +31,10 @@
 #include "genesis/utils/math/distance.hpp"
 
 #include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <cassert>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace utils {
@@ -50,54 +48,44 @@ Matrix<double> p_norm_distance_matrix( Matrix<double> const& data, double p )
     // Init result matrix.
     auto result = utils::Matrix<double>( data.rows(), data.rows(), 0.0 );
 
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
+    // We only need to calculate the upper triangle. Get the number of indices needed
+    // to describe this triangle.
+    size_t const max_k = utils::triangular_size( data.rows() );
 
-        // We only need to calculate the upper triangle. Get the number of indices needed
-        // to describe this triangle.
-        size_t const max_k = utils::triangular_size( data.rows() );
+    // Calculate.
+    utils::parallel_for( 0, max_k, [&]( size_t k )
+    {
+        // For the given linear index, get the actual position in the Matrix.
+        auto const ij = utils::triangular_indices( k, data.rows() );
+        auto const i = ij.first;
+        auto const j = ij.second;
 
-        // Calculate.
-        #pragma omp parallel for
-        for( size_t k = 0; k < max_k; ++k ) {
+        // Calculate EMD and fill symmetric Matrix.
+        auto const dist = p_norm_distance(
+            data.row(i).begin(), data.row(i).end(),
+            data.row(j).begin(), data.row(j).end(),
+            p
+        );
 
-            // For the given linear index, get the actual position in the Matrix.
-            auto const ij = utils::triangular_indices( k, data.rows() );
-            auto const i = ij.first;
-            auto const j = ij.second;
-
-            // Calculate EMD and fill symmetric Matrix.
-            auto const dist = p_norm_distance(
-                data.row(i).begin(), data.row(i).end(),
-                data.row(j).begin(), data.row(j).end(),
-                p
-            );
-
-            assert( result( i, j ) == 0.0 );
-            assert( result( j, i ) == 0.0 );
-            result( i, j ) = dist;
-            result( j, i ) = dist;
-        }
+        assert( result( i, j ) == 0.0 );
+        assert( result( j, i ) == 0.0 );
+        result( i, j ) = dist;
+        result( j, i ) = dist;
+    });
 
     // If no threads are available at all, use serial version.
-    #else
-
-        for( size_t i = 0; i < data.rows() - 1; ++i ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < data.cols(); ++j ) {
-
-                auto const dist = p_norm_distance(
-                    data.row(i).begin(), data.row(i).end(),
-                    data.row(j).begin(), data.row(j).end(),
-                    p
-                 );
-                result( i, j ) = dist;
-                result( j, i ) = dist;
-            }
-        }
-
-    #endif
+    // The result is symmetric - we only calculate the upper triangle.
+    // for( size_t i = 0; i < data.rows() - 1; ++i ) {
+    //     for( size_t j = i + 1; j < data.cols(); ++j ) {
+    //         auto const dist = p_norm_distance(
+    //             data.row(i).begin(), data.row(i).end(),
+    //             data.row(j).begin(), data.row(j).end(),
+    //             p
+    //             );
+    //         result( i, j ) = dist;
+    //         result( j, i ) = dist;
+    //     }
+    // }
 
     return result;
 }

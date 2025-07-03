@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,12 +36,10 @@
 #include "genesis/tree/printer/compact.hpp"
 #include "genesis/tree/tree/subtree.hpp"
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <ostream>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -127,16 +125,15 @@ bool equal(
     // if we already know the result.
 
     bool result = true;
-    #pragma omp parallel for
-    for (size_t i = 1; i < trees.size(); i++) {
+    utils::parallel_for( 1, trees.size(), [&]( size_t i ){
         if( ! result ) {
-            continue;
+            // continue;
+            return;
         }
-
         if( ! equal( trees[i-1], trees[i], node_comparator, edge_comparator )) {
             result = false;
         }
-    }
+    });
     return result;
 }
 
@@ -200,16 +197,15 @@ bool identical_topology( std::vector<Tree> const& trees, bool identical_indices 
     // if we already know the result.
 
     bool result = true;
-    #pragma omp parallel for
-    for (size_t i = 1; i < trees.size(); i++) {
+    utils::parallel_for( 1, trees.size(), [&]( size_t i ){
         if( ! result ) {
-            continue;
+            // continue;
+            return;
         }
-
         if( ! identical_topology( trees[i-1], trees[i], identical_indices )) {
             result = false;
         }
-    }
+    });
     return result;
 }
 

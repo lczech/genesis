@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,10 +41,6 @@
 #include <mutex>
 #include <stdexcept>
 #include <unordered_map>
-
-// #ifdef GENESIS_OPENMP
-// #   include <omp.h>
-// #endif
 
 namespace genesis {
 namespace population {
@@ -113,7 +109,6 @@ double amnm_( // get_aMnm_buffer
     auto const log_coeff = utils::log_binomial_coefficient( n, k );
     assert( k <= n );
 
-    // #pragma omp parallel for
     double result = 0.0;
     for( size_t r = 1; r <= poolsize - 1; ++r ) {
 
@@ -132,7 +127,6 @@ double amnm_( // get_aMnm_buffer
 
         // Sum up the term.
         double const partial = binom / static_cast<double>( r );
-        // #pragma omp atomic
         result += partial;
 
         // Early abort. No need to continue once we reach inf or nan.
@@ -197,19 +191,16 @@ double theta_pi_pool_denominator(
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double denom = 0.0;
-
-        // #pragma omp parallel for
         for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
             // We iterate from b to M-b (in PoPoolation terminology), inclusively.
             // Use double values however for the computations.
             double const m = static_cast<double>( m_it );
             double const M = static_cast<double>( nucleotide_count );
 
-            // Compute the term. We here use the cache, which also computes results if not yet cached.
+            // Compute the term. We here use the cache,
+            // which also computes results if not yet cached.
             double const term = ( 2.0 * m * ( M - m )) / ( M * ( M - 1.0 ));
             double const partial = term * amnm_( poolsize, nucleotide_count, m_it );
-
-            // #pragma omp atomic
             denom += partial;
 
             // Early abort. No need to continue once we reach inf or nan.
@@ -256,14 +247,11 @@ double theta_watterson_pool_denominator(
 
         // Iterate all allele frequencies in between the min and max-min boundaries.
         double denom = 0.0;
-
-        // #pragma omp parallel for
         for( size_t m_it = min_count; m_it <= ( nucleotide_count - min_count ); ++m_it ) {
 
-            // Compute the term. We here use the cache, which also computes results if not yet cached.
+            // Compute the term. We here use the cache,
+            // which also computes results if not yet cached.
             auto const anmn = amnm_( poolsize, nucleotide_count, m_it );
-
-            // #pragma omp atomic
             denom += anmn;
 
             // Early abort. No need to continue once we reach inf or nan.

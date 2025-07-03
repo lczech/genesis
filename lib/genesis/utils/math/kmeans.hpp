@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -34,8 +34,11 @@
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/math/random.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cstddef>
 #include <functional>
@@ -46,10 +49,6 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace utils {
@@ -341,11 +340,11 @@ protected:
         std::vector<size_t>&      assignments
     ) {
         // Store whether anything changed.
-        bool changed_assignment = false;
+        std::atomic<bool> changed_assignment = false;
 
         // Assign each Point to its nearest centroid.
-        #pragma omp parallel for
-        for( size_t i = 0; i < data.size(); ++i ) {
+        utils::parallel_for( 0, data.size(), [&]( size_t i )
+        {
             auto const new_idx = find_nearest_cluster( centroids, data[i] ).first;
 
             if( new_idx != assignments[i] ) {
@@ -354,10 +353,9 @@ protected:
 
                 // If we have a new assignment for this datum, we need to do another loop iteration.
                 // Do this atomically, as all threads use this variable.
-                #pragma omp atomic write
                 changed_assignment = true;
             }
-        }
+        });
 
         return changed_assignment;
     }
@@ -394,9 +392,8 @@ protected:
         result.distances = std::vector<double>( data.size(), 0.0 );
 
         // Work through the data and assignments and accumulate.
-        #pragma omp parallel for
-        for( size_t i = 0; i < data.size(); ++i ) {
-
+        utils::parallel_for( 0, data.size(), [&]( size_t i )
+        {
             // Shorthands.
             auto const a = assignments[ i ];
             assert( a < k );
@@ -407,11 +404,12 @@ protected:
             result.distances[ i ] = dist;
 
             // Update centroid accumulators.
-            #pragma omp atomic update
-            result.variances[ a ] += dist * dist;
-            #pragma omp atomic update
-            ++result.counts[ a ];
-        }
+            {
+                GENESIS_THREAD_CRITICAL_SECTION( GENESIS_KMEANS_CLUSTER_INFO )
+                result.variances[ a ] += dist * dist;
+                ++result.counts[ a ];
+            }
+        });
 
         // Build the mean dist to get the variance for each centroid.
         for( size_t i = 0; i < k; ++i ) {
@@ -638,16 +636,15 @@ private:
         for( size_t i = 1; i < k; ++i ) {
 
             // For each data point...
-            #pragma omp parallel for
-            for( size_t di = 0; di < data.size(); ++di ) {
-
+            utils::parallel_for( 0, data.size(), [&]( size_t di )
+            {
                 // ...find the closest centroid (of the ones that are produced so far), ...
                 double const min_d = find_nearest_cluster( centroids_, data[ di ] ).second;
 
                 // ...and use its square as probability to select this point.
                 // (No need for OpenMP locking here, as di is unique to each thread).
                 data_probs[ di ] = min_d * min_d;
-            }
+            });
 
             // Now select a new centroid from the data, according to the given probabilities.
             std::discrete_distribution<size_t> distribution(

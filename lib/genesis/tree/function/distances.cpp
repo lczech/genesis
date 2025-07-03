@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -36,15 +36,13 @@
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <limits>
 #include <stdexcept>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -60,8 +58,7 @@ utils::Matrix<size_t> node_path_length_matrix(
     utils::Matrix<size_t> mat( tree.node_count(), tree.node_count(), max_val );
 
     // Fill every row of the matrix.
-    #pragma omp parallel for
-    for( size_t ni = 0; ni < tree.node_count(); ++ni ) {
+    utils::parallel_for( 0, tree.node_count(), [&]( size_t ni ){
         auto const& row_node = tree.node_at( ni );
         assert( row_node.index() == ni );
 
@@ -87,10 +84,10 @@ utils::Matrix<size_t> node_path_length_matrix(
 
             // The distance to the current row node is one more than the distance from the other
             // end of that branch to the row node.
-            mat( row_node.index(), it.node().index() )
-                = 1 + mat(row_node.index(), it.link().outer().node().index());
+            auto const val = 1 + mat(row_node.index(), it.link().outer().node().index());
+            mat( row_node.index(), it.node().index() ) = val;
         }
-    }
+    });
 
     return mat;
 }
@@ -151,8 +148,6 @@ utils::Matrix<size_t> edge_path_length_matrix(
     // pair of edged find the nodes at the ends of the edges that are closest to each other. This
     // is then the shortest distance between the two edges.
     auto node_depth_mat = node_path_length_matrix(tree);
-
-    #pragma omp parallel for
     for( size_t ei = 0; ei < tree.edge_count(); ++ei ) {
         auto const& row_edge = tree.edge_at( ei );
         assert( row_edge.index() == ei );

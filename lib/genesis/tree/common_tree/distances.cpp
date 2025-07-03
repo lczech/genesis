@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -42,10 +42,6 @@
 #include <cassert>
 #include <stdexcept>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -165,8 +161,6 @@ utils::Matrix<double> edge_branch_length_distance_matrix(
     // some lookups and calculation of the min, but be more complex and error prone.
     // For now, this version should be fast enough.
     auto node_dist_mat = node_branch_length_distance_matrix(tree);
-
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto const& row_edge = tree.edge_at(i);
 
@@ -234,7 +228,6 @@ std::vector<double> edge_branch_length_distance_vector(
     auto p_node_dist = node_branch_length_distance_vector(tree, &edge->primary_node());
     auto s_node_dist = node_branch_length_distance_vector(tree, &edge->secondary_node());
 
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto const& col_edge = tree.edge_at(i);
 

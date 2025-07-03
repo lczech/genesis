@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -40,6 +40,8 @@
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/distance.hpp"
 #include "genesis/utils/math/statistics.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -49,10 +51,6 @@
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -125,8 +123,8 @@ BalanceData mass_balance_data(
     auto tendencies = std::vector<double>( result.tree.edge_count(), 1.0 );
     if( trees.size() > 1 && settings.tendency != BalanceSettings::WeightTendency::kNone ) {
 
-        #pragma omp parallel for
-        for( size_t c = 0; c < tendencies.size(); ++c ) {
+        utils::parallel_for( 0, tendencies.size(), [&]( size_t c )
+        {
             switch( settings.tendency ) {
                 case BalanceSettings::WeightTendency::kNone: {
                     // Can't happen, as we exluded this alreay above.
@@ -161,7 +159,7 @@ BalanceData mass_balance_data(
             }
             assert( std::isfinite( tendencies[c] ));
             assert( tendencies[c] >= 0.0 );
-        }
+        });
     }
 
     // Caluclate the norm of the relative abundances across all trees. In Silverman et al.,
@@ -182,9 +180,8 @@ BalanceData mass_balance_data(
         }
 
         // Calculate the norm on these masses.
-        #pragma omp parallel for
-        for( size_t c = 0; c < norms.size(); ++c ) {
-
+        utils::parallel_for( 0, norms.size(), [&]( size_t c )
+        {
             // Get iterators, so that we avoid copying the vectors.
             auto em_beg = edge_masses_cpy.col(c).begin();
             auto em_end = edge_masses_cpy.col(c).end();
@@ -217,7 +214,7 @@ BalanceData mass_balance_data(
             }
             assert( std::isfinite( norms[c] ));
             assert( norms[c] >= 0.0 );
-        }
+        });
     }
 
     // Calculate taxon weights as the product of tendency and norm per edge.
@@ -276,8 +273,6 @@ BalanceData mass_balance_data(
         auto const em_min = utils::finite_minimum(
             result.edge_masses.begin(), result.edge_masses.end()
         );
-
-        #pragma omp parallel for
         for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
             for( size_t c = 0; c < result.taxon_weights.size(); ++c ) {
                 auto& edge_mass = result.edge_masses( r, c );
@@ -361,10 +356,9 @@ std::vector<double> mass_balance(
 ) {
     auto result = std::vector<double>( data.edge_masses.rows(), 0.0 );
 
-    #pragma omp parallel for
-    for( size_t r = 0; r < data.edge_masses.rows(); ++r ) {
+    utils::parallel_for( 0, data.edge_masses.rows(), [&]( size_t r ){
         result[r] = mass_balance( data, numerator_edge_indices, denominator_edge_indices, r );
-    }
+    });
 
     return result;
 }

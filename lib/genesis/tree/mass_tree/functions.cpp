@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -38,17 +38,16 @@
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <utility>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -83,8 +82,6 @@ void mass_tree_merge_trees_inplace(
     if( scaler_lhs != 1.0 ) {
         mass_tree_scale_masses( lhs, scaler_lhs );
     }
-
-    #pragma omp parallel for
     for( size_t i = 0; i < lhs.edge_count(); ++i ) {
         auto& lhs_masses = lhs.edge_at( i ).data<MassTreeEdgeData>().masses;
         for( auto const& rhs_mass : rhs.edge_at( i ).data<MassTreeEdgeData>().masses ) {
@@ -95,7 +92,6 @@ void mass_tree_merge_trees_inplace(
 
 void mass_tree_clear_masses( MassTree& tree )
 {
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         tree.edge_at(i).data<MassTreeEdgeData>().masses.clear();
     }
@@ -103,7 +99,6 @@ void mass_tree_clear_masses( MassTree& tree )
 
 void mass_tree_reverse_signs( MassTree& tree )
 {
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto& masses = tree.edge_at( i ).data<MassTreeEdgeData>().masses;
         for( auto& mass : masses ) {
@@ -114,7 +109,6 @@ void mass_tree_reverse_signs( MassTree& tree )
 
 void mass_tree_scale_masses( MassTree& tree, double factor )
 {
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto& masses = tree.edge_at( i ).data<MassTreeEdgeData>().masses;
         for( auto& mass : masses ) {
@@ -126,12 +120,9 @@ void mass_tree_scale_masses( MassTree& tree, double factor )
 void mass_tree_normalize_masses( MassTree& tree )
 {
     double const total_mass = mass_tree_sum_of_masses( tree );
-
     if( total_mass == 0.0 ) {
         return;
     }
-
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         for( auto& mass : tree.edge_at(i).data<MassTreeEdgeData>().masses ) {
             mass.second /= total_mass;
@@ -141,7 +132,6 @@ void mass_tree_normalize_masses( MassTree& tree )
 
 void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
 {
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
         std::map<double, double> relative;
@@ -157,40 +147,41 @@ void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
 
 double mass_tree_center_masses_on_branches( MassTree& tree )
 {
-    double work = 0.0;
-
-    #pragma omp parallel for
-    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+    std::atomic<double> work = 0.0;
+    utils::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    {
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
 
         double const branch_center = edge_data.branch_length / 2;
         double central_mass = 0.0;
 
+        double local_work = 0.0;
         for( auto const& mass : edge_data.masses ) {
-            #pragma omp atomic
-            work += mass.second * std::abs( branch_center - mass.first );
+            local_work += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
+        work += local_work;
 
         edge_data.masses.clear();
         edge_data.masses[ branch_center ] = central_mass;
-    }
+    });
     return work;
 }
 
 double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
 {
-    double work = 0.0;
+    std::atomic<double> work = 0.0;
 
-    #pragma omp parallel for
-    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+    utils::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    {
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
 
         // No masses on the edge. We need to skip the rest, otherwise we end up having a nan values
         // as mass centers, which leads to nan earth mover distance values, which leads to invalid
         // kmeans cluster centroid assignments, which leads to crashes. What a stupid bug that was.
         if( edge_data.masses.empty() ) {
-            continue;
+            // continue;
+            return;
         }
 
         double mass_center = 0.0;
@@ -207,15 +198,16 @@ double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
         mass_center /= mass_sum;
 
         // Calculate work.
+        double local_work = 0.0;
         for( auto const& mass : edge_data.masses ) {
-            #pragma omp atomic
-            work += mass.second * std::abs( mass_center - mass.first );
+            local_work += mass.second * std::abs( mass_center - mass.first );
         }
+        work += local_work;
 
         // Set the new mass at the mass center.
         edge_data.masses.clear();
         edge_data.masses[ mass_center ] = mass_sum;
-    }
+    });
     return work;
 }
 
@@ -240,27 +232,27 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
         return ( std::floor( pn ) * bl / nb ) + ( bl / nb / 2.0 );
     };
 
-    double work = 0.0;
-
-    #pragma omp parallel for
-    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+    std::atomic<double> work = 0.0;
+    utils::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    {
 
         // Shorthands.
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
         auto new_masses = std::map<double, double>();
 
         // Accumulate masses at the closest bins, and accumulate the work needed to do so.
+        double local_work = 0.0;
         for( auto const& mass : edge_data.masses ) {
             auto const bin = get_bin_pos( mass.first, edge_data.branch_length );
 
-            work += mass.second * std::abs( bin - mass.first );
+            local_work += mass.second * std::abs( bin - mass.first );
             new_masses[ bin ] += mass.second;
         }
+        work += local_work;
 
         // Replace masses by new accumuated ones.
         edge_data.masses = new_masses;
-    }
-
+    });
     return work;
 }
 
@@ -302,9 +294,8 @@ void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
     }
 
     // Set branch lengths and ajust masses.
-    for( auto& tree : mass_trees ) {
-
-        #pragma omp parallel for
+    utils::parallel_for_each( mass_trees, [&]( MassTree& tree )
+    {
         for( size_t edge_idx = 0; edge_idx < tree.edge_count(); ++edge_idx ) {
 
             // Setup.
@@ -322,7 +313,6 @@ void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
 
             // Move masses proprotional to branch lengths change.
             for( auto const& mass : edge_data.masses ) {
-
                 auto const new_pos = mass.first * scaler;
                 new_masses[ new_pos ] += mass.second;
             }
@@ -331,14 +321,13 @@ void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
             edge_data.masses = new_masses;
             edge_data.branch_length = avg_br_lens[ edge_idx ];
         }
-    }
+    });
 }
 
 std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
 {
     auto result = std::vector<double>( tree.edge_count(), 0.0 );
 
-    #pragma omp parallel for
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto const& edge = tree.edge_at(i);
         assert( i == edge.index() );
@@ -360,18 +349,16 @@ utils::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass
     }
 
     utils::Matrix<double> result{ mass_trees.size(), mass_trees[0].edge_count(), 0.0 };
-
-    #pragma omp parallel for
-    for( size_t i = 0; i < mass_trees.size(); ++i ) {
+    utils::parallel_for( 0, mass_trees.size(), [&]( size_t i )
+    {
         if(  mass_trees[i].edge_count() != result.cols() ) {
             throw std::runtime_error(
                 "Cannot calculate masses per edge for a Tree set with Trees "
                 "with unequal edge count."
             );
         }
-
         result.row( i ) = mass_tree_mass_per_edge( mass_trees[i] );
-    }
+    });
 
     return result;
 }
@@ -381,14 +368,15 @@ std::vector<std::pair<double, double>> mass_tree_mass_per_edge_averaged( MassTre
     // First value: position. Second value: mass at that position.
     auto result = std::vector<std::pair<double, double>>( tree.edge_count(), { 0.0, 0.0 });
 
-    #pragma omp parallel for
-    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+    utils::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    {
         auto const& edge = tree.edge_at(i);
         auto const& edge_data = edge.data<MassTreeEdgeData>();
 
         // No masses on the edge. We need to skip the rest, otherwise we end up having a nan values.
         if( edge_data.masses.empty() ) {
-            continue;
+            // continue;
+            return;
         }
 
         // Add up masses and positions.
@@ -404,7 +392,7 @@ std::vector<std::pair<double, double>> mass_tree_mass_per_edge_averaged( MassTre
 
         result[ edge.index() ].first  = mass_pos;
         result[ edge.index() ].second = mass_sum;
-    }
+    });
 
     return result;
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -47,6 +47,8 @@
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/text/table.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <cmath>
 #include <ostream>
@@ -211,8 +213,7 @@ convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize )
     auto pend_works = std::vector<double>( sample_set.size(), 0.0 );
 
     // Add the placement mass of each Sample to its MassTree.
-    #pragma omp parallel for schedule( dynamic )
-    for( size_t i = 0; i < sample_set.size(); ++i ) {
+    utils::parallel_for( 0, sample_set.size(), [&]( size_t i ) {
         // Get the total sum of placement masses for the sample...
         double const scaler = normalize
             ? total_placement_mass_with_multiplicities( sample_set[i] )
@@ -226,7 +227,7 @@ convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize )
 
         // Also, store the pend work.
         pend_works[ i ] = pend_work;
-    }
+    });
 
     return { std::move( mass_trees ), std::move( pend_works ) };
 }

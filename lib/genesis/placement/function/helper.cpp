@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -40,10 +40,6 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -180,7 +176,6 @@ utils::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set )
     auto result = utils::Matrix<size_t>( set_size, sample_set[ 0 ].tree().edge_count(), 0 );
 
     // Fill matrix.
-    #pragma omp parallel for
     for( size_t i = 0; i < set_size; ++i ) {
         for( auto const& pqry : sample_set[ i ].pqueries() ) {
             for( auto const& place : pqry.placements() ) {
@@ -196,7 +191,6 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
 {
     auto pqueries = std::vector<PqueryPlain>( smp.size() );
 
-    #pragma omp parallel for
     for (size_t i = 0; i < smp.size(); ++i) {
         const auto& opqry = smp.at(i);
 

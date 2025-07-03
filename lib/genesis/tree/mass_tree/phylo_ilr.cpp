@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -41,16 +41,14 @@
 
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/statistics.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -101,15 +99,16 @@ utils::Matrix<double> phylogenetic_ilr_transform(
     auto result = utils::Matrix<double>( data.edge_masses.rows(), data.tree.node_count(), 0.0 );
 
     // Calculate balance for every node of the tree.
-    #pragma omp parallel for
-    for( size_t node_idx = 0; node_idx < data.tree.node_count(); ++node_idx ) {
+    utils::parallel_for( 0, data.tree.node_count(), [&]( size_t node_idx )
+    {
         auto const& node = data.tree.node_at( node_idx );
         assert( node.index() == node_idx );
 
         // For leaf nodes do nothing. They just keep their initial value of 0.0.
         auto const deg = degree( node );
         if( deg == 1 ) {
-            continue;
+            // continue;
+            return;
         }
 
         // Get the indices of the edges in the two subtrees down from the given node.
@@ -145,7 +144,7 @@ utils::Matrix<double> phylogenetic_ilr_transform(
 
         // Calculate and store the balance for all rows (trees) of the data.
         result.col( node_idx ) = mass_balance( data, lhs_indices, rhs_indices );
-    }
+    });
 
     return result;
 }
@@ -183,14 +182,15 @@ utils::Matrix<double> edge_balances(
     auto result = utils::Matrix<double>( data.edge_masses.rows(), data.tree.edge_count(), 0.0 );
 
     // Calculate balance for every node of the tree.
-    #pragma omp parallel for
-    for( size_t edge_idx = 0; edge_idx < data.tree.edge_count(); ++edge_idx ) {
+    utils::parallel_for( 0, data.tree.edge_count(), [&]( size_t edge_idx )
+    {
         auto const& edge = data.tree.edge_at( edge_idx );
         assert( edge.index() == edge_idx );
 
         // For leaf edges do nothing. They just keep their initial value of 0.0.
         if( is_leaf( edge )) {
-            continue;
+            // continue;
+            return;
         }
 
         // Get the indices of the edges in the two subtrees away from the given edge.
@@ -207,7 +207,7 @@ utils::Matrix<double> edge_balances(
 
         // Calculate and store the balance for all rows (trees) of the data.
         result.col( edge_idx ) = mass_balance( data, s_indices, p_indices );
-    }
+    });
 
     return result;
 }

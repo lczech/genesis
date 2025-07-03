@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,8 @@
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/pca.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -51,10 +53,6 @@
 #include <numeric>
 #include <stdexcept>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -204,8 +202,7 @@ utils::Matrix<double> epca_imbalance_matrix(
 
         auto imbalance_matrix = utils::Matrix<double>( samples.size(), edge_count );
 
-        #pragma omp parallel for
-        for( size_t s = 0; s < samples.size(); ++s ) {
+        utils::parallel_for( 0, samples.size(), [&]( size_t s ) {
             auto const& smp = samples[s];
             auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
@@ -224,7 +221,7 @@ utils::Matrix<double> epca_imbalance_matrix(
 
                 imbalance_matrix( s, i ) = imbalance_vec[ i ];
             }
-        }
+        });
 
         return imbalance_matrix;
 
@@ -236,8 +233,7 @@ utils::Matrix<double> epca_imbalance_matrix(
         // Prepare result
         auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
 
-        #pragma omp parallel for
-        for( size_t s = 0; s < samples.size(); ++s ) {
+        utils::parallel_for( 0, samples.size(), [&]( size_t s ) {
             auto const& smp = samples[s];
             auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
@@ -252,7 +248,7 @@ utils::Matrix<double> epca_imbalance_matrix(
                 auto idx = inner_edge_indices[i];
                 imbalance_matrix( s, i ) = imbalance_vec[ idx ];
             }
-        }
+        });
 
         return imbalance_matrix;
     }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -36,12 +36,10 @@
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/utils/io/deserializer.hpp"
 #include "genesis/utils/io/serializer.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <stdexcept>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -188,32 +186,30 @@ SampleSet SampleSerializer::load( std::vector<std::string> const& file_names )
 
 void SampleSerializer::load( std::vector<std::string> const& file_names, SampleSet& sample_set )
 {
-    #if defined( GENESIS_OPENMP )
+    // Make a vector of default-constructed Samples of the needed size.
+    // We do this so that the order of input jplace files is kept.
+    auto tmp = std::vector<Sample>( file_names.size() );
 
-        // Make a vector of default-constructed Samples of the needed size.
-        // We do this so that the order of input jplace files is kept.
-        auto tmp = std::vector<Sample>( file_names.size() );
-
-        // Parallel loading.
-        #pragma omp parallel for
-        for( size_t i = 0; i < file_names.size(); ++i ) {
+    // Parallel loading.
+    utils::parallel_for(
+        0, file_names.size(),
+        [&](size_t i)
+        {
             tmp[ i ] = load( file_names[i] );
         }
+    );
 
-        // Move to target SampleSet.
-        for( size_t i = 0; i < file_names.size(); ++i ) {
-            auto const name = utils::file_filename( utils::file_basename( file_names[i] ) );
-            sample_set.add( std::move( tmp[i] ), name );
-        }
+    // Move to target SampleSet.
+    for( size_t i = 0; i < file_names.size(); ++i ) {
+        auto const name = utils::file_filename( utils::file_basename( file_names[i] ) );
+        sample_set.add( std::move( tmp[i] ), name );
+    }
 
-    #else
+    // for( auto const& fn : file_names ) {
+    //     auto const name = utils::file_filename( utils::file_basename(fn) );
+    //     sample_set.add( load( fn ), name );
+    // }
 
-        for( auto const& fn : file_names ) {
-            auto const name = utils::file_filename( utils::file_basename(fn) );
-            sample_set.add( load( fn ), name );
-        }
-
-    #endif
 }
 
 } // namespace placement

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -39,6 +39,8 @@
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -49,11 +51,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -117,8 +114,7 @@ utils::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet co
     }
 
     // Fill matrix.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < set_size; ++i ) {
+    utils::parallel_for( 0, set_size, [&]( size_t i ) {
         auto const& smp = sample_set[ i ];
 
         if( smp.tree().edge_count() != result.cols() ) {
@@ -134,7 +130,7 @@ utils::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet co
                 result( i, place.edge().index() ) += place.like_weight_ratio * mult;
             }
         }
-    }
+    }, nullptr, set_size );
 
     return result;
 }
@@ -193,8 +189,7 @@ utils::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet 
     }
 
     // Fill matrix.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < set_size; ++i ) {
+    utils::parallel_for( 0, set_size, [&]( size_t i ) {
         auto const& smp = sample_set[ i ];
 
         if( smp.tree().edge_count() != result.cols() ) {
@@ -209,7 +204,7 @@ utils::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet 
                 result( i, place.edge().index() ) += place.like_weight_ratio;
             }
         }
-    }
+    }, nullptr, set_size );
 
     return result;
 }

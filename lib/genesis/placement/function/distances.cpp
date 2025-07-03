@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -32,14 +32,13 @@
 
 #include "genesis/placement/pquery.hpp"
 #include "genesis/placement/pquery/plain.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cmath>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -54,14 +53,11 @@ double pquery_distance(
     utils::Matrix<double> const& node_distances,
     bool                         with_pendant_length
 ) {
-    double sum = 0.0;
+    std::atomic<double> sum = 0.0;
 
-    #pragma omp parallel for
-    for( size_t pppai = 0; pppai < pquery_a.placements.size(); ++pppai ) {
+    utils::parallel_for( 0, pquery_a.placements.size(), [&]( size_t pppai ) {
         auto const& place_a = pquery_a.placements[ pppai ];
-
-        #pragma omp parallel for
-        for( size_t pppbi = 0; pppbi < pquery_b.placements.size(); ++pppbi ) {
+        utils::parallel_for( 0, pquery_a.placements.size(), [&]( size_t pppbi ) {
             auto const& place_b = pquery_b.placements[ pppbi ];
             double dist;
 
@@ -96,11 +92,9 @@ double pquery_distance(
                 dist += place_a.pendant_length + place_b.pendant_length;
             }
             dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-
-            #pragma omp atomic
             sum += dist;
-        }
-    }
+        });
+    });
 
     return sum;
 }
@@ -114,23 +108,17 @@ double pquery_distance(
     Pquery const& pquery_b,
     DistanceFunction distance_function
 ) {
-    double sum = 0.0;
+    std::atomic<double> sum = 0.0;
 
-    #pragma omp parallel for
-    for( size_t pai = 0; pai < pquery_a.placement_size(); ++pai ) {
+    utils::parallel_for( 0, pquery_a.placement_size(), [&]( size_t pai ) {
         auto const& place_a = pquery_a.placement_at( pai );
-
-        #pragma omp parallel for
-        for( size_t pab = 0; pab < pquery_b.placement_size(); ++pab ) {
+        utils::parallel_for( 0, pquery_b.placement_size(), [&]( size_t pab ) {
             auto const& place_b = pquery_b.placement_at( pab );
-
             double dist = distance_function( place_a, place_b );
             dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-
-            #pragma omp atomic
             sum += dist;
-        }
-    }
+        });
+    });
 
     return sum;
 }
@@ -254,19 +242,15 @@ size_t placement_path_length_distance(
 template<typename DistanceFunction>
 double pquery_distance( Pquery const& pquery, DistanceFunction distance_function )
 {
-    double sum = 0.0;
+    std::atomic<double> sum = 0.0;
 
     // Calculate the weighted distance of the pquery, using the specified function.
-    #pragma omp parallel for
-    for( size_t pai = 0; pai < pquery.placement_size(); ++pai ) {
+    utils::parallel_for( 0, pquery.placement_size(), [&]( size_t pai ) {
         auto const& placement = pquery.placement_at( pai );
-
         double dist = distance_function( placement );
         dist *= placement.like_weight_ratio;
-
-        #pragma omp atomic
         sum += dist;
-    }
+    });
 
     return sum;
 }

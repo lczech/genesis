@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -55,15 +55,14 @@
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <map>
 #include <stdexcept>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -74,23 +73,19 @@ namespace placement {
 
 double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
 {
-    double result = 0.0;
+    std::atomic<double> result = 0.0;
 
-    #pragma omp parallel for
-    for( size_t i = 0; i < pquery.placement_size(); ++i ) {
-
-        #pragma omp parallel for
+    utils::parallel_for( 0, pquery.placement_size(), [&]( size_t i ) {
         for( size_t j = i + 1; j < pquery.placement_size(); ++j ) {
 
             auto const& place_i = pquery.placement_at(i);
             auto const& place_j = pquery.placement_at(j);
 
             auto const dist = placement_distance( place_i, place_j, node_distances );
-
-            #pragma omp atomic
             result += place_i.like_weight_ratio * place_j.like_weight_ratio * dist;
         }
-    }
+    });
+
     return 2 * result;
 }
 
@@ -100,11 +95,10 @@ std::vector<double> edpl( Sample const& sample, utils::Matrix<double> const& nod
     auto result = std::vector<double>( sample.size(), 0 );
 
     // Fill result vector.
-    #pragma omp parallel for
-    for( size_t qi = 0; qi < sample.size(); ++qi ) {
+    utils::parallel_for( 0, sample.size(), [&]( size_t qi ) {
         auto const& pquery = sample.at( qi );
         result[qi] = edpl( pquery, node_distances );
-    }
+    });
     return result;
 }
 
@@ -210,13 +204,12 @@ double variance(
 
     // Do a pairwise calculation on all placements.
     // int progress = 0;
-    #pragma omp parallel for
-    for( size_t i = 0; i < vd_pqueries.size(); ++i ) {
+    utils::parallel_for( 0, vd_pqueries.size(), [&]( size_t i ) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
 
         PqueryPlain const& pqry_a = vd_pqueries[i];
         variance += variance_partial_(pqry_a, vd_pqueries, node_distances, with_pendant_length);
-    }
+    });
 
     // Calculate normalizing factor. Should be the same value as given by placement_mass(),
     // however this calculation is probably faster, as we already have the plain values at hand.

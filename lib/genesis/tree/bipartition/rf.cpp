@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -36,16 +36,14 @@
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/bit/bitvector/functions.hpp"
 #include "genesis/utils/bit/bitvector/operators.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <cstdint>
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
 #include <limits>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -255,23 +253,23 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences( TreeS
 
     // Get a unique ID for each taxon name.
     auto const names = rf_taxon_name_map( trees[0] );
-
-    #pragma omp parallel for
-    for( size_t i = 0; i < trees.size(); ++i ) {
-
+    utils::parallel_for( 0, trees.size(), [&]( size_t i ) {
         // Get all bitvectors of the tree and add their occurrences to the map.
         // This way, we do not need to actually store them, but can process them on the fly.
         // Saves mem and should be faster as well.
-        rf_get_bitvectors_template( trees[i], names, [&]( Bitvector const& bitvec ){
-            #pragma omp critical(GENESIS_BIPARTITION_OCCURRENCES)
+        rf_get_bitvectors_template(
+            trees[i],
+            names,
+            [&]( Bitvector const& bitvec )
             {
+                GENESIS_THREAD_CRITICAL_SECTION(GENESIS_BIPARTITION_OCCURRENCES)
                 if( result.count( bitvec ) == 0 ) {
                     result[bitvec] = Bitvector( trees.size() );
                 }
                 result[bitvec].set( i );
             }
-        });
-    }
+        );
+    });
 
     return result;
 }
@@ -303,20 +301,18 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
     });
 
     // Process the rhs trees, and add their split bitvectors.
-    #pragma omp parallel for
-    for( size_t i = 0; i < rhs.size(); ++i ) {
-
-        rf_get_bitvectors_template( rhs[i], names, [&]( Bitvector const& bitvec ){
-            #pragma omp critical(GENESIS_BIPARTITION_OCCURRENCES)
-            {
-                // We start indexing 1 off, for the lhs tree.
-                if( result.count( bitvec ) == 0 ) {
-                    result[bitvec] = utils::Bitvector( 1 + rhs.size() );
-                }
-                result[bitvec].set( 1 + i );
+    utils::parallel_for( 0, rhs.size(), [&]( size_t i )
+    {
+        rf_get_bitvectors_template( rhs[i], names, [&]( Bitvector const& bitvec )
+        {
+            GENESIS_THREAD_CRITICAL_SECTION(GENESIS_BIPARTITION_OCCURRENCES)
+            // We start indexing 1 off, for the lhs tree.
+            if( result.count( bitvec ) == 0 ) {
+                result[bitvec] = utils::Bitvector( 1 + rhs.size() );
             }
+            result[bitvec].set( 1 + i );
         });
-    }
+    });
 
     return result;
 }
@@ -482,7 +478,6 @@ utils::Matrix<double> rf_distance_relative( TreeSet const& trees )
     double const norm = 2.0 * static_cast<double>( trees[0].node_count() - 3 );
 
     // Compute matrix.
-    #pragma omp parallel for
     for( size_t i = 0; i < rf.rows(); ++i ) {
         for( size_t j = 0; j < rf.cols(); ++j ) {
             result( i, j ) = static_cast<double>( rf( i, j )) / norm;
@@ -510,7 +505,6 @@ std::vector<double> rf_distance_relative( Tree const& lhs, TreeSet const& rhs )
     double const norm = 2.0 * static_cast<double>( lhs.node_count() - 3 );
 
     // Compute vector.
-    #pragma omp parallel for
     for( size_t i = 0; i < rf.size(); ++i ) {
         result[i] = static_cast<double>( rf[i] ) / norm;
     }

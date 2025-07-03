@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -44,15 +44,13 @@
 
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -91,9 +89,7 @@ static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
     histogram_set.histograms.resize( node_count );
 
     // Make histograms that have enough room on both sides.
-    #pragma omp parallel for
-    for( size_t node_idx = 0; node_idx < node_count; ++node_idx ) {
-
+    utils::parallel_for( 0, node_count, [&]( size_t node_idx ){
         // Find furthest nodes on root and non-root sides.
         // For now, we use both positive values, and later reverse the sign of the min entry.
         double min = 0.0;
@@ -130,7 +126,7 @@ static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
         histogram_set.histograms[ node_idx ].min  = -min;
         histogram_set.histograms[ node_idx ].max  = max;
         histogram_set.histograms[ node_idx ].bins = std::vector<double>( histogram_bins, 0.0 );
-    }
+    });
 
     return histogram_set;
 }
@@ -321,45 +317,37 @@ utils::Matrix<double> node_histogram_distance(
     auto const set_size = histogram_sets.size();
     auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
 
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
+    // We only need to calculate the upper triangle. Get the number of indices needed
+    // to describe this triangle.
+    size_t const max_k = utils::triangular_size( set_size );
 
-        // We only need to calculate the upper triangle. Get the number of indices needed
-        // to describe this triangle.
-        size_t const max_k = utils::triangular_size( set_size );
+    // Calculate distance matrix for every pair of samples.
+    utils::parallel_for( 0, max_k, [&]( size_t k ) {
 
-        // Calculate distance matrix for every pair of samples.
-        #pragma omp parallel for
-        for( size_t k = 0; k < max_k; ++k ) {
+        // For the given linear index, get the actual position in the Matrix.
+        auto const ij = utils::triangular_indices( k, set_size );
+        auto const i = ij.first;
+        auto const j = ij.second;
 
-            // For the given linear index, get the actual position in the Matrix.
-            auto const ij = utils::triangular_indices( k, set_size );
-            auto const i = ij.first;
-            auto const j = ij.second;
-
-            // Calculate and store distance.
-            auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
-            result(i, j) = dist;
-            result(j, i) = dist;
-        }
+        // Calculate and store distance.
+        auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
+        result(i, j) = dist;
+        result(j, i) = dist;
+    });
 
     // If no threads are available at all, use serial version.
-    #else
-
-        // Calculate distance matrix for every pair of samples.
-        for( size_t i = 0; i < set_size; ++i ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < set_size; ++j ) {
-
-                // Calculate and store distance.
-                auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
-                result(i, j) = dist;
-                result(j, i) = dist;
-            }
-        }
-
-    #endif
+    // Calculate distance matrix for every pair of samples.
+    // for( size_t i = 0; i < set_size; ++i ) {
+    //     // The result is symmetric - we only calculate the upper triangle.
+    //     for( size_t j = i + 1; j < set_size; ++j ) {
+    //         // Calculate and store distance.
+    //         auto const dist = node_histogram_distance(
+    //             histogram_sets[ i ], histogram_sets[ j ]
+    //         );
+    //         result(i, j) = dist;
+    //         result(j, i) = dist;
+    //     }
+    // }
 
     return result;
 }
@@ -441,9 +429,7 @@ static std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     auto result = std::vector<NodeDistanceHistogramSet>( set_size, empty_hist );
 
     // Calculate the histograms for all samples.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < set_size; ++i ) {
-
+    utils::parallel_for( 0, set_size, [&]( size_t i ) {
         // Check compatibility.
         // It suffices to check adjacent pairs of samples, as compatibility is transitive.
         if( i > 0 ) {
@@ -459,7 +445,7 @@ static std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
             sample_set[ i ], node_distances, node_sides, result[ i ]
         );
         assert( result[ i ].histograms.size() == sample_set[ i ].tree().node_count() );
-    }
+    }, nullptr, set_size );
 
     return result;
 }

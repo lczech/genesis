@@ -197,8 +197,8 @@ option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."          
 option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."                     OFF)
 
 # If available, use external dependencies.
+option (GENESIS_USE_OPENMP          "Use OpenMP."                                        OFF)
 option (GENESIS_USE_ZLIB            "Use zlib."                                          ON)
-option (GENESIS_USE_OPENMP          "Use OpenMP."                                        ON)
 option (GENESIS_USE_AVX             "Use AVX/AVX2."                                      ON)
 
 # Additional dependencies: htslib

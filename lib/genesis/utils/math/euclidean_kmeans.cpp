@@ -1,10 +1,10 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation,  either version 3 of the License,  or
+    the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -13,12 +13,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not,  see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -29,6 +29,9 @@
  */
 
 #include "genesis/utils/math/euclidean_kmeans.hpp"
+
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -76,13 +79,10 @@ void EuclideanKmeans::update_centroids(
     assert( data.size() == assignments.size() );
 
     auto const k = centroids.size();
-
-    #ifdef GENESIS_OPENMP
-
+    if( utils::Options::get().has_global_thread_pool() ) {
         // Parallelize over centroids
-        #pragma omp parallel for
-        for( size_t i = 0; i < k; ++i ) {
-
+        utils::parallel_for( 0, k, [&]( size_t i )
+        {
             // Thread-local Point
             auto centroid = Point( dimensions_, 0.0 );
             size_t count = 0;
@@ -112,10 +112,8 @@ void EuclideanKmeans::update_centroids(
 
             // Set the centroid. No need for locking, as we only access our i.
             centroids[ i ] = std::move( centroid );
-        }
-
-    #else
-
+        });
+    } else {
         // In the serial case, we only want to traverse the data once.
 
         // Init the result as well as counts for calculating the mean.
@@ -146,8 +144,7 @@ void EuclideanKmeans::update_centroids(
                 }
             }
         }
-
-    #endif
+    }
 }
 
 double EuclideanKmeans::distance( Point const& lhs, Point const& rhs ) const

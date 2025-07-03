@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -38,6 +38,8 @@
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -45,10 +47,6 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -192,44 +190,34 @@ utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees,
     // Init result matrix.
     auto result = utils::Matrix<double>( trees.size(), trees.size(), 0.0 );
 
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
+    // We only need to calculate the upper triangle. Get the number of indices needed
+    // to describe this triangle.
+    size_t const max_k = utils::triangular_size( trees.size() );
 
-        // We only need to calculate the upper triangle. Get the number of indices needed
-        // to describe this triangle.
-        size_t const max_k = utils::triangular_size( trees.size() );
+    // Use dynamic parallelization, as trees might be of different size
+    // (in terms of number of mass points).
+    utils::parallel_for( 0, max_k, [&]( size_t k )
+    {
+        // For the given linear index, get the actual position in the Matrix.
+        auto const ij = utils::triangular_indices( k, trees.size() );
+        auto const i = ij.first;
+        auto const j = ij.second;
 
-        // Use dynamic parallelization, as trees might be of different size (in terms of number
-        // of mass points).
-        #pragma omp parallel for schedule( dynamic )
-        for( size_t k = 0; k < max_k; ++k ) {
+        // Calculate EMD and fill symmetric Matrix.
+        auto const emd = earth_movers_distance( trees[i], trees[j], p );
+        result( i, j ) = emd;
+        result( j, i ) = emd;
+    });
 
-            // For the given linear index, get the actual position in the Matrix.
-            auto const ij = utils::triangular_indices( k, trees.size() );
-            auto const i = ij.first;
-            auto const j = ij.second;
-
-            // Calculate EMD and fill symmetric Matrix.
-            auto const emd = earth_movers_distance( trees[i], trees[j], p );
-            result( i, j ) = emd;
-            result( j, i ) = emd;
-        }
-
-    // If no threads are available at all, use serial version.
-    #else
-
-        for( size_t i = 0; i < trees.size(); ++i ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < trees.size(); ++j ) {
-
-                auto const emd = earth_movers_distance( trees[i], trees[j], p );
-                result( i, j ) = emd;
-                result( j, i ) = emd;
-            }
-        }
-
-    #endif
+    // // If no threads are available at all, use serial version.
+    // for( size_t i = 0; i < trees.size(); ++i ) {
+    //     // The result is symmetric - we only calculate the upper triangle.
+    //     for( size_t j = i + 1; j < trees.size(); ++j ) {
+    //         auto const emd = earth_movers_distance( trees[i], trees[j], p );
+    //         result( i, j ) = emd;
+    //         result( j, i ) = emd;
+    //     }
+    // }
 
     return result;
 }

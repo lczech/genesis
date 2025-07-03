@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -38,16 +38,14 @@
 #include "genesis/tree/tree/subtree.hpp"
 
 #include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <unordered_set>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -294,8 +292,7 @@ utils::Matrix<signed char> node_root_direction_matrix( Tree const& tree )
     auto mat = utils::Matrix<signed char>( tree.node_count(), tree.node_count(), 0 );
 
     // Fill every row of the matrix.
-    #pragma omp parallel for
-    for( size_t i = 0; i < tree.node_count(); ++i ) {
+    utils::parallel_for( 0, tree.node_count(), [&]( size_t i ){
         auto const& row_node     = tree.node_at(i);
         auto const  row_index    = row_node.index();
         auto const  primary_link = &row_node.primary_link();
@@ -333,7 +330,7 @@ utils::Matrix<signed char> node_root_direction_matrix( Tree const& tree )
 
         // Check that the diagonal element is untouched.
         assert( mat( row_index, row_index ) == 0 );
-    }
+    });
 
     return mat;
 }
@@ -527,8 +524,7 @@ utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
     };
 
     // Fill every row of the matrix.
-    #pragma omp parallel for
-    for( size_t i = 0; i < tree.node_count(); ++i ) {
+    utils::parallel_for( 0, tree.node_count(), [&]( size_t i ){
         auto const& row_node = tree.node_at(i);
         auto const  row_idx  = row_node.index();
 
@@ -546,7 +542,7 @@ utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
             fill_subtree_indices( row_idx, Subtree{ row_node.link().next().outer() },        +1 );
             fill_subtree_indices( row_idx, Subtree{ row_node.link().next().next().outer() }, -1 );
         }
-    }
+    });
 
     // For the compressed version, we re-use the previous result matrix,
     // and simply fill a new one with the needed rows and columns.
@@ -646,7 +642,7 @@ TreeNode const& lowest_common_ancestor( TreeNode const& node_a, TreeNode const& 
     return path_a.back()->node();
 }
 
-TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b )
+TreeNode& lowest_common_ancestor( TreeNode& node_a, TreeNode& node_b )
 {
     auto const& c_node_a = static_cast< TreeNode const& >( node_a );
     auto const& c_node_b = static_cast< TreeNode const& >( node_b );
@@ -661,52 +657,39 @@ utils::Matrix<size_t> lowest_common_ancestors( Tree const& tree )
     // In the Quartet Scores code, we use range minimum queries and eulertours to achive the
     // same result in less time. But for now, this code is good enough.
 
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
+    // We only need to calculate the upper triangle. Get the number of indices needed
+    // to describe this triangle.
+    size_t const max_k = utils::triangular_size( tree.node_count() );
 
-        // We only need to calculate the upper triangle. Get the number of indices needed
-        // to describe this triangle.
-        size_t const max_k = utils::triangular_size( tree.node_count() );
+    utils::parallel_for( 0, max_k, [&]( size_t k ){
+        // For the given linear index, get the actual position in the Matrix.
+        auto const rc = utils::triangular_indices( k, tree.node_count() );
+        auto const r = rc.first;
+        auto const c = rc.second;
 
-        #pragma omp parallel for
-        for( size_t k = 0; k < max_k; ++k ) {
+        auto const& lca = lowest_common_ancestor( tree.node_at(r), tree.node_at(c) );
+        res( r, c ) = lca.index();
+        res( c, r ) = lca.index();
+    });
 
-            // For the given linear index, get the actual position in the Matrix.
-            auto const rc = utils::triangular_indices( k, tree.node_count() );
-            auto const r = rc.first;
-            auto const c = rc.second;
-
-            auto const& lca = lowest_common_ancestor( tree.node_at(r), tree.node_at(c) );
-            res( r, c ) = lca.index();
-            res( c, r ) = lca.index();
-        }
-
-        // Lastly, because the trinangular indices exluce the diagonale, we need to fill this
-        // by hand. Luckily, those are always the indices themselves, as the LCA of a node
-        // and itself is again itself.
-        #pragma omp parallel for
-        for( size_t d = 0; d < tree.node_count(); ++d ) {
-            res( d, d ) = d;
-        }
+    // Lastly, because the trinangular indices exluce the diagonale, we need to fill this
+    // by hand. Luckily, those are always the indices themselves, as the LCA of a node
+    // and itself is again itself.
+    for( size_t d = 0; d < tree.node_count(); ++d ) {
+        res( d, d ) = d;
+    }
 
     // If no threads are available at all, use serial version.
-    #else
-
-        for( size_t r = 0; r < tree.node_count(); ++r ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t c = r; c < tree.node_count(); ++c ) {
-
-                auto const& lca = lowest_common_ancestor( tree.node_at(r), tree.node_at(c) );
-                res( r, c ) = lca.index();
-                res( c, r ) = lca.index();
-            }
-
-            // See above: the diagonale contains its indices.
-            assert( res( r, r ) == r );
-        }
-
-    #endif
+    // for( size_t r = 0; r < tree.node_count(); ++r ) {
+    //     // The result is symmetric - we only calculate the upper triangle.
+    //     for( size_t c = r; c < tree.node_count(); ++c ) {
+    //         auto const& lca = lowest_common_ancestor( tree.node_at(r), tree.node_at(c) );
+    //         res( r, c ) = lca.index();
+    //         res( c, r ) = lca.index();
+    //     }
+    //     // See above: the diagonale contains its indices.
+    //     assert( res( r, r ) == r );
+    // }
 
     return res;
 }

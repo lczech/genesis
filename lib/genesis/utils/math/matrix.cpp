@@ -1,10 +1,10 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation,  either version 3 of the License,  or
+    the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -13,12 +13,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not,  see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab,  Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35,  D-69118 Heidelberg,  Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -32,15 +32,13 @@
 
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/statistics.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace utils {
@@ -55,15 +53,15 @@ std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data )
     assert( col_minmax.size() == data.cols() );
 
     // Iterate the matrix.
-    #pragma omp parallel for
-    for( size_t r = 0; r < data.rows(); ++r ) {
-        for( size_t c = 0; c < data.cols(); ++c ) {
-            // Adjust column values.
-            assert( col_minmax[c].max >= col_minmax[c].min );
-            double diff = col_minmax[c].max - col_minmax[c].min;
-            data( r, c ) = ( data( r, c ) - col_minmax[c].min ) / diff;
+    utils::parallel_for( 0, data.cols(), [&]( size_t c )
+    {
+        for( size_t r = 0; r < data.rows(); ++r ) {
+                // Adjust column values.
+                assert( col_minmax[c].max >= col_minmax[c].min );
+                double diff = col_minmax[c].max - col_minmax[c].min;
+                data( r, c ) = ( data( r, c ) - col_minmax[c].min ) / diff;
         }
-    }
+    });
 
     return col_minmax;
 }
@@ -74,15 +72,15 @@ std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data )
     assert( row_minmax.size() == data.rows() );
 
     // Iterate the matrix.
-    #pragma omp parallel for
-    for( size_t r = 0; r < data.rows(); ++r ) {
+    utils::parallel_for( 0, data.rows(), [&]( size_t r )
+    {
         for( size_t c = 0; c < data.cols(); ++c ) {
             // Adjust row values.
             assert( row_minmax[r].max >= row_minmax[r].min );
             double diff = row_minmax[r].max - row_minmax[r].min;
             data( r, c ) = ( data( r, c ) - row_minmax[r].min ) / diff;
         }
-    }
+    });
 
     return row_minmax;
 }
@@ -99,8 +97,8 @@ std::vector<MeanStddevPair> standardize_cols(
     auto col_mean_stddev = std::vector<MeanStddevPair>( data.cols() );
 
     // Iterate the matrix.
-    #pragma omp parallel for
-    for( size_t c = 0; c < data.cols(); ++c ) {
+    utils::parallel_for( 0, data.cols(), [&]( size_t c )
+    {
         col_mean_stddev[c] = mean_stddev( data.col(c).begin(), data.col(c).end(), 0.0000001 );
 
         for( size_t r = 0; r < data.rows(); ++r ) {
@@ -116,7 +114,7 @@ std::vector<MeanStddevPair> standardize_cols(
                 data( r, c ) /= col_mean_stddev[c].stddev;
             }
         }
-    }
+    });
 
     return col_mean_stddev;
 }
@@ -129,8 +127,8 @@ std::vector<MeanStddevPair> standardize_rows(
     auto row_mean_stddev = std::vector<MeanStddevPair>( data.rows() );
 
     // Iterate the matrix.
-    #pragma omp parallel for
-    for( size_t r = 0; r < data.rows(); ++r ) {
+    utils::parallel_for( 0, data.rows(), [&]( size_t r )
+    {
         row_mean_stddev[r] = mean_stddev( data.row(r).begin(), data.row(r).end(), 0.0000001 );
 
         for( size_t c = 0; c < data.cols(); ++c ) {
@@ -146,7 +144,7 @@ std::vector<MeanStddevPair> standardize_rows(
                 data( r, c ) /= row_mean_stddev[r].stddev;
             }
         }
-    }
+    });
 
     return row_mean_stddev;
 }
@@ -178,12 +176,12 @@ std::vector<size_t> filter_constant_columns( utils::Matrix<double>& data, double
     // Produce new, filtered matrix.
     auto new_mat = utils::Matrix<double>( data.rows(), keep_cols.size() );
 
-    #pragma omp parallel for
-    for( size_t r = 0; r < data.rows(); ++r ) {
+    utils::parallel_for( 0, data.rows(), [&]( size_t r )
+    {
         for( size_t i = 0; i < keep_cols.size(); ++i ) {
             new_mat( r, i ) = data( r, keep_cols[i] );
         }
-    }
+    });
 
     // Overwrite the matrix.
     data = new_mat;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -49,6 +49,8 @@
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/text/char.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/threading/thread_pool.hpp"
+#include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -59,10 +61,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -132,10 +130,12 @@ void JplaceReader::read(
     auto tmp = std::vector<Sample>( sources.size() );
 
     // Parallel parsing.
-    #pragma omp parallel for
-    for( size_t i = 0; i < sources.size(); ++i ) {
-        tmp[ i ] = read( sources[i] );
-    }
+    utils::parallel_for(
+        0, sources.size(),
+        [&]( size_t i ) {
+            tmp[ i ] = read( sources[i] );
+        }
+    );
 
     // Move to target SampleSet.
     for( size_t i = 0; i < sources.size(); ++i ) {
