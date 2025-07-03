@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2024 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -207,9 +207,7 @@ public:
      * threads to use, and initializes the pool to use one fewer than that, to account for the
      * main thread also doing work. As our ThreadPool implementation uses what we call a
      * ProactiveFuture, the main thread will start processing tasks from the pool queue while
-     * it is waiting for results to get ready. The function also sets the maximum queue size of
-     * tasks in the thread pool to 10 times the number of threads, to avoid infinitely filling
-     * the task queue when the main thread keeps submitting.
+     * it is waiting for results to get ready.
      *
      * After calling this function, global_thread_pool() can be used to obtain the global thread
      * pool to enqueue work.
@@ -223,7 +221,7 @@ public:
         if( num_threads == 0 ) {
             init_global_thread_pool( 0 );
         } else {
-            init_global_thread_pool( num_threads - 1, 10 * num_threads );
+            init_global_thread_pool( num_threads - 1 );
         }
     }
 
@@ -233,7 +231,7 @@ public:
      * This initializes the pool to have exactly as many threads as provided by @p num_threads here.
      * Note that the main thread will also do work, so it is recommended to keep the @p num_threads
      * at at least one fewer than the hardware concurrency (or other upper limit of threads, such as
-     * from OpenMP or Slum, that you might want to keep). Use the overload init_global_thread_pool()
+     * OpenMP or Slum limits, that you might want to keep). Use the overload init_global_thread_pool()
      * without any arguments to do this automatically.
      *
      * If @p num_threads is `0`, the thread pool is initialized with no threads at all, meaning that
