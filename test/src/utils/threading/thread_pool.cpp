@@ -473,7 +473,7 @@ TEST( ThreadPool, NestedMatrix )
     // Large empty matrix
     size_t const n = 1000;
     auto mat = Matrix<size_t>( n, n, 0 );
-    std::atomic<size_t> cnt = 0;
+    std::atomic<size_t> cnt{0};
 
     // Nested loop over all elements
     parallel_for( 0, n, [&](size_t i) {

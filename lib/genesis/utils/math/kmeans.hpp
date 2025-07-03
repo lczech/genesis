@@ -340,7 +340,7 @@ protected:
         std::vector<size_t>&      assignments
     ) {
         // Store whether anything changed.
-        std::atomic<bool> changed_assignment = false;
+        std::atomic<bool> changed_assignment{ false };
 
         // Assign each Point to its nearest centroid.
         utils::parallel_for( 0, data.size(), [&]( size_t i )

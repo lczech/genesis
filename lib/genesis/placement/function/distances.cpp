@@ -36,7 +36,6 @@
 #include "genesis/utils/threading/thread_functions.hpp"
 
 #include <algorithm>
-#include <atomic>
 #include <cassert>
 #include <cmath>
 
@@ -53,7 +52,7 @@ double pquery_distance(
     utils::Matrix<double> const& node_distances,
     bool                         with_pendant_length
 ) {
-    std::atomic<double> sum = 0.0;
+    double sum = 0.0;
 
     utils::parallel_for( 0, pquery_a.placements.size(), [&]( size_t pppai ) {
         auto const& place_a = pquery_a.placements[ pppai ];
@@ -92,7 +91,10 @@ double pquery_distance(
                 dist += place_a.pendant_length + place_b.pendant_length;
             }
             dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-            sum += dist;
+            {
+                GENESIS_THREAD_CRITICAL_SECTION( GENESIS_PLACEMENT_PQUERY_DISTANCE )
+                sum += dist;
+            }
         });
     });
 
@@ -108,7 +110,7 @@ double pquery_distance(
     Pquery const& pquery_b,
     DistanceFunction distance_function
 ) {
-    std::atomic<double> sum = 0.0;
+    double sum = 0.0;
 
     utils::parallel_for( 0, pquery_a.placement_size(), [&]( size_t pai ) {
         auto const& place_a = pquery_a.placement_at( pai );
@@ -116,7 +118,10 @@ double pquery_distance(
             auto const& place_b = pquery_b.placement_at( pab );
             double dist = distance_function( place_a, place_b );
             dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-            sum += dist;
+            {
+                GENESIS_THREAD_CRITICAL_SECTION( GENESIS_PLACEMENT_PQUERY_DISTANCE )
+                sum += dist;
+            }
         });
     });
 
@@ -242,14 +247,17 @@ size_t placement_path_length_distance(
 template<typename DistanceFunction>
 double pquery_distance( Pquery const& pquery, DistanceFunction distance_function )
 {
-    std::atomic<double> sum = 0.0;
+    double sum = 0.0;
 
     // Calculate the weighted distance of the pquery, using the specified function.
     utils::parallel_for( 0, pquery.placement_size(), [&]( size_t pai ) {
         auto const& placement = pquery.placement_at( pai );
         double dist = distance_function( placement );
         dist *= placement.like_weight_ratio;
-        sum += dist;
+        {
+            GENESIS_THREAD_CRITICAL_SECTION( GENESIS_PLACEMENT_PQUERY_DISTANCE )
+            sum += dist;
+        }
     });
 
     return sum;
