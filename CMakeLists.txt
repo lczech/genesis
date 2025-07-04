@@ -19,11 +19,10 @@
 # University of Copenhagen, Globe Institute, Section for GeoGenetics
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   CMake Init
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
-# This is a hand-wavy minimum requirement... but well, "works for me".
 cmake_minimum_required(VERSION 3.8)
 
 # Fun with colors!
@@ -81,12 +80,12 @@ if( NOT ( CMAKE_VERSION VERSION_LESS 3.0 ))
     cmake_policy(SET CMP0028 NEW)
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Project Definitions and Variables
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Set the project. We currently need "C" only because of the endianness test below...
-project ( genesis CXX C )
+project ( genesis LANGUAGES CXX C )
 
 # Set the file that needs to be used for `include_directories()`.
 set( GENESIS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" )
@@ -134,9 +133,9 @@ else()
     message (STATUS "Building Genesis stand-alone")
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Genesis Version
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Extract Genesis version from version source file.
 file(
@@ -174,9 +173,9 @@ if(GIT_FOUND)
     ENDIF()
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Build Options
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Options for which library version to build. Default: Build shared for stand-alone version,
 # and build static when being used as a library.
@@ -221,9 +220,9 @@ set_property( CACHE GENESIS_UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
 # Set whether to try to use LTO, if available.
 option( GENESIS_USE_LTO "Use LTO/IPO (link time optimization), if available." ON )
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Build Type
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # The build type is determined by the standard cmake variable CMAKE_BUILD_TYPE.
 # Thus, if you want to change the build type when using genesis as a dependency,
@@ -265,9 +264,9 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 include(DetectCppVersion)
 detect_and_set_cpp_standard()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Compiler and Linker Options
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 if (MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
     # MinGW/MSVC do not support much. Also, the above string comparison in the condition does
@@ -345,9 +344,9 @@ if (APPLE)
    set(CMAKE_MACOSX_RPATH ON)
 endif (APPLE)
 
-# --------------------------------------------------------------------------------------------------
-#   External Dependencies
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
+#   System Libraries and Compiler Features
+# ================================================================================================
 
 # ----------------------------------------------------------
 #     zlib
@@ -355,7 +354,7 @@ endif (APPLE)
 
 IF(GENESIS_USE_ZLIB)
     # Included from modules dir tools/cmake
-    include( IncludeZlib )
+    include( DetectZlib )
 ENDIF()
 
 # ----------------------------------------------------------
@@ -364,7 +363,7 @@ ENDIF()
 
 IF(GENESIS_USE_OPENMP)
     # Included from modules dir tools/cmake
-    include( IncludeOpenMP )
+    include( DetectOpenMP )
 ENDIF()
 
 # ----------------------------------------------------------
@@ -373,8 +372,12 @@ ENDIF()
 
 IF(GENESIS_USE_AVX)
     # Included from modules dir tools/cmake
-    include( IncludeAVX )
+    include( DetectAVX )
 ENDIF()
+
+# ================================================================================================
+#   External Dependencies
+# ================================================================================================
 
 # ----------------------------------------------------------
 #     htslib
@@ -392,7 +395,7 @@ if(GENESIS_USE_HTSLIB)
 
     # Included from modules dir tools/cmake
     # htslib needs pthreads to be linked, so we include this here as well
-    include( IncludePthreads )
+    include( DetectPthreads )
     include( IncludeHtslib )
 
 endif()
@@ -421,9 +424,9 @@ endif()
 #
 # endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Sub-Scripts
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # The applications, the python module and the tests all prefer the shared lib,
 # so we need to build it if one of those is activated.
@@ -449,13 +452,12 @@ endif()
 if (GENESIS_BUILD_TESTS)
     # Need to enable testing here, otherwise `./build/make test` will not work.
     enable_testing()
-
     add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Export to parent scope
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # We want this for nicer naming.
 set( GENESIS_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_LIBRARY} )
@@ -503,9 +505,9 @@ IF( GENESIS_HAS_PARENT_DIR )
 
 ENDIF()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Final user output
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Cmake debug output, useful for user support as well. First, strip/trim extra spaces for nicer output
 string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} " )

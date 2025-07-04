@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2024 Lucas Czech
+# Copyright (C) 2014-2025 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lucas.czech@h-its.org>
-# Exelixis Lab, Heidelberg Institute for Theoretical Studies
-# Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+# Lucas Czech <lucas.czech@sund.ku.dk>
+# University of Copenhagen, Globe Institute, Section for GeoGenetics
+# Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 # ------------------------------------------------------------------------------
 #   Setup Python
@@ -60,7 +60,7 @@ IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/tools/pybind11/include/pybind11/pybind11.h 
     # See also the CMakeLists.txt file for the tests - there we use this technique for GTest.
 
     configure_file(
-        ${PROJECT_SOURCE_DIR}/tools/cmake/Pybind11Download.cmake
+        ${PROJECT_SOURCE_DIR}/tools/cmake/DownloadPybind11.cmake
         ${CMAKE_BINARY_DIR}/pybind11-download/CMakeLists.txt
     )
 
