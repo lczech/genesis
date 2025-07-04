@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2024 Lucas Czech
+# Copyright (C) 2014-2025 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@ set(CPP_STANDARDS_AND_FLAGS
     # "23@-std=c++23"
     "20@-std=c++20"
     "17@-std=c++17"
-    "14@-std=c++14"
-    "11@-std=c++11"
+    # "14@-std=c++14"
+    # "11@-std=c++11"
 )
 
 # Function to detect the highest available C++ standard
@@ -130,9 +130,18 @@ function(detect_and_set_cpp_standard)
 
         # If no valid version was found, throw an error
         if (NOT version_valid)
+            # Extract the valid C++ versions from the above list,
+            # so that we only need to keep them up to date in one place.
+            set(VALID_VERSIONS "")
+            foreach(item IN LISTS CPP_STANDARDS_AND_FLAGS)
+                string(REGEX REPLACE "@.*" "" val_ver "${item}")
+                list(APPEND VALID_VERSIONS "${val_ver}")
+            endforeach()
+            list(JOIN VALID_VERSIONS ", " VALID_VERSIONS_STRING)
+
             message(FATAL_ERROR
                 "Invalid C++ standard specified: '${GENESIS_CPP_STANDARD}'. \
-                Supported versions are: 11, 14, 17, 20, 23"
+                Supported versions are: ${VALID_VERSIONS_STRING}"
             )
         endif()
     endif()
