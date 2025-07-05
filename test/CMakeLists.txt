@@ -74,6 +74,12 @@ endif()
 # Prefer to use our local installation of GTest, if there is one.
 SET( GTEST_ROOT ${PROJECT_SOURCE_DIR}/tools/googletest )
 
+# Find package had a change concerning lower case package names.
+# We use the new behavior, which searches more, because why now.
+if( NOT ( CMAKE_VERSION VERSION_LESS 3.27 ))
+    cmake_policy(SET CMP0144 NEW)
+endif()
+
 # Find GTest!
 message (STATUS "Looking for GTest")
 find_package (GTest)
