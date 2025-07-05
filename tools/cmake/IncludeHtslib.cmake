@@ -163,8 +163,8 @@ ELSE()
     message (
         STATUS "${ColorYellow}You are trying to compile with htslib, which optionally needs "
         "libdeflate. This does not seem to work right now. Try installing `libdeflate-tools` "
-        "first, or the equivalent for your system. We are compiling without libdeflate support "
-        "for now.${ColorEnd}"
+        "and `libdeflate-dev` first, or the equivalent for your system. We are compiling without "
+        "libdeflate support for now.${ColorEnd}"
     )
     set( HTSLIB_Deflate "" )
     set( HTSLIB_Deflate_configure "--without-libdeflate" )
