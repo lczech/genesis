@@ -384,21 +384,15 @@ ENDIF()
 #     htslib
 # ----------------------------------------------------------
 
+# Store the git tag that we want to check out for htslib.
+# SET( htslib_GIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_GIT_HASH#
+SET( htslib_GIT_TAG "1.22" ) #htslib_GIT_TAG#
+
 if(GENESIS_USE_HTSLIB)
-
-    # Store the commit hash that we want to check out for htslib.
-    # SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COMMIT_HASH#
-
-    # Instead of the above git-hash-based download, we use a direct download of a release archive file,
-    # because htslib now requires some generated files as well that are not part of the repository...
-    # Why are external dependencies always such a mess?
-    SET( GENESIS_HTSLIB_VERSION "1.16" ) #GENESIS_HTSLIB_VERSION#
-
     # Included from modules dir tools/cmake
     # htslib needs pthreads to be linked, so we include this here as well
     include( DetectPthreads )
     include( IncludeHtslib )
-
 endif()
 
 # ----------------------------------------------------------
@@ -409,7 +403,7 @@ endif()
 # if(GENESIS_USE_SAMTOOLS)
 #
 #     # Store the commit hash that we want to check out for samtools.
-#     # SET( samtools_COMMIT_HASH "bcd9f35cefdd8b92044d2259506aff39f0a6baf9" ) #samtools_COMMIT_HASH#
+#     # SET( samtools_GIT_HASH "bcd9f35cefdd8b92044d2259506aff39f0a6baf9" ) #samtools_GIT_HASH#
 #
 #     # Same as above for htslib, we here also use a direct download instead of git,
 #     # because of their generated files and so on... Arghghgh.

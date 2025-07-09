@@ -84,7 +84,7 @@ if (EXISTS "${PROJECT_SOURCE_DIR}/external/googletest/CMakeLists.txt")
     )
 else()
     message(STATUS "googletest submodule not found")
-    message(STATUS "Will now download googletest")
+    message(STATUS "Fetching googletest from GitHub")
 
     # If GTest was not found, we download and unpack it (at configure time). This roughly follows
     # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
@@ -186,6 +186,7 @@ target_link_libraries(genesis_tests PRIVATE GTest::gtest_main)
 target_link_libraries (genesis_tests PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES})
 IF(GENESIS_USE_HTSLIB)
     add_dependencies( genesis_tests htslib )
+    # target_link_libraries(genesis_tests PRIVATE HTSlib::htslib)
 ENDIF()
 # IF(GENESIS_USE_SAMTOOLS)
 #     add_dependencies( genesis_tests samtools )
