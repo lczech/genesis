@@ -266,9 +266,9 @@ ExternalProject_Add(
             --prefix=${HTSLIB_INSTALL_DIR}
             --libdir=${HTSLIB_INSTALL_DIR}/lib
             --disable-multi-os-directory
-            ${HTSLIB_Deflate_configure}
-            # --disable-libcurl
             --disable-ref-cache
+            --disable-libcurl
+            ${HTSLIB_Deflate_configure}
 
     # Didn't get these to work in the above configure... So we amend them here...
     # I think it's because htslib does some internal flag stuff as well that is not
