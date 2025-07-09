@@ -23,7 +23,7 @@
 #   CMake Init
 # ================================================================================================
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.14)
 
 # Fun with colors!
 if (NOT WIN32)
@@ -61,6 +61,7 @@ set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 # Set the new policy, mostly to silence the warning.
 cmake_policy(SET CMP0135 NEW)
 include(ExternalProject)
+include(FetchContent)
 
 # Include our own extra CMake functionality.
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/tools/cmake" )
