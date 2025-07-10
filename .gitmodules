@@ -4,3 +4,6 @@
 [submodule "external/htslib"]
 	path = external/htslib
 	url = https://github.com/samtools/htslib.git
+[submodule "external/concurrentqueue"]
+	path = external/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git

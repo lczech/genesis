@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lczech@carnegiescience.edu>
-# Department of Plant Biology, Carnegie Institution For Science
-# 260 Panama Street, Stanford, CA 94305, USA
+# Lucas Czech <lucas.czech@sund.ku.dk>
+# University of Copenhagen, Globe Institute, Section for GeoGenetics
+# Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 # ------------------------------------------------------------------------------
 #   Build Options
@@ -58,6 +58,7 @@ add_library( genesis_lib_obj OBJECT ${genesis_lib_sources} )
 target_link_libraries( genesis_lib_obj PRIVATE ${GENESIS_INTERNAL_LINK_LIBRARIES} )
 target_compile_options( genesis_lib_obj PRIVATE -fPIC )
 target_include_directories( genesis_lib_obj PUBLIC ${PROJECT_SOURCE_DIR}/lib )
+target_link_libraries(genesis_lib_obj PRIVATE moodycamel_concurrentqueue)
 
 # Explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
 if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")

@@ -25,6 +25,10 @@
 
 cmake_minimum_required(VERSION 3.14)
 
+# Export the commands to build/compile_commands.json
+# Mostly useful for VS Code to find paths etc
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Fun with colors!
 if (NOT WIN32)
     string(ASCII 27 Esc)
@@ -418,6 +422,13 @@ endif()
 #     include( IncludeSamtools )
 #
 # endif()
+
+# ----------------------------------------------------------
+#     concurrentqueue
+# ----------------------------------------------------------
+
+SET( concurrentqueue_GIT_TAG "v1.0.4" ) #concurrentqueue_GIT_TAG#
+include( IncludeConcurrentQueue )
 
 # ================================================================================================
 #   Sub-Scripts

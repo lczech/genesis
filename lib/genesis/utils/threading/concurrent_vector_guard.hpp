@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/threading/concurrent_queue.hpp"
-#include "genesis/utils/threading/lightweight_semaphore.hpp"
+#include "moodycamel/concurrentqueue.h"
+#include "moodycamel/lightweightsemaphore.h"
 
 #include <algorithm>
 #include <cassert>
@@ -85,7 +85,7 @@ public:
         LockGuard() = default;
 
         // Constructor acquires the semaphore.
-        LockGuard( LightweightSemaphore& semaphore )
+        LockGuard( moodycamel::LightweightSemaphore& semaphore )
             : semaphore_(&semaphore)
         {
             semaphore_->wait();
@@ -127,7 +127,7 @@ public:
         }
 
     private:
-        LightweightSemaphore* semaphore_ = nullptr;
+        moodycamel::LightweightSemaphore* semaphore_ = nullptr;
     };
 
     // -------------------------------------------------------------
@@ -249,7 +249,7 @@ private:
         // bucket_mutexes_ = std::vector<std::mutex>( num_buckets );
 
         // Implementation with LightweightSemaphore
-        bucket_mutexes_ = std::vector<LightweightSemaphore>( num_buckets );
+        bucket_mutexes_ = std::vector<moodycamel::LightweightSemaphore>( num_buckets );
         for( size_t i = 0; i < num_buckets; ++i ) {
             bucket_mutexes_[i].signal();
         }
@@ -262,7 +262,7 @@ private:
 private:
 
     // std::vector<std::mutex> bucket_mutexes_;
-    std::vector<LightweightSemaphore> bucket_mutexes_;
+    std::vector<moodycamel::LightweightSemaphore> bucket_mutexes_;
 
 };
 

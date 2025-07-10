@@ -32,7 +32,7 @@
  */
 
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/threading/blocking_concurrent_queue.hpp"
+#include "moodycamel/blockingconcurrentqueue.h"
 
 #include <atomic>
 #include <cassert>
@@ -675,7 +675,7 @@ private:
         // Using a token for the consumer speeds it up. This is created once per worker thread
         // when the function is called from the thread constructor upon emplacing the worker
         // in the pool in init_()
-        ConsumerToken consumer_token( pool->task_queue_ );
+        moodycamel::ConsumerToken consumer_token( pool->task_queue_ );
 
         // The worker runs an infinite loop of waiting for tasks,
         // only stopping once a special "stop" task is received.
@@ -779,7 +779,7 @@ private:
     std::vector<std::thread> worker_pool_;
 
     // WrappedTask queue and its counters
-    BlockingConcurrentQueue<WrappedTask> task_queue_;
+    moodycamel::BlockingConcurrentQueue<WrappedTask> task_queue_;
     std::atomic<size_t> unfinished_tasks_{ 0 };
     size_t max_queue_size_;
 };
