@@ -430,6 +430,13 @@ endif()
 SET( concurrentqueue_GIT_TAG "v1.0.4" ) #concurrentqueue_GIT_TAG#
 include( IncludeConcurrentQueue )
 
+# ----------------------------------------------------------
+#     parallel-hashmap
+# ----------------------------------------------------------
+
+SET( parallel_hashmap_GIT_TAG "v2.0.0" ) #parallel_hashmap_GIT_TAG#
+include( IncludeParallelHashmap )
+
 # ================================================================================================
 #   Sub-Scripts
 # ================================================================================================

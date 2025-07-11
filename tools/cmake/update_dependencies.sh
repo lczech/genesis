@@ -120,8 +120,11 @@ function update_submodule_tag() {
     fi
     echo "${libname} @ ${commit_tag}"
 
-    LINE="SET( ${libname}_GIT_TAG \"${commit_tag}\" ) #${libname}_GIT_TAG#"
-    sed -i "s/.*#${libname}_GIT_TAG#/${LINE}/g" ${cmakedir}/CMakeLists.txt
+    # Need to replace dashes in cmake variables
+    local varname=`echo ${libname} | sed 's/-/_/g'`
+
+    LINE="SET( ${varname}_GIT_TAG \"${commit_tag}\" ) #${varname}_GIT_TAG#"
+    sed -i "s/.*#${varname}_GIT_TAG#/${LINE}/g" ${cmakedir}/CMakeLists.txt
 }
 
 ####################################################################################################
@@ -129,6 +132,7 @@ function update_submodule_tag() {
 ####################################################################################################
 
 # The update functions take the submodule name and the CMake subdirectory.
-update_submodule_tag "googletest" "./test"
-update_submodule_tag "concurrentqueue" "."
-update_submodule_tag "htslib" "."
+update_submodule_tag "concurrentqueue"  "."
+update_submodule_tag "htslib"           "."
+update_submodule_tag "parallel-hashmap" "."
+update_submodule_tag "googletest"       "./test"

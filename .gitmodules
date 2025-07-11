@@ -7,3 +7,6 @@
 [submodule "external/concurrentqueue"]
 	path = external/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
+[submodule "external/parallel-hashmap"]
+	path = external/parallel-hashmap
+	url = https://github.com/greg7mdp/parallel-hashmap.git
