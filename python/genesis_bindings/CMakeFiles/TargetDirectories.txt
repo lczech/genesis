@@ -1,3 +1,0 @@
-/home/giannis/Desktop/genesis/python/genesis_bindings/CMakeFiles/mylibgenesis.dir
-/home/giannis/Desktop/genesis/python/genesis_bindings/CMakeFiles/edit_cache.dir
-/home/giannis/Desktop/genesis/python/genesis_bindings/CMakeFiles/rebuild_cache.dir
