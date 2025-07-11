@@ -10,3 +10,6 @@
 [submodule "external/parallel-hashmap"]
 	path = external/parallel-hashmap
 	url = https://github.com/greg7mdp/parallel-hashmap.git
+[submodule "external/CLI11"]
+	path = external/CLI11
+	url = https://github.com/CLIUtils/CLI11.git

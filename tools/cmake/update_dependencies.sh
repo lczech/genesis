@@ -132,6 +132,7 @@ function update_submodule_tag() {
 ####################################################################################################
 
 # The update functions take the submodule name and the CMake subdirectory.
+update_submodule_tag "CLI11"            "."
 update_submodule_tag "concurrentqueue"  "."
 update_submodule_tag "htslib"           "."
 update_submodule_tag "parallel-hashmap" "."
