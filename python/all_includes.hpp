@@ -499,7 +499,7 @@
 // #include <genesis/utils/core/options.hpp>
 // #include <genesis/utils/core/resource_logger.hpp>
 // #include <genesis/utils/core/std.hpp>
-// #include <genesis/utils/core/version.hpp>
+#include <genesis/utils/core/version.hpp>
 
 // ---------------------------------------------------------------------
 //   formats

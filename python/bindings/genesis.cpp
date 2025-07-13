@@ -9,6 +9,7 @@
 
 using ModuleGetter = std::function< pybind11::module & (std::string const &) >;
 
+void bind_genesis_utils_core_version(std::function< pybind11::module &(std::string const &namespace_) > &M);
 
 
 PYBIND11_MODULE(genesis, root_module) {
@@ -33,10 +34,12 @@ PYBIND11_MODULE(genesis, root_module) {
 	);
 
 	std::vector< std::pair<std::string, std::string> > sub_modules {
+		{"", "genesis"},
 	};
 	for(auto &p : sub_modules ) modules[ p.first.empty() ? p.second :  p.first+"::"+p.second ] = modules[p.first].def_submodule( mangle_namespace_name(p.second).c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() );
 
 	//pybind11::class_<std::shared_ptr<void>>(M(""), "_encapsulated_data_");
 
+	bind_genesis_utils_core_version(M);
 
 }

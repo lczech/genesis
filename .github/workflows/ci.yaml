@@ -620,6 +620,15 @@ jobs:
         run: |
           valgrind ./bin/test/genesis_tests
 
+      - name: Python Module Tests
+        id: pytest
+        if: >
+          success() &&
+          runner.os != 'windows' &&
+          matrix.build_type != 'RELEASE'
+        run: |
+          ./python/test/test.py
+
       # -------------------------------------------------------
       #     Logs
       # -------------------------------------------------------
