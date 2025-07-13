@@ -592,7 +592,7 @@ jobs:
       #     Test
       # -------------------------------------------------------
 
-      - name: Tests
+      - name: Test
         id: test
         if: >
           success() &&
@@ -620,12 +620,11 @@ jobs:
         run: |
           valgrind ./bin/test/genesis_tests
 
-      - name: Python Module Tests
+      - name: Test Python Module
         id: pytest
         if: >
           success() &&
-          runner.os != 'windows' &&
-          matrix.build_type != 'RELEASE'
+          runner.os != 'windows'
         run: |
           ./python/test/test.py
 
