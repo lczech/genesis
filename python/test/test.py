@@ -23,11 +23,91 @@
 
 import os
 import sys
+import re
 import unittest
 import types
 import inspect
 import importlib.util
 from pathlib import Path
+
+# ================================================================================================
+#     Pretty Print
+# ================================================================================================
+
+class TableTestResult(unittest.TextTestResult):
+    """
+    Collects each test's formatted class/name and status,
+    then prints a three-column table at the end of the run.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # will hold tuples of (formatted_class, formatted_method, status)
+        self._rows = []
+
+    def _format(self, test, status):
+        # raw names
+        cls = test.__class__.__name__
+        mth = test._testMethodName
+
+        # strip prefixes
+        if cls.startswith('Test'):
+            cls = cls[len('Test'):]
+        if mth.startswith('test_'):
+            mth = mth[len('test_'):]
+
+        # CamelCase → ::-joined
+        words = re.findall(r'[A-Z][a-z0-9]*', cls)
+        cls_fmt = '::'.join(words) if words else cls
+
+        return cls_fmt, mth, status
+
+    def addSuccess(self, test):
+        # record success without printing a dot
+        unittest.TestResult.addSuccess(self, test)
+        self._rows.append(self._format(test, 'ok'))
+
+    def addFailure(self, test, err):
+        unittest.TestResult.addFailure(self, test, err)
+        self._rows.append(self._format(test, 'FAIL'))
+
+    def addError(self, test, err):
+        unittest.TestResult.addError(self, test, err)
+        self._rows.append(self._format(test, 'ERROR'))
+
+    def addSkip(self, test, reason):
+        unittest.TestResult.addSkip(self, test, reason)
+        self._rows.append(self._format(test, f'SKIP({reason})'))
+
+    def stopTestRun(self):
+        super().stopTestRun()
+        # compute column widths
+        cls_w = max(len(r[0]) for r in self._rows + [('Class',)])
+        mth_w = max(len(r[1]) for r in self._rows + [('', 'Test')])
+        res_w = max(len(r[2]) for r in self._rows + [('', '', 'Result')])
+
+        # header
+        header = f"{'Class':<{cls_w}} | {'Test':<{mth_w}} | {'Result':<{res_w}}"
+        sep    = f"{'-'*cls_w}-+-{'-'*mth_w}-+-{'-'*res_w}"
+        self.stream.writeln('')
+        self.stream.writeln(header)
+        self.stream.writeln(sep)
+
+        # rows in recorded order (loader guarantees alphabetical)
+        for cls_fmt, mth_fmt, status in self._rows:
+            line = f"{cls_fmt:<{cls_w}} | {mth_fmt:<{mth_w}} | {status:<{res_w}}"
+            self.stream.writeln(line)
+
+# Simpler alternative: Define a custom result that only shows test._testMethodName
+class SimpleNameResult(unittest.TextTestResult):
+    def getDescription(self, test):
+        # test.id() == 'module.ClassName.methodName'
+        class_name = test.__class__.__name__
+        method_name = test._testMethodName
+        return f"{class_name}.{method_name}"
+
+# ================================================================================================
+#     Test Suite
+# ================================================================================================
 
 def main():
     # Determine this script's absolute path and project root
@@ -84,17 +164,12 @@ def main():
             if issubclass(obj, unittest.TestCase) and obj.__module__ == module.__name__:
                 suite.addTests(loader.loadTestsFromTestCase(obj))
 
-    # Define a custom result that only shows test._testMethodName
-    class SimpleNameResult(unittest.TextTestResult):
-        def getDescription(self, test):
-            # just the bare test method name, e.g. "test_xxx"
-            return test._testMethodName
-
     # Run test suite with our nice result printing
     # runner = unittest.TextTestRunner(verbosity=2)
     runner = unittest.TextTestRunner(
-        verbosity=2,
-        resultclass=SimpleNameResult
+        # verbosity=2,
+        # resultclass=SimpleNameResult
+        resultclass=TableTestResult
     )
     result = runner.run(suite)
 

@@ -90,7 +90,8 @@ c_plus_plus_version = '17'
 use_pybind_stl  = True
 single_file     = False
 binder_debug    = False
-binder_annotate = False
+binder_annotate_includes  = False
+binder_annotate_functions = True
 
 # ------------------------------------------------------------------------------
 #   Sync Directories
@@ -303,9 +304,10 @@ def make_bindings_code(target_dir):
         command += ['--include-pybind11-stl']
     if single_file:
         command += ['--single-file']
-    if binder_annotate:
-        command += ['--annotate-functions']
+    if binder_annotate_includes:
         command += ['--annotate-includes']
+    if binder_annotate_functions:
+        command += ['--annotate-functions']
     if binder_debug:
         command += ['--trace', '-v']
 
