@@ -28,24 +28,24 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/emd.hpp"
+#include <genesis/placement/function/emd.hpp>
 
-#include "genesis/placement/function/functions.hpp"
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/masses.hpp"
-#include "genesis/placement/function/operators.hpp"
-#include "genesis/placement/sample_set.hpp"
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/function/functions.hpp>
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/placement/function/masses.hpp>
+#include <genesis/placement/function/operators.hpp>
+#include <genesis/placement/sample_set.hpp>
+#include <genesis/placement/sample.hpp>
 
-#include "genesis/tree/common_tree/functions.hpp"
-#include "genesis/tree/function/tree_set.hpp"
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/common_tree/functions.hpp>
+#include <genesis/tree/function/tree_set.hpp>
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/functions.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/containers/matrix.hpp"
+#include <genesis/utils/containers/matrix.hpp>
 
 #include <cassert>
 

@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/exception.hpp"
+#include <genesis/utils/core/exception.hpp>
 
 #include <stdexcept>
 #include <string>

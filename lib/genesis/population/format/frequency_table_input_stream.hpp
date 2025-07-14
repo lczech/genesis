@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/variant.hpp"
+#include <genesis/population/variant.hpp>
 
-#include "genesis/sequence/reference_genome.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include <genesis/sequence/reference_genome.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
 
 #include <functional>
 #include <limits>

@@ -28,15 +28,15 @@
  * @ingroup population
  */
 
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include <genesis/population/stream/variant_input_stream_sources.hpp>
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/function/functions.hpp>
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

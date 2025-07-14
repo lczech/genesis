@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/hash_tuple.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/containers/hash_tuple.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <cassert>
 #include <functional>

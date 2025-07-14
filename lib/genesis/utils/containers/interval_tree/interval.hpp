@@ -37,8 +37,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/interval_tree/fwd.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/containers/interval_tree/fwd.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <cassert>
 #include <cstdio>

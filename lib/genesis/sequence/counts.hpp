@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/tools/char_lookup.hpp"
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/tools/char_lookup.hpp>
 
 #include <cstdint>
 #include <string>

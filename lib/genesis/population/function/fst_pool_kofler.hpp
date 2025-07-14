@@ -31,10 +31,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/fst_pool_calculator.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/compensated_sum.hpp"
+#include <genesis/population/function/fst_pool_calculator.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/math/compensated_sum.hpp>
 
 #include <cassert>
 #include <cmath>

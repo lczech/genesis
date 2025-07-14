@@ -28,9 +28,9 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/ranks.hpp"
+#include <genesis/taxonomy/functions/ranks.hpp>
 
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/text/string.hpp>
 
 #include <unordered_map>
 

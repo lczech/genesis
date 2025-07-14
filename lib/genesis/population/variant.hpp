@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/filter/filter_status.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/filter/filter_status.hpp>
 
 #include <string>
 #include <vector>

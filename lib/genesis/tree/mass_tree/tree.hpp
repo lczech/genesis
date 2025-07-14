@@ -31,9 +31,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/function/operators.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/function/operators.hpp>
 
 #include <map>
 

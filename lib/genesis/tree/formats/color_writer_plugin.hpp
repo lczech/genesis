@@ -31,8 +31,8 @@
  * @ingroup tree
  */
 
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/functions.hpp"
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/functions.hpp>
 
 #include <vector>
 

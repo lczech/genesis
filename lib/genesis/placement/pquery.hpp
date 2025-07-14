@@ -35,10 +35,10 @@
 #include <string>
 #include <vector>
 
-#include "genesis/placement/pquery/name.hpp"
-#include "genesis/placement/pquery/placement.hpp"
+#include <genesis/placement/pquery/name.hpp>
+#include <genesis/placement/pquery/placement.hpp>
 
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/utils/containers/range.hpp>
 
 namespace genesis {
 

@@ -28,11 +28,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/pca.hpp"
+#include <genesis/utils/math/pca.hpp>
 
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/math/matrix.hpp"
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/math/matrix.hpp>
 
 #include <algorithm>
 #include <cassert>

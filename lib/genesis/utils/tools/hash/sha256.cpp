@@ -69,9 +69,9 @@
     SUCH DAMAGE.
 */
 
-#include "genesis/utils/tools/hash/sha256.hpp"
+#include <genesis/utils/tools/hash/sha256.hpp>
 
-#include "genesis/utils/io/input_buffer.hpp"
+#include <genesis/utils/io/input_buffer.hpp>
 
 #include <algorithm>
 #include <cstdlib>

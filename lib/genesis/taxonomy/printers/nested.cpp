@@ -28,12 +28,12 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/printers/nested.hpp"
+#include <genesis/taxonomy/printers/nested.hpp>
 
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/functions/taxonomy.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <sstream>
 

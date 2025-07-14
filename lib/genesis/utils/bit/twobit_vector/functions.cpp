@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/bit/twobit_vector/functions.hpp"
+#include <genesis/utils/bit/twobit_vector/functions.hpp>
 
 #include <algorithm>
 #include <cassert>

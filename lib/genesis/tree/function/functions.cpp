@@ -28,18 +28,18 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/function/functions.hpp"
+#include <genesis/tree/function/functions.hpp>
 
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/eulertour.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
+#include <genesis/tree/function/distances.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/iterator/eulertour.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
 
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <algorithm>
 #include <cassert>

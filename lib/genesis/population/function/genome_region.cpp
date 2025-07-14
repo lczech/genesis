@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/genome_region.hpp"
+#include <genesis/population/function/genome_region.hpp>
 
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/convert.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

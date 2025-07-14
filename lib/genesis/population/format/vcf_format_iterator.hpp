@@ -33,8 +33,8 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_common.hpp"
-#include "genesis/population/format/vcf_header.hpp"
+#include <genesis/population/format/vcf_common.hpp>
+#include <genesis/population/format/vcf_header.hpp>
 
 #include <cassert>
 #include <cstdint>

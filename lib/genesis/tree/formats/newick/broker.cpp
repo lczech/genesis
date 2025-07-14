@@ -28,13 +28,13 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/formats/newick/broker.hpp"
+#include <genesis/tree/formats/newick/broker.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <string>
 
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/utils/core/logging.hpp>
 
 namespace genesis {
 namespace tree {

@@ -31,9 +31,9 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/sample.hpp"
-#include "genesis/placement/sample_set.hpp"
-#include "genesis/tree/tree_set.hpp"
+#include <genesis/placement/sample.hpp>
+#include <genesis/placement/sample_set.hpp>
+#include <genesis/tree/tree_set.hpp>
 
 #include <iosfwd>
 #include <string>

@@ -28,21 +28,21 @@
  * @ingroup population
  */
 
-#include "genesis/population/plotting/cathedral_plot.hpp"
+#include <genesis/population/plotting/cathedral_plot.hpp>
 
-#include "genesis/population/plotting/genome_heatmap.hpp"
-#include "genesis/utils/color/heat_map.hpp"
-#include "genesis/utils/color/normalization.hpp"
-#include "genesis/utils/containers/matrix/reader.hpp"
-#include "genesis/utils/containers/matrix/writer.hpp"
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/formats/bmp/writer.hpp"
-#include "genesis/utils/formats/json/document.hpp"
-#include "genesis/utils/formats/json/reader.hpp"
-#include "genesis/utils/formats/json/writer.hpp"
-#include "genesis/utils/formats/svg/svg.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/population/plotting/genome_heatmap.hpp>
+#include <genesis/utils/color/heat_map.hpp>
+#include <genesis/utils/color/normalization.hpp>
+#include <genesis/utils/containers/matrix/reader.hpp>
+#include <genesis/utils/containers/matrix/writer.hpp>
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/formats/bmp/writer.hpp>
+#include <genesis/utils/formats/json/document.hpp>
+#include <genesis/utils/formats/json/reader.hpp>
+#include <genesis/utils/formats/json/writer.hpp>
+#include <genesis/utils/formats/svg/svg.hpp>
+#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <cmath>

@@ -31,9 +31,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/phylo_factor.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/list_qualitative.hpp"
+#include <genesis/tree/mass_tree/phylo_factor.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/list_qualitative.hpp>
 
 #include <functional>
 #include <limits>

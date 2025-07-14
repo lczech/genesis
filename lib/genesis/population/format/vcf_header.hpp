@@ -33,8 +33,8 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/hts_file.hpp"
-#include "genesis/population/format/vcf_common.hpp"
+#include <genesis/population/format/hts_file.hpp>
+#include <genesis/population/format/vcf_common.hpp>
 
 #include <string>
 #include <unordered_map>

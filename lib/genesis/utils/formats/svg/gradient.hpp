@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/attributes.hpp"
-#include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/color/color.hpp"
+#include <genesis/utils/formats/svg/attributes.hpp>
+#include <genesis/utils/formats/svg/helper.hpp>
+#include <genesis/utils/color/color.hpp>
 
 #include <cassert>
 #include <iosfwd>

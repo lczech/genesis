@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/kmer.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/sequence/kmer/kmer.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <array>
 #include <cassert>

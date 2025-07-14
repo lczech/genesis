@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <array>
 #include <cassert>

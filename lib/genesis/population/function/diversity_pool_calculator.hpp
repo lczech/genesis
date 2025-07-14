@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/function/diversity_pool_functions.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/utils/math/compensated_sum.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/function/diversity_pool_functions.hpp>
+#include <genesis/population/function/functions.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/utils/math/compensated_sum.hpp>
 
 #include <cassert>
 #include <cmath>

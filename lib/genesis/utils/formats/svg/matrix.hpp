@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/text.hpp"
+#include <genesis/utils/formats/svg/text.hpp>
 
 #include <string>
 #include <vector>

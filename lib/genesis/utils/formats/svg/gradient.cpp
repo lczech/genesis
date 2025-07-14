@@ -28,12 +28,12 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/gradient.hpp"
+#include <genesis/utils/formats/svg/gradient.hpp>
 
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/formats/svg/document.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/color/functions.hpp"
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/formats/svg/document.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/color/functions.hpp>
 
 #include <algorithm>
 

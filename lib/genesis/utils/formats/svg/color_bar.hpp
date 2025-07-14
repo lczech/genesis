@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/gradient.hpp"
-#include "genesis/utils/formats/svg/group.hpp"
+#include <genesis/utils/formats/svg/gradient.hpp>
+#include <genesis/utils/formats/svg/group.hpp>
 
 #include <map>
 #include <string>

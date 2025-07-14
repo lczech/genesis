@@ -28,15 +28,15 @@
  * @ingroup population
  */
 
-#include "genesis/population/plotting/heatmap_colorization.hpp"
+#include <genesis/population/plotting/heatmap_colorization.hpp>
 
-#include "genesis/utils/color/normalization.hpp"
-#include "genesis/utils/color/norm_diverging.hpp"
-#include "genesis/utils/color/norm_linear.hpp"
-#include "genesis/utils/color/norm_logarithmic.hpp"
+#include <genesis/utils/color/normalization.hpp>
+#include <genesis/utils/color/norm_diverging.hpp>
+#include <genesis/utils/color/norm_linear.hpp>
+#include <genesis/utils/color/norm_logarithmic.hpp>
 
-#include "genesis/utils/formats/bmp/writer.hpp"
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/utils/formats/bmp/writer.hpp>
+#include <genesis/utils/core/logging.hpp>
 
 #include <algorithm>
 #include <cassert>

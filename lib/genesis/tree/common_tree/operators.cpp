@@ -28,13 +28,13 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/operators.hpp"
+#include <genesis/tree/common_tree/operators.hpp>
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/math/common.hpp>
 
 namespace genesis {
 namespace tree {

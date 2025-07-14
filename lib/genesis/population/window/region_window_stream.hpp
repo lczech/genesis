@@ -31,14 +31,14 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/genome_region_list.hpp"
-#include "genesis/population/genome_region.hpp"
-#include "genesis/population/window/base_window_stream.hpp"
-#include "genesis/population/window/window_view_stream.hpp"
-#include "genesis/population/window/window_view.hpp"
-#include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/genome_region_list.hpp>
+#include <genesis/population/genome_region.hpp>
+#include <genesis/population/window/base_window_stream.hpp>
+#include <genesis/population/window/window_view_stream.hpp>
+#include <genesis/population/window/window_view.hpp>
+#include <genesis/population/window/window.hpp>
+#include <genesis/utils/containers/range.hpp>
 
 #include <cassert>
 #include <deque>

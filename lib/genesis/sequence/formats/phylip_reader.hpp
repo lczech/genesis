@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/tools/char_lookup.hpp"
-#include "genesis/utils/io/input_source.hpp"
+#include <genesis/utils/tools/char_lookup.hpp>
+#include <genesis/utils/io/input_source.hpp>
 
 #include <iosfwd>
 #include <string>

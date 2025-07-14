@@ -28,13 +28,13 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/shapes.hpp"
+#include <genesis/utils/formats/svg/shapes.hpp>
 
-#include "genesis/utils/formats/svg/document.hpp"
-#include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/formats/svg/document.hpp>
+#include <genesis/utils/formats/svg/helper.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/convert.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

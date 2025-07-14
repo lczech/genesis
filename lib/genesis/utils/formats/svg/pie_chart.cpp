@@ -28,13 +28,13 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/pie_chart.hpp"
+#include <genesis/utils/formats/svg/pie_chart.hpp>
 
-#include "genesis/utils/formats/svg/attributes.hpp"
-#include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/formats/svg/object.hpp"
-#include "genesis/utils/formats/svg/shapes.hpp"
-#include "genesis/utils/color/color.hpp"
+#include <genesis/utils/formats/svg/attributes.hpp>
+#include <genesis/utils/formats/svg/helper.hpp>
+#include <genesis/utils/formats/svg/object.hpp>
+#include <genesis/utils/formats/svg/shapes.hpp>
+#include <genesis/utils/color/color.hpp>
 
 #include <cassert>
 #include <cstdlib>

@@ -91,10 +91,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/distribution.hpp"
+#include <genesis/utils/math/distribution.hpp>
 
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/math/binomial.hpp"
+#include <genesis/utils/core/options.hpp>
+#include <genesis/utils/math/binomial.hpp>
 
 #include <cassert>
 #include <cmath>

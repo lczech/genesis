@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/tickmarks.hpp"
+#include <genesis/utils/tools/tickmarks.hpp>
 
-#include "genesis/utils/math/common.hpp"
+#include <genesis/utils/math/common.hpp>
 
 #include <algorithm>
 #include <cassert>

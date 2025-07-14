@@ -28,16 +28,16 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/formats/phylip_reader.hpp"
+#include <genesis/sequence/formats/phylip_reader.hpp>
 
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

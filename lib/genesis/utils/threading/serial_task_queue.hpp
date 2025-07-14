@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <atomic>
 #include <cassert>

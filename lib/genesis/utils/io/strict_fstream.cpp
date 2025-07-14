@@ -61,9 +61,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/strict_fstream.hpp"
+#include <genesis/utils/io/strict_fstream.hpp>
 
-#include "genesis/utils/core/exception.hpp"
+#include <genesis/utils/core/exception.hpp>
 
 #include <cassert>
 #include <cerrno>

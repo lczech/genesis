@@ -33,13 +33,13 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/function/genome_locus.hpp"
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/utils/core/fs.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/function/genome_locus.hpp>
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/utils/core/fs.hpp>
 
 #include <cstdint>
 #include <memory>

@@ -31,11 +31,11 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/text/char.hpp>
 
 // The class provided in this file is only available with string_view support.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17

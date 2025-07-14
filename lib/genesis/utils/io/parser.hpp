@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <cassert>
 #include <cmath>

@@ -28,12 +28,12 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/formats/table/reader.hpp"
+#include <genesis/tree/formats/table/reader.hpp>
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <unordered_map>

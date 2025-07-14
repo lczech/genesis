@@ -30,10 +30,10 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_record.hpp"
+#include <genesis/population/format/vcf_record.hpp>
 
-#include "genesis/population/format/hts_file.hpp"
-#include "genesis/population/format/vcf_header.hpp"
+#include <genesis/population/format/hts_file.hpp>
+#include <genesis/population/format/vcf_header.hpp>
 
 extern "C" {
     #include <htslib/hts.h>

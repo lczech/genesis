@@ -28,11 +28,11 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/edge_color.hpp"
+#include <genesis/tree/common_tree/edge_color.hpp>
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/functions.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/functions.hpp>
 
 #include <cassert>
 #include <algorithm>

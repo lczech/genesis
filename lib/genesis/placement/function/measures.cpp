@@ -28,35 +28,35 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/measures.hpp"
+#include <genesis/placement/function/measures.hpp>
 
-#include "genesis/placement/function/distances.hpp"
-#include "genesis/placement/function/functions.hpp"
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/masses.hpp"
-#include "genesis/placement/function/operators.hpp"
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/placement/pquery/plain.hpp"
-#include "genesis/placement/sample_set.hpp"
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/function/distances.hpp>
+#include <genesis/placement/function/functions.hpp>
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/placement/function/masses.hpp>
+#include <genesis/placement/function/operators.hpp>
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/placement/pquery/plain.hpp>
+#include <genesis/placement/sample_set.hpp>
+#include <genesis/placement/sample.hpp>
 
-#include "genesis/tree/common_tree/distances.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/function/tree_set.hpp"
-#include "genesis/tree/iterator/node_links.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/common_tree/distances.hpp>
+#include <genesis/tree/function/distances.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/tree_set.hpp>
+#include <genesis/tree/iterator/node_links.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
+#include <genesis/tree/mass_tree/functions.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/core/options.hpp>
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <algorithm>
 #include <atomic>

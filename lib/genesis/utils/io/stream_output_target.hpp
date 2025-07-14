@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/base_output_target.hpp"
+#include <genesis/utils/io/base_output_target.hpp>
 
 #include <ostream>
 #include <string>

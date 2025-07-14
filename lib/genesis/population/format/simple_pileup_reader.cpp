@@ -28,14 +28,14 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/simple_pileup_reader.hpp"
+#include <genesis/population/format/simple_pileup_reader.hpp>
 
-#include "genesis/population/function/functions.hpp"
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/population/function/functions.hpp>
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <cassert>
 #include <cstdlib>

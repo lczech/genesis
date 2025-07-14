@@ -34,8 +34,8 @@
 #include <cstddef> // size_t
 #include <functional>
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/common_tree/tree.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/common_tree/tree.hpp>
 
 namespace genesis {
 namespace tree {

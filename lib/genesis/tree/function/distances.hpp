@@ -33,7 +33,7 @@
 
 #include <vector>
 
-#include "genesis/utils/containers/matrix.hpp"
+#include <genesis/utils/containers/matrix.hpp>
 
 namespace genesis {
 namespace tree {

@@ -31,8 +31,8 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/utils/containers/matrix.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/utils/containers/matrix.hpp>
 
 #include <vector>
 #include <unordered_set>

@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/range_minimum_query.hpp"
+#include <genesis/utils/math/range_minimum_query.hpp>
 
 #include <cassert>
 #include <limits>

@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/gzip_input_source.hpp"
+#include <genesis/utils/io/gzip_input_source.hpp>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/io/gzip.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/io/gzip.hpp>
 
 #include <cassert>
 #include <cstdio>

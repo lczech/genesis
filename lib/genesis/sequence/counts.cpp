@@ -28,12 +28,12 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/counts.hpp"
+#include <genesis/sequence/counts.hpp>
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

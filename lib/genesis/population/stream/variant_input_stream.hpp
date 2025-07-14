@@ -31,9 +31,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/utils/containers/generic_input_stream.hpp>
 
 #include <string>
 #include <vector>

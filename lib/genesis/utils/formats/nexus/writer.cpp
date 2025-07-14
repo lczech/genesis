@@ -28,11 +28,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/nexus/writer.hpp"
+#include <genesis/utils/formats/nexus/writer.hpp>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/formats/nexus/document.hpp"
-#include "genesis/utils/io/output_stream.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/formats/nexus/document.hpp>
+#include <genesis/utils/io/output_stream.hpp>
 
 #include <stdexcept>
 #include <fstream>

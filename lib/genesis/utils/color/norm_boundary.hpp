@@ -31,11 +31,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/map.hpp"
-#include "genesis/utils/color/normalization.hpp"
-#include "genesis/utils/tools/tickmarks.hpp"
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/map.hpp>
+#include <genesis/utils/color/normalization.hpp>
+#include <genesis/utils/tools/tickmarks.hpp>
 
 #include <algorithm>
 #include <cassert>

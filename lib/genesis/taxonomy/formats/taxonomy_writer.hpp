@@ -31,8 +31,8 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/formats/taxopath_generator.hpp"
-#include "genesis/utils/io/output_target.hpp"
+#include <genesis/taxonomy/formats/taxopath_generator.hpp>
+#include <genesis/utils/io/output_target.hpp>
 
 #include <iosfwd>
 #include <string>

@@ -28,12 +28,12 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/histogram/operators.hpp"
+#include <genesis/utils/math/histogram/operators.hpp>
 
 #include <ostream>
 
-#include "genesis/utils/math/histogram.hpp"
-#include "genesis/utils/math/histogram/accumulator.hpp"
+#include <genesis/utils/math/histogram.hpp>
+#include <genesis/utils/math/histogram/accumulator.hpp>
 
 namespace genesis {
 namespace utils {

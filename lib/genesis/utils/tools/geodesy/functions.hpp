@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/geodesy/geo_coordinate.hpp"
+#include <genesis/utils/tools/geodesy/geo_coordinate.hpp>
 
 #include <iosfwd>
 #include <string>

@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/color/functions.hpp"
+#include <genesis/utils/color/functions.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -39,9 +39,9 @@
 #include <stdexcept>
 #include <string>
 
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/names.hpp"
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/names.hpp>
 
 namespace genesis {
 namespace utils {

@@ -31,8 +31,8 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/sample.hpp"
-#include "genesis/utils/core/options.hpp"
+#include <genesis/placement/sample.hpp>
+#include <genesis/utils/core/options.hpp>
 
 #include <random>
 #include <stdexcept>

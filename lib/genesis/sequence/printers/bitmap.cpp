@@ -28,15 +28,15 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/printers/bitmap.hpp"
+#include <genesis/sequence/printers/bitmap.hpp>
 
-#include "genesis/sequence/functions/functions.hpp"
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/formats/bmp/writer.hpp"
-#include "genesis/utils/color/color.hpp"
+#include <genesis/sequence/functions/functions.hpp>
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/formats/bmp/writer.hpp>
+#include <genesis/utils/color/color.hpp>
 
 #include <algorithm>
 #include <cassert>

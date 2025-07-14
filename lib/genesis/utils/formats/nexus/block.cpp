@@ -29,7 +29,7 @@
  */
 
 
-#include "genesis/utils/formats/nexus/block.hpp"
+#include <genesis/utils/formats/nexus/block.hpp>
 
 // #include <ostream>
 

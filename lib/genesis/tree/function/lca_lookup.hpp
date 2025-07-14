@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/utils/math/range_minimum_query.hpp"
+#include <genesis/utils/math/range_minimum_query.hpp>
 
 #include <vector>
 

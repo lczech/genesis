@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/xml/helper.hpp"
+#include <genesis/utils/formats/xml/helper.hpp>
 
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/text/string.hpp>
 
 namespace genesis {
 namespace utils {

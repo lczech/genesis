@@ -28,16 +28,16 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/functions.hpp"
+#include <genesis/tree/common_tree/functions.hpp>
 
-#include "genesis/tree/common_tree/distances.hpp"
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/function/tree_set.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/tree/common_tree/distances.hpp>
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/tree_set.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <stdexcept>

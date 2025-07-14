@@ -31,18 +31,18 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/frequency_table_input_stream.hpp"
-#include "genesis/population/format/sam_variant_input_stream.hpp"
-#include "genesis/population/format/simple_pileup_input_stream.hpp"
-#include "genesis/population/format/sync_input_stream.hpp"
-#include "genesis/population/format/sync_reader.hpp"
-#include "genesis/population/format/vcf_input_stream.hpp"
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/sequence/reference_genome.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
+#include <genesis/population/format/frequency_table_input_stream.hpp>
+#include <genesis/population/format/sam_variant_input_stream.hpp>
+#include <genesis/population/format/simple_pileup_input_stream.hpp>
+#include <genesis/population/format/sync_input_stream.hpp>
+#include <genesis/population/format/sync_reader.hpp>
+#include <genesis/population/format/vcf_input_stream.hpp>
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/stream/variant_input_stream.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/sequence/reference_genome.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/utils/containers/generic_input_stream.hpp>
 
 #include <cassert>
 #include <functional>

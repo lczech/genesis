@@ -31,12 +31,12 @@
  * @ingroup population
  */
 
-#include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/function/genome_locus.hpp"
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/sequence/functions/dict.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
+#include <genesis/population/stream/variant_input_stream.hpp>
+#include <genesis/population/function/genome_locus.hpp>
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/sequence/functions/dict.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
 
 #include <functional>
 #include <memory>

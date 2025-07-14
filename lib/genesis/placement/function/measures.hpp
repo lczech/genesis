@@ -31,7 +31,7 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/placement_tree.hpp"
+#include <genesis/placement/placement_tree.hpp>
 
 #include <cstddef>
 #include <utility>

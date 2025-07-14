@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/interval_tree/interval.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/containers/interval_tree/interval.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <algorithm>
 

@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/json/reader.hpp"
+#include <genesis/utils/formats/json/reader.hpp>
 
 #include <cassert>
 #include <cctype>
@@ -36,14 +36,14 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/formats/json/document.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/formats/json/document.hpp>
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/string.hpp>
 
 namespace genesis {
 namespace utils {

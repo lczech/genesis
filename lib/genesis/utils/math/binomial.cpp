@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/binomial.hpp"
+#include <genesis/utils/math/binomial.hpp>
 
-#include "genesis/utils/math/common.hpp"
+#include <genesis/utils/math/common.hpp>
 
 #include <array>
 #include <cassert>

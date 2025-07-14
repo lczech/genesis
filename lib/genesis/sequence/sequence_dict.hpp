@@ -31,10 +31,10 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/sequence.hpp"
+#include <genesis/sequence/sequence.hpp>
 
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

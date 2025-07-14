@@ -30,7 +30,7 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_input_stream.hpp"
+#include <genesis/population/format/vcf_input_stream.hpp>
 
 extern "C" {
     #include <htslib/hts.h>

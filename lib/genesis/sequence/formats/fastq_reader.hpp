@@ -31,10 +31,10 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/quality.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/tools/char_lookup.hpp"
-#include "genesis/utils/io/input_source.hpp"
+#include <genesis/sequence/functions/quality.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/tools/char_lookup.hpp>
+#include <genesis/utils/io/input_source.hpp>
 
 #include <functional>
 #include <iosfwd>

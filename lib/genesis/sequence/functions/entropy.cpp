@@ -28,11 +28,11 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/entropy.hpp"
+#include <genesis/sequence/functions/entropy.hpp>
 
-#include "genesis/sequence/counts.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
+#include <genesis/sequence/counts.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
 
 #include <algorithm>
 #include <cassert>

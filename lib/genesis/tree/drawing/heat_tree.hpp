@@ -31,13 +31,13 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/formats/svg/svg.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/map.hpp"
-#include "genesis/utils/color/normalization.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/drawing/layout_base.hpp>
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/formats/svg/svg.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/map.hpp>
+#include <genesis/utils/color/normalization.hpp>
 
 #include <string>
 #include <vector>

@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/window/base_window_stream.hpp"
-#include "genesis/population/window/window_view.hpp"
+#include <genesis/population/window/base_window_stream.hpp>
+#include <genesis/population/window/window_view.hpp>
 
 #include <cassert>
 #include <functional>

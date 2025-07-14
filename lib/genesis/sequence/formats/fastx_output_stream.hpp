@@ -31,11 +31,11 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/formats/fasta_writer.hpp"
-#include "genesis/sequence/formats/fastq_writer.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/output_target.hpp"
+#include <genesis/sequence/formats/fasta_writer.hpp>
+#include <genesis/sequence/formats/fastq_writer.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/output_target.hpp>
 
 #include <iterator>
 #include <iostream>

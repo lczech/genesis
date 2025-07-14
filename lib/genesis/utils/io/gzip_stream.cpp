@@ -62,7 +62,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/gzip_stream.hpp"
+#include <genesis/utils/io/gzip_stream.hpp>
 
 #include <cassert>
 #include <fstream>

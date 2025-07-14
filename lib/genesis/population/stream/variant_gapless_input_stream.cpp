@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/stream/variant_gapless_input_stream.hpp"
+#include <genesis/population/stream/variant_gapless_input_stream.hpp>
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/function/functions.hpp>
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/algorithm.hpp"
+#include <genesis/utils/core/algorithm.hpp>
 
 #include <algorithm>
 #include <cassert>

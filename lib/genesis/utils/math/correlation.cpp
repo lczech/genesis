@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/correlation.hpp"
+#include <genesis/utils/math/correlation.hpp>
 
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <algorithm>
 #include <cmath>

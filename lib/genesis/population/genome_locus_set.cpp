@@ -28,10 +28,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus_set.hpp"
+#include <genesis/population/genome_locus_set.hpp>
 
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
+#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
 
 #include <cassert>
 #include <stdexcept>

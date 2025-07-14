@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/iterator/levelorder.hpp"
-#include "genesis/tree/iterator/node_links.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/iterator/levelorder.hpp>
+#include <genesis/tree/iterator/node_links.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
 
 #include <cassert>
 #include <stdexcept>

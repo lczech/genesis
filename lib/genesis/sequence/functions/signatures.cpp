@@ -28,15 +28,15 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/signatures.hpp"
+#include <genesis/sequence/functions/signatures.hpp>
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/functions/signature_specifications.hpp"
-#include "genesis/sequence/functions/stats.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/tools/char_lookup.hpp"
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/sequence/functions/signature_specifications.hpp>
+#include <genesis/sequence/functions/stats.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/tools/char_lookup.hpp>
 
 #include <algorithm>
 #include <cassert>

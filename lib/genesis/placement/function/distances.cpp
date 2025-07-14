@@ -28,12 +28,12 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/distances.hpp"
+#include <genesis/placement/function/distances.hpp>
 
-#include "genesis/placement/pquery.hpp"
-#include "genesis/placement/pquery/plain.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/placement/pquery.hpp>
+#include <genesis/placement/pquery/plain.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <algorithm>
 #include <cassert>

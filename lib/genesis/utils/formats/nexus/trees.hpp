@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/nexus/block.hpp"
+#include <genesis/utils/formats/nexus/block.hpp>
 
-#include "genesis/utils/core/algorithm.hpp"
+#include <genesis/utils/core/algorithm.hpp>
 
 #include <algorithm>
 #include <ostream>

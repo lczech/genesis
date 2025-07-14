@@ -28,10 +28,10 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/signature_specifications.hpp"
+#include <genesis/sequence/functions/signature_specifications.hpp>
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/utils/math/common.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "moodycamel/blockingconcurrentqueue.h"
+#include <genesis/utils/core/std.hpp>
+#include <moodycamel/blockingconcurrentqueue.h>
 
 #include <atomic>
 #include <cassert>

@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/utils/io/output_target.hpp"
+#include <genesis/utils/io/output_target.hpp>
 
 #include <functional>
 #include <string>

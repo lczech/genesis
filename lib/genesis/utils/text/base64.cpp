@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/base64.hpp"
+#include <genesis/utils/text/base64.hpp>
 
-#include "genesis/utils/text/char.hpp"
+#include <genesis/utils/text/char.hpp>
 
 #include <cassert>
 #include <stdexcept>

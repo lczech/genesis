@@ -31,9 +31,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/utils/formats/svg/svg.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/utils/formats/svg/svg.hpp>
 
 #include <string>
 #include <vector>

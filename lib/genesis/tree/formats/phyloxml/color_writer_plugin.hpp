@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/formats/color_writer_plugin.hpp"
-#include "genesis/tree/formats/phyloxml/writer.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/utils/formats/xml/document.hpp"
+#include <genesis/tree/formats/color_writer_plugin.hpp>
+#include <genesis/tree/formats/phyloxml/writer.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/utils/formats/xml/document.hpp>
 
 #include <cassert>
 #include <stdexcept>

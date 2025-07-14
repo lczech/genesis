@@ -28,18 +28,18 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/entropy.hpp"
+#include <genesis/taxonomy/functions/entropy.hpp>
 
-#include "genesis/taxonomy/formats/taxopath_generator.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/iterator/levelorder.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
+#include <genesis/taxonomy/formats/taxopath_generator.hpp>
+#include <genesis/taxonomy/functions/taxonomy.hpp>
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/iterator/levelorder.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/text/style.hpp"
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/text/style.hpp>
 
 #include <cassert>
 #include <algorithm>

@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/random.hpp"
+#include <genesis/utils/math/random.hpp>
 
-#include "genesis/utils/core/options.hpp"
+#include <genesis/utils/core/options.hpp>
 
 #include <cassert>
 #include <random>

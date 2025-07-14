@@ -31,9 +31,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
+#include <genesis/utils/containers/range.hpp>
 
 #include <iterator>
 #include <type_traits>

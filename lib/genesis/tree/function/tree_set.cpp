@@ -28,12 +28,12 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/function/tree_set.hpp"
+#include <genesis/tree/function/tree_set.hpp>
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree_set.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree_set.hpp>
 
-#include "genesis/tree/function/operators.hpp"
+#include <genesis/tree/function/operators.hpp>
 
 #include <stdexcept>
 #include <vector>

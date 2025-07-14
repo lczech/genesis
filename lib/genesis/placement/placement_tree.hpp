@@ -33,8 +33,8 @@
 
 #include <string>
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/tree.hpp>
 
 namespace genesis {
 namespace placement {

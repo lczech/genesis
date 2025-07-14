@@ -38,10 +38,10 @@
 #include <string>
 #include <vector>
 
-#include "genesis/population/format/vcf_input_stream.hpp"
-#include "genesis/population/format/vcf_record.hpp"
-#include "genesis/population/window/sliding_window_generator.hpp"
-#include "genesis/population/window/window.hpp"
+#include <genesis/population/format/vcf_input_stream.hpp>
+#include <genesis/population/format/vcf_record.hpp>
+#include <genesis/population/window/sliding_window_generator.hpp>
+#include <genesis/population/window/window.hpp>
 
 namespace genesis {
 namespace population {

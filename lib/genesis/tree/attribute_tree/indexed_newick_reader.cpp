@@ -28,7 +28,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/attribute_tree/indexed_newick_reader.hpp"
+#include <genesis/tree/attribute_tree/indexed_newick_reader.hpp>
 
 #include <cassert>
 #include <stdexcept>

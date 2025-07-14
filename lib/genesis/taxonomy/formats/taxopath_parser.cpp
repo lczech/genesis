@@ -28,11 +28,11 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/formats/taxopath_parser.hpp"
+#include <genesis/taxonomy/formats/taxopath_parser.hpp>
 
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxopath.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxopath.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

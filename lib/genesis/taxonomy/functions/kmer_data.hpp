@@ -31,7 +31,7 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/taxon_data.hpp"
+#include <genesis/taxonomy/taxon_data.hpp>
 
 #include <cstddef>
 #include <limits>

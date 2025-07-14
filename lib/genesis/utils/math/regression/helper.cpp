@@ -53,7 +53,7 @@
     http://www-gene.cimr.cam.ac.uk/clayton/software/
 */
 
-#include "genesis/utils/math/regression/helper.hpp"
+#include <genesis/utils/math/regression/helper.hpp>
 
 #include <cassert>
 #include <cmath>

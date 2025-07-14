@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/core/std.hpp>
 
 #include <cassert>
 #include <stdexcept>

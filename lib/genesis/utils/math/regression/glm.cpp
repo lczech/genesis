@@ -54,12 +54,12 @@
     http://www-gene.cimr.cam.ac.uk/clayton/software/
 */
 
-#include "genesis/utils/math/regression/glm.hpp"
+#include <genesis/utils/math/regression/glm.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/regression/family.hpp"
-#include "genesis/utils/math/regression/helper.hpp"
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/math/regression/family.hpp>
+#include <genesis/utils/math/regression/helper.hpp>
 
 #include <algorithm>
 #include <cassert>

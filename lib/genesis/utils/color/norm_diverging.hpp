@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/functions.hpp"
-#include "genesis/utils/color/norm_linear.hpp"
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/functions.hpp>
+#include <genesis/utils/color/norm_linear.hpp>
 
 #include <cmath>
 #include <limits>

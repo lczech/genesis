@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/sync_reader.hpp"
-#include "genesis/utils/io/input_source.hpp"
+#include <genesis/population/format/sync_reader.hpp>
+#include <genesis/utils/io/input_source.hpp>
 
 #include <string>
 #include <vector>

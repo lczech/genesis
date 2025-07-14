@@ -31,13 +31,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/genome_region_list.hpp"
-#include "genesis/population/genome_region.hpp"
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/genome_region_list.hpp>
+#include <genesis/population/genome_region.hpp>
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_record.hpp"
+#include <genesis/population/format/vcf_record.hpp>
 
 #endif // htslib guard
 

@@ -37,10 +37,10 @@
 #include <limits>
 #include <stdexcept>
 
-#include "genesis/population/plotting/af_spectrum.hpp"
-#include "genesis/population/format/vcf_input_stream.hpp"
+#include <genesis/population/plotting/af_spectrum.hpp>
+#include <genesis/population/format/vcf_input_stream.hpp>
 
-#include "genesis/utils/formats/bmp/writer.hpp"
+#include <genesis/utils/formats/bmp/writer.hpp>
 
 namespace genesis {
 namespace population {

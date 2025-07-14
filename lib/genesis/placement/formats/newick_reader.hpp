@@ -35,13 +35,13 @@
 #include <stdexcept>
 #include <set>
 
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/placement/function/helper.hpp"
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/placement/function/helper.hpp>
 
-#include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include <genesis/tree/common_tree/newick_reader.hpp>
+#include <genesis/tree/formats/newick/reader.hpp>
 
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/utils/core/logging.hpp>
 
 namespace genesis {
 namespace placement {

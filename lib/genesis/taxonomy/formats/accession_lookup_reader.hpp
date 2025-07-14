@@ -31,19 +31,19 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/accession_lookup.hpp"
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/threading/multi_future.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
+#include <genesis/taxonomy/accession_lookup.hpp>
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/text/convert.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/threading/multi_future.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
 
 #include <atomic>
 #include <cassert>

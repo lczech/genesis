@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "moodycamel/concurrentqueue.h"
-#include "moodycamel/lightweightsemaphore.h"
+#include <moodycamel/concurrentqueue.h>
+#include <moodycamel/lightweightsemaphore.h>
 
 #include <algorithm>
 #include <cassert>

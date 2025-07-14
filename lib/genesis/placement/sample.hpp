@@ -37,10 +37,10 @@
 #include <utility>
 #include <vector>
 
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/placement/pquery.hpp"
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/placement/pquery.hpp>
 
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/utils/containers/range.hpp>
 
 namespace genesis {
 namespace placement {

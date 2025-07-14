@@ -31,7 +31,7 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/sample.hpp>
 
 namespace genesis {
 namespace placement {

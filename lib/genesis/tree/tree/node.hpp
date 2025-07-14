@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree/node_data.hpp"
-#include "genesis/tree/tree/link.hpp"
+#include <genesis/tree/tree/node_data.hpp>
+#include <genesis/tree/tree/link.hpp>
 
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/core/std.hpp>
 
 #include <memory>
 #include <string>

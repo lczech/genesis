@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/genome_region_reader.hpp"
+#include <genesis/population/format/genome_region_reader.hpp>
 
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/convert.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <limits>

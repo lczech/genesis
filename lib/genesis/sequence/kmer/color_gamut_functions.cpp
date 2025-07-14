@@ -28,23 +28,23 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/color_gamut_functions.hpp"
-#include "genesis/taxonomy/functions/kmer_data.hpp"
-#include "genesis/taxonomy/functions/kmer_grouping.hpp"
-#include "genesis/taxonomy/functions/kmer.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/io/deserializer.hpp"
-#include "genesis/utils/io/serializer.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/sequence/kmer/color_gamut_functions.hpp>
+#include <genesis/taxonomy/functions/kmer_data.hpp>
+#include <genesis/taxonomy/functions/kmer_grouping.hpp>
+#include <genesis/taxonomy/functions/kmer.hpp>
+#include <genesis/taxonomy/functions/taxonomy.hpp>
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/io/deserializer.hpp>
+#include <genesis/utils/io/serializer.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/text/string.hpp>
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17

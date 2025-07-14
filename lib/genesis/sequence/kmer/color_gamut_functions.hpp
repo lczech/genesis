@@ -31,16 +31,16 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/color_gamut.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
+#include <genesis/sequence/kmer/color_gamut.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/output_target.hpp>
+#include <genesis/utils/io/output_target.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17

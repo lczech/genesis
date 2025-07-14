@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/base_input_source.hpp"
+#include <genesis/utils/io/base_input_source.hpp>
 
 #include <memory>
 #include <string>

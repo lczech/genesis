@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/math/hac.hpp"
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/math/hac.hpp>
 
 #include <algorithm>
 #include <cassert>

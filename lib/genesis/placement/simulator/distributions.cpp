@@ -28,12 +28,12 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/simulator/distributions.hpp"
+#include <genesis/placement/simulator/distributions.hpp>
 
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/tree/function/distances.hpp>
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/core/options.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <algorithm>
 #include <cassert>

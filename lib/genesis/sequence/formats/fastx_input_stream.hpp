@@ -31,12 +31,12 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/formats/fasta_reader.hpp"
-#include "genesis/sequence/formats/fastq_reader.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include <genesis/sequence/formats/fasta_reader.hpp>
+#include <genesis/sequence/formats/fastq_reader.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
 
 #include <cassert>
 #include <cstddef>

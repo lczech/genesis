@@ -28,15 +28,15 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/axis.hpp"
+#include <genesis/utils/formats/svg/axis.hpp>
 
-#include "genesis/utils/formats/svg/attributes.hpp"
-#include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/formats/svg/object.hpp"
-#include "genesis/utils/formats/svg/shapes.hpp"
-#include "genesis/utils/formats/svg/text.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/tickmarks.hpp"
+#include <genesis/utils/formats/svg/attributes.hpp>
+#include <genesis/utils/formats/svg/helper.hpp>
+#include <genesis/utils/formats/svg/object.hpp>
+#include <genesis/utils/formats/svg/shapes.hpp>
+#include <genesis/utils/formats/svg/text.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/tools/tickmarks.hpp>
 
 #include <cassert>
 #include <cmath>

@@ -28,13 +28,13 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/stats.hpp"
+#include <genesis/sequence/functions/stats.hpp>
 
-#include "genesis/sequence/counts.hpp"
-#include "genesis/sequence/functions/functions.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/tools/char_lookup.hpp"
+#include <genesis/sequence/counts.hpp>
+#include <genesis/sequence/functions/functions.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/tools/char_lookup.hpp>
 
 #include <array>
 #include <cassert>

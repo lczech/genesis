@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/formats/color_writer_plugin.hpp"
-#include "genesis/tree/formats/newick/element.hpp"
-#include "genesis/tree/formats/newick/writer.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/formats/color_writer_plugin.hpp>
+#include <genesis/tree/formats/newick/element.hpp>
+#include <genesis/tree/formats/newick/writer.hpp>
 
 #include <cassert>
 #include <stdexcept>

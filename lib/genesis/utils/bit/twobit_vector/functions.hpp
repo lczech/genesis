@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/bit/twobit_vector.hpp"
+#include <genesis/utils/bit/twobit_vector.hpp>
 
 #include <string>
 

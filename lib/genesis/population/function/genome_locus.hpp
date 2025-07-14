@@ -31,10 +31,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/math/common.hpp>
 
 #include <cassert>
 #include <cstring>

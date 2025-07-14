@@ -31,7 +31,7 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/entropy_data.hpp"
+#include <genesis/taxonomy/functions/entropy_data.hpp>
 
 #include <string>
 

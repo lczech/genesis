@@ -28,21 +28,21 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/tree.hpp"
+#include <genesis/taxonomy/functions/tree.hpp>
 
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxopath.hpp"
-#include "genesis/taxonomy/formats/taxopath_generator.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/functions/taxopath.hpp"
-#include "genesis/taxonomy/iterator/preorder.hpp"
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxopath.hpp>
+#include <genesis/taxonomy/formats/taxopath_generator.hpp>
+#include <genesis/taxonomy/functions/taxonomy.hpp>
+#include <genesis/taxonomy/functions/taxopath.hpp>
+#include <genesis/taxonomy/iterator/preorder.hpp>
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/formats/newick/broker.hpp"
-#include "genesis/tree/formats/newick/element.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
-#include "genesis/tree/common_tree/newick_reader.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/formats/newick/broker.hpp>
+#include <genesis/tree/formats/newick/element.hpp>
+#include <genesis/tree/formats/newick/reader.hpp>
+#include <genesis/tree/common_tree/newick_reader.hpp>
 
 #include <cassert>
 #include <stdexcept>

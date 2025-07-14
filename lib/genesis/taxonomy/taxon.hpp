@@ -31,8 +31,8 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxon_data.hpp"
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxon_data.hpp>
 
 #include <algorithm>
 #include <cctype>

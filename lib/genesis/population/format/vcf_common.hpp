@@ -37,9 +37,9 @@
 #include <string>
 #include <vector>
 
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/genome_region.hpp"
-#include "genesis/population/genome_region_list.hpp"
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/genome_region.hpp>
+#include <genesis/population/genome_region_list.hpp>
 
 extern "C" {
     // #include <htslib/vcf.h>

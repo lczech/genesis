@@ -28,13 +28,13 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/sample_set.hpp"
+#include <genesis/placement/function/sample_set.hpp>
 
-#include "genesis/placement/function/functions.hpp"
-#include "genesis/placement/function/operators.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
-#include "genesis/tree/function/tree_set.hpp"
-#include "genesis/tree/tree_set.hpp"
+#include <genesis/placement/function/functions.hpp>
+#include <genesis/placement/function/operators.hpp>
+#include <genesis/tree/common_tree/functions.hpp>
+#include <genesis/tree/function/tree_set.hpp>
+#include <genesis/tree/tree_set.hpp>
 
 #include <ostream>
 

@@ -36,9 +36,9 @@
 #include <string>
 #include <vector>
 
-#include "genesis/population/window/base_window.hpp"
-#include "genesis/population/window/window_view.hpp"
-#include "genesis/population/window/window.hpp"
+#include <genesis/population/window/base_window.hpp>
+#include <genesis/population/window/window_view.hpp>
+#include <genesis/population/window/window.hpp>
 
 namespace genesis {
 namespace population {

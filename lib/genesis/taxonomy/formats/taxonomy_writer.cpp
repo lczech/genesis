@@ -28,12 +28,12 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/formats/taxonomy_writer.hpp"
+#include <genesis/taxonomy/formats/taxonomy_writer.hpp>
 
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxopath.hpp"
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxopath.hpp>
 
 #include <iostream>
 

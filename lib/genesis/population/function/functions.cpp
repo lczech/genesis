@@ -28,10 +28,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/functions.hpp"
+#include <genesis/population/function/functions.hpp>
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <array>
 #include <cassert>

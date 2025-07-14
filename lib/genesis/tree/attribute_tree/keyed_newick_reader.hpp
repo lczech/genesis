@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/attribute_tree/tree.hpp"
-#include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/formats/newick/element.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include <genesis/tree/attribute_tree/tree.hpp>
+#include <genesis/tree/common_tree/newick_reader.hpp>
+#include <genesis/tree/formats/newick/element.hpp>
+#include <genesis/tree/formats/newick/reader.hpp>
 
 #include <functional>
 #include <map>

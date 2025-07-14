@@ -28,7 +28,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/phylo_factor_colors.hpp"
+#include <genesis/tree/mass_tree/phylo_factor_colors.hpp>
 
 #include <cassert>
 #include <stdexcept>

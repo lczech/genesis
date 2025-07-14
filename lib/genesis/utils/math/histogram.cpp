@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/histogram.hpp"
+#include <genesis/utils/math/histogram.hpp>
 
 #include <algorithm>
 #include <cassert>

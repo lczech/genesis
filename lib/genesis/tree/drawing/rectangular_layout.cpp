@@ -28,10 +28,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/drawing/rectangular_layout.hpp"
+#include <genesis/tree/drawing/rectangular_layout.hpp>
 
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/operators.hpp>
 
 #include <algorithm>
 #include <cassert>

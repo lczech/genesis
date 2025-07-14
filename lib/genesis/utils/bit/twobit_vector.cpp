@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/bit/twobit_vector.hpp"
+#include <genesis/utils/bit/twobit_vector.hpp>
 
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/utils/core/logging.hpp>
 
 #include <cassert>
 #include <stdexcept>

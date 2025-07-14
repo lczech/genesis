@@ -31,7 +31,7 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/tree.hpp>
 
 #include <string>
 #include <unordered_map>

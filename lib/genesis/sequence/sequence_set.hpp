@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/sequence.hpp"
+#include <genesis/sequence/sequence.hpp>
 
 #include <stdexcept>
 #include <vector>

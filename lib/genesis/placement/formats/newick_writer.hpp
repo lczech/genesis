@@ -36,11 +36,11 @@
 #include <string>
 #include <vector>
 
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/placement/sample.hpp"
-#include "genesis/tree/common_tree/newick_writer.hpp"
-#include "genesis/tree/formats/newick/writer.hpp"
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/placement/sample.hpp>
+#include <genesis/tree/common_tree/newick_writer.hpp>
+#include <genesis/tree/formats/newick/writer.hpp>
 
 namespace genesis {
 namespace placement {

@@ -28,10 +28,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/fst_cathedral.hpp"
+#include <genesis/population/function/fst_cathedral.hpp>
 
-#include "genesis/population/function/window_average.hpp"
-#include "genesis/utils/formats/json/document.hpp"
+#include <genesis/population/function/window_average.hpp>
+#include <genesis/utils/formats/json/document.hpp>
 
 #include <cassert>
 #include <cmath>

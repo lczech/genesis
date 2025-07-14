@@ -28,14 +28,14 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/histogram/operations.hpp"
+#include <genesis/utils/math/histogram/operations.hpp>
 
 #include <cassert>
 #include <cmath>
 #include <vector>
 
-#include "genesis/utils/math/histogram.hpp"
-#include "genesis/utils/math/histogram/stats.hpp"
+#include <genesis/utils/math/histogram.hpp>
+#include <genesis/utils/math/histogram/stats.hpp>
 
 namespace genesis {
 namespace utils {

@@ -28,19 +28,19 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/frequency_table_input_stream.hpp"
+#include <genesis/population/format/frequency_table_input_stream.hpp>
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/function/functions.hpp>
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/convert.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -31,10 +31,10 @@
  * @ingroup population
  */
 
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/heat_map.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/io/base_output_target.hpp"
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/heat_map.hpp>
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/io/base_output_target.hpp>
 
 #include <cassert>
 #include <cmath>

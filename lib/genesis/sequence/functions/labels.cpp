@@ -28,15 +28,15 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/labels.hpp"
+#include <genesis/sequence/functions/labels.hpp>
 
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
 
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/hash/md5.hpp"
-#include "genesis/utils/tools/hash/sha1.hpp"
-#include "genesis/utils/tools/hash/sha256.hpp"
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/tools/hash/md5.hpp>
+#include <genesis/utils/tools/hash/sha1.hpp>
+#include <genesis/utils/tools/hash/sha256.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -28,14 +28,14 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/quality.hpp"
+#include <genesis/sequence/functions/quality.hpp>
 
-#include "genesis/sequence/formats/fastq_reader.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/sequence/formats/fastq_reader.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <array>

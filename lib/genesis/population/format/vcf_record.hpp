@@ -33,10 +33,10 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_common.hpp"
-#include "genesis/population/format/vcf_format_iterator.hpp"
-#include "genesis/population/format/vcf_header.hpp"
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/population/format/vcf_common.hpp>
+#include <genesis/population/format/vcf_format_iterator.hpp>
+#include <genesis/population/format/vcf_header.hpp>
+#include <genesis/utils/containers/range.hpp>
 
 #include <cstdint>
 #include <string>

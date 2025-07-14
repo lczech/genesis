@@ -31,16 +31,16 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/stream/variant_gapless_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
-#include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/stream/variant_parallel_input_stream.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/sequence/reference_genome.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/stream/variant_gapless_input_stream.hpp>
+#include <genesis/population/stream/variant_input_stream_sources.hpp>
+#include <genesis/population/stream/variant_input_stream.hpp>
+#include <genesis/population/stream/variant_parallel_input_stream.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/sequence/reference_genome.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/utils/containers/generic_input_stream.hpp>
 
 #include <cassert>
 #include <functional>

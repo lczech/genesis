@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/filter/sample_counts_filter_numerical.hpp"
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/variant.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/filter/sample_counts_filter_numerical.hpp>
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/variant.hpp>
 
 #include <functional>
 #include <iosfwd>

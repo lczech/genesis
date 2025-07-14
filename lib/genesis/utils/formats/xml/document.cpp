@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/xml/document.hpp"
+#include <genesis/utils/formats/xml/document.hpp>
 
 #include <stdexcept>
 

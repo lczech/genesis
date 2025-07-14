@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/histogram/stats.hpp"
+#include <genesis/utils/math/histogram/stats.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -36,7 +36,7 @@
 #include <iterator>
 #include <numeric>
 
-#include "genesis/utils/math/histogram.hpp"
+#include <genesis/utils/math/histogram.hpp>
 
 namespace genesis {
 namespace utils {

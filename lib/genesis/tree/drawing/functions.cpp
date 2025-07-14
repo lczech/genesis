@@ -28,31 +28,31 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/drawing/functions.hpp"
+#include <genesis/tree/drawing/functions.hpp>
 
-#include "genesis/tree/common_tree/functions.hpp"
-#include "genesis/tree/common_tree/newick_writer.hpp"
-#include "genesis/tree/formats/newick/writer.hpp"
-#include "genesis/tree/formats/newick/color_writer_plugin.hpp"
-#include "genesis/tree/formats/phyloxml/writer.hpp"
-#include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
+#include <genesis/tree/common_tree/functions.hpp>
+#include <genesis/tree/common_tree/newick_writer.hpp>
+#include <genesis/tree/formats/newick/writer.hpp>
+#include <genesis/tree/formats/newick/color_writer_plugin.hpp>
+#include <genesis/tree/formats/phyloxml/writer.hpp>
+#include <genesis/tree/formats/phyloxml/color_writer_plugin.hpp>
 
-#include "genesis/tree/common_tree/newick_writer.hpp"
-#include "genesis/tree/common_tree/phyloxml_writer.hpp"
-#include "genesis/tree/drawing/circular_layout.hpp"
-#include "genesis/tree/drawing/layout_tree.hpp"
-#include "genesis/tree/drawing/rectangular_layout.hpp"
+#include <genesis/tree/common_tree/newick_writer.hpp>
+#include <genesis/tree/common_tree/phyloxml_writer.hpp>
+#include <genesis/tree/drawing/circular_layout.hpp>
+#include <genesis/tree/drawing/layout_tree.hpp>
+#include <genesis/tree/drawing/rectangular_layout.hpp>
 
-#include "genesis/utils/formats/nexus/block.hpp"
-#include "genesis/utils/formats/nexus/document.hpp"
-#include "genesis/utils/formats/nexus/taxa.hpp"
-#include "genesis/utils/formats/nexus/trees.hpp"
-#include "genesis/utils/formats/nexus/writer.hpp"
+#include <genesis/utils/formats/nexus/block.hpp>
+#include <genesis/utils/formats/nexus/document.hpp>
+#include <genesis/utils/formats/nexus/taxa.hpp>
+#include <genesis/utils/formats/nexus/trees.hpp>
+#include <genesis/utils/formats/nexus/writer.hpp>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/output_stream.hpp"
-#include "genesis/utils/color/norm_linear.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/output_stream.hpp>
+#include <genesis/utils/color/norm_linear.hpp>
 
 #include <fstream>
 #include <memory>

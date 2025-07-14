@@ -24,8 +24,8 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
+#include <genesis/utils/core/options.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
 
 #include <cassert>
 #include <functional>

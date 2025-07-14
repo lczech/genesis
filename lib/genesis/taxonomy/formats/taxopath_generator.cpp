@@ -28,12 +28,12 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/formats/taxopath_generator.hpp"
+#include <genesis/taxonomy/formats/taxopath_generator.hpp>
 
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxopath.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxopath.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

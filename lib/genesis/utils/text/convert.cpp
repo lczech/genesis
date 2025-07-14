@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/convert.hpp"
+#include <genesis/utils/text/convert.hpp>
 
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cctype>

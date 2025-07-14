@@ -36,14 +36,14 @@
     mechanism to exceptions. For further details, see the Acknowledgements section of the documentation.
 */
 
-#include "genesis/utils/math/mds.hpp"
+#include <genesis/utils/math/mds.hpp>
 
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/distance.hpp"
-#include "genesis/utils/math/matrix.hpp"
+#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/core/options.hpp>
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/math/distance.hpp>
+#include <genesis/utils/math/matrix.hpp>
 
 #include <algorithm>
 #include <cassert>

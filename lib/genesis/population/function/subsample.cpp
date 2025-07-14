@@ -28,12 +28,12 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/subsample.hpp"
+#include <genesis/population/function/subsample.hpp>
 
-#include "genesis/population/function/functions.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/math/distribution.hpp"
+#include <genesis/population/function/functions.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/math/distribution.hpp>
 
 #include <cassert>
 #include <cmath>

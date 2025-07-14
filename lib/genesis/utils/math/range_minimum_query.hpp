@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/matrix.hpp"
+#include <genesis/utils/containers/matrix.hpp>
 
 #include <cmath>
 #include <cstddef>

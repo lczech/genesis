@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/regression/link.hpp"
+#include <genesis/utils/math/regression/link.hpp>
 
 #include <cassert>
 #include <cmath>

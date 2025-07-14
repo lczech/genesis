@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/color/color.hpp"
+#include <genesis/utils/io/output_target.hpp>
+#include <genesis/utils/color/color.hpp>
 
 #include <iosfwd>
 #include <map>

@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <cstddef>
 #include <cstdint>

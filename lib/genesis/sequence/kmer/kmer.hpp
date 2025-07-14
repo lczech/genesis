@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/alphabet.hpp"
-#include "genesis/sequence/kmer/bitfield.hpp"
+#include <genesis/sequence/kmer/alphabet.hpp>
+#include <genesis/sequence/kmer/bitfield.hpp>
 
 #include <array>
 #include <cassert>

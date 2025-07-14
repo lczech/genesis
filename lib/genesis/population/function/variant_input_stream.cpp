@@ -28,9 +28,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/variant_input_stream.hpp"
+#include <genesis/population/function/variant_input_stream.hpp>
 
-#include "genesis/population/function/subsample.hpp"
+#include <genesis/population/function/subsample.hpp>
 
 #include <cassert>
 #include <stdexcept>

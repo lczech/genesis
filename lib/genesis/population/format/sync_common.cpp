@@ -28,7 +28,7 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/sync_common.hpp"
+#include <genesis/population/format/sync_common.hpp>
 
 #include <iostream>
 #include <stdexcept>

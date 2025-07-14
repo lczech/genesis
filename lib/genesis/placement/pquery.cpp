@@ -28,10 +28,10 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/pquery.hpp"
+#include <genesis/placement/pquery.hpp>
 
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/utils/core/std.hpp>
 
 namespace genesis {
 namespace placement {

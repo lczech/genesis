@@ -28,16 +28,16 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/bipartition/rf.hpp"
+#include <genesis/tree/bipartition/rf.hpp>
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <cstdint>
 #include <algorithm>

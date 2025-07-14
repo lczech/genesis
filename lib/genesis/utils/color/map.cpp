@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/color/map.hpp"
+#include <genesis/utils/color/map.hpp>
 
-#include "genesis/utils/color/functions.hpp"
-#include "genesis/utils/color/normalization.hpp"
+#include <genesis/utils/color/functions.hpp>
+#include <genesis/utils/color/normalization.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -31,10 +31,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/base_output_target.hpp"
-#include "genesis/utils/io/gzip_block_ostream.hpp"
-#include "genesis/utils/io/gzip_stream.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/base_output_target.hpp>
+#include <genesis/utils/io/gzip_block_ostream.hpp>
+#include <genesis/utils/io/gzip_stream.hpp>
 
 #include <cassert>
 #include <memory>

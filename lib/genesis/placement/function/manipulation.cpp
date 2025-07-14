@@ -28,16 +28,16 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/manipulation.hpp"
+#include <genesis/placement/function/manipulation.hpp>
 
-#include "genesis/tree/function/manipulation.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/function/functions.hpp"
+#include <genesis/tree/function/manipulation.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/functions.hpp>
 
-#include "genesis/placement/sample.hpp"
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/placement/pquery/placement.hpp"
-#include "genesis/placement/function/helper.hpp"
+#include <genesis/placement/sample.hpp>
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/placement/pquery/placement.hpp>
+#include <genesis/placement/function/helper.hpp>
 
 #include <algorithm>
 #include <cassert>

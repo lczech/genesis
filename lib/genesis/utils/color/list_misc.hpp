@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/color/color.hpp"
+#include <genesis/utils/color/color.hpp>
 
 #include <string>
 #include <vector>

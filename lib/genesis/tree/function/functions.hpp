@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/utils/containers/matrix.hpp"
+#include <genesis/utils/containers/matrix.hpp>
 
 #include <cstddef> // size_t
 #include <vector>

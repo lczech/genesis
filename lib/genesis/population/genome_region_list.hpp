@@ -38,9 +38,9 @@
 #include <string>
 #include <vector>
 
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/genome_region.hpp"
-#include "genesis/utils/containers/interval_tree.hpp"
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/genome_region.hpp>
+#include <genesis/utils/containers/interval_tree.hpp>
 
 namespace genesis {
 namespace population {

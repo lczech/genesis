@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/fs.hpp"
+#include <genesis/utils/core/fs.hpp>
 
 #include <cassert>
 #include <cctype>
@@ -55,14 +55,14 @@
    #include <sys/stat.h>
 #endif
 
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/io/gzip.hpp"
-#include "genesis/utils/io/gzip_stream.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/output_stream.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/io/gzip.hpp>
+#include <genesis/utils/io/gzip_stream.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/io/output_stream.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/string.hpp>
 
 namespace genesis {
 namespace utils {

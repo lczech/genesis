@@ -28,21 +28,21 @@
  * @ingroup tree
  */
 
- #include "genesis/tree/mass_tree/phylo_ilr.hpp"
+ #include <genesis/tree/mass_tree/phylo_ilr.hpp>
 
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/mass_tree/balances.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/mass_tree/balances.hpp>
+#include <genesis/tree/mass_tree/functions.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
 
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <cassert>
 #include <cmath>

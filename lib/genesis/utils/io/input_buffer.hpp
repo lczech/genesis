@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/input_reader.hpp"
+#include <genesis/utils/io/input_reader.hpp>
 
 #include <cassert>
 #include <cstring>

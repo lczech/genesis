@@ -67,7 +67,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/json/document.hpp"
+#include <genesis/utils/formats/json/document.hpp>
 
 #include <cassert>
 #include <stdexcept>

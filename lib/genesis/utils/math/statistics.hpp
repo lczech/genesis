@@ -31,10 +31,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/compensated_sum.hpp"
-#include "genesis/utils/math/ranking.hpp"
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/math/compensated_sum.hpp>
+#include <genesis/utils/math/ranking.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -28,7 +28,7 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/alphabet.hpp"
+#include <genesis/sequence/kmer/alphabet.hpp>
 
 #include <cassert>
 #include <stdexcept>

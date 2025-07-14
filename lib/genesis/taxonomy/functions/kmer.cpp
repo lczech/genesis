@@ -28,26 +28,26 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/kmer.hpp"
+#include <genesis/taxonomy/functions/kmer.hpp>
 
-#include "genesis/taxonomy/formats/json_reader.hpp"
-#include "genesis/taxonomy/formats/json_writer.hpp"
-#include "genesis/taxonomy/formats/taxopath_generator.hpp"
-#include "genesis/taxonomy/functions/operators.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/iterator/levelorder.hpp"
-#include "genesis/taxonomy/iterator/postorder.hpp"
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/formats/json/document.hpp"
-#include "genesis/utils/formats/json/reader.hpp"
-#include "genesis/utils/formats/json/writer.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/text/table.hpp"
+#include <genesis/taxonomy/formats/json_reader.hpp>
+#include <genesis/taxonomy/formats/json_writer.hpp>
+#include <genesis/taxonomy/formats/taxopath_generator.hpp>
+#include <genesis/taxonomy/functions/operators.hpp>
+#include <genesis/taxonomy/functions/taxonomy.hpp>
+#include <genesis/taxonomy/iterator/levelorder.hpp>
+#include <genesis/taxonomy/iterator/postorder.hpp>
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/formats/json/document.hpp>
+#include <genesis/utils/formats/json/reader.hpp>
+#include <genesis/utils/formats/json/writer.hpp>
+#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/text/table.hpp>
 
 #include <algorithm>
 #include <cassert>

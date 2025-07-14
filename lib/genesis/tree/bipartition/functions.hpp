@@ -31,9 +31,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/bipartition/bipartition.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/bipartition/bipartition.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
 
 #include <string>
 #include <vector>

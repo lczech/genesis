@@ -28,12 +28,12 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/drawing/circular_layout.hpp"
+#include <genesis/tree/drawing/circular_layout.hpp>
 
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/function/functions.hpp"
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/functions.hpp>
 
-#include "genesis/utils/math/common.hpp"
+#include <genesis/utils/math/common.hpp>
 
 #include <algorithm>
 #include <cassert>

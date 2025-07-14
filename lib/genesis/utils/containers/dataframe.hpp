@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/containers/deref_iterator.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/containers/deref_iterator.hpp>
 
 #include <cassert>
 #include <cstddef>

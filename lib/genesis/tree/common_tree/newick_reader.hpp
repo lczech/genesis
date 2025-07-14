@@ -31,11 +31,11 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/formats/newick/element.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/formats/newick/element.hpp>
+#include <genesis/tree/formats/newick/reader.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/text/string.hpp>
 
 namespace genesis {
 namespace tree {

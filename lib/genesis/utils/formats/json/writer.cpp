@@ -28,18 +28,18 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/json/writer.hpp"
+#include <genesis/utils/formats/json/writer.hpp>
 
 #include <cassert>
 #include <fstream>
 #include <ostream>
 #include <stdexcept>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/formats/json/document.hpp"
-#include "genesis/utils/formats/json/iterator.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/io/output_stream.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/formats/json/document.hpp>
+#include <genesis/utils/formats/json/iterator.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/io/output_stream.hpp>
 
 namespace genesis {
 namespace utils {

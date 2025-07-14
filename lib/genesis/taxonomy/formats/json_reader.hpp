@@ -31,10 +31,10 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/utils/formats/json/document.hpp"
-#include "genesis/utils/io/input_source.hpp"
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/utils/formats/json/document.hpp>
+#include <genesis/utils/io/input_source.hpp>
 
 #include <functional>
 #include <iosfwd>

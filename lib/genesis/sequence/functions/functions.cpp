@@ -28,18 +28,18 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/functions.hpp"
+#include <genesis/sequence/functions/functions.hpp>
 
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/sequence/printers/simple.hpp"
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/sequence/printers/simple.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/text/style.hpp"
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/text/style.hpp>
 
 #include <algorithm>
 #include <array>

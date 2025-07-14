@@ -28,11 +28,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/distance.hpp"
+#include <genesis/utils/math/distance.hpp>
 
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <cassert>
 

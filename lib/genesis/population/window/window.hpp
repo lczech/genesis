@@ -37,8 +37,8 @@
 #include <string>
 #include <vector>
 
-#include "genesis/population/window/base_window.hpp"
-#include "genesis/population/genome_region.hpp"
+#include <genesis/population/window/base_window.hpp>
+#include <genesis/population/genome_region.hpp>
 
 namespace genesis {
 namespace population {

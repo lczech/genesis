@@ -33,9 +33,9 @@
     which is 100% Public Domain, see also the Acknowledgements section of the documentation.
 */
 
-#include "genesis/utils/tools/hash/sha1.hpp"
+#include <genesis/utils/tools/hash/sha1.hpp>
 
-#include "genesis/utils/io/input_buffer.hpp"
+#include <genesis/utils/io/input_buffer.hpp>
 
 #include <algorithm>
 #include <cstdlib>

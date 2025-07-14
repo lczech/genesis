@@ -30,7 +30,7 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/hts_file.hpp"
+#include <genesis/population/format/hts_file.hpp>
 
 extern "C" {
     #include <htslib/hts.h>

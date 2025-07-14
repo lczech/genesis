@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
 
 #include <string>
 #include <unordered_map>

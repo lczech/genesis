@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/base64.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/utils/text/base64.hpp>
+#include <genesis/utils/math/common.hpp>
 
 #include <algorithm>
 #include <cmath>

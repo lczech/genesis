@@ -30,16 +30,16 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_common.hpp"
+#include <genesis/population/format/vcf_common.hpp>
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/format/vcf_input_stream.hpp"
-#include "genesis/population/format/vcf_record.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/format/vcf_input_stream.hpp>
+#include <genesis/population/format/vcf_record.hpp>
+#include <genesis/population/function/functions.hpp>
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/utils/text/char.hpp>
 
 extern "C" {
     #include <htslib/hts.h>

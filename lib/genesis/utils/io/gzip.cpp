@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/gzip.hpp"
+#include <genesis/utils/io/gzip.hpp>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/logging.hpp>
 
 #include <cassert>
 #include <fstream>

@@ -31,10 +31,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/filter/filter_stats.hpp"
-#include "genesis/population/filter/filter_status.hpp"
-#include "genesis/population/variant.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/filter/filter_stats.hpp>
+#include <genesis/population/filter/filter_status.hpp>
+#include <genesis/population/variant.hpp>
 
 #include <iosfwd>
 #include <stdexcept>

@@ -31,11 +31,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/formats/svg/definitions.hpp"
-#include "genesis/utils/formats/svg/gradient.hpp"
-#include "genesis/utils/formats/svg/object.hpp"
-#include "genesis/utils/io/output_target.hpp"
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/formats/svg/definitions.hpp>
+#include <genesis/utils/formats/svg/gradient.hpp>
+#include <genesis/utils/formats/svg/object.hpp>
+#include <genesis/utils/io/output_target.hpp>
 
 #include <iosfwd>
 #include <vector>

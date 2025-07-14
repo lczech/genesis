@@ -28,13 +28,13 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/taxonomy.hpp"
+#include <genesis/taxonomy/functions/taxonomy.hpp>
 
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/printers/nested.hpp"
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/printers/nested.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

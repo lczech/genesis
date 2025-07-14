@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/matrix/col.hpp"
-#include "genesis/utils/containers/matrix/row.hpp"
+#include <genesis/utils/containers/matrix/col.hpp>
+#include <genesis/utils/containers/matrix/row.hpp>
 
 #include <cassert>
 #include <stdexcept>

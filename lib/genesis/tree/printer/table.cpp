@@ -28,10 +28,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/printer/table.hpp"
+#include <genesis/tree/printer/table.hpp>
 
-#include "genesis/tree/tree.hpp"
-// #include "genesis/lib/utils/text/table.hpp"
+#include <genesis/tree/tree.hpp>
+// #include <genesis/lib/utils/text/table.hpp>
 
 #include <cassert>
 #include <sstream>

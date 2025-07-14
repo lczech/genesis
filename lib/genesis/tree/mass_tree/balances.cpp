@@ -28,20 +28,20 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/balances.hpp"
+#include <genesis/tree/mass_tree/balances.hpp>
 
-#include "genesis/tree/common_tree/functions.hpp"
-#include "genesis/tree/common_tree/operators.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/common_tree/functions.hpp>
+#include <genesis/tree/common_tree/operators.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/mass_tree/functions.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/distance.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/math/distance.hpp>
+#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <algorithm>
 #include <cassert>

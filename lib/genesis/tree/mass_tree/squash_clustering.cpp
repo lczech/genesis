@@ -28,14 +28,14 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/squash_clustering.hpp"
+#include <genesis/tree/mass_tree/squash_clustering.hpp>
 
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/functions.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
 
 #include <algorithm>
 #include <cassert>

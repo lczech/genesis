@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/color/list_diverging.hpp"
+#include <genesis/utils/color/list_diverging.hpp>
 
-#include "genesis/utils/color/functions.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/color/functions.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <map>

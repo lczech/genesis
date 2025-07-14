@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/geodesy/functions.hpp"
+#include <genesis/utils/tools/geodesy/functions.hpp>
 
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <array>

@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/variant.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/variant.hpp>
 
 namespace genesis {
 namespace population {

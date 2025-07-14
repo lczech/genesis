@@ -31,10 +31,10 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/kmer_data.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
+#include <genesis/taxonomy/functions/kmer_data.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/output_target.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
 
 #include <cstddef>
 #include <string>

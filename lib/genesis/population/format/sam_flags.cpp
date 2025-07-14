@@ -30,10 +30,10 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/sam_flags.hpp"
+#include <genesis/population/format/sam_flags.hpp>
 
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <cstdint>

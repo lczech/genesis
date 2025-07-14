@@ -38,8 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "genesis/population/window/functions.hpp"
-#include "genesis/population/window/window.hpp"
+#include <genesis/population/window/functions.hpp>
+#include <genesis/population/window/window.hpp>
 
 namespace genesis {
 namespace population {

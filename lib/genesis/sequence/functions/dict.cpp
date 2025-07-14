@@ -28,12 +28,12 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/dict.hpp"
+#include <genesis/sequence/functions/dict.hpp>
 
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/convert.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <stdexcept>

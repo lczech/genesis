@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/text/string.hpp>
 
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/math/common.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/common.hpp"
+#include <genesis/utils/math/common.hpp>
 
 #include <cassert>
 #include <cmath>

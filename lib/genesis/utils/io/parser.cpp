@@ -28,11 +28,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>

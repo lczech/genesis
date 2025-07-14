@@ -28,12 +28,12 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/function/lca_lookup.hpp"
+#include <genesis/tree/function/lca_lookup.hpp>
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/node.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/iterator/eulertour.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/node.hpp>
+#include <genesis/tree/function/distances.hpp>
+#include <genesis/tree/iterator/eulertour.hpp>
 
 #include <algorithm>
 #include <cassert>

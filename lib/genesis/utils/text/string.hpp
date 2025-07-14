@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <algorithm>
 #include <cassert>

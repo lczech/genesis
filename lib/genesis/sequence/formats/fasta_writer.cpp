@@ -28,12 +28,12 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/formats/fasta_writer.hpp"
+#include <genesis/sequence/formats/fasta_writer.hpp>
 
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/io/output_stream.hpp"
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/io/output_stream.hpp>
 
 #include <cassert>
 #include <fstream>

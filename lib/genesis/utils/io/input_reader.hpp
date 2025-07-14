@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/io/base_input_source.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
+#include <genesis/utils/core/options.hpp>
+#include <genesis/utils/io/base_input_source.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
 
 #include <cassert>
 #include <memory>

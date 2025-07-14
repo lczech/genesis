@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/tree.hpp"
+#include <genesis/tree/mass_tree/tree.hpp>
 
 #include <cstddef>
 #include <functional>

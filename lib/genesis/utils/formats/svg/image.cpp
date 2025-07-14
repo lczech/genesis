@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/image.hpp"
+#include <genesis/utils/formats/svg/image.hpp>
 
-#include "genesis/utils/formats/svg/document.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/formats/svg/document.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <ostream>
 #include <stdexcept>

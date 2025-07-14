@@ -28,11 +28,11 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/codes.hpp"
+#include <genesis/sequence/functions/codes.hpp>
 
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/color/color.hpp"
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/color/color.hpp>
 
 #include <algorithm>
 #include <cassert>

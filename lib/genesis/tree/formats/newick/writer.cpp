@@ -28,19 +28,19 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/formats/newick/writer.hpp"
+#include <genesis/tree/formats/newick/writer.hpp>
 
-#include "genesis/tree/formats/newick/broker.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/formats/newick/broker.hpp>
+#include <genesis/tree/function/distances.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/output_stream.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/output_stream.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <cassert>
 #include <deque>

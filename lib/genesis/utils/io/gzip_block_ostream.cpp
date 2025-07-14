@@ -28,9 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/gzip_block_ostream.hpp"
+#include <genesis/utils/io/gzip_block_ostream.hpp>
 
-#include "genesis/utils/core/options.hpp"
+#include <genesis/utils/core/options.hpp>
 
 #include <cassert>
 #include <fstream>

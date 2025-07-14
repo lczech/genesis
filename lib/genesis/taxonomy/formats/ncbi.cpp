@@ -28,11 +28,11 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/formats/ncbi.hpp"
+#include <genesis/taxonomy/formats/ncbi.hpp>
 
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/formats/csv/input_iterator.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/formats/csv/input_iterator.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <algorithm>
 #include <cassert>

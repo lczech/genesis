@@ -35,7 +35,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "genesis/population/genome_region.hpp"
+#include <genesis/population/genome_region.hpp>
 
 namespace genesis {
 namespace population {

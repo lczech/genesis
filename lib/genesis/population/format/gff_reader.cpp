@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/gff_reader.hpp"
+#include <genesis/population/format/gff_reader.hpp>
 
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/char.hpp>
 
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/utils/core/logging.hpp>
 
 #include <cassert>
 #include <cstring>

@@ -31,9 +31,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/simple_pileup_reader.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
+#include <genesis/population/format/simple_pileup_reader.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
 
 #include <string>
 

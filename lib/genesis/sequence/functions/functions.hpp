@@ -31,9 +31,9 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/tools/char_lookup.hpp"
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/utils/tools/char_lookup.hpp>
 
 #include <iosfwd>
 #include <map>

@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/math/statistics.hpp"
+#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/math/statistics.hpp>
 
 #include <cmath>
 #include <limits>

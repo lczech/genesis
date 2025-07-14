@@ -28,21 +28,21 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/formats/newick/reader.hpp"
+#include <genesis/tree/formats/newick/reader.hpp>
 
-#include "genesis/tree/formats/newick/broker.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/formats/newick/broker.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/core/std.hpp>
 
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <cctype>

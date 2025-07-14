@@ -28,7 +28,7 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/canonical_encoding.hpp"
+#include <genesis/sequence/kmer/canonical_encoding.hpp>
 
 namespace genesis {
 namespace sequence {

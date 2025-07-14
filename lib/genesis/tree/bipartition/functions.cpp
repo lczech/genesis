@@ -28,20 +28,20 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/bipartition/functions.hpp"
+#include <genesis/tree/bipartition/functions.hpp>
 
-#include "genesis/tree/bipartition/bipartition.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/tree/bipartition/bipartition.hpp>
+#include <genesis/tree/common_tree/functions.hpp>
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <limits>

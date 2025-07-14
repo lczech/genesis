@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/simple_pileup_reader.hpp"
-#include "genesis/sequence/functions/quality.hpp"
+#include <genesis/population/format/simple_pileup_reader.hpp>
+#include <genesis/sequence/functions/quality.hpp>
 
 #include <string>
 #include <vector>

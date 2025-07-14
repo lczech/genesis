@@ -28,21 +28,21 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/functions/kmer_grouping.hpp"
+#include <genesis/taxonomy/functions/kmer_grouping.hpp>
 
-#include "genesis/taxonomy/functions/kmer.hpp"
-#include "genesis/taxonomy/functions/operators.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/iterator/levelorder.hpp"
-#include "genesis/taxonomy/iterator/postorder.hpp"
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/text/table.hpp"
+#include <genesis/taxonomy/functions/kmer.hpp>
+#include <genesis/taxonomy/functions/operators.hpp>
+#include <genesis/taxonomy/functions/taxonomy.hpp>
+#include <genesis/taxonomy/iterator/levelorder.hpp>
+#include <genesis/taxonomy/iterator/postorder.hpp>
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/text/table.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -28,15 +28,15 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/histogram/distances.hpp"
+#include <genesis/utils/math/histogram/distances.hpp>
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <vector>
 
-#include "genesis/utils/math/histogram.hpp"
-#include "genesis/utils/math/histogram/operations.hpp"
+#include <genesis/utils/math/histogram.hpp>
+#include <genesis/utils/math/histogram/operations.hpp>
 
 namespace genesis {
 namespace utils {

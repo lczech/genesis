@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/utils/math/kmeans.hpp"
+#include <genesis/utils/math/kmeans.hpp>
 
 namespace genesis {
 namespace tree {

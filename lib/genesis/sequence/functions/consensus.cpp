@@ -28,13 +28,13 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/consensus.hpp"
+#include <genesis/sequence/functions/consensus.hpp>
 
-#include "genesis/sequence/counts.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/functions/functions.hpp"
+#include <genesis/sequence/counts.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/sequence/functions/codes.hpp>
+#include <genesis/sequence/functions/functions.hpp>
 
 #include <algorithm>
 #include <cassert>

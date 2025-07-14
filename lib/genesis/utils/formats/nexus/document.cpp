@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/nexus/document.hpp"
+#include <genesis/utils/formats/nexus/document.hpp>
 
 namespace genesis {
 namespace utils {

@@ -28,11 +28,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/filter/sample_counts_filter_numerical.hpp"
+#include <genesis/population/filter/sample_counts_filter_numerical.hpp>
 
-#include "genesis/population/function/functions.hpp"
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/population/function/functions.hpp>
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <cassert>
 #include <cmath>

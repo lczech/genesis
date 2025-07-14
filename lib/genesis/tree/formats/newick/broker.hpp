@@ -36,7 +36,7 @@
 #include <string>
 #include <vector>
 
-#include "genesis/tree/formats/newick/element.hpp"
+#include <genesis/tree/formats/newick/element.hpp>
 
 namespace genesis {
 namespace tree {

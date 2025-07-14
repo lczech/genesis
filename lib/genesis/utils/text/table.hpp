@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/text/style.hpp"
+#include <genesis/utils/text/style.hpp>
 
 #include <iosfwd>
 #include <sstream>

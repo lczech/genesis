@@ -28,15 +28,15 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/distances.hpp"
+#include <genesis/tree/common_tree/distances.hpp>
 
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/lca_lookup.hpp"
-#include "genesis/tree/iterator/levelorder.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/lca_lookup.hpp>
+#include <genesis/tree/iterator/levelorder.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include <genesis/utils/containers/matrix/operators.hpp>
 
 #include <algorithm>
 #include <cassert>

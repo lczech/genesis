@@ -31,11 +31,11 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/string.hpp>
 
 #include <memory>
 #include <mutex>

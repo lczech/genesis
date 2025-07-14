@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/threading/threadsafe_queue.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/threading/threadsafe_queue.hpp>
 
 #include <array>
 #include <cassert>

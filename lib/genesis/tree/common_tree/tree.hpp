@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/tree.hpp>
 
 #include <string>
 

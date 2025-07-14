@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/kmeans.hpp"
+#include <genesis/utils/math/kmeans.hpp>
 
 #include <algorithm>
 #include <cassert>

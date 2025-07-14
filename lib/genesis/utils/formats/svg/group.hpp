@@ -31,10 +31,10 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/attributes.hpp"
-#include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/formats/svg/object.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/utils/formats/svg/attributes.hpp>
+#include <genesis/utils/formats/svg/helper.hpp>
+#include <genesis/utils/formats/svg/object.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <iosfwd>
 #include <stdexcept>

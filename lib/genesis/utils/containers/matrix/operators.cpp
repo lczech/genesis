@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include <genesis/utils/containers/matrix/operators.hpp>
 
 #include <cmath>
 #include <iomanip>

@@ -28,10 +28,10 @@
  * @ingroup taxonomy
  */
 
-#include "genesis/taxonomy/formats/json_reader.hpp"
+#include <genesis/taxonomy/formats/json_reader.hpp>
 
-#include "genesis/utils/formats/json/document.hpp"
-#include "genesis/utils/formats/json/reader.hpp"
+#include <genesis/utils/formats/json/document.hpp>
+#include <genesis/utils/formats/json/reader.hpp>
 
 namespace genesis {
 namespace taxonomy {

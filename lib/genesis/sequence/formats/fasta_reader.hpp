@@ -31,12 +31,12 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/reference_genome.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/tools/char_lookup.hpp"
+#include <genesis/sequence/reference_genome.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/tools/char_lookup.hpp>
 
 #include <iosfwd>
 #include <memory>

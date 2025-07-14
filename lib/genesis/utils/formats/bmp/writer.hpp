@@ -36,7 +36,7 @@
 #include <string>
 #include <vector>
 
-#include "genesis/utils/io/output_target.hpp"
+#include <genesis/utils/io/output_target.hpp>
 
 namespace genesis {
 namespace utils {

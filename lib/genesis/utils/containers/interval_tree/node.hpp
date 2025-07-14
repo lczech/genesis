@@ -46,9 +46,9 @@
 #include <string>
 #include <type_traits>
 
-#include "genesis/utils/containers/interval_tree/fwd.hpp"
-#include "genesis/utils/containers/interval_tree/interval.hpp"
-#include "genesis/utils/containers/interval_tree/functions.hpp"
+#include <genesis/utils/containers/interval_tree/fwd.hpp>
+#include <genesis/utils/containers/interval_tree/interval.hpp>
+#include <genesis/utils/containers/interval_tree/functions.hpp>
 
 namespace genesis {
 namespace utils {

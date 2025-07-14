@@ -28,18 +28,18 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/drawing/heat_tree.hpp"
+#include <genesis/tree/drawing/heat_tree.hpp>
 
-#include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/layout_tree.hpp"
-#include "genesis/tree/drawing/rectangular_layout.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/iterator/eulertour.hpp"
+#include <genesis/tree/drawing/layout_base.hpp>
+#include <genesis/tree/drawing/layout_tree.hpp>
+#include <genesis/tree/drawing/rectangular_layout.hpp>
+#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/iterator/eulertour.hpp>
 
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/formats/bmp/writer.hpp"
-#include "genesis/utils/formats/svg/matrix.hpp"
-#include "genesis/utils/color/norm_linear.hpp"
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/formats/bmp/writer.hpp>
+#include <genesis/utils/formats/svg/matrix.hpp>
+#include <genesis/utils/color/norm_linear.hpp>
 
 #include <stdexcept>
 

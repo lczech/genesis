@@ -31,17 +31,17 @@
  * @ingroup population
  */
 
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/fst_pool_calculator.hpp"
-#include "genesis/population/function/fst_pool_unbiased.hpp"
-#include "genesis/population/function/window_average.hpp"
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/population/window/base_window.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/function/fst_pool_calculator.hpp>
+#include <genesis/population/function/fst_pool_unbiased.hpp>
+#include <genesis/population/function/window_average.hpp>
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/population/window/base_window.hpp>
+#include <genesis/utils/core/options.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
 
 #include <algorithm>
 #include <cassert>

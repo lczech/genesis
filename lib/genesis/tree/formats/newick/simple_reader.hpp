@@ -31,9 +31,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
-#include "genesis/tree/formats/newick/simple_tree.hpp"
+#include <genesis/tree/common_tree/newick_reader.hpp>
+#include <genesis/tree/formats/newick/reader.hpp>
+#include <genesis/tree/formats/newick/simple_tree.hpp>
 
 namespace genesis {
 namespace tree {

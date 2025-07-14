@@ -31,11 +31,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_buffer.hpp"
-#include "genesis/utils/io/input_reader.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/output_stream.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/io/input_buffer.hpp>
+#include <genesis/utils/io/input_reader.hpp>
+#include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/output_stream.hpp>
 
 #include <algorithm>
 #include <array>

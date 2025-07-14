@@ -28,8 +28,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/color_gamut.hpp"
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/sequence/kmer/color_gamut.hpp>
+#include <genesis/utils/core/logging.hpp>
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17

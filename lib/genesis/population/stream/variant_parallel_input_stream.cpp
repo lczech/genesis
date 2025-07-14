@@ -28,12 +28,12 @@
  * @ingroup population
  */
 
-#include "genesis/population/stream/variant_parallel_input_stream.hpp"
+#include <genesis/population/stream/variant_parallel_input_stream.hpp>
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/text/char.hpp>
 
 #include <algorithm>
 #include <cassert>

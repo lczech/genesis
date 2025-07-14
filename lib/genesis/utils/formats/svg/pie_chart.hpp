@@ -31,11 +31,11 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/attributes.hpp"
-#include "genesis/utils/formats/svg/group.hpp"
-#include "genesis/utils/formats/svg/shapes.hpp"
+#include <genesis/utils/formats/svg/attributes.hpp>
+#include <genesis/utils/formats/svg/group.hpp>
+#include <genesis/utils/formats/svg/shapes.hpp>
 
-#include "genesis/utils/math/common.hpp"
+#include <genesis/utils/math/common.hpp>
 
 #include <map>
 #include <string>

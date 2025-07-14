@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
+#include <genesis/tree/attribute_tree/keyed_newick_reader.hpp>
 
-#include "genesis/utils/text/string.hpp"
+#include <genesis/utils/text/string.hpp>
 
 #include <cassert>
 #include <stdexcept>

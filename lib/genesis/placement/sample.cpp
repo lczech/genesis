@@ -28,11 +28,11 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/sample.hpp>
 
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/tree/function/operators.hpp>
+#include <genesis/utils/core/std.hpp>
 
 #include <algorithm>
 #include <cassert>

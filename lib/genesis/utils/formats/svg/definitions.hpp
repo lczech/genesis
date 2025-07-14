@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/formats/svg/helper.hpp"
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/formats/svg/helper.hpp>
 
 #include <iosfwd>
 #include <string>

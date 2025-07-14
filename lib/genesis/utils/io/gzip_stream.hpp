@@ -65,9 +65,8 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/io/gzip.hpp"
-
-#include "genesis/utils/io/strict_fstream.hpp"
+#include <genesis/utils/io/gzip.hpp>
+#include <genesis/utils/io/strict_fstream.hpp>
 
 #include <cassert>
 #include <fstream>

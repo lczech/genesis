@@ -31,7 +31,7 @@
  * @ingroup placement
  */
 
-#include "genesis/utils/io/input_source.hpp"
+#include <genesis/utils/io/input_source.hpp>
 
 #include <iosfwd>
 #include <memory>

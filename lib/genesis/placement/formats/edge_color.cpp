@@ -28,14 +28,14 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/formats/edge_color.hpp"
+#include <genesis/placement/formats/edge_color.hpp>
 
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/functions.hpp"
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/placement/sample.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/functions.hpp"
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/placement/function/functions.hpp>
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/placement/sample.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/functions.hpp>
 
 #include <cmath>
 

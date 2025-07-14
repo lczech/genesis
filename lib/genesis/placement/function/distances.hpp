@@ -31,8 +31,8 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/utils/containers/matrix.hpp"
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/utils/containers/matrix.hpp>
 
 #include <vector>
 

@@ -28,19 +28,19 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/color/heat_map.hpp"
+#include <genesis/utils/color/heat_map.hpp>
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 
-#include "genesis/utils/color/norm_diverging.hpp"
-#include "genesis/utils/color/norm_linear.hpp"
-#include "genesis/utils/color/norm_logarithmic.hpp"
-#include "genesis/utils/color/normalization.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/math/matrix.hpp"
-#include "genesis/utils/math/statistics.hpp"
+#include <genesis/utils/color/norm_diverging.hpp>
+#include <genesis/utils/color/norm_linear.hpp>
+#include <genesis/utils/color/norm_logarithmic.hpp>
+#include <genesis/utils/color/normalization.hpp>
+#include <genesis/utils/core/std.hpp>
+#include <genesis/utils/math/matrix.hpp>
+#include <genesis/utils/math/statistics.hpp>
 
 namespace genesis {
 namespace utils {

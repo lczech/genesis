@@ -60,7 +60,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/threading/thread_pool.hpp"
+#include <genesis/utils/threading/thread_pool.hpp>
 
 #include <cassert>
 #include <future>

@@ -28,9 +28,9 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/simulator/simulator.hpp"
+#include <genesis/placement/simulator/simulator.hpp>
 
-#include "genesis/placement/function/functions.hpp"
+#include <genesis/placement/function/functions.hpp>
 
 #include <cassert>
 
