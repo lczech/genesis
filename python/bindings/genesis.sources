@@ -1,2 +1,7 @@
 genesis.cpp
+genesis/utils/core/fs.cpp
+genesis/utils/core/fs_1.cpp
+genesis/utils/core/info.cpp
+genesis/utils/core/info_1.cpp
+genesis/utils/core/options.cpp
 genesis/utils/core/version.cpp

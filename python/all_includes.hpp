@@ -491,14 +491,14 @@
 //   core
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/core/algorithm.hpp>
-// #include <genesis/utils/core/exception.hpp>
-// #include <genesis/utils/core/fs.hpp>
-// #include <genesis/utils/core/info.hpp>
-// #include <genesis/utils/core/logging.hpp>
-// #include <genesis/utils/core/options.hpp>
+#include <genesis/utils/core/algorithm.hpp>
+#include <genesis/utils/core/exception.hpp>
+#include <genesis/utils/core/fs.hpp>
+#include <genesis/utils/core/info.hpp>
+#include <genesis/utils/core/logging.hpp>
+#include <genesis/utils/core/options.hpp>
 // #include <genesis/utils/core/resource_logger.hpp>
-// #include <genesis/utils/core/std.hpp>
+#include <genesis/utils/core/std.hpp>
 #include <genesis/utils/core/version.hpp>
 
 // ---------------------------------------------------------------------
@@ -618,14 +618,14 @@
 //   threading
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/threading/concurrent_vector_guard.hpp>
-// #include <genesis/utils/threading/multi_future.hpp>
-// #include <genesis/utils/threading/sequential_output_buffer.hpp>
-// #include <genesis/utils/threading/serial_task_queue.hpp>
-// #include <genesis/utils/threading/thread_functions.hpp>
-// #include <genesis/utils/threading/thread_local_cache.hpp>
-// #include <genesis/utils/threading/thread_pool.hpp>
-// #include <genesis/utils/threading/threadsafe_queue.hpp>
+#include <genesis/utils/threading/concurrent_vector_guard.hpp>
+#include <genesis/utils/threading/multi_future.hpp>
+#include <genesis/utils/threading/sequential_output_buffer.hpp>
+#include <genesis/utils/threading/serial_task_queue.hpp>
+#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_local_cache.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/utils/threading/threadsafe_queue.hpp>
 
 // ---------------------------------------------------------------------
 //   tools

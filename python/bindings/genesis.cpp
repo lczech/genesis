@@ -9,6 +9,11 @@
 
 using ModuleGetter = std::function< pybind11::module & (std::string const &) >;
 
+void bind_genesis_utils_core_fs(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_core_fs_1(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_core_info(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_core_info_1(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_core_options(std::function< pybind11::module &(std::string const &namespace_) > &M);
 void bind_genesis_utils_core_version(std::function< pybind11::module &(std::string const &namespace_) > &M);
 
 
@@ -35,11 +40,17 @@ PYBIND11_MODULE(genesis, root_module) {
 
 	std::vector< std::pair<std::string, std::string> > sub_modules {
 		{"", "genesis"},
+		{"genesis", "utils"},
 	};
 	for(auto &p : sub_modules ) modules[ p.first.empty() ? p.second :  p.first+"::"+p.second ] = modules[p.first].def_submodule( mangle_namespace_name(p.second).c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() );
 
 	//pybind11::class_<std::shared_ptr<void>>(M(""), "_encapsulated_data_");
 
+	bind_genesis_utils_core_fs(M);
+	bind_genesis_utils_core_fs_1(M);
+	bind_genesis_utils_core_info(M);
+	bind_genesis_utils_core_info_1(M);
+	bind_genesis_utils_core_options(M);
 	bind_genesis_utils_core_version(M);
 
 }

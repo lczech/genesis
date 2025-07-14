@@ -19,11 +19,27 @@
 # University of Copenhagen, Globe Institute, Section for GeoGenetics
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
+import os
 import unittest
-from genesis import genesis
+from pathlib import Path
+from genesis.genesis import utils
+import test_config
 
-class TestGenesisUtilsCoreVersion(unittest.TestCase):
-    def test_version(self):
-        version = genesis.genesis_version()
-        self.assertIsInstance(version, str)
-        self.assertTrue(version, "genesis_version() returned an empty string")
+class TestGenesisUtilsCoreFs(unittest.TestCase):
+    def test_current_path(self):
+        # print(utils.current_path())
+        self.assertTrue(utils.current_path())
+
+        gp = Path(utils.current_path()).absolute()
+        op = Path(os.getcwd()).absolute()
+        self.assertEqual(gp, op)
+
+    def test_is_file(self):
+        infile = os.path.join(test_config.test_data_dir, "utils/csv/table.csv")
+        self.assertTrue( utils.is_file(infile) )
+        self.assertFalse( utils.is_file("/road/to/nowhere") )
+
+    def test_file_read_lines(self):
+        infile = os.path.join(test_config.test_data_dir, "utils/csv/table.csv")
+        lines = utils.file_read_lines( infile )
+        self.assertEqual( len(lines), 11 )

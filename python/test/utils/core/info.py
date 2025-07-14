@@ -20,10 +20,21 @@
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 import unittest
-from genesis import genesis
+from genesis.genesis import utils
 
-class TestGenesisUtilsCoreVersion(unittest.TestCase):
-    def test_version(self):
-        version = genesis.genesis_version()
-        self.assertIsInstance(version, str)
-        self.assertTrue(version, "genesis_version() returned an empty string")
+class TestGenesisUtilsCoreInfo(unittest.TestCase):
+    def test_info(self):
+        self.assertIsInstance(utils.info_stdout_is_terminal(), bool)
+        self.assertIsInstance(utils.info_stderr_is_terminal(), bool)
+        self.assertIsInstance(utils.info_print_hardware(), str)
+
+        self.assertIsInstance(utils.guess_number_of_threads(), int)
+        self.assertGreater(utils.guess_number_of_threads(), 0)
+
+    def test_compiler(self):
+        # print(utils.info_print_compiler())
+        self.assertTrue(utils.info_print_compiler())
+
+    def test_hardware(self):
+        # print(utils.info_print_hardware())
+        self.assertTrue(utils.info_print_hardware())
