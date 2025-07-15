@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -173,9 +173,7 @@ std::vector<std::string> file_read_lines( std::string const& filename, bool dete
     std::vector<std::string> result;
     utils::InputStream it( from_file( filename, detect_compression ));
     while( it ) {
-        result.push_back( read_to_end_of_line( it ));
-        assert( !it || *it == '\n'  );
-        ++it;
+        result.push_back( it.get_line() );
     }
     return result;
 }

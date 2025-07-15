@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/functions.hpp"
+#include "genesis/utils/io/input_buffer.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/parser.hpp"
 #include "genesis/utils/math/common.hpp"
@@ -124,12 +126,12 @@ struct RandomFuzzyLines
     std::string text;
 };
 
-RandomFuzzyLines make_random_fuzzy_lines_( size_t const n_lines )
+RandomFuzzyLines make_random_fuzzy_lines_( size_t const n_lines, size_t const max_len = 100 )
 {
     RandomFuzzyLines result;
     std::stringstream ss;
     for( size_t i = 0; i < n_lines; ++i ) {
-        auto const len = permuted_congruential_generator( 0, 100 );
+        auto const len = permuted_congruential_generator( 0, max_len );
         ss << std::string( len, 'x' ) << "\n";
         result.line_lengths.push_back( len );
     }
@@ -513,4 +515,81 @@ TEST( InputStream, ParseInt )
 
     // Make sure the file is deleted.
     ASSERT_EQ( 0, std::remove(tmpfile.c_str()) );
+}
+
+// =================================================================================================
+//     Read Input
+// =================================================================================================
+
+TEST( InputSource, Read )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // Again test multiple of line lengths, plus minus a bit.
+    auto const block_len = InputBuffer::BlockLength / 4;
+    for( size_t i = 0; i < 50; ++i ) {
+        // Up to 16 quarter blocks = 4 full blocks = 16MB of data.
+        int len = block_len * permuted_congruential_generator( 1, 16 );
+
+        // To test boundary conditions, use plus/minus 2 on that.
+        len += -2 + static_cast<int>(permuted_congruential_generator( 0, 4 ));
+        // LOG_DBG << "test with len " << len;
+        ASSERT_GT( len, 0 );
+        ASSERT_LE( len, 4 * InputBuffer::BlockLength + 2 );
+
+        // Make a string, and read it again.
+        auto const text = std::string( len, 'x' );
+        auto const read = read_input_source( from_string( text ));
+
+        // Test it.
+        EXPECT_EQ( read.size(), text.size() );
+        // EXPECT_EQ( read, text );
+    }
+}
+
+TEST( InputSource, ReadLinesShort )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    for( size_t i = 0; i < 50; ++i ) {
+        // See test_input_stream_fuzzy_()
+        auto const n_lines = permuted_congruential_generator( 1, 200000 );
+        auto const lines_data = make_random_fuzzy_lines_( n_lines, 100 );
+
+        // Read and check result.
+        auto const lines = read_input_source_lines( from_string( lines_data.text ));
+        ASSERT_EQ( lines.size(), lines_data.line_lengths.size() );
+        for( size_t i = 0; i < lines.size(); ++i ) {
+            EXPECT_EQ( lines[i].size(), lines_data.line_lengths[i] );
+        }
+    }
+}
+
+TEST( InputSource, ReadLinesLong )
+{
+    // Random seed. Report it, so that in an error case, we can reproduce.
+    auto const seed = ::time(nullptr);
+    permuted_congruential_generator_init( seed );
+    LOG_INFO << "Seed: " << seed;
+
+    // Again test multiple of line lengths, plus minus a bit.
+    for( size_t i = 0; i < 5; ++i ) {
+        // See test_input_stream_fuzzy_()
+        auto const block_len = InputStream::BlockLength;
+        auto const n_lines = permuted_congruential_generator( 1, 10 );
+        auto const lines_data = make_random_fuzzy_lines_( n_lines, 4 * block_len );
+
+        // Read and check result.
+        auto const lines = read_input_source_lines( from_string( lines_data.text ));
+        ASSERT_EQ( lines.size(), lines_data.line_lengths.size() );
+        for( size_t i = 0; i < lines.size(); ++i ) {
+            EXPECT_EQ( lines[i].size(), lines_data.line_lengths[i] );
+        }
+    }
 }
