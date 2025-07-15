@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -151,7 +151,9 @@ public:
             }
 
             // Read blocks if necessary. Now we are surely in the first block.
-            update_blocks_();
+            if( data_pos_ >= BlockLength ) {
+                update_blocks_();
+            }
             assert( data_pos_ < BlockLength );
 
             // Try again. If we still cannot peek ahead, we are at the end of the stream.
@@ -170,18 +172,30 @@ public:
         if( data_pos_ < BlockLength && size < data_end_ - data_pos_ ) {
             std::memcpy( target, buffer_ + data_pos_, size );
             data_pos_ += size;
+            assert( data_pos_ < data_end_ );
             return size;
         }
 
+        // Check edge case: No more data. In that case, we are just done.
+        if( data_pos_ >= data_end_ ) {
+            return 0;
+        }
+
+        // Here we are in a more extensive case, where we want to read more than
+        // what fits in a single buffer, so we need to loop until we have all.
         // Keep track of what we still need to do and what we already did.
         size_t done_reading = 0;
         size_t yet_to_read  = size;
 
         // Read blocks if necessary. Now we are surely in the first block.
-        update_blocks_();
+        if( data_pos_ >= BlockLength ) {
+            update_blocks_();
+        }
         assert( data_pos_ < BlockLength );
 
         // Read data that is too big for one block, as long as there are more blocks.
+        // The loop reads a full block of memory in each iteration, while there are
+        // at least two full blocks of data still available.
         while( yet_to_read > BlockLength && data_end_ == 2 * BlockLength ) {
 
             // Read one block.
@@ -192,13 +206,17 @@ public:
             done_reading += BlockLength;
             yet_to_read  -= BlockLength;
 
-            // Update the blocks.
+            // Update the blocks. This brings data_pos_ back into the first block.
+            // Here, we do not need to test if we are beyond the first block:
+            // we are for sure, as we just moved there. So asssert this instead.
+            assert( data_pos_ >= BlockLength );
+            assert( data_pos_ <= 2 * BlockLength );
             update_blocks_();
             assert( data_pos_ < BlockLength );
             assert( data_pos_ < data_end_ );
         }
 
-        // Get how much data is still buffered.
+        // Get how much data is still buffered in the remaining blocks.
         size_t const buffered = data_end_ - data_pos_;
 
         // Don't read more than there is.
@@ -206,7 +224,7 @@ public:
             yet_to_read = buffered;
         }
 
-        // Saftey. Never read more than there is.
+        // Safety. Never read more than there is.
         assert( yet_to_read <= buffered );
         assert( yet_to_read <= BlockLength );
 
@@ -231,30 +249,30 @@ private:
      */
     void update_blocks_()
     {
-        // Nothing to do. We are already at the end of the input.
-        if( data_pos_ == data_end_ ) {
-            return;
-        }
+        // This function is only called locally in contexts where we already know that we need to
+        // update the blocks. We only assert this here again, meaning that we expect the caller
+        // functions to check for this already. Handling it this way ensures that the function
+        // jump is only made when necesary.
+        assert( data_pos_ >= BlockLength );
+
+        // Furthermore, the callers need to check the following condition. So, if it breaks, this
+        // function is invalidly called from somewhere else.
         assert( data_pos_ < data_end_ );
 
         // If this assertion breaks, someone tempered with our internal invariants.
         assert( data_end_ <= BlockLength * 2 );
 
-        // If we are past the first block, we need to load more data into the blocks.
-        if( data_pos_ >= BlockLength ) {
+        // Move the second to the first block.
+        std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
+        data_pos_ -= BlockLength;
+        data_end_ -= BlockLength;
 
-            // Move the second to the first block.
-            std::memcpy( buffer_, buffer_ + BlockLength, BlockLength );
-            data_pos_ -= BlockLength;
-            data_end_ -= BlockLength;
-
-            // If we are not yet at the end of the data, start the reader again:
-            // Copy the third block to the second, and read into the third one.
-            if( input_reader_ && input_reader_->valid() ) {
-                data_end_ += input_reader_->finish_reading();
-                std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
-                input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
-            }
+        // If we are not yet at the end of the data, start the reader again:
+        // Copy the third block to the second, and read into the third one.
+        if( input_reader_ && input_reader_->valid() ) {
+            data_end_ += input_reader_->finish_reading();
+            std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
+            input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
         }
 
         // After the update, the current position needs to be within the first block.
