@@ -5,3 +5,6 @@ genesis/utils/core/info.cpp
 genesis/utils/core/info_1.cpp
 genesis/utils/core/options.cpp
 genesis/utils/core/version.cpp
+genesis/utils/io/base_input_source.cpp
+genesis/utils/io/file_input_source.cpp
+genesis/utils/io/gzip_stream.cpp

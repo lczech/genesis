@@ -15,6 +15,9 @@ void bind_genesis_utils_core_info(std::function< pybind11::module &(std::string 
 void bind_genesis_utils_core_info_1(std::function< pybind11::module &(std::string const &namespace_) > &M);
 void bind_genesis_utils_core_options(std::function< pybind11::module &(std::string const &namespace_) > &M);
 void bind_genesis_utils_core_version(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_io_base_input_source(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_io_file_input_source(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_io_gzip_stream(std::function< pybind11::module &(std::string const &namespace_) > &M);
 
 
 PYBIND11_MODULE(genesis, root_module) {
@@ -52,5 +55,8 @@ PYBIND11_MODULE(genesis, root_module) {
 	bind_genesis_utils_core_info_1(M);
 	bind_genesis_utils_core_options(M);
 	bind_genesis_utils_core_version(M);
+	bind_genesis_utils_io_base_input_source(M);
+	bind_genesis_utils_io_file_input_source(M);
+	bind_genesis_utils_io_gzip_stream(M);
 
 }

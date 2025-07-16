@@ -73,17 +73,24 @@ message (STATUS "${ColorBlue}Building Python module${ColorEnd}")
 #   Build Bindings
 # ================================================================================================
 
-# Find all binding sources
+# Find all binding sources, in the generated ones and in our custom ones
 IF( GENESIS_UNITY_BUILD )
     # See main CMake file for the monolith macro.
     ASSEMBLE_MONOLITH(
         "${PROJECT_SOURCE_DIR}/python/bindings"
         "${GENESIS_UNITY_BUILD}"
-        "python"
-        genesis_python_sources
+        "python-bindings"
+        genesis_python_bindings_sources
+    )
+    ASSEMBLE_MONOLITH(
+        "${PROJECT_SOURCE_DIR}/python/custom"
+        "${GENESIS_UNITY_BUILD}"
+        "python-custom"
+        genesis_python_custom_sources
     )
 ELSE()
-    file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/bindings/*.cpp)
+    file (GLOB_RECURSE genesis_python_bindings_sources ${PROJECT_SOURCE_DIR}/python/bindings/*.cpp)
+    file (GLOB_RECURSE genesis_python_custom_sources   ${PROJECT_SOURCE_DIR}/python/custom/*.cpp)
 ENDIF()
 
 include_directories(${PROJECT_SOURCE_DIR}/python)
@@ -101,7 +108,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # set_property(GLOBAL PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 # Add the Pybind module, which is the equivalent of add_library(...).
-pybind11_add_module( genesis_python_module MODULE ${genesis_python_sources} )
+pybind11_add_module(
+    genesis_python_module MODULE
+    ${genesis_python_bindings_sources}
+    ${genesis_python_custom_sources}
+)
 
 # Link against the object library, so that all code is made part of the module.
 target_link_libraries( genesis_python_module PRIVATE genesis_lib_obj )

@@ -1,3 +1,4 @@
+#include <custom/utils/extra_bindings.hpp>
 #include <functional>
 #include <genesis/utils/core/fs.hpp>
 #include <iterator>
@@ -23,6 +24,8 @@
 
 void bind_genesis_utils_core_fs(std::function< pybind11::module &(std::string const &namespace_) > &M)
 {
+
+	genesis_binder_utils_io_input_source(M("genesis::utils"));
 	// genesis::utils::path_exists(const std::string &) file:genesis/utils/core/fs.hpp line:48
 	// function-signature: bool genesis::utils::path_exists(const std::string &)(const std::string &) file:genesis/utils/core/fs.hpp line:48
 	M("genesis::utils").def("path_exists", (bool (*)(const std::string &)) &genesis::utils::path_exists, "Return whether a path exists, i.e., is a file or directory.\n\nC++: genesis::utils::path_exists(const std::string &) --> bool", pybind11::arg("path"));
