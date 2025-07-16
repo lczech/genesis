@@ -267,9 +267,9 @@ def compare_all_includes():
     all_includes = collect_all_headers([genesis_source], min_directory_level)
     missing = find_missing_includes( all_includes, all_includes_file )
     if missing:
-        print("Missing headers in", all_includes_file)
+        print('\033[91m' + "Missing headers in", all_includes_file + '\033[0m')
         for m in missing:
-            print(f'#include <{m}>')
+            print('\033[91m' + f'#include <{m}>' + '\033[0m')
 
 # ------------------------------------------------------------------------------
 #   Make Bindings
