@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace genesis {
@@ -51,6 +52,10 @@ namespace utils {
 // =================================================================================================
 //     Input Source Convenience Functions
 // =================================================================================================
+
+// ---------------------------------------------------------------------
+//   file
+// ---------------------------------------------------------------------
 
 /**
  * @brief Obtain an input source for reading from a file.
@@ -62,7 +67,7 @@ namespace utils {
  * file is gzip compressed, and if so, a transparent decompression layer is added.
  * That means, gzip-compressed files can be decompressed automatically and on the fly.
  *
- * @see from_files(), from_string(), from_strings(), and from_stream() for similar
+ * @see See from_files(), from_string(), from_strings(), and from_stream() for similar
  * helper functions for other types of input sources.
  */
 inline std::shared_ptr<BaseInputSource> from_file(
@@ -85,7 +90,7 @@ inline std::shared_ptr<BaseInputSource> from_file(
  * for parallely reading from multiple files for speedup.
  * This function can for example be used with the output of utils::dir_list_files().
  *
- * @see from_file(), from_string(), from_strings(), and from_stream() for similar
+ * @see See from_file(), from_string(), from_strings(), and from_stream() for similar
  * helper functions for other types of input sources.
  */
 inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
@@ -105,7 +110,7 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
  * See from_file() for details. This version returnes multiple input sources from an interator over
  * file names, which can be used for parallely reading from multiple files for speedup.
  *
- * @see from_file(), from_string(), from_strings(), and from_stream() for similar
+ * @see See from_file(), from_string(), from_strings(), and from_stream() for similar
  * helper functions for other types of input sources.
  */
 template<typename InputIterator>
@@ -122,13 +127,17 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_files(
     return ret;
 }
 
+// ---------------------------------------------------------------------
+//   string
+// ---------------------------------------------------------------------
+
 /**
- * @brief Obtain an input source for reading from a string.
+ * @brief Obtain an input source for reading from a `std::string`.
  *
  * The input source returned from this function can be used in the reader classes, e.g.,
  * placement::JplaceReader or sequence::FastaReader.
  *
- * @see from_file(), from_files(), from_strings(), and from_stream() for similar
+ * @see See from_file(), from_files(), from_strings(), and from_stream() for similar
  * helper functions for other types of input sources.
  */
 inline std::shared_ptr<BaseInputSource> from_string(
@@ -138,11 +147,70 @@ inline std::shared_ptr<BaseInputSource> from_string(
 }
 
 /**
+ * @brief Obtain an input source for reading from a moved `std::string`.
+ *
+ * The input source returned from this function can be used in the reader classes, e.g.,
+ * placement::JplaceReader or sequence::FastaReader.
+ *
+ * @see See from_file(), from_files(), from_strings(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
+inline std::shared_ptr<BaseInputSource> from_string(
+    std::string&& input_string
+) {
+    return std::make_shared< StringInputSource >( std::move( input_string ));
+}
+
+/**
+ * @brief Obtain an input source for reading from a `std::string_view`.
+ *
+ * The input source returned from this function can be used in the reader classes, e.g.,
+ * placement::JplaceReader or sequence::FastaReader.
+ *
+ * @see See from_file(), from_files(), from_strings(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
+inline std::shared_ptr<BaseInputSource> from_string(
+    std::string_view input_string_view
+) {
+    return std::make_shared< StringInputSource >( input_string_view );
+}
+
+/**
+ * @brief Obtain an input source for reading from a `std::string_view`.
+ *
+ * Alias for from_string( std::string_view ). See there for details.
+ */
+inline std::shared_ptr<BaseInputSource> from_string_view(
+    std::string_view input_string_view
+) {
+    return std::make_shared< StringInputSource >( input_string_view );
+}
+
+/**
+ * @brief Obtain an input source for reading from a string literal.
+ *
+ * This overload is needed as otherwise, the other overloads of this function are ambiguous
+ * when called with a string literal.
+ *
+ * The input source returned from this function can be used in the reader classes, e.g.,
+ * placement::JplaceReader or sequence::FastaReader.
+ *
+ * @see See from_file(), from_files(), from_strings(), and from_stream() for similar
+ * helper functions for other types of input sources.
+ */
+inline std::shared_ptr<BaseInputSource> from_string(
+    char const* input_string
+) {
+    return std::make_shared< StringInputSource >( std::string_view{input_string} );
+}
+
+/**
  * @brief Obtain a set of input sources for reading from strings.
  *
  * See from_string() and from_files() for details.
  *
- * @see from_file(), from_files(), from_string(), and from_stream() for similar
+ * @see See from_file(), from_files(), from_string(), and from_stream() for similar
  * helper functions for other types of input sources.
  */
 inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
@@ -160,7 +228,7 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
  *
  * See from_string() and from_files() for details.
  *
- * @see from_file(), from_files(), from_string(), and from_stream() for similar
+ * @see See from_file(), from_files(), from_string(), and from_stream() for similar
  * helper functions for other types of input sources.
  */
 template<typename InputIterator>
@@ -176,13 +244,17 @@ inline std::vector<std::shared_ptr<BaseInputSource>> from_strings(
     return ret;
 }
 
+// ---------------------------------------------------------------------
+//   stream
+// ---------------------------------------------------------------------
+
 /**
  * @brief Obtain an input source for reading from a stream.
  *
  * The input source returned from this function can be used in the reader classes, e.g.,
  * placement::JplaceReader or sequence::FastaReader.
  *
- * @see from_file(), from_files(), from_string(), and from_strings() for similar
+ * @see See from_file(), from_files(), from_string(), and from_strings() for similar
  * helper functions for other types of input sources.
  * @see
  */
@@ -198,11 +270,12 @@ inline std::shared_ptr<BaseInputSource> from_stream(
  * The input source returned from this function can be used in the reader classes, e.g.,
  * placement::JplaceReader or sequence::FastaReader.
  *
- * @see from_file(), from_files(), from_string(), and from_strings() for similar
+ * @see See from_file(), from_files(), from_string(), and from_strings() for similar
  * helper functions for other types of input sources, and see from_stream() for the underlying
  * stream input helper function.
  */
-inline std::shared_ptr<BaseInputSource> from_stdin() {
+inline std::shared_ptr<BaseInputSource> from_stdin()
+{
     return std::make_shared< StreamInputSource >( std::cin );
 }
 

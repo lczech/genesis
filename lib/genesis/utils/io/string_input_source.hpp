@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -37,6 +37,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <string_view>
 
 namespace genesis {
 namespace utils {
@@ -48,12 +49,12 @@ namespace utils {
 /**
  * @brief Input source for reading byte data from a string.
  *
- * The input string is provided via the constructor. It is not owned by this class, thus
- * the owner must keep it alive as long as reading from it is required, and is responsbile for
- * destroying it. This class merely keeps a pointer to it.
+ * The input string is provided via the constructor. Unless the `std::string&&` constructor is used,
+ * the input is not owned by this class, thus the owner must keep it alive as long as reading
+ * from it is required, and is responsbile for destroying it. This class merely keeps a pointer.
  *
- * That implies that the string shall not be modified while this input source is used, thus,
- * only const-members of the string can be called.
+ * That also implies that the string shall not be modified while this input source is used,
+ * and thus, only const-members of the string shall be called.
  */
 class StringInputSource final : public BaseInputSource
 {
@@ -81,6 +82,27 @@ public:
         , cursor_(    str.c_str() )
         , in_size_(   str.size()  )
         , rest_size_( str.size()  )
+    {}
+
+    /**
+    * @brief Construct the input source from a r-value (moved) `std::string`.
+    */
+    explicit StringInputSource( std::string&& str )
+        : data_( std::move( str ))
+        , in_str_(    data_.c_str() )
+        , cursor_(    data_.c_str() )
+        , in_size_(   data_.size()  )
+        , rest_size_( data_.size()  )
+    {}
+
+    /**
+    * @brief Construct the input source from a `std::string_view`.
+    */
+    explicit StringInputSource( std::string_view sv )
+        : in_str_(    sv.data() )
+        , cursor_(    sv.data() )
+        , in_size_(   sv.size() )
+        , rest_size_( sv.size() )
     {}
 
     StringInputSource( StringInputSource const& ) = default;
@@ -134,6 +156,10 @@ private:
     // -------------------------------------------------------------
     //     Member Variables
     // -------------------------------------------------------------
+
+    // For moved-from strings, we need to store the string!
+    // In all other cases, we read the data from the referenced string instead.
+    std::string data_;
 
     // Original and current string position pointer.
     char const* in_str_;
