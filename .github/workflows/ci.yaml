@@ -473,18 +473,20 @@ jobs:
 
       - name: Install Dependencies - Ubuntu
         if: runner.os == 'linux'
-        # 1: htslib dependencies, see https://github.com/samtools/htslib/blob/develop/INSTALL
-        # 2: clang on ubuntu 22 is not properly set up, we need libtinfo5,
-        #    see https://github.com/aminya/setup-cpp/issues/149
-        # 3: Install gdb for debugging output.
+        # - htslib tools and libraries, see https://github.com/samtools/htslib/blob/develop/INSTALL
+        # - zlib headers for our own gzip compression support
+        # - clang on ubuntu 22 is not properly set up, we need libtinfo5,
+        #   see https://github.com/aminya/setup-cpp/issues/149
+        # - Install gdb for debugging output
         run: |
-          sudo apt-get install autoconf automake zlib1g-dev libbz2-dev liblzma-dev
+          sudo apt update
+          sudo apt-get install autoconf automake
+          sudo apt-get install libbz2-dev liblzma-dev libdeflate-tools libdeflate-dev
+          sudo apt-get install zlib1g-dev
           sudo apt-get install gdb valgrind
           if [[ ${{ matrix.os }} == ubuntu-22.04 ]] ; then
               sudo apt-get install libtinfo5
           fi
-        # sudo apt-get remove autoconf
-        # sudo apt-get install autoconf2.64 liblzma-dev libbz2-dev
 
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
