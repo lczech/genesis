@@ -45,6 +45,8 @@
 using namespace genesis::taxonomy;
 using namespace genesis::tree;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
 TEST( Taxonomy, TreeBasic )
 {

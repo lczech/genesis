@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // ================================================================================================
 //     Check Conversion Functions
@@ -68,7 +69,7 @@ bool is_convertible_to_bool( Dataframe const& df, size_t col_index )
     // Certain strings ("yes", "no" etc) can be converted to bool.
     if( df[col_index].is<std::string>() ) {
         auto const& df_cast = df[col_index].as<std::string>();
-        return is_convertible_to_bool( df_cast.begin(), df_cast.end() );
+        return genesis::utils::text::is_convertible_to_bool( df_cast.begin(), df_cast.end() );
     }
 
     // If its not a string, we can only convert numerical types.
@@ -90,7 +91,7 @@ bool is_convertible_to_double( Dataframe const& df, size_t col_index )
     // Certain strings can be converted to double.
     if( df[col_index].is<std::string>() ) {
         auto const& df_cast = df[col_index].as<std::string>();
-        return is_convertible_to_double( df_cast.begin(), df_cast.end() );
+        return genesis::utils::text::is_convertible_to_double( df_cast.begin(), df_cast.end() );
     }
 
     // If its not a string, we can only convert numerical types.
@@ -162,7 +163,9 @@ void convert_to_bool( Dataframe& df, size_t col_index )
 
         // Convert the strings, resolving things like "yes" or "off"
         auto const& df_cast = df[col_index].as<std::string>();
-        auto const bool_col = convert_to_bool( df_cast.begin(), df_cast.end(), df_cast.size() );
+        auto const bool_col = genesis::utils::text::convert_to_bool(
+            df_cast.begin(), df_cast.end(), df_cast.size()
+        );
 
         // Convert to signed char, because std::vector<bool> is not a container...
         auto char_col = std::vector<signed char>( bool_col.size() );
@@ -196,7 +199,9 @@ void convert_to_double( Dataframe& df, size_t col_index )
     }
     if( df[col_index].is<std::string>() ) {
         auto const& df_cast = df[col_index].as<std::string>();
-        auto const double_col = convert_to_double( df_cast.begin(), df_cast.end(), df_cast.size() );
+        auto const double_col = genesis::utils::text::convert_to_double(
+            df_cast.begin(), df_cast.end(), df_cast.size()
+        );
         df.replace_col<double>( col_index, double_col );
     } else {
         convert_to_type_<double>( df, col_index );
@@ -221,6 +226,7 @@ std::string summarize_column_common_( Dataframe const& df, size_t col_index, std
 template<typename T>
 std::string summarize_column_double_( Dataframe const& df, size_t col_index )
 {
+    using namespace genesis::utils::math;
     auto const& col_cast = df[col_index].as<T>();
 
     // Get the min and max, excluding nan entries.
@@ -440,5 +446,6 @@ bool validate( Dataframe const& df )
     return true;
 }
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis

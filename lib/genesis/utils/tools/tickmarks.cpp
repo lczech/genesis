@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -114,22 +114,22 @@ std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t targ
 
         // Add ticks to the list.
         while( tick <= max ) {
-            res.push_back( round_to( tick, rounding_accuracy ));
+            res.push_back( genesis::utils::math::round_to( tick, rounding_accuracy ));
             tick += step_sz;
         }
 
         // Determine whether we want to stop before or after the max.
         if( overshoot_at_max ) {
-            res.push_back( round_to( tick, rounding_accuracy ));
+            res.push_back( genesis::utils::math::round_to( tick, rounding_accuracy ));
         }
     }
 
     // Add min and max if needed.
     if( include_min ) {
-        res.push_back( round_to( min, rounding_accuracy ));
+        res.push_back( genesis::utils::math::round_to( min, rounding_accuracy ));
     }
     if( include_max ) {
-        res.push_back( round_to( max, rounding_accuracy ));
+        res.push_back( genesis::utils::math::round_to( max, rounding_accuracy ));
     }
 
     // Cleanup duplicate entries and those that are close by. We do not need ticks that are
@@ -137,7 +137,7 @@ std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t targ
     // It is easier to do this than to check for duplicate entries in each addition step...
     std::sort( res.begin(), res.end() );
     auto uniq_end = std::unique( res.begin(), res.end(), [&]( double lhs, double rhs ){
-        return almost_equal_relative( lhs, rhs, relative_epsilon );
+        return genesis::utils::math::almost_equal_relative( lhs, rhs, relative_epsilon );
     });
     res.erase( uniq_end, res.end() );
 
@@ -212,7 +212,7 @@ std::vector<Tickmarks::LabeledTick> Tickmarks::logarithmic_labels( double min, d
     });
     auto uniq_end = std::unique( res.begin(), res.end(),
         [&]( LabeledTick const& lhs, LabeledTick const& rhs ){
-            return almost_equal_relative(
+            return genesis::utils::math::almost_equal_relative(
                 lhs.relative_position,
                 rhs.relative_position,
                 relative_epsilon

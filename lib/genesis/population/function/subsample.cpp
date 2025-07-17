@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ void rescale_counts_(
         // We use a fixed length sorting algorithm here, as the standard sort is orders of magnitue
         // slower, which would add significant runtime to using this function for every position
         // in the genome.
-        // auto const sorting_order = utils::sort_indices( frac.begin(), frac.end() );
+        // auto const sorting_order = genesis::utils::core::sort_indices( frac.begin(), frac.end() );
         auto const sorting_order = sample_counts_sorting_order( frac );
 
         // We need index-based access to the counts, so we make a list of pointers.
@@ -231,7 +231,7 @@ void subsample_counts_with_replacement(
 ) {
     // Call the local helper function template, to avoid code duplication.
     return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, max_depth, utils::multinomial_distribution, true
+        sample, max_depth, genesis::utils::math::multinomial_distribution, true
     );
 }
 
@@ -251,7 +251,7 @@ void resample_counts(
 ) {
     // Call the local helper function template, to avoid code duplication.
     return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, target_depth, utils::multinomial_distribution, false
+        sample, target_depth, genesis::utils::math::multinomial_distribution, false
     );
 }
 
@@ -271,7 +271,10 @@ void subsample_counts_without_replacement(
 ) {
     // Call the local helper function template, to avoid code duplication.
     return resample_counts_<std::vector<size_t>(*)(std::vector<size_t> const&, size_t)>(
-        sample, max_depth, utils::multivariate_hypergeometric_distribution, true
+        sample,
+        max_depth,
+        genesis::utils::math::multivariate_hypergeometric_distribution,
+        true
     );
 }
 

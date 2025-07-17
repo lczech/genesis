@@ -39,12 +39,23 @@
 #include <string>
 #include <vector>
 
-namespace genesis {
-namespace utils {
-
 // =================================================================================================
 //     Forward declarations
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace io {
+
+class Deserializer;
+
+} // namespace io
+} // namespace utils
+} // namespace genesis
+
+namespace genesis {
+namespace utils {
+namespace containers {
 
 template<typename T>
 class Matrix;
@@ -52,14 +63,22 @@ class Matrix;
 template<typename T>
 void transpose_inplace( Matrix<T>& );
 
-class Deserializer;
-
 template<typename T>
-Deserializer& operator>>( Deserializer&, Matrix<T>& );
+genesis::utils::io::Deserializer& operator>>(
+    genesis::utils::io::Deserializer&, genesis::utils::containers::Matrix<T>&
+);
+
+} // namespace containers
+} // namespace utils
+} // namespace genesis
 
 // =================================================================================================
 //     Matrix
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace containers {
 
 template<typename T>
 class Matrix
@@ -173,7 +192,9 @@ public:
 
     // Transpose inplace needs access to our internals.
     friend void transpose_inplace<>( Matrix<T>& );
-    friend Deserializer& operator>><>( Deserializer&, Matrix<T>& );
+    friend genesis::utils::io::Deserializer& operator>><>(
+        genesis::utils::io::Deserializer&, Matrix<T>&
+    );
 
     // -------------------------------------------------------------
     //     Properties
@@ -364,6 +385,7 @@ private:
     container_type data_;
 };
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

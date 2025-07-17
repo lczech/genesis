@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,6 +52,10 @@
 
 using namespace genesis::population;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::io;
+using namespace genesis::utils::math;
 
 TEST( Population, StatisticsNBase )
 {
@@ -224,7 +228,7 @@ TEST( Population, DiversityMeasuresGenerator )
         (void) variant_count;
 
         // Make a filter that only allows samples that are SNPs and have the needed coverage.
-        auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts const& sample ){
+        auto covered_snps_range = make_filter_range( [&]( SampleCounts const& sample ){
             auto copy = sample;
             return apply_sample_counts_filter_numerical( copy, filter );
 
@@ -435,8 +439,8 @@ TEST( Population, DiversityMeasuresIterator )
         // Also, count how many SNPs there are in total, and how many sites have the needed coverage.
         SampleCountsFilterStats stats;
         size_t variant_count = 0;
-        // auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts const& sample ){
-        auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts& sample ){
+        // auto covered_snps_range = make_filter_range( [&]( SampleCounts const& sample ){
+        auto covered_snps_range = make_filter_range( [&]( SampleCounts& sample ){
             ++variant_count;
             // auto copy = sample;
             // return apply_sample_counts_filter_numerical( copy, filter, stats );
@@ -567,7 +571,7 @@ TEST( Diversity, RandomFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     size_t num_tests = 5000;
     for( size_t i = 0; i < num_tests; ++i ) {

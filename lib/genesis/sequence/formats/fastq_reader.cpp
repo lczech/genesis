@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,19 +63,19 @@ FastqReader::FastqReader()
 //     Reading
 // =================================================================================================
 
-SequenceSet FastqReader::read( std::shared_ptr< utils::BaseInputSource > source ) const
+SequenceSet FastqReader::read( std::shared_ptr< genesis::utils::io::BaseInputSource > source ) const
 {
     SequenceSet result;
-    utils::InputStream is( source );
+    genesis::utils::io::InputStream is( source );
     parse_document( is, result );
     return result;
 }
 
 void FastqReader::read(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     SequenceSet& sequence_set
 ) const {
-    utils::InputStream is( source );
+    genesis::utils::io::InputStream is( source );
     parse_document( is, sequence_set );
 }
 
@@ -84,7 +84,7 @@ void FastqReader::read(
 // =================================================================================================
 
 void FastqReader::parse_document(
-    utils::InputStream& input_stream,
+    genesis::utils::io::InputStream& input_stream,
     SequenceSet&        sequence_set
 ) const {
     Sequence tmp_seq;
@@ -94,7 +94,7 @@ void FastqReader::parse_document(
 }
 
 bool FastqReader::parse_sequence(
-    utils::InputStream& input_stream,
+    genesis::utils::io::InputStream& input_stream,
     Sequence&           sequence
 ) const {
     return parse_sequence_( input_stream, sequence );
@@ -104,7 +104,7 @@ bool FastqReader::parse_sequence(
 //     Parsing Internals
 // =================================================================================================
 
-bool FastqReader::parse_sequence_( utils::InputStream& input_stream, Sequence& sequence ) const
+bool FastqReader::parse_sequence_( genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const
 {
     // Init. Call clear() in order to avoid not setting properties that might be added to
     // Sequence in the future. Should not noticeable affect speed, as the sequence string capacities
@@ -133,7 +133,7 @@ bool FastqReader::parse_sequence_( utils::InputStream& input_stream, Sequence& s
     return true;
 }
 
-void FastqReader::parse_label1_( utils::InputStream& input_stream, Sequence& sequence ) const
+void FastqReader::parse_label1_( genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const
 {
     auto& it = input_stream;
     buffer_.clear();
@@ -155,7 +155,7 @@ void FastqReader::parse_label1_( utils::InputStream& input_stream, Sequence& seq
         buffer_.cbegin(),
         buffer_.cend(),
         []( char c ){
-            return utils::is_print( c );
+            return genesis::utils::text::is_print( c );
         }
     );
     if( buffer_.empty() || !buffer_is_print ) {
@@ -170,7 +170,7 @@ void FastqReader::parse_label1_( utils::InputStream& input_stream, Sequence& seq
     sequence.label( buffer_ );
 }
 
-void FastqReader::parse_sites_( utils::InputStream& input_stream, Sequence& sequence ) const
+void FastqReader::parse_sites_( genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const
 {
     // Some prep shorthand.
     auto& it = input_stream;
@@ -209,9 +209,9 @@ void FastqReader::parse_sites_( utils::InputStream& input_stream, Sequence& sequ
 
     // Apply site casing, if needed.
     if( site_casing_ == SiteCasing::kToUpper ) {
-        utils::to_upper_ascii_inplace( buffer_ );
+        genesis::utils::text::to_upper_ascii_inplace( buffer_ );
     } else if( site_casing_ == SiteCasing::kToLower ) {
-        utils::to_lower_ascii_inplace( buffer_ );
+        genesis::utils::text::to_lower_ascii_inplace( buffer_ );
     }
 
     // Validate, if needed.
@@ -220,7 +220,7 @@ void FastqReader::parse_sites_( utils::InputStream& input_stream, Sequence& sequ
             if( !lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Fastq " + it.source_name() + ": Invalid sequence symbol "
-                    + utils::char_to_hex( c )
+                    + genesis::utils::text::char_to_hex( c )
                     + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
@@ -231,7 +231,7 @@ void FastqReader::parse_sites_( utils::InputStream& input_stream, Sequence& sequ
     sequence.sites( buffer_ );
 }
 
-void FastqReader::parse_label2_( utils::InputStream& input_stream, Sequence& sequence ) const
+void FastqReader::parse_label2_( genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const
 {
     auto& it = input_stream;
     buffer_.clear();
@@ -260,7 +260,7 @@ void FastqReader::parse_label2_( utils::InputStream& input_stream, Sequence& seq
     }
 }
 
-void FastqReader::parse_quality_( utils::InputStream& input_stream, Sequence& sequence ) const
+void FastqReader::parse_quality_( genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const
 {
     auto& it = input_stream;
     buffer_.clear();
@@ -342,7 +342,7 @@ std::string FastqReader::valid_chars() const
     }
 }
 
-utils::CharLookup<bool>& FastqReader::valid_char_lookup()
+genesis::utils::CharLookup<bool>& FastqReader::valid_char_lookup()
 {
     return lookup_;
 }

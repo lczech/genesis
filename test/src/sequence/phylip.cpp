@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,9 @@
 
 using namespace genesis::sequence;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::text;
 
 // =================================================================================================
 //     Read
@@ -250,6 +253,6 @@ TEST( Sequence, PhylipWriter )
     EXPECT_EQ( 5, sset.size() );
 
     std::string target;
-    PhylipWriter().label_length(10).write( sset, genesis::utils::to_string( target ) );
+    PhylipWriter().label_length(10).write( sset, genesis::utils::io::to_string( target ) );
     EXPECT_EQ( 6, count_substring_occurrences( target, "\n" ));
 }

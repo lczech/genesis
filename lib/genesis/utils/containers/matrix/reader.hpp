@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     MatrixReader
@@ -57,6 +58,9 @@ template <typename T>
 class MatrixReader
 {
 public:
+
+    using CsvReader = genesis::utils::formats::CsvReader;
+    using BaseInputSource = genesis::utils::io::BaseInputSource;
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -85,7 +89,7 @@ public:
 
     Matrix<T> read( std::shared_ptr<BaseInputSource> source ) const
     {
-        utils::InputStream is( source );
+        genesis::utils::io::InputStream is( source );
         return parse_( is );
     }
 
@@ -137,7 +141,7 @@ public:
 
 private:
 
-    Matrix<T> parse_( utils::InputStream& input_stream ) const
+    Matrix<T> parse_( genesis::utils::io::InputStream& input_stream ) const
     {
         // We collect data in a vector first, because resizing a Matrix is hard.
         std::vector<T> table;
@@ -188,6 +192,7 @@ private:
             } else {
                 for( size_t i = first; i < line.size(); ++i ) {
                     try {
+                        using namespace genesis::utils::text;
                         table.push_back( convert_from_string<T>( line[i] ));
                     } catch(...) {
                         throw std::runtime_error(
@@ -233,6 +238,7 @@ private:
 
 };
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

@@ -47,6 +47,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Euclidean K-Means Specialization
@@ -102,6 +103,7 @@ private:
 
 };
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Output Stream
@@ -75,11 +76,13 @@ inline void file_output_stream(
     std::ios_base::openmode mode = std::ios_base::out,
     bool                    create_dirs = true
 ) {
+    using namespace genesis::utils::core;
+
     // Make sure that we are only overwriting if we are allowed to.
-    if( ! Options::get().allow_file_overwriting() && utils::path_exists( file_name ) ) {
+    if( ! Options::get().allow_file_overwriting() && path_exists( file_name ) ) {
         throw ExistingFileError(
             "Output path '" + file_name + "' already exists. If you want to allow overwriting of "
-            "existing files, activate genesis::utils::Options::get().allow_file_overwriting() first.",
+            "existing files, activate genesis::utils::core::Options::get().allow_file_overwriting() first.",
             file_name
         );
     }
@@ -100,6 +103,7 @@ inline void file_output_stream(
     }
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

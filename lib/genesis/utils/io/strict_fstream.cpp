@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // ================================================================================================
 //     Error Reporting
@@ -157,17 +158,17 @@ static std::string mode_to_string_( std::ios_base::openmode mode )
 static void check_mode_( std::string const& filename, std::ios_base::openmode mode )
 {
     if ((mode & std::ios_base::trunc) && ! (mode & std::ios_base::out)) {
-        throw IOError(
+        throw genesis::utils::core::IOError(
             std::string("Strict IO File Stream: open('") + filename + "'): mode error: trunc and not out",
             filename
         );
     } else if ((mode & std::ios_base::app) && ! (mode & std::ios_base::out)) {
-        throw IOError(
+        throw genesis::utils::core::IOError(
             std::string("Strict IO File Stream: open('") + filename + "'): mode error: app and not out",
             filename
         );
     } else if ((mode & std::ios_base::trunc) && (mode & std::ios_base::app)) {
-        throw IOError(
+        throw genesis::utils::core::IOError(
             std::string("Strict IO File Stream: open('") + filename + "'): mode error: trunc and app",
             filename
         );
@@ -177,7 +178,7 @@ static void check_mode_( std::string const& filename, std::ios_base::openmode mo
 static void check_open_(std::ios * s_p,  std::string const& filename, std::ios_base::openmode mode )
 {
     if (s_p->fail()) {
-        throw IOError(
+        throw genesis::utils::core::IOError(
             std::string("Strict IO File Stream: open('") + filename + "'," + mode_to_string_(mode) +
             "): open failed: " + strerror_(),
             filename
@@ -195,7 +196,7 @@ static void check_peek_(std::istream * is_p,  std::string const& filename, std::
         // Nothing to do.
     }
     if( peek_failed ) {
-        throw IOError(
+        throw genesis::utils::core::IOError(
             std::string("Strict IO File Stream: open('") + filename + "'," + mode_to_string_(mode) +
             "): peek failed: " + strerror_(),
             filename
@@ -242,5 +243,6 @@ void StrictFStream::open( std::string const& filename, std::ios_base::openmode m
     check_peek_(this, filename, mode);
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis

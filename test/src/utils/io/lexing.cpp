@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,8 @@
 
 using namespace genesis;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
 // -------------------------------------------------------------------------
 //     Unsigned Int
@@ -52,7 +54,7 @@ using namespace genesis::utils;
 void test_uint ( std::string str, unsigned int val, size_t col )
 {
     std::istringstream iss ( str );
-    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
+    InputStream iit( genesis::utils::core::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_unsigned_integer<unsigned int>( iit );
     EXPECT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -88,7 +90,7 @@ TEST(Parser, UnsignedInteger)
 void test_int ( std::string str, int val, size_t col )
 {
     std::istringstream iss ( str );
-    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
+    InputStream iit( genesis::utils::core::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_signed_integer<int>( iit );
     EXPECT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -136,7 +138,7 @@ TEST(Parser, SignedInteger)
 void test_float( std::string str, double val, size_t col )
 {
     std::istringstream iss ( str );
-    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
+    InputStream iit( genesis::utils::core::make_unique< StreamInputSource >( iss ));
 
     // LOG_DBG << "str=" << str;
     auto res = parse_float<double>( iit );
@@ -249,7 +251,7 @@ TEST(Parser, Float)
 void test_number_string( std::string in, std::string expected )
 {
     std::istringstream iss ( in );
-    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
+    InputStream iit( genesis::utils::core::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_number_string( iit );
     EXPECT_EQ( expected, res ) << "Input string: '" << in << "'";
@@ -282,7 +284,7 @@ void test_string(
     bool include_qmarks
 ) {
     std::istringstream iss ( str );
-    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
+    InputStream iit( genesis::utils::core::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_quoted_string( iit, use_escapes, use_twin_quotes, include_qmarks );
     EXPECT_EQ( val, res )

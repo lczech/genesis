@@ -49,7 +49,7 @@ namespace population {
 // =================================================================================================
 
 std::vector<BedReader::Feature> BedReader::read(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source
 ) const {
     std::vector<BedReader::Feature> result;
     read_( source, [&]( Feature&& feat ){
@@ -59,9 +59,9 @@ std::vector<BedReader::Feature> BedReader::read(
 }
 
 GenomeLocusSet BedReader::read_as_genome_locus_set(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source
 ) const {
-    using namespace genesis::utils;
+    using namespace genesis::utils::bit;
 
     // Get the source into a genome region list.
     GenomeLocusSet result;
@@ -87,10 +87,10 @@ GenomeLocusSet BedReader::read_as_genome_locus_set(
 }
 
 GenomeLocusSet BedReader::read_as_genome_locus_set(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     sequence::SequenceDict const& sequence_dict
 ) const {
-    using namespace genesis::utils;
+    using namespace genesis::utils::bit;
 
     // Get the source into a genome region list.
     GenomeLocusSet result;
@@ -139,7 +139,7 @@ GenomeLocusSet BedReader::read_as_genome_locus_set(
 }
 
 GenomeLocusSet BedReader::read_as_genome_locus_set(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     std::shared_ptr< sequence::SequenceDict > sequence_dict
 ) const {
     if( sequence_dict ) {
@@ -150,7 +150,7 @@ GenomeLocusSet BedReader::read_as_genome_locus_set(
 }
 
 GenomeRegionList BedReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     bool merge
 ) const {
     GenomeRegionList result;
@@ -159,7 +159,7 @@ GenomeRegionList BedReader::read_as_genome_region_list(
 }
 
 void BedReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     GenomeRegionList& target,
     bool merge
 ) const {
@@ -173,10 +173,10 @@ void BedReader::read_as_genome_region_list(
 // =================================================================================================
 
 void BedReader::read_(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     std::function<void(Feature&&)> callback
 ) const {
-    utils::InputStream it( source );
+    genesis::utils::io::InputStream it( source );
 
     // We use an internal reading function that takes care of checking that the number of columns
     // is constant throughout the input file. This avoids code duplication for these checkes
@@ -204,7 +204,7 @@ void BedReader::read_(
 }
 
 size_t BedReader::parse_line_(
-    utils::InputStream& input_stream,
+    genesis::utils::io::InputStream& input_stream,
     BedReader::Feature& feature
 ) const {
     // Setup.
@@ -226,7 +226,7 @@ size_t BedReader::parse_line_(
         if(
             first_word == "browser" ||
             first_word == "track" ||
-            utils::starts_with( first_word, "#" )
+            genesis::utils::text::starts_with( first_word, "#" )
         ) {
             // Read until the end of the comment line; we just ignore it.
             it.get_line();
@@ -248,14 +248,14 @@ size_t BedReader::parse_line_(
             "of the line, but only chrom was found at " + it.at()
         );
     }
-    feature.chrom_start = utils::parse_unsigned_integer<size_t>( it ) + 1;
+    feature.chrom_start = genesis::utils::io::parse_unsigned_integer<size_t>( it ) + 1;
     if( ! next_field_( it, found_columns )) {
         throw std::runtime_error(
             "BED input expected to have three mandatory columns chrom,start,end in the beginning "
             "of the line, but only chrom and start were found at " + it.at()
         );
     }
-    feature.chrom_end = utils::parse_unsigned_integer<size_t>( it );
+    feature.chrom_end = genesis::utils::io::parse_unsigned_integer<size_t>( it );
 
     // From now on we need to check before every field if there is more data...
 
@@ -269,7 +269,7 @@ size_t BedReader::parse_line_(
     if( ! next_field_( it, found_columns )) {
         return found_columns;
     }
-    feature.score = utils::parse_unsigned_integer<size_t>( it );
+    feature.score = genesis::utils::io::parse_unsigned_integer<size_t>( it );
     if( feature.score > 1000 ) {
         throw std::runtime_error( "Invalid score > 1000 in BED input at " + it.at() );
     }
@@ -278,7 +278,7 @@ size_t BedReader::parse_line_(
     if( ! next_field_( it, found_columns )) {
         return found_columns;
     }
-    feature.strand = utils::read_char_or_throw( input_stream, []( char c ){
+    feature.strand = genesis::utils::io::read_char_or_throw( input_stream, []( char c ){
         return c == '+' || c == '-' || c == '.';
     });
 
@@ -286,13 +286,13 @@ size_t BedReader::parse_line_(
     if( ! next_field_( it, found_columns )) {
         return found_columns;
     }
-    feature.thick_start = utils::parse_unsigned_integer<size_t>( it ) + 1;
+    feature.thick_start = genesis::utils::io::parse_unsigned_integer<size_t>( it ) + 1;
 
     // thick_end
     if( ! next_field_( it, found_columns )) {
         return found_columns;
     }
-    feature.thick_end = utils::parse_unsigned_integer<size_t>( it );
+    feature.thick_end = genesis::utils::io::parse_unsigned_integer<size_t>( it );
 
     // item_rgb
     if( ! next_field_( it, found_columns )) {
@@ -304,13 +304,13 @@ size_t BedReader::parse_line_(
     if( ! next_field_( it, found_columns )) {
         return found_columns;
     }
-    feature.block_count = utils::parse_unsigned_integer<size_t>( it );
+    feature.block_count = genesis::utils::io::parse_unsigned_integer<size_t>( it );
 
     // block_sizes
     if( ! next_field_( it, found_columns )) {
         return found_columns;
     }
-    auto block_sizes = utils::split( parse_string_( it ), "," );
+    auto block_sizes = genesis::utils::text::split( parse_string_( it ), "," );
     for( auto const& bs : block_sizes ) {
         if( ! bs.empty() ) {
             feature.block_sizes.push_back( stoull( bs ));
@@ -328,7 +328,7 @@ size_t BedReader::parse_line_(
     if( ! next_field_( it, found_columns )) {
         return found_columns;
     }
-    auto block_starts = utils::split( parse_string_( it ), "," );
+    auto block_starts = genesis::utils::text::split( parse_string_( it ), "," );
     for( auto const& bs : block_sizes ) {
         if( ! bs.empty() ) {
             feature.block_starts.push_back( stoull( bs ));
@@ -352,7 +352,7 @@ size_t BedReader::parse_line_(
     return found_columns;
 }
 
-bool BedReader::next_field_( utils::InputStream& input_stream, size_t& found_columns ) const
+bool BedReader::next_field_( genesis::utils::io::InputStream& input_stream, size_t& found_columns ) const
 {
     // Throws for anything that is not a new line or field delimiter (tab or space).
     // We expect at least one delimiter, and then skip any more. It is not clear from
@@ -365,10 +365,10 @@ bool BedReader::next_field_( utils::InputStream& input_stream, size_t& found_col
         return false;
     }
     assert( input_stream && *input_stream != '\n' );
-    utils::read_char_or_throw( input_stream, []( char c ){
+    genesis::utils::io::read_char_or_throw( input_stream, []( char c ){
         return c == '\t' || c == ' ';
     });
-    utils::skip_while( input_stream, []( char c ){
+    genesis::utils::io::skip_while( input_stream, []( char c ){
         return c == '\t' || c == ' ';
     });
     if( ! input_stream || *input_stream == '\n' ) {
@@ -378,11 +378,11 @@ bool BedReader::next_field_( utils::InputStream& input_stream, size_t& found_col
     return true;
 }
 
-std::string BedReader::parse_string_( utils::InputStream& input_stream ) const
+std::string BedReader::parse_string_( genesis::utils::io::InputStream& input_stream ) const
 {
     // We use \n as stopping criterion here as well, so that in case of an error,
     // we at least report the error in the correct line.
-    return utils::read_while( input_stream, []( char c ){
+    return genesis::utils::io::read_while( input_stream, []( char c ){
         return c != '\t' && c != ' ' && c != '\n';
     });
 }

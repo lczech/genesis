@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     Helper For Hashing Tuples
@@ -58,7 +59,7 @@ namespace
         static void apply( size_t& seed, Tuple const& tuple )
         {
             HashValueImpl<Tuple, Index-1>::apply(seed, tuple);
-            seed = hash_combine( seed, std::get<Index>( tuple ));
+            seed = genesis::utils::core::hash_combine( seed, std::get<Index>( tuple ));
         }
     };
 
@@ -67,7 +68,7 @@ namespace
     {
         static void apply( size_t& seed, Tuple const& tuple )
         {
-            seed = hash_combine( seed, std::get<0>( tuple ));
+            seed = genesis::utils::core::hash_combine( seed, std::get<0>( tuple ));
         }
     };
 }
@@ -93,6 +94,7 @@ struct hash<std::tuple<TT...>>
 };
 
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

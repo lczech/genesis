@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Helper Classes and Enums
@@ -301,6 +302,8 @@ inline char read_char_or_throw(
     char                       criterion,
     SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    using namespace genesis::utils::text;
+
     // Skip leading whitespace
     if( skip_ws & SkipWhitespace::kLeading ) {
         skip_while( source, ::isspace );
@@ -342,6 +345,8 @@ inline char read_char_or_throw(
     std::function<bool (char)> criterion,
     SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    using namespace genesis::utils::text;
+
     // Skip leading whitespace
     if( skip_ws & SkipWhitespace::kLeading ) {
         skip_while( source, ::isspace );
@@ -387,6 +392,8 @@ inline void affirm_char_or_throw(
     char                    criterion,
     SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    using namespace genesis::utils::text;
+
     // Skip leading whitespace
     if( skip_ws & SkipWhitespace::kLeading ) {
         skip_while( source, ::isspace );
@@ -424,6 +431,8 @@ inline void affirm_char_or_throw(
     std::function<bool (char)> criterion,
     SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    using namespace genesis::utils::text;
+
     // Skip leading whitespace
     if( skip_ws & SkipWhitespace::kLeading ) {
         skip_while( source, ::isspace );
@@ -443,6 +452,7 @@ inline void affirm_char_or_throw(
     }
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

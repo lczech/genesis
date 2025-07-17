@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -109,12 +109,12 @@ int main(int argc, char **argv)
     environment->fail_on_missing_data_dir = true;
 
     // We want to see Logging information while testing.
-    genesis::utils::Logging::log_to_stdout();
-    genesis::utils::Logging::max_level(genesis::utils::Logging::kDebug4);
+    genesis::utils::core::Logging::log_to_stdout();
+    genesis::utils::core::Logging::max_level(genesis::utils::core::Logging::kDebug4);
 
     // Start the global thread pool, once here.
     // Needed by some of the tests.
-    genesis::utils::Options::get().init_global_thread_pool( 2 );
+    genesis::utils::core::Options::get().init_global_thread_pool( 2 );
 
     ::testing::AddGlobalTestEnvironment(environment);
     return RUN_ALL_TESTS();

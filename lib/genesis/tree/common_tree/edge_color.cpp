@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,10 +48,11 @@ namespace tree {
 /**
  * @brief
  */
-std::vector<utils::Color> edge_color_branch_length_gradient( Tree const& tree, bool zero_based )
-{
+std::vector<genesis::utils::color::Color> edge_color_branch_length_gradient(
+    Tree const& tree, bool zero_based
+) {
     // Init the result vector with the min head color (green) for each edge.
-    auto ret = std::vector<utils::Color>( tree.edge_count(), utils::heat_gradient(0.0) );
+    auto ret = std::vector<genesis::utils::color::Color>( tree.edge_count(), genesis::utils::color::heat_gradient(0.0) );
     if (tree.edge_count() == 0) {
         // If we are here, this is an empty vector.
         return ret;
@@ -80,7 +81,7 @@ std::vector<utils::Color> edge_color_branch_length_gradient( Tree const& tree, b
     // Calculate the heat gradient color based on the branch length for each edge.
     for( auto const& edge : tree.edges() ) {
         double val = ( edge.data<CommonEdgeData>().branch_length - min_bl) / dist;
-        ret[ edge.index() ] = utils::heat_gradient(val);
+        ret[ edge.index() ] = genesis::utils::color::heat_gradient(val);
     }
     return ret;
 }

@@ -68,8 +68,8 @@ namespace placement {
  */
 static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
     tree::Tree const& tree,
-    utils::Matrix<double> const& node_distances,
-    utils::Matrix<signed char> const& node_sides,
+    genesis::utils::containers::Matrix<double> const& node_distances,
+    genesis::utils::containers::Matrix<signed char> const& node_sides,
     size_t const  histogram_bins
 ) {
     auto const node_count = tree.node_count();
@@ -89,7 +89,7 @@ static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
     histogram_set.histograms.resize( node_count );
 
     // Make histograms that have enough room on both sides.
-    utils::parallel_for( 0, node_count, [&]( size_t node_idx ){
+    genesis::utils::threading::parallel_for( 0, node_count, [&]( size_t node_idx ){
         // Find furthest nodes on root and non-root sides.
         // For now, we use both positive values, and later reverse the sign of the min entry.
         double min = 0.0;
@@ -140,8 +140,8 @@ static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
  */
 static void fill_node_distance_histogram_set_ (
     Sample const& sample,
-    utils::Matrix<double> const& node_distances,
-    utils::Matrix<signed char> const& node_sides,
+    genesis::utils::containers::Matrix<double> const& node_distances,
+    genesis::utils::containers::Matrix<signed char> const& node_sides,
     NodeDistanceHistogramSet& histogram_set
 ) {
     // Basic checks.
@@ -247,8 +247,8 @@ static void fill_node_distance_histogram_set_ (
 
 NodeDistanceHistogramSet node_distance_histogram_set (
     Sample const& sample,
-    utils::Matrix<double> const& node_distances,
-    utils::Matrix<signed char> const& node_sides,
+    genesis::utils::containers::Matrix<double> const& node_distances,
+    genesis::utils::containers::Matrix<signed char> const& node_sides,
     size_t const  histogram_bins
 ) {
     // Make the histograms, fill them, return them.
@@ -310,22 +310,22 @@ double node_histogram_distance (
     return dist;
 }
 
-utils::Matrix<double> node_histogram_distance(
+genesis::utils::containers::Matrix<double> node_histogram_distance(
     std::vector<NodeDistanceHistogramSet> const& histogram_sets
 ) {
     // Init distance matrix.
     auto const set_size = histogram_sets.size();
-    auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
+    auto result = genesis::utils::containers::Matrix<double>( set_size, set_size, 0.0 );
 
     // We only need to calculate the upper triangle. Get the number of indices needed
     // to describe this triangle.
-    size_t const max_k = utils::triangular_size( set_size );
+    size_t const max_k = genesis::utils::containers::triangular_size( set_size );
 
     // Calculate distance matrix for every pair of samples.
-    utils::parallel_for( 0, max_k, [&]( size_t k ) {
+    genesis::utils::threading::parallel_for( 0, max_k, [&]( size_t k ) {
 
         // For the given linear index, get the actual position in the Matrix.
-        auto const ij = utils::triangular_indices( k, set_size );
+        auto const ij = genesis::utils::containers::triangular_indices( k, set_size );
         auto const i = ij.first;
         auto const j = ij.second;
 
@@ -429,7 +429,7 @@ static std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     auto result = std::vector<NodeDistanceHistogramSet>( set_size, empty_hist );
 
     // Calculate the histograms for all samples.
-    utils::parallel_for( 0, set_size, [&]( size_t i ) {
+    genesis::utils::threading::parallel_for( 0, set_size, [&]( size_t i ) {
         // Check compatibility.
         // It suffices to check adjacent pairs of samples, as compatibility is transitive.
         if( i > 0 ) {
@@ -450,7 +450,7 @@ static std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     return result;
 }
 
-utils::Matrix<double> node_histogram_distance (
+genesis::utils::containers::Matrix<double> node_histogram_distance (
     SampleSet const& sample_set,
     size_t const     histogram_bins
 ) {

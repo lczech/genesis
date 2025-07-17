@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Stroke
@@ -128,7 +129,7 @@ void SvgStroke::write( std::ostream& out ) const
     }
 
     if( dash_array.size() > 0 ) {
-        out << svg_attribute( "stroke-dasharray", join( dash_array, " " ));
+        out << svg_attribute( "stroke-dasharray", genesis::utils::text::join( dash_array, " " ));
         out << svg_attribute( "stroke-dashoffset", dash_offset );
     }
 }
@@ -254,7 +255,7 @@ void SvgTransform::Rotate::write( std::ostream &out ) const
 SvgPoint SvgTransform::Rotate::apply( SvgPoint const& p ) const
 {
     // Convert to radians, and precompute sin and cos.
-    auto const r = a * utils::PI / 180.0;
+    auto const r = a * genesis::utils::math::PI / 180.0;
     auto const sr = std::sin(r);
     auto const cr = std::cos(r);
 
@@ -304,7 +305,7 @@ void SvgTransform::SkewX::write( std::ostream &out ) const
 SvgPoint SvgTransform::SkewX::apply( SvgPoint const& p ) const
 {
     // Convert to radians, and compute skew.
-    auto const rx = ax * utils::PI / 180.0;
+    auto const rx = ax * genesis::utils::math::PI / 180.0;
     return SvgPoint( p.x + p.y * std::tan(rx), p.y );
 }
 
@@ -322,7 +323,7 @@ void SvgTransform::SkewY::write( std::ostream &out ) const
 SvgPoint SvgTransform::SkewY::apply( SvgPoint const& p ) const
 {
     // Convert to radians, and compute skew.
-    auto const ry = ay * utils::PI / 180.0;
+    auto const ry = ay * genesis::utils::math::PI / 180.0;
     return SvgPoint( p.x, p.x * std::tan(ry) + p.y );
 }
 
@@ -405,5 +406,6 @@ void SvgTransform::write( std::ostream& out ) const
     }
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Palette
@@ -141,5 +142,6 @@ std::vector<Color> ColorMap::operator() (
 }
 
 
+} // namespace color
 } // namespace utils
 } // namespace genesis

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     MatrixSimpleReader
@@ -80,9 +81,9 @@ public:
     //     Reading
     // -------------------------------------------------------------
 
-    Matrix<T> read( std::shared_ptr<BaseInputSource> source ) const
+    Matrix<T> read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
     {
-        utils::InputStream is( source );
+        genesis::utils::io::InputStream is( source );
         return parse_( is );
     }
 
@@ -129,7 +130,7 @@ public:
      * The parser functor is expected to leave the stream at the next character, that is,
      * either the separator char, end of line, or end of file.
      */
-    MatrixSimpleReader& parse_value_functor( std::function<T( utils::InputStream& )> functor )
+    MatrixSimpleReader& parse_value_functor( std::function<T( genesis::utils::io::InputStream& )> functor )
     {
         parse_value_ = functor;
         return *this;
@@ -147,7 +148,7 @@ public:
 
 private:
 
-    Matrix<T> parse_( utils::InputStream& input_stream ) const
+    Matrix<T> parse_( genesis::utils::io::InputStream& input_stream ) const
     {
         auto& it = input_stream;
 
@@ -217,7 +218,7 @@ private:
         return Matrix<T>( rows, cols, std::move(table) );
     }
 
-    size_t parse_line_( utils::InputStream& input_stream, std::vector<T>& table ) const
+    size_t parse_line_( genesis::utils::io::InputStream& input_stream, std::vector<T>& table ) const
     {
         auto& it = input_stream;
         size_t cnt = 0;
@@ -230,7 +231,7 @@ private:
             if( it && *it != separator_char_ && *it != '\n' ) {
                 throw std::runtime_error(
                     "In " + it.source_name() + " at " + it.at() + ": " +
-                    "Unexpected char " + char_to_hex( *it )
+                    "Unexpected char " + genesis::utils::text::char_to_hex( *it )
                 );
             }
             assert( !it || *it == separator_char_ || *it == '\n' );
@@ -243,7 +244,7 @@ private:
         return cnt;
     }
 
-    T parse_field_( utils::InputStream& input_stream ) const
+    T parse_field_( genesis::utils::io::InputStream& input_stream ) const
     {
         T result;
         auto& it = input_stream;
@@ -266,7 +267,7 @@ private:
                 // Otherwise, use a generic one, that utilizes stream input.
                 // Expensive, but works.
                 try {
-                    result = convert_from_string<T>( value );
+                    result = genesis::utils::text::convert_from_string<T>( value );
                 } catch(...) {
                     throw std::runtime_error(
                         "In " + it.source_name() + " at " + it.at() + ": " +
@@ -288,11 +289,12 @@ private:
     bool skip_first_row_ = false;
     bool skip_first_col_ = false;
 
-    std::function<T( utils::InputStream& )> parse_value_;
+    std::function<T( genesis::utils::io::InputStream& )> parse_value_;
     std::function<T( std::string const& )> convert_value_;
 
 };
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

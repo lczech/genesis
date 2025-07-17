@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ class TreeLink;
  *
  * The vector is indexed using the node().index() for every node.
  */
-utils::Matrix<size_t> node_path_length_matrix( Tree const& tree );
+genesis::utils::containers::Matrix<size_t> node_path_length_matrix( Tree const& tree );
 
 /**
  * @brief Return a vector containing the depth of all nodes with respect to the given start node.
@@ -88,7 +88,7 @@ std::vector<size_t> node_path_length_vector(
 //     Edge Distance Measures
 // =================================================================================================
 
-utils::Matrix<size_t> edge_path_length_matrix(
+genesis::utils::containers::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
 );
 

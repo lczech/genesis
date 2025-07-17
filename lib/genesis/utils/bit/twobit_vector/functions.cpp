@@ -36,6 +36,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Strings
@@ -183,5 +184,6 @@ std::string bitstring( TwobitVector::WordType const& vec )
     return res;
 }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis

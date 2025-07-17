@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,7 +45,11 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
+namespace io {
+
     class BaseInputSource;
+
+}
 }
 
 namespace sequence {
@@ -212,7 +216,7 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
  * @see guess_quality_encoding()
  */
 QualityEncoding guess_fastq_quality_encoding(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     size_t max_lines = 0,
     size_t max_chars = 0
 );

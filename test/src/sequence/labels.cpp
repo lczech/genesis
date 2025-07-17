@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
+using namespace genesis::utils::io;
 
 TEST( SequenceSet, FilterByLabelList )
 {
@@ -48,7 +49,7 @@ TEST( SequenceSet, FilterByLabelList )
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     SequenceSet sset;
-    FastaReader().read( utils::from_file(infile), sset);
+    FastaReader().read( from_file(infile), sset);
 
     // Some basic assertments.
     EXPECT_EQ( 10, sset.size() );

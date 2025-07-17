@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -260,7 +260,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorPreorder< true >>
+genesis::utils::containers::Range< IteratorPreorder< true >>
 preorder( ElementType const& element )
 {
     return {
@@ -270,7 +270,7 @@ preorder( ElementType const& element )
 }
 
 template<typename ElementType>
-utils::Range< IteratorPreorder< false >>
+genesis::utils::containers::Range< IteratorPreorder< false >>
 preorder( ElementType& element )
 {
     return {

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Forward Declarations
@@ -72,6 +73,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationLogarithmic con
 std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const& norm, size_t num_ticks );
 std::map<double, std::string> color_tickmarks( ColorNormalizationBoundary const& norm, size_t num_ticks );
 
+} // namespace color
 } // namespace utils
 } // namespace genesis
 

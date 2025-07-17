@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,24 +39,31 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Dataframe Helper Functions
 // =================================================================================================
 
-Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report );
+genesis::utils::containers::Dataframe glm_prepare_dataframe(
+    genesis::utils::containers::Dataframe const& df,
+    std::string& report
+);
 
-Dataframe glm_prepare_dataframe( Dataframe const& df );
+genesis::utils::containers::Dataframe glm_prepare_dataframe(
+    genesis::utils::containers::Dataframe const& df
+);
 
-Matrix<double> glm_convert_dataframe(
-    Dataframe const& df,
+genesis::utils::containers::Matrix<double> glm_convert_dataframe(
+    genesis::utils::containers::Dataframe const& df,
     std::vector<std::string> row_order
 );
 
-Matrix<double> glm_convert_dataframe(
-    Dataframe const& df
+genesis::utils::containers::Matrix<double> glm_convert_dataframe(
+    genesis::utils::containers::Dataframe const& df
 );
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

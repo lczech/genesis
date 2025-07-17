@@ -77,7 +77,7 @@ void SquashClustering::init_( std::vector<MassTree>&& trees )
         clusters_[i].distances.resize( i );
 
         // Calculate the distances.
-        utils::parallel_for( 0, i, [&]( size_t k )
+        genesis::utils::threading::parallel_for( 0, i, [&]( size_t k )
         {
             auto const dist = earth_movers_distance( clusters_[i].tree, clusters_[k].tree, p_ );
             clusters_[i].distances[k] = dist;
@@ -167,7 +167,7 @@ void SquashClustering::merge_clusters_( size_t i, size_t j )
     // Calculate distances to still active clusters, which also includes the two clusters that
     // we are about to merge. We will deactivate them after the loop. This way, we also compute
     // their distances in parallel, maximizing throughput!
-    utils::parallel_for(
+    genesis::utils::threading::parallel_for(
         0,
         clusters_.size() - 1,
         [&]( size_t k )

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ public:
      * needs to be provided via color_map(). See there for details.
      *
      * The coloring is applied using escape sequences. This works on most modern terminals.
-     * See utils::Style for details and for a list of the available color names.
+     * See genesis::utils::text::Style for details and for a list of the available color names.
      */
     enum class ColorMode {
         /**
@@ -239,7 +239,7 @@ public:
      * printed without color.
      *
      * See @link color_mode( PrinterSimple::ColorMode value ) color_mode()@endlink for more details.
-     * See utils::Style for details and for a list of the available color names.
+     * See genesis::utils::text::Style for details and for a list of the available color names.
      */
     PrinterSimple& color_map( std::map<char, std::string> const& value );
 

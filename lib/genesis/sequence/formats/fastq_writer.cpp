@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -114,7 +114,7 @@ static void fastq_writer_write_sequence_helper_(
 
 void FastqWriter::write(
     Sequence const& sequence,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     // Produce the phred quality score.
     std::string quality_string;
@@ -145,7 +145,7 @@ void FastqWriter::write(
 void FastqWriter::write(
     Sequence const& sequence,
     std::string const& quality_string,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     // We want to avoid mistakes here of calling this function with a provided qualith string,
     // in situations where the sequence itself already contains one.
@@ -171,7 +171,7 @@ void FastqWriter::write(
 
 void FastqWriter::write(
     SequenceSet const& sequence_set,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     for( Sequence const& sequence : sequence_set ) {
         write( sequence, target );
@@ -184,7 +184,7 @@ void FastqWriter::write(
     std::string_view const& label,
     std::string_view const& sites,
     std::string_view const& quality,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     // We need to make sure that a quality string is given, or filled in.
     // We use an internal buffer to store the filled quality if needed, and redirect to there.

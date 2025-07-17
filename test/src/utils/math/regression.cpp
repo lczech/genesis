@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,11 @@
 #include <cmath>
 
 using namespace genesis::utils;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 TEST( Math, GlmFactors )
 {

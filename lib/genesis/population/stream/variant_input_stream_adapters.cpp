@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -266,7 +266,7 @@ VariantMergeGroupAssignment make_variant_merging_input_stream_group_assignment_(
         LOG_WARN << "In the provided list of samples to merge into groups, there were "
                  << std::to_string( samples_names_to_warn.size() )
                  << " sample names that did not occur in the input sample names:\n"
-                 << "  - " << genesis::utils::join( samples_names_to_warn, "  - " )
+                 << "  - " << genesis::utils::text::join( samples_names_to_warn, "  - " )
         ;
     }
 

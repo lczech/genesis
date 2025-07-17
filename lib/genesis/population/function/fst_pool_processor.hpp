@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,13 +86,13 @@ public:
      * is to be used, deactivate by explicitly setting the thread_pool() function here to `nullptr`.
      */
     FstPoolProcessor(
-        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr,
         size_t threading_threshold = 4096
     )
         : thread_pool_( thread_pool )
         , threading_threshold_( threading_threshold )
     {
-        thread_pool_ = thread_pool ? thread_pool : utils::Options::get().global_thread_pool();
+        thread_pool_ = thread_pool ? thread_pool : genesis::utils::core::Options::get().global_thread_pool();
     }
 
     ~FstPoolProcessor() = default;
@@ -110,7 +110,7 @@ public:
     /**
      * @brief Get the thread pool used for processing, if enough sample pairs are being processed.
      */
-    std::shared_ptr<utils::ThreadPool> thread_pool() const
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool() const
     {
         return thread_pool_;
     }
@@ -121,7 +121,7 @@ public:
      * See threading_threshold() for details on when we use the thread pool.
      * Shall not be changed after calling process().
      */
-    FstPoolProcessor& thread_pool( std::shared_ptr<utils::ThreadPool> value )
+    FstPoolProcessor& thread_pool( std::shared_ptr<genesis::utils::threading::ThreadPool> value )
     {
         thread_pool_ = value;
         return *this;
@@ -434,7 +434,7 @@ private:
 
     // Thread pool to run the buffering in the background, and the size
     // (number of sample pairs) at which we start using the thread pool.
-    std::shared_ptr<utils::ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool_;
     size_t threading_threshold_ = 0;
 };
 
@@ -460,7 +460,7 @@ inline FstPoolProcessor make_fst_pool_processor(
         for( size_t j = i + 1; j < pool_sizes.size(); ++j ) {
             result.add_calculator(
                 i, j,
-                ::genesis::utils::make_unique<Calculator>(
+                genesis::utils::core::make_unique<Calculator>(
                     pool_sizes[i],
                     pool_sizes[j],
                     args...
@@ -498,7 +498,7 @@ inline FstPoolProcessor make_fst_pool_processor(
         }
         result.add_calculator(
             p.first, p.second,
-            ::genesis::utils::make_unique<Calculator>(
+            genesis::utils::core::make_unique<Calculator>(
                 pool_sizes[p.first],
                 pool_sizes[p.second],
                 args...
@@ -527,7 +527,7 @@ inline FstPoolProcessor make_fst_pool_processor(
     for( size_t i = 0; i < pool_sizes.size(); ++i ) {
         result.add_calculator(
             index, i,
-            ::genesis::utils::make_unique<Calculator>(
+            genesis::utils::core::make_unique<Calculator>(
                 pool_sizes[index],
                 pool_sizes[i],
                 args...
@@ -555,7 +555,7 @@ inline FstPoolProcessor make_fst_pool_processor(
     FstPoolProcessor result;
     result.add_calculator(
         index_1, index_2,
-        ::genesis::utils::make_unique<Calculator>(
+        genesis::utils::core::make_unique<Calculator>(
             pool_sizes[index_1],
             pool_sizes[index_2],
             args...

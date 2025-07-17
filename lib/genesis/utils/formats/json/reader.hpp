@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_stream.hpp>
 
 #include <iosfwd>
 #include <memory>
@@ -39,12 +40,12 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Forward declarations
 // =================================================================================================
 
-class InputStream;
 class JsonDocument;
 
 // =================================================================================================
@@ -76,6 +77,8 @@ public:
     JsonReader& operator= ( JsonReader const& ) = default;
     JsonReader& operator= ( JsonReader&& )      = default;
 
+    using InputStream = genesis::utils::io::InputStream;
+
     // ---------------------------------------------------------------------
     //     Reading
     // ---------------------------------------------------------------------
@@ -84,10 +87,10 @@ public:
      * @brief Read from a source containing a JSON document and
      * parse its contents into a JsonDocument.
      *
-     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    JsonDocument read( std::shared_ptr<BaseInputSource> source ) const;
+    JsonDocument read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing Functions
@@ -101,6 +104,7 @@ public:
 
 };
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

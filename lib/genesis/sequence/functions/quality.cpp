@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ static const std::array<double, 256> phred_score_to_error_probability_lookup_ = 
 inline void throw_invalid_quality_code_( char quality_code, QualityEncoding encoding )
 {
     throw std::invalid_argument(
-        "Invalid quality code: " + utils::char_to_hex( quality_code ) +
+        "Invalid quality code: " + genesis::utils::text::char_to_hex( quality_code ) +
         " is not in the valid range for " + quality_encoding_name( encoding ) + " quality codes."
     );
 }
@@ -197,9 +197,9 @@ std::string quality_encoding_name( QualityEncoding encoding, bool with_offset )
 QualityEncoding guess_quality_encoding_from_name( std::string const& name )
 {
     // Transform the string into a uniform form.
-    auto s = utils::to_lower( name );
+    auto s = genesis::utils::text::to_lower( name );
     s.erase( std::remove_if(s.begin(), s.end(), []( char c ){
-        return ! utils::is_alnum( c );
+        return ! genesis::utils::text::is_alnum( c );
     }), s.end() );
 
     // Match the enum.
@@ -496,7 +496,7 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
 }
 
 QualityEncoding guess_fastq_quality_encoding(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
     size_t max_lines,
     size_t max_chars
 ) {
@@ -538,7 +538,7 @@ QualityEncoding guess_fastq_quality_encoding(
     );
 
     // Read the input, sequence by sequence.
-    utils::InputStream input_stream( source );
+    genesis::utils::io::InputStream input_stream( source );
     Sequence seq;
     while( reader.parse_sequence( input_stream, seq ) ) {
         // Here, we check the limits, if used.

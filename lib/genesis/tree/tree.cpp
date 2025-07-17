@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -117,13 +117,13 @@ Tree Tree::clone_topology() const
     // Create all objects. We need two loops per array, because the pointers have to exist
     // in order to be linked to each other.
     for( size_t i = 0; i < links_.size(); ++i ) {
-        res.links_[i] = utils::make_unique< TreeLink >();
+        res.links_[i] = genesis::utils::core::make_unique< TreeLink >();
     }
     for( size_t i = 0; i < nodes_.size(); ++i ) {
-        res.nodes_[i] = utils::make_unique< TreeNode >();
+        res.nodes_[i] = genesis::utils::core::make_unique< TreeNode >();
     }
     for( size_t i = 0; i < edges_.size(); ++i ) {
-        res.edges_[i] = utils::make_unique< TreeEdge >();
+        res.edges_[i] = genesis::utils::core::make_unique< TreeEdge >();
     }
 
     // Set all pointers for the topology in a second round of loops.

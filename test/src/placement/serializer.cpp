@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@
 
 using namespace genesis;
 using namespace genesis::placement;
+using namespace genesis::utils::io;
 
 TEST(SampleSerializer, SaveAndLoad)
 {
@@ -53,7 +54,7 @@ TEST(SampleSerializer, SaveAndLoad)
     std::string tmpfile = environment->data_dir + "placement/test_a.bplace";
 
     // Prepare a Sample with data.
-    Sample smp_save = JplaceReader().read( utils::from_file(infile));
+    Sample smp_save = JplaceReader().read( from_file(infile));
     EXPECT_EQ   (5, total_placement_count(smp_save));
     EXPECT_TRUE (validate(smp_save, true, false));
 

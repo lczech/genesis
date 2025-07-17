@@ -66,6 +66,7 @@
 
 namespace genesis {
 namespace utils {
+namespace core {
 
 // =================================================================================================
 //     File Access
@@ -129,6 +130,7 @@ std::string file_read( std::string const& filename, bool detect_compression )
     std::string str;
     errno = 0;
 
+    using namespace genesis::utils::io;
     if( detect_compression && is_gzip_compressed_file( filename )) {
 
         // Open decompressing stream
@@ -170,8 +172,9 @@ std::string file_read( std::string const& filename, bool detect_compression )
 
 std::vector<std::string> file_read_lines( std::string const& filename, bool detect_compression )
 {
+    using namespace genesis::utils::io;
     std::vector<std::string> result;
-    utils::InputStream it( from_file( filename, detect_compression ));
+    InputStream it( from_file( filename, detect_compression ));
     while( it ) {
         result.push_back( it.get_line() );
     }
@@ -181,7 +184,7 @@ std::vector<std::string> file_read_lines( std::string const& filename, bool dete
 void file_write( std::string const& content, std::string const& filename, bool create_dirs )
 {
     std::ofstream ofs;
-    utils::file_output_stream( filename, ofs, std::ios_base::out, create_dirs );
+    genesis::utils::io::file_output_stream( filename, ofs, std::ios_base::out, create_dirs );
     ofs << content;
 }
 
@@ -237,7 +240,7 @@ void dir_create( std::string const& path, bool with_parents )
     struct stat info;
 
     // Checks. If it is the current dir, do nothing.
-    auto const path_no_bs = utils::trim_right( path, "/\\");
+    auto const path_no_bs = genesis::utils::text::trim_right( path, "/\\");
     if( path_no_bs.empty() ) {
         return;
     }
@@ -266,7 +269,7 @@ void dir_create( std::string const& path, bool with_parents )
 
 std::string dir_normalize_path( std::string const& path )
 {
-    return utils::trim_right( path, "/") + "/";
+    return genesis::utils::text::trim_right( path, "/") + "/";
 }
 
 static std::vector<std::string> dir_list_contents_(
@@ -799,7 +802,7 @@ std::string file_basename(
 ) {
     auto bn = file_basename( filename );
     for( auto const& ext : remove_extensions ) {
-        if( utils::ends_with( bn, ext ) ) {
+        if( genesis::utils::text::ends_with( bn, ext ) ) {
             bn.erase( bn.size() - ext.size() );
         }
     }
@@ -832,13 +835,15 @@ std::string file_extension( std::string const& filename )
 
 bool is_valid_filename( std::string const& filename )
 {
+    using namespace genesis::utils::text;
+
     // No empty filenames.
     if( trim( filename ) == "" ) {
         return false;
     }
 
     // No space at beginning or end.
-    if( starts_with( filename, " " ) || ends_with( filename, " " )) {
+    if( starts_with( filename, " " ) || genesis::utils::text::ends_with( filename, " " )) {
         return false;
     }
 
@@ -860,6 +865,8 @@ bool is_valid_filename( std::string const& filename )
 
 std::string sanitize_filename( std::string const& filename )
 {
+    using namespace genesis::utils::text;
+
     // Prepare result.
     std::string result = "";
     result.reserve( filename.size() );
@@ -883,5 +890,6 @@ std::string sanitize_filename( std::string const& filename )
     return result;
 }
 
+} // namespace core
 } // namespace utils
 } // namespace genesis

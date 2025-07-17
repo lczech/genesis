@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,7 +73,9 @@ public:
      * If provided, this function is called for every Taxon, and can be used to store
      * additional data in the Json object of that Taxon.
      */
-    std::function<void( Taxon const&, utils::JsonDocument::ObjectType& )> taxon_to_json;
+    std::function<
+        void( Taxon const&, genesis::utils::formats::JsonDocument::ObjectType& )
+    > taxon_to_json;
 
     /**
      * @brief Function to decide whether to recurse into the children of a Taxon.
@@ -101,9 +103,12 @@ public:
     //     Writing
     // ---------------------------------------------------------------------
 
-    void write( Taxonomy const& tax, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write(
+        Taxonomy const& tax,
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+    ) const;
 
-    utils::JsonDocument to_document( Taxonomy const& tax ) const;
+    genesis::utils::formats::JsonDocument to_document( Taxonomy const& tax ) const;
 
     // ---------------------------------------------------------------------
     //     Members
@@ -111,7 +116,7 @@ public:
 
 private:
 
-    utils::JsonDocument::ObjectType taxon_to_object_( Taxon const& tax ) const;
+    genesis::utils::formats::JsonDocument::ObjectType taxon_to_object_( Taxon const& tax ) const;
 
 };
 

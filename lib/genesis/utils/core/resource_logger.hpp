@@ -54,6 +54,7 @@
 
 namespace genesis {
 namespace utils {
+namespace core {
 
 // =================================================================================================
 //     Resource Logger
@@ -181,7 +182,7 @@ public:
     void log_to_file( std::string const& log_file, bool write_header = true )
     {
         auto target = std::make_shared<std::ofstream>();
-        file_output_stream( log_file, *target );
+        genesis::utils::io::file_output_stream( log_file, *target );
         log_to_sink(
             [target]( std::string const& message ){
                 (*target) << message << std::endl;
@@ -223,6 +224,8 @@ private:
 
     std::string make_log_message_()
     {
+        using genesis::utils::text::to_string_byte_format;
+
         // TODO make this a functional instead, so that users can provide any form of logging they want. // TODO rename the class into TimedLogger or something, then, provide a default implementation
         // of this here, so that we still have an easy to use ResourceLogger based on that.
 
@@ -324,6 +327,7 @@ private:
 
 };
 
+} // namespace core
 } // namespace utils
 } // namespace genesis
 

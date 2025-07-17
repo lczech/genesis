@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Fast Randomness
@@ -120,7 +121,7 @@ std::vector<size_t> select_without_replacement( size_t const k, size_t const n )
         );
     }
 
-    auto& engine = Options::get().random_engine();
+    auto& engine = genesis::utils::core::Options::get().random_engine();
     std::uniform_real_distribution<double> distribution( 0.0, 1.0 );
 
     size_t t = 0; // total input records dealt with
@@ -145,5 +146,6 @@ std::vector<size_t> select_without_replacement( size_t const k, size_t const n )
     return result;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

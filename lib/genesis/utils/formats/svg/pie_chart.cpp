@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Pie Chart
@@ -50,7 +51,7 @@ namespace utils {
 
 SvgGroup make_svg_pie_chart(
     std::vector<double> const& values,
-    std::vector<Color> const& colors,
+    std::vector<genesis::utils::color::Color> const& colors,
     double radius,
     double start_angle,
     bool clockwise
@@ -94,7 +95,7 @@ SvgGroup make_svg_pie_chart(
         // We compute the angle that the wedge spans, and where it starts and ends.
         // If we are going counter clockwise, we have to swap the positions, due to
         // how our svg_arc helper function takes its arguments (as it always paints clockwise).
-        auto const angle = 2.0 * utils::PI * values[i] / total;
+        auto const angle = 2.0 * genesis::utils::math::PI * values[i] / total;
         auto start_a = start_angle + dir * sum;
         auto end_a = start_angle + dir * ( sum + angle );
         if( ! clockwise ) {
@@ -115,5 +116,6 @@ SvgGroup make_svg_pie_chart(
     return result;
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

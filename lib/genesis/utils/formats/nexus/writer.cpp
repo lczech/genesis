@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,12 +41,13 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Nexus Writer
 // =================================================================================================
 
-void NexusWriter::write( NexusDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const
+void NexusWriter::write( NexusDocument const& document, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
 {
     auto& os = target->ostream();
     os << "#NEXUS\n";
@@ -61,9 +62,10 @@ void NexusWriter::write( NexusDocument const& document, std::shared_ptr<utils::B
 std::string NexusWriter::to_string( NexusDocument const& document ) const
 {
     std::stringstream sstr;
-    write( document, utils::to_stream( sstr ));
+    write( document, genesis::utils::io::to_stream( sstr ));
     return sstr.str();
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

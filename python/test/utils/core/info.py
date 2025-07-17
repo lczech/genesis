@@ -20,21 +20,21 @@
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 import unittest
-from genesis.genesis import utils
+from genesis.genesis.utils import core
 
 class TestGenesisUtilsCoreInfo(unittest.TestCase):
     def test_info(self):
-        self.assertIsInstance(utils.info_stdout_is_terminal(), bool)
-        self.assertIsInstance(utils.info_stderr_is_terminal(), bool)
-        self.assertIsInstance(utils.info_print_hardware(), str)
+        self.assertIsInstance(core.info_stdout_is_terminal(), bool)
+        self.assertIsInstance(core.info_stderr_is_terminal(), bool)
+        self.assertIsInstance(core.info_print_hardware(), str)
 
-        self.assertIsInstance(utils.guess_number_of_threads(), int)
-        self.assertGreater(utils.guess_number_of_threads(), 0)
+        self.assertIsInstance(core.guess_number_of_threads(), int)
+        self.assertGreater(core.guess_number_of_threads(), 0)
 
     def test_compiler(self):
-        # print(utils.info_print_compiler())
-        self.assertTrue(utils.info_print_compiler())
+        # print(core.info_print_compiler())
+        self.assertTrue(core.info_print_compiler())
 
     def test_hardware(self):
-        # print(utils.info_print_hardware())
-        self.assertTrue(utils.info_print_hardware())
+        # print(core.info_print_hardware())
+        self.assertTrue(core.info_print_hardware())

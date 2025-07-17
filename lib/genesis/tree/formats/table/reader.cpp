@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -85,7 +85,7 @@ void make_tree_from_parents_table_add_edge_(
 
         // Create a new node. For now, we use CommonNodeData for simplicty.
         // We set all properties except for the link, which is done later.
-        auto new_node = utils::make_unique< TreeNode >();
+        auto new_node = genesis::utils::core::make_unique< TreeNode >();
         new_node->reset_index( node_index );
         new_node->reset_data( CommonNodeData::create() );
         new_node->data<CommonNodeData>().name = node_name;
@@ -120,9 +120,9 @@ void make_tree_from_parents_table_add_edge_(
     // and the nodes are missing the respective pointers to those.
 
     // First create the new elements we need, to have all pointers.
-    auto parent_link = utils::make_unique< TreeLink >();
-    auto child_link  = utils::make_unique< TreeLink >();
-    auto new_edge    = utils::make_unique< TreeEdge >();
+    auto parent_link = genesis::utils::core::make_unique< TreeLink >();
+    auto child_link  = genesis::utils::core::make_unique< TreeLink >();
+    auto new_edge    = genesis::utils::core::make_unique< TreeEdge >();
 
     // At the parent, we make a new link to connect to the child node.
     // If we just created the parent, this is the first link of the parent,
@@ -206,7 +206,7 @@ Tree make_tree_from_parents_table(
     if( root_nodes.size() != 1 ) {
         throw std::invalid_argument(
             "Provided list of child and parent nodes does not form a singe tree, but a forest with " +
-            std::to_string( root_nodes.size() ) + " root nodes: " + utils::join( root_nodes )
+            std::to_string( root_nodes.size() ) + " root nodes: " + genesis::utils::text::join( root_nodes )
         );
     }
     assert( tree.node_count() == child_names.size() + 1 );

@@ -108,8 +108,8 @@ public:
     // -------------------------------------------------------------------------
 
     using ContainerType  = std::vector<std::unique_ptr<Taxon>>;
-    using       iterator = utils::DereferenceIterator< ContainerType::iterator >;
-    using const_iterator = utils::DereferenceIterator< ContainerType::const_iterator >;
+    using       iterator = genesis::utils::containers::DereferenceIterator< ContainerType::iterator >;
+    using const_iterator = genesis::utils::containers::DereferenceIterator< ContainerType::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five

@@ -71,10 +71,10 @@ namespace placement {
 //     Expected Distance between Placement Locations
 // =================================================================================================
 
-double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
+double edpl( Pquery const& pquery, genesis::utils::containers::Matrix<double> const& node_distances )
 {
     double result = 0.0;
-    utils::parallel_for( 0, pquery.placement_size(), [&]( size_t i ) {
+    genesis::utils::threading::parallel_for( 0, pquery.placement_size(), [&]( size_t i ) {
         for( size_t j = i + 1; j < pquery.placement_size(); ++j ) {
 
             auto const& place_i = pquery.placement_at(i);
@@ -92,13 +92,13 @@ double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
     return 2 * result;
 }
 
-std::vector<double> edpl( Sample const& sample, utils::Matrix<double> const& node_distances )
+std::vector<double> edpl( Sample const& sample, genesis::utils::containers::Matrix<double> const& node_distances )
 {
     // Prepare result (facilitate copy elision).
     auto result = std::vector<double>( sample.size(), 0 );
 
     // Fill result vector.
-    utils::parallel_for( 0, sample.size(), [&]( size_t qi ) {
+    genesis::utils::threading::parallel_for( 0, sample.size(), [&]( size_t qi ) {
         auto const& pquery = sample.at( qi );
         result[qi] = edpl( pquery, node_distances );
     });
@@ -170,7 +170,7 @@ double pairwise_distance(
 static double variance_partial_ (
     PqueryPlain const&              pqry_a,
     std::vector<PqueryPlain> const& pqrys_b,
-    utils::Matrix<double> const&    node_distances,
+    genesis::utils::containers::Matrix<double> const&    node_distances,
     bool                            with_pendant_length
 ) {
     double partial = 0.0;
@@ -207,7 +207,7 @@ double variance(
 
     // Do a pairwise calculation on all placements.
     // int progress = 0;
-    utils::parallel_for( 0, vd_pqueries.size(), [&]( size_t i ) {
+    genesis::utils::threading::parallel_for( 0, vd_pqueries.size(), [&]( size_t i ) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
 
         PqueryPlain const& pqry_a = vd_pqueries[i];

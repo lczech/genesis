@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -151,7 +151,7 @@ std::map<char, double> base_frequencies( SequenceSet const& set, std::string con
 size_t count_chars( SequenceSet const& set, std::string const& chars )
 {
     // Init array to false, then set all necessary chars to true.
-    auto lookup = utils::CharLookup<bool>( false );
+    auto lookup = genesis::utils::CharLookup<bool>( false );
     lookup.set_selection_upper_lower( chars, true );
 
     size_t counter = 0;

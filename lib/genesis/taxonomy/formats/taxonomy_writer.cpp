@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ namespace taxonomy {
 //     Writing
 // =================================================================================================
 
-void TaxonomyWriter::write( Taxonomy const& tax, std::shared_ptr<utils::BaseOutputTarget> target ) const
+void TaxonomyWriter::write( Taxonomy const& tax, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
 {
     auto& os = target->ostream();
     for( auto const& tit : preorder( tax )) {

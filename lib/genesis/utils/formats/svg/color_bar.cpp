@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Local Helper Functions
@@ -63,8 +64,8 @@ namespace utils {
 
 static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient_(
     SvgColorBarSettings const& settings,
-    ColorMap const& map,
-    ColorNormalization const& norm,
+    genesis::utils::color::ColorMap const& map,
+    genesis::utils::color::ColorNormalization const& norm,
     std::string const& id
 ) {
     // Use a gradient ID with randomness so that we get a different one for each palette.
@@ -118,7 +119,7 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient_(
     SvgGroup group;
     group << SvgRect(
         0.0, 0.0, settings.width, settings.height,
-        SvgStroke( Color( 0.0, 0.0, 0.0 ), settings.line_width ),
+        SvgStroke( genesis::utils::color::Color( 0.0, 0.0, 0.0 ), settings.line_width ),
         SvgFill( gradient_id )
     );
 
@@ -127,7 +128,7 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient_(
 
 static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete_(
     SvgColorBarSettings const& settings,
-    std::map<double, Color> const& stops
+    std::map<double, genesis::utils::color::Color> const& stops
 ) {
     // Fill a group with colors for the stops.
     SvgGroup group;
@@ -200,7 +201,7 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete_(
     // Add a black line around the bar
     group << SvgRect(
         0.0, 0.0, settings.width, settings.height,
-        SvgStroke( Color( 0.0, 0.0, 0.0 ), settings.line_width ),
+        SvgStroke( genesis::utils::color::Color( 0.0, 0.0, 0.0 ), settings.line_width ),
         SvgFill( SvgFill::Type::kNone )
     );
 
@@ -209,8 +210,8 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete_(
 
 static void make_svg_color_bar_tickmarks_(
     SvgColorBarSettings const& settings,
-    ColorMap const& map,
-    ColorNormalization const& norm,
+    genesis::utils::color::ColorMap const& map,
+    genesis::utils::color::ColorNormalization const& norm,
     SvgGroup& group
 ) {
     // Helper function to make a tick mark with line and text
@@ -279,7 +280,10 @@ static void make_svg_color_bar_tickmarks_(
 
         // Draw lines and text. Lines only for inners, as we already have a box around the scale.
         if( rel_pos != 0.0 && rel_pos != 1.0 ) {
-            auto const stroke = SvgStroke( Color( 0.0, 0.0, 0.0 ), settings.line_width );
+            auto const stroke = SvgStroke(
+                genesis::utils::color::Color( 0.0, 0.0, 0.0 ),
+                settings.line_width
+            );
             group << SvgLine( line1_p1, line1_p2, stroke );
             group << SvgLine( line2_p1, line2_p2, stroke );
         }
@@ -329,8 +333,8 @@ static void make_svg_color_bar_tickmarks_(
 
 std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
     SvgColorBarSettings const& settings,
-    ColorMap const& map,
-    ColorNormalization const& norm,
+    genesis::utils::color::ColorMap const& map,
+    genesis::utils::color::ColorNormalization const& norm,
     std::string const& id
 ) {
 
@@ -350,6 +354,7 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
 
     // We have an ugly special case for boundary norms, where we do not want to display
     // a gradient, but discrete color bars instead...
+    using namespace genesis::utils::color;
     auto norm_boundary = dynamic_cast<ColorNormalizationBoundary const*>( &norm );
     if( norm_boundary ) {
         auto const norm_gradient = color_stops( map, norm );
@@ -368,8 +373,12 @@ std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
 //     Svg Color List
 // =================================================================================================
 
-void make_svg_color_list_entry_( size_t i, Color const& color, std::string const& label, SvgGroup& group )
-{
+void make_svg_color_list_entry_(
+    size_t i,
+    genesis::utils::color::Color const& color,
+    std::string const& label,
+    SvgGroup& group
+) {
     group << SvgRect(
         0.0, i * 15.0, 10.0, 10.0,
         SvgStroke( SvgStroke::Type::kNone ),
@@ -379,7 +388,7 @@ void make_svg_color_list_entry_( size_t i, Color const& color, std::string const
 }
 
 SvgGroup make_svg_color_list(
-    ColorMap const& map,
+    genesis::utils::color::ColorMap const& map,
     std::vector<std::string> const& labels
 ) {
     SvgGroup group;
@@ -392,7 +401,7 @@ SvgGroup make_svg_color_list(
 }
 
 SvgGroup make_svg_color_list(
-    std::vector<Color> const& colors,
+    std::vector<genesis::utils::color::Color> const& colors,
     std::vector<std::string> const& labels
 ) {
     if( colors.size() != labels.size() ) {
@@ -406,5 +415,6 @@ SvgGroup make_svg_color_list(
     return group;
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

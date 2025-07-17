@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,18 +37,22 @@
 #include <iosfwd>
 #include <string>
 
-namespace genesis {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
+namespace genesis {
 namespace utils {
+namespace io {
 
 class InputStream;
 
+} // namespace io
 } // namespace utils
+} // namespace genesis
 
+namespace genesis {
 namespace sequence {
 
 class SequenceSet;
@@ -71,7 +75,7 @@ class Sequence;
  *     PhylipReader()
  *         .site_casing( SiteCasing::kUnchanged )
  *         .valid_chars( nucleic_acid_codes_all() )
- *         .read( utils::from_file( infile ), sset );
+ *         .read( genesis::utils::io::from_file( infile ), sset );
  *
  * The expected data format roughly follows
  * [the original definition](http://evolution.genetics.washington.edu/phylip/doc/sequence.html).
@@ -186,10 +190,10 @@ public:
      * @brief Read all Sequence%s from an input source in Phylip format and return them as a
      * SequenceSet.
      *
-     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    SequenceSet read( std::shared_ptr<utils::BaseInputSource> source ) const;
+    SequenceSet read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
 
     /**
      * @brief Read all Sequence%s from an input source in Phylip format and return them as a
@@ -199,10 +203,10 @@ public:
      * repeatedly calling this or similar read functions, multiple input files can easily be read
      * into one SequenceSet.
      *
-     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    void read( std::shared_ptr<utils::BaseInputSource> source, SequenceSet& target ) const;
+    void read( std::shared_ptr<genesis::utils::io::BaseInputSource> source, SequenceSet& target ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -219,7 +223,7 @@ public:
      * thus leaves the stream at the beginning of the first sequence line.
      */
     Header parse_phylip_header(
-        utils::InputStream& it
+        genesis::utils::io::InputStream& it
     ) const;
 
     /**
@@ -230,7 +234,7 @@ public:
      * label and leaves the stream at the next char after the label (and after subsequent blanks).
      */
     std::string parse_phylip_label(
-        utils::InputStream& it
+        genesis::utils::io::InputStream& it
     ) const;
 
     /**
@@ -241,14 +245,14 @@ public:
      * settings. The stream is left at the beginning of the next line.
      */
     std::string parse_phylip_sequence_line(
-        utils::InputStream& it
+        genesis::utils::io::InputStream& it
     ) const;
 
     /**
      * @brief Parse a whole Phylip file using the sequential variant (Mode::kSequential).
      */
     void parse_phylip_sequential(
-        utils::InputStream& it,
+        genesis::utils::io::InputStream& it,
         SequenceSet& sset
     ) const;
 
@@ -256,7 +260,7 @@ public:
      * @brief Parse a whole Phylip file using the interleaved variant (Mode::kInterleaved).
      */
     void parse_phylip_interleaved(
-        utils::InputStream& it,
+        genesis::utils::io::InputStream& it,
         SequenceSet& sset
     ) const;
 
@@ -386,7 +390,7 @@ public:
      * This function is provided in case direct access to the lookup is needed. Usually, the
      * valid_chars() function should suffice. See there for details.
      */
-    utils::CharLookup<bool>& valid_char_lookup();
+    genesis::utils::CharLookup<bool>& valid_char_lookup();
 
     // ---------------------------------------------------------------------
     //     Members
@@ -400,7 +404,7 @@ private:
     SiteCasing              site_casing_    = SiteCasing::kToUpper;
     bool                    remove_digits_ = false;
     bool                    use_validation_ = false;
-    utils::CharLookup<bool> lookup_;
+    genesis::utils::CharLookup<bool> lookup_;
 
 };
 

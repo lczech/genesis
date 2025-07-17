@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,8 @@
 #include <vector>
 
 using namespace genesis::utils;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::core;
 
 // =================================================================================================
 //      Transform Iterator
@@ -329,7 +331,7 @@ TEST( Containers, GenericInputStream )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     // Loop a few times, to have a higher chance of finding race conditions etc in the threading.
     for( size_t i = 0; i < 500; ++i ) {

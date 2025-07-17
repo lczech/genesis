@@ -199,7 +199,7 @@ PhyloFactor phylo_factor_find_best_edge(
     auto const cand_vec = std::vector<size_t>( candidate_edges.begin(), candidate_edges.end() );
 
     // Try out all candidate edges.
-    utils::parallel_for(
+    genesis::utils::threading::parallel_for(
         0, cand_vec.size(),
         [&]( size_t i )
         {

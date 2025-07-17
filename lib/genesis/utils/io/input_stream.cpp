@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Constructors and Rule of Five
@@ -89,6 +90,8 @@ InputStream& InputStream::operator= ( InputStream&& other )
 
 char InputStream::read_char_or_throw( char const criterion )
 {
+    using namespace genesis::utils::text;
+
     // Check char and move to next.
     if( data_pos_ >= data_end_ || current_ != criterion ) GENESIS_CPP_UNLIKELY {
         throw std::runtime_error(
@@ -104,6 +107,8 @@ char InputStream::read_char_or_throw( char const criterion )
 
 char InputStream::read_char_or_throw( std::function<bool (char)> criterion )
 {
+    using namespace genesis::utils::text;
+
     // Check char and move to next.
     if( data_pos_ >= data_end_ || !criterion( current_ )) GENESIS_CPP_UNLIKELY {
         throw std::runtime_error(
@@ -196,6 +201,7 @@ std::string_view InputStream::get_line_view()
 
     // If the line is not yet finished after a full block, we cannot use this function.
     if( move_dist == BlockLength ) {
+        using genesis::utils::text::to_string_byte_format;
         throw std::runtime_error(
             "Cannot call InputStream::get_line_view() on lines that are longer "
             "than the internal buffer of " + to_string_byte_format( BlockLength ) + " bytes"
@@ -273,6 +279,7 @@ void InputStream::fill_line_views_( std::string_view* str_views, size_t n_lines 
         // just treat that as an error as well, for simplicity. Shouldn't matter if we are allowed
         // to read lines of 4MB or 4MB minus 2B.
         if( data_pos_ >= total_start_pos + BlockLength - 2 ) {
+            using genesis::utils::text::to_string_byte_format;
             throw std::runtime_error(
                 "Cannot call InputStream::get_line_views() on lines that are in sum longer "
                 "than the internal buffer of " + to_string_byte_format( BlockLength ) + " bytes"
@@ -701,7 +708,7 @@ void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
 
             // Create the reader. We need to do this explictily,
             // as we use a unique ptr to make this class movable.
-            input_reader_ = utils::make_unique<InputReader>( input_source );
+            input_reader_ = genesis::utils::core::make_unique<InputReader>( input_source );
             input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
         }
 
@@ -788,5 +795,6 @@ void InputStream::set_current_char_()
     current_ = buffer_[ data_pos_ ];
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis

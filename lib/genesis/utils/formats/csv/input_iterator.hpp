@@ -42,6 +42,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Csv Input Iterator
@@ -77,8 +78,8 @@ public:
     /**
      * @brief Create an instance that reads from an input source, using a default CsvReader.
      */
-    explicit CsvInputIterator( std::shared_ptr<utils::BaseInputSource> source )
-        : input_stream_( std::make_shared<utils::InputStream>( source ))
+    explicit CsvInputIterator( std::shared_ptr<genesis::utils::io::BaseInputSource> source )
+        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
         , reader_()
         , line_()
     {
@@ -89,8 +90,8 @@ public:
      * @brief Create an instance that reads from an input source,
      * using the settings of a given CsvReader.
      */
-    CsvInputIterator( std::shared_ptr<utils::BaseInputSource> source, CsvReader const& settings )
-        : input_stream_( std::make_shared<utils::InputStream>( source ))
+    CsvInputIterator( std::shared_ptr<genesis::utils::io::BaseInputSource> source, CsvReader const& settings )
+        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
         , reader_( settings )
         , line_()
     {
@@ -210,12 +211,13 @@ public:
 
 private:
 
-    std::shared_ptr<utils::InputStream> input_stream_;
+    std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
 
     CsvReader       reader_;
     CsvReader::Line line_;
 };
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

@@ -46,6 +46,7 @@
 
 namespace genesis {
 namespace utils {
+namespace core {
 
 // =================================================================================================
 //     Options
@@ -254,7 +255,7 @@ public:
             return;
         }
         assert( num_threads > 0 );
-        thread_pool_ = std::make_shared<utils::ThreadPool>( num_threads - 1, max_queue_size );
+        thread_pool_ = std::make_shared<genesis::utils::threading::ThreadPool>( num_threads - 1, max_queue_size );
     }
 
     /**
@@ -270,7 +271,7 @@ public:
      * their disk operation. However, for more complex reading such as from compressed files,
      * we might want to use the global thread pool after all. See BaseInputSource::is_trivial()
      */
-    std::shared_ptr<ThreadPool> global_thread_pool() const
+    std::shared_ptr<genesis::utils::threading::ThreadPool> global_thread_pool() const
     {
         if( ! thread_pool_ ) {
             throw std::runtime_error(
@@ -386,7 +387,7 @@ public:
      * By setting this option to `true`, files are silently overwritten in case they already
      * exist. This has to be activated explicitly in order to avoid losing files by accident.
      *
-     * @see @link utils::file_output_stream() file_output_stream()@endlink
+     * @see @link genesis::utils::io::file_output_stream() file_output_stream()@endlink
      */
     inline void allow_file_overwriting( bool value )
     {
@@ -407,7 +408,7 @@ private:
     std::atomic<size_t> seed_counter_{0};
 
     // Global thread pool
-    std::shared_ptr<ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool_;
     InputReadingThreadPolicy input_reading_thread_policy_ = InputReadingThreadPolicy::kTrivialAsync;
 
     // File handling
@@ -439,6 +440,7 @@ private:
 
 };
 
+} // namespace core
 } // namespace utils
 } // namespace genesis
 

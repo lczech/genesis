@@ -59,6 +59,12 @@
 using namespace genesis::population;
 using namespace genesis::sequence;
 using namespace genesis::utils;
+using namespace genesis::utils::bit;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 // =================================================================================================
 //     Basic Tests
@@ -560,7 +566,7 @@ TEST( GaplessInputStream, Random )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     // 0.5s runtime, our default for normal tests.
     size_t const max_tests = 5000;

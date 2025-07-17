@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // =================================================================================================
 //     Base 64 Encode/Decode
@@ -164,7 +165,7 @@ T base64_decode_( std::string const& input )
     for( auto c : input ) {
         // Use a non-branching counter to be as fast as possible.
         static_assert( (int)true == 1 && (int)false == 0, "Boolean counting does not work." );
-        char_cnt += ! utils::is_space( c );
+        char_cnt += ! genesis::utils::text::is_space( c );
     }
     if( char_cnt % 4 ) {
         throw std::runtime_error( "Invalid base64 length that is not a multiple of 4");
@@ -204,7 +205,7 @@ T base64_decode_( std::string const& input )
         for( std::size_t i = 0; i < 4; ++i ) {
 
             // Skip new lines.
-            while( utils::is_space( *it )) {
+            while( genesis::utils::text::is_space( *it )) {
                 ++it;
             }
 
@@ -286,5 +287,6 @@ std::string base64_decode_string( std::string const& input )
     return base64_decode_<ContainerType>( input );
 }
 
+} // namespace text
 } // namespace utils
 } // namespace genesis

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,10 +42,12 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
+namespace containers {
 
     template<typename T>
     class Matrix;
 
+}
 }
 
 namespace tree {
@@ -198,7 +200,7 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree );
  * @link MassTreeEdge::index() index@endlink of the edges.
  * Hence, the Tree%s need to have identical topology.
  */
-utils::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees );
+genesis::utils::containers::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees );
 
 /**
  * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses Mass@endlink

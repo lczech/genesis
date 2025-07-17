@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Input Reader
@@ -100,8 +101,11 @@ public:
 
     AsynchronousReader(
         std::shared_ptr<BaseInputSource> input_source,
-        std::shared_ptr<ThreadPool> thread_pool = nullptr
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr
     ) {
+        // Get the namespace for Options
+        using namespace genesis::utils::core;
+
         if( !input_source ) {
             throw std::runtime_error( "Cannot read from BaseInputSource nullptr" );
         }
@@ -138,14 +142,14 @@ public:
             }
             case Options::InputReadingThreadPolicy::kTrivialAsync: {
                 if( input_source->is_trivial() ) {
-                    thread_pool_ = std::make_shared<utils::ThreadPool>( 1 );
+                    thread_pool_ = std::make_shared<genesis::utils::threading::ThreadPool>( 1 );
                 } else {
                     thread_pool_ = get_thread_pool_();
                 }
                 break;
             }
             case Options::InputReadingThreadPolicy::kAllAsync: {
-                thread_pool_ = std::make_shared<utils::ThreadPool>( 1 );
+                thread_pool_ = std::make_shared<genesis::utils::threading::ThreadPool>( 1 );
                 break;
             }
         }
@@ -227,11 +231,11 @@ private:
     std::shared_ptr<BaseInputSource> input_source_;
 
     // Thread pool to run the reading in the background.
-    std::shared_ptr<ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool_;
 
     // Future that stores the achieved size of how many bytes were red.
     // If we ever want to make this class moveable, this probably needs to live in a shared_ptr.
-    ProactiveFuture<size_t> future_;
+    genesis::utils::threading::ProactiveFuture<size_t> future_;
 
 };
 
@@ -317,6 +321,7 @@ private:
     size_t target_size_;
 };
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

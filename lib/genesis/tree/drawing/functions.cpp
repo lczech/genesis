@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ void write_tree_to_newick_file(
     CommonTree const&  tree,
     std::string const& newick_filename
 ) {
-    CommonTreeNewickWriter().write( tree, utils::to_file( newick_filename ));
+    CommonTreeNewickWriter().write( tree, genesis::utils::io::to_file( newick_filename ));
 }
 
 // =================================================================================================
@@ -81,13 +81,13 @@ void write_tree_to_phyloxml_file(
     std::string const& phyloxml_filename
 ) {
     write_color_tree_to_phyloxml_file(
-        tree, std::vector<utils::Color>{}, phyloxml_filename
+        tree, std::vector<genesis::utils::color::Color>{}, phyloxml_filename
     );
 }
 
 void write_color_tree_to_phyloxml_file(
     CommonTree const&                tree,
-    std::vector<utils::Color> const& color_per_branch,
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
     std::string const&               phyloxml_filename
 ) {
     // We use a normal Phyloxml writer...
@@ -100,14 +100,14 @@ void write_color_tree_to_phyloxml_file(
         color_plugin.edge_colors( color_per_branch );
     }
 
-    writer.write( tree, utils::to_file( phyloxml_filename ));
+    writer.write( tree, genesis::utils::io::to_file( phyloxml_filename ));
 }
 
 void write_color_tree_to_phyloxml_file(
     CommonTree const&                tree,
     std::vector<double> const&       value_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm,
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm,
     std::string const&               phyloxml_filename
 ) {
     write_color_tree_to_phyloxml_file(
@@ -124,13 +124,13 @@ void write_tree_to_nexus_file(
     std::string const& nexus_filename
 ) {
     write_color_tree_to_nexus_file(
-        tree, std::vector<utils::Color>{}, nexus_filename
+        tree, std::vector<genesis::utils::color::Color>{}, nexus_filename
     );
 }
 
 void write_color_tree_to_nexus_file(
     CommonTree const&                tree,
-    std::vector<utils::Color> const& color_per_branch,
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
     std::string const&               nexus_filename
 ) {
     // We use a normal Newick writer...
@@ -145,28 +145,28 @@ void write_color_tree_to_nexus_file(
     }
 
     // Create an (empty) Nexus document.
-    auto nexus_doc = utils::NexusDocument();
+    auto nexus_doc = genesis::utils::formats::NexusDocument();
 
     // Add the taxa of the tree to the document.
-    auto taxa = utils::make_unique<utils::NexusTaxa>();
+    auto taxa = genesis::utils::core::make_unique<genesis::utils::formats::NexusTaxa>();
     taxa->add_taxa( node_names( tree ));
     nexus_doc.set_block( std::move( taxa ));
 
     // Add the tree itself to the document.
-    auto trees = utils::make_unique<utils::NexusTrees>();
+    auto trees = genesis::utils::core::make_unique<genesis::utils::formats::NexusTrees>();
     trees->add_tree( "tree1", newick_writer.to_string(tree) );
     nexus_doc.set_block( std::move(trees) );
 
     // Write the document to a Nexus file.
-    auto nexus_writer = utils::NexusWriter();
-    nexus_writer.write( nexus_doc, utils::to_file( nexus_filename ));
+    auto nexus_writer = genesis::utils::formats::NexusWriter();
+    nexus_writer.write( nexus_doc, genesis::utils::io::to_file( nexus_filename ));
 }
 
 void write_color_tree_to_nexus_file(
     CommonTree const&                tree,
     std::vector<double> const&       value_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm,
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm,
     std::string const&               nexus_filename
 ) {
     write_color_tree_to_nexus_file(
@@ -178,32 +178,32 @@ void write_color_tree_to_nexus_file(
 //     Tree to SVG Document
 // =================================================================================================
 
-utils::SvgDocument get_color_tree_svg_doc_(
+genesis::utils::formats::SvgDocument get_color_tree_svg_doc_(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
-    std::vector<utils::SvgGroup> const& node_shapes,
-    std::vector<utils::SvgGroup> const& edge_shapes
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
+    std::vector<genesis::utils::formats::SvgGroup> const& node_shapes,
+    std::vector<genesis::utils::formats::SvgGroup> const& edge_shapes
 ) {
     // Make a layout tree. We need a pointer to it in order to allow for the two different classes
     // (circular/rectancular) to be returned here. Make it a unique ptr for automatic cleanup.
     std::unique_ptr<LayoutBase> layout = [&]() -> std::unique_ptr<LayoutBase> {
         if( params.shape == LayoutShape::kCircular ) {
-            return utils::make_unique<CircularLayout>( tree, params.type, params.ladderize );
+            return genesis::utils::core::make_unique<CircularLayout>( tree, params.type, params.ladderize );
         }
         if( params.shape == LayoutShape::kRectangular ) {
-            return utils::make_unique<RectangularLayout>( tree, params.type, params.ladderize );
+            return genesis::utils::core::make_unique<RectangularLayout>( tree, params.type, params.ladderize );
         }
         throw std::runtime_error( "Unknown Tree shape parameter." );
     }();
 
     // Set edge colors and strokes.
     if( ! color_per_branch.empty() ) {
-        std::vector<utils::SvgStroke> strokes;
+        std::vector<genesis::utils::formats::SvgStroke> strokes;
         for( auto const& color : color_per_branch ) {
             auto stroke = params.stroke;
             stroke.color = color;
-            stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+            stroke.line_cap = genesis::utils::formats::SvgStroke::LineCap::kRound;
             strokes.push_back( std::move( stroke ));
         }
         layout->set_edge_strokes( strokes );
@@ -223,7 +223,7 @@ utils::SvgDocument get_color_tree_svg_doc_(
     return svg_doc;
 }
 
-utils::SvgDocument get_tree_svg_document(
+genesis::utils::formats::SvgDocument get_tree_svg_document(
     CommonTree const&       tree,
     LayoutParameters const& params
 ) {
@@ -231,56 +231,56 @@ utils::SvgDocument get_tree_svg_document(
     // purely virtual functiosn and can thus not be instanciated). As the color map however is
     // empty, the called function will not use the norm.
     return get_color_tree_svg_document(
-        tree, params, std::vector<utils::Color>{}, utils::ColorMap{}, utils::ColorNormalizationLinear()
+        tree, params, std::vector<genesis::utils::color::Color>{}, genesis::utils::color::ColorMap{}, genesis::utils::color::ColorNormalizationLinear()
     );
 }
 
-utils::SvgDocument get_color_tree_svg_document(
+genesis::utils::formats::SvgDocument get_color_tree_svg_document(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch
+    std::vector<genesis::utils::color::Color> const& color_per_branch
 ) {
     // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
     // purely virtual functiosn and can thus not be instanciated). As the color map however is
     // empty, the called function will not use the norm.
     return get_color_tree_svg_document(
-        tree, params, color_per_branch, utils::ColorMap{}, utils::ColorNormalizationLinear()
+        tree, params, color_per_branch, genesis::utils::color::ColorMap{}, genesis::utils::color::ColorNormalizationLinear()
     );
 }
 
-utils::SvgDocument get_color_tree_svg_document(
+genesis::utils::formats::SvgDocument get_color_tree_svg_document(
     CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<double> const&       value_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm
 ) {
     return get_color_tree_svg_document(
         tree, params, color_map( color_norm, value_per_branch ), color_map, color_norm
     );
 }
 
-utils::SvgDocument get_color_tree_svg_document(
+genesis::utils::formats::SvgDocument get_color_tree_svg_document(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm
 ) {
     return get_color_tree_svg_document(
         tree, params, color_per_branch, color_map, color_norm,
-        std::vector<utils::SvgGroup>{}, std::vector<utils::SvgGroup>{}
+        std::vector<genesis::utils::formats::SvgGroup>{}, std::vector<genesis::utils::formats::SvgGroup>{}
     );
 }
 
-utils::SvgDocument get_color_tree_svg_document(
+genesis::utils::formats::SvgDocument get_color_tree_svg_document(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm,
-    std::vector<utils::SvgGroup> const& node_shapes,
-    std::vector<utils::SvgGroup> const& edge_shapes
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm,
+    std::vector<genesis::utils::formats::SvgGroup> const& node_shapes,
+    std::vector<genesis::utils::formats::SvgGroup> const& edge_shapes
 ) {
     // Get the basic svg tree layout.
     auto svg_doc = get_color_tree_svg_doc_(
@@ -291,7 +291,7 @@ utils::SvgDocument get_color_tree_svg_document(
     if( ! color_map.empty() ) {
 
         // Make the scale with nice sizes.
-        auto svg_pal_settings = utils::SvgColorBarSettings();
+        auto svg_pal_settings = genesis::utils::formats::SvgColorBarSettings();
         svg_pal_settings.height = svg_doc.bounding_box().height() / 2.0;
         svg_pal_settings.width = svg_pal_settings.height / 10.0;
         svg_pal_settings.line_width = svg_pal_settings.height / 300.0;
@@ -300,13 +300,13 @@ utils::SvgDocument get_color_tree_svg_document(
 
         // Move it to the bottom right corner.
         if( params.shape == LayoutShape::kCircular ) {
-            svg_scale.second.transform.append( utils::SvgTransform::Translate(
+            svg_scale.second.transform.append( genesis::utils::formats::SvgTransform::Translate(
                 1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
             ));
             svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
         }
         if( params.shape == LayoutShape::kRectangular ) {
-            svg_scale.second.transform.append( utils::SvgTransform::Translate(
+            svg_scale.second.transform.append( genesis::utils::formats::SvgTransform::Translate(
                 1.2 * svg_doc.bounding_box().width(), svg_pal_settings.height
             ));
             svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
@@ -322,33 +322,33 @@ utils::SvgDocument get_color_tree_svg_document(
     return svg_doc;
 }
 
-utils::SvgDocument get_color_tree_svg_document(
+genesis::utils::formats::SvgDocument get_color_tree_svg_document(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
-    std::vector<utils::Color> const& color_list,
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
+    std::vector<genesis::utils::color::Color> const& color_list,
     std::vector<std::string> const&  color_labels
 ) {
     // Get the basic svg tree layout.
     auto svg_doc = get_color_tree_svg_doc_(
         tree, params, color_per_branch,
-        std::vector<utils::SvgGroup>{}, std::vector<utils::SvgGroup>{}
+        std::vector<genesis::utils::formats::SvgGroup>{}, std::vector<genesis::utils::formats::SvgGroup>{}
     );
 
     // Add the color legend / scale.
 
     // Make the color list.
-    auto svg_color_list = make_svg_color_list( color_list, color_labels );
+    auto svg_color_list = genesis::utils::formats::make_svg_color_list( color_list, color_labels );
 
     // Move it to the bottom right corner.
     if( params.shape == LayoutShape::kCircular ) {
-        svg_color_list.transform.append( utils::SvgTransform::Translate(
+        svg_color_list.transform.append( genesis::utils::formats::SvgTransform::Translate(
             1.2 * svg_doc.bounding_box().width() / 2.0, 0.0
         ));
         // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() / 2.0 + 2 * svg_pal_settings.width + 200;
     }
     if( params.shape == LayoutShape::kRectangular ) {
-        svg_color_list.transform.append( utils::SvgTransform::Translate(
+        svg_color_list.transform.append( genesis::utils::formats::SvgTransform::Translate(
             1.2 * svg_doc.bounding_box().width(), svg_doc.bounding_box().height() / 2.0
         ));
         // svg_doc.margin.right = 0.2 * svg_doc.bounding_box().width() + 2 * svg_pal_settings.width + 200;
@@ -357,7 +357,7 @@ utils::SvgDocument get_color_tree_svg_document(
     // Apply a scale factor that scales the box to be half the figure height.
     // The denominator is the number items in the list times their height (15px, used by make_svg_color_list)
     auto const sf = ( svg_doc.bounding_box().height() / 2.0 ) / (static_cast<double>( color_list.size() ) * 15.0 );
-    svg_color_list.transform.append( utils::SvgTransform::Scale( sf ));
+    svg_color_list.transform.append( genesis::utils::formats::SvgTransform::Scale( sf ));
 
     // Add it to the svg doc.
     svg_doc.add( svg_color_list );
@@ -377,8 +377,8 @@ void write_tree_to_svg_file(
     // purely virtual functiosn and can thus not be instanciated). As the color map however is
     // empty, the called function will not use the norm.
     write_color_tree_to_svg_file(
-        tree, params, std::vector<utils::Color>{},
-        {}, utils::ColorNormalizationLinear(),
+        tree, params, std::vector<genesis::utils::color::Color>{},
+        {}, genesis::utils::color::ColorNormalizationLinear(),
         svg_filename
     );
 }
@@ -386,7 +386,7 @@ void write_tree_to_svg_file(
 void write_color_tree_to_svg_file(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
     std::string const&               svg_filename
 ) {
     // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
@@ -394,7 +394,7 @@ void write_color_tree_to_svg_file(
     // empty, the called function will not use the norm.
     write_color_tree_to_svg_file(
         tree, params, color_per_branch,
-        {}, utils::ColorNormalizationLinear(),
+        {}, genesis::utils::color::ColorNormalizationLinear(),
         svg_filename
     );
 }
@@ -403,8 +403,8 @@ void write_color_tree_to_svg_file(
     CommonTree const&                tree,
     LayoutParameters const&          params,
     std::vector<double> const&       value_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm,
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm,
     std::string const&               svg_filename
 ) {
     write_color_tree_to_svg_file(
@@ -415,9 +415,9 @@ void write_color_tree_to_svg_file(
 void write_color_tree_to_svg_file(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm,
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm,
     std::string const&               svg_filename
 ) {
     // Write the whole svg doc to file.
@@ -425,18 +425,18 @@ void write_color_tree_to_svg_file(
         tree, params, color_per_branch, color_map, color_norm
     );
     std::ofstream ofs;
-    utils::file_output_stream( svg_filename, ofs );
+    genesis::utils::io::file_output_stream( svg_filename, ofs );
     svg_doc.write( ofs );
 }
 
 void write_color_tree_to_svg_file(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
-    utils::ColorMap const&           color_map,
-    utils::ColorNormalization const& color_norm,
-    std::vector<utils::SvgGroup> const& node_shapes,
-    std::vector<utils::SvgGroup> const& edge_shapes,
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
+    genesis::utils::color::ColorMap const&           color_map,
+    genesis::utils::color::ColorNormalization const& color_norm,
+    std::vector<genesis::utils::formats::SvgGroup> const& node_shapes,
+    std::vector<genesis::utils::formats::SvgGroup> const& edge_shapes,
     std::string const&               svg_filename
 ){
     // Write the whole svg doc to file.
@@ -444,15 +444,15 @@ void write_color_tree_to_svg_file(
         tree, params, color_per_branch, color_map, color_norm, node_shapes, edge_shapes
     );
     std::ofstream ofs;
-    utils::file_output_stream( svg_filename, ofs );
+    genesis::utils::io::file_output_stream( svg_filename, ofs );
     svg_doc.write( ofs );
 }
 
 void write_color_tree_to_svg_file(
     CommonTree const&                tree,
     LayoutParameters const&          params,
-    std::vector<utils::Color> const& color_per_branch,
-    std::vector<utils::Color> const& color_list,
+    std::vector<genesis::utils::color::Color> const& color_per_branch,
+    std::vector<genesis::utils::color::Color> const& color_list,
     std::vector<std::string> const&  color_labels,
     std::string const&               svg_filename
 ) {
@@ -461,7 +461,7 @@ void write_color_tree_to_svg_file(
         tree, params, color_per_branch, color_list, color_labels
     );
     std::ofstream ofs;
-    utils::file_output_stream( svg_filename, ofs );
+    genesis::utils::io::file_output_stream( svg_filename, ofs );
     svg_doc.write( ofs );
 }
 

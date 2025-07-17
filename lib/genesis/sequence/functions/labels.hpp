@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -145,7 +145,7 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
  *
  * See ::utils::HashingFunctions for the available hashing functions.
  */
-void relabel_with_hash( Sequence& seq, utils::HashingFunctions hash_function );
+void relabel_with_hash( Sequence& seq, genesis::utils::HashingFunctions hash_function );
 
 /**
  * @brief Relabel all Sequence%s in the SequenceSet using the hash digest of the sites.
@@ -156,7 +156,7 @@ void relabel_with_hash( Sequence& seq, utils::HashingFunctions hash_function );
  * name, which might be an issue for downstream programs that expect unique labels.
  * See has_unique_labels() to check this.
  */
-void relabel_with_hash( SequenceSet& set, utils::HashingFunctions hash_function );
+void relabel_with_hash( SequenceSet& set, genesis::utils::HashingFunctions hash_function );
 
 // =================================================================================================
 //     Validity

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -145,8 +145,8 @@ public:
 
     long parent_index = -1;
 
-    utils::SvgGroup shape;
-    utils::SvgStroke spacer_stroke = utils::SvgStroke( utils::SvgStroke::Type::kNone );
+    genesis::utils::formats::SvgGroup shape;
+    genesis::utils::formats::SvgStroke spacer_stroke = genesis::utils::formats::SvgStroke( genesis::utils::formats::SvgStroke::Type::kNone );
 
 };
 
@@ -205,10 +205,10 @@ public:
 
 public:
 
-    utils::SvgStroke spreading_stroke;
-    utils::SvgStroke distance_stroke;
+    genesis::utils::formats::SvgStroke spreading_stroke;
+    genesis::utils::formats::SvgStroke distance_stroke;
 
-    utils::SvgGroup shape;
+    genesis::utils::formats::SvgGroup shape;
 
 };
 

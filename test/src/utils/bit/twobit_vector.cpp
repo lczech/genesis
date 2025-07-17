@@ -46,7 +46,8 @@
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
-using namespace utils;
+using namespace genesis::utils;
+using namespace genesis::utils::bit;
 
 // =================================================================================================
 //     Helper
@@ -68,7 +69,7 @@ public:
 
         char nucleotides[] = { 'A', 'C', 'G', 'T' };
         for( size_t i = 0; i < n; ++i ) {
-            size_t p = nucleotids_distrib( utils::Options::get().random_engine() );
+            size_t p = nucleotids_distrib( utils::core::Options::get().random_engine() );
             result += nucleotides[ p ];
         }
 
@@ -79,7 +80,7 @@ public:
     {
         double nd;
         do {
-            nd = length_distrib( utils::Options::get().random_engine() );
+            nd = length_distrib( utils::core::Options::get().random_engine() );
         } while( nd <= 1.0 );
         size_t n = static_cast< size_t >( nd );
         return generate_random_nt_string( n );

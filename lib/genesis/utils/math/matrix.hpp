@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Min Max
@@ -52,8 +53,10 @@ namespace utils {
  * See also matrix_col_minmax() and matrix_row_minmax().
  */
 template< typename T >
-MinMaxPair<T> matrix_minmax( Matrix<T> const& data, bool ignore_non_finite_values = true )
-{
+MinMaxPair<T> matrix_minmax(
+    genesis::utils::containers::Matrix<T> const& data,
+    bool ignore_non_finite_values = true
+) {
     // Edge case
     if( data.rows() == 0 || data.cols() == 0 ) {
         return {
@@ -96,8 +99,10 @@ MinMaxPair<T> matrix_minmax( Matrix<T> const& data, bool ignore_non_finite_value
  * See also matrix_row_minmax() and matrix_minmax().
  */
 template< typename T >
-std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data, bool ignore_non_finite_values = true )
-{
+std::vector<MinMaxPair<T>> matrix_col_minmax(
+    genesis::utils::containers::Matrix<T> const& data,
+    bool ignore_non_finite_values = true
+) {
     auto ret = std::vector<MinMaxPair<T>>( data.cols(), {
         std::numeric_limits<double>::quiet_NaN(),
         std::numeric_limits<double>::quiet_NaN()
@@ -142,8 +147,10 @@ std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data, bool ignore
 * See also matrix_col_minmax() and matrix_minmax().
 */
 template< typename T >
-std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data, bool ignore_non_finite_values = true )
-{
+std::vector<MinMaxPair<T>> matrix_row_minmax(
+    genesis::utils::containers::Matrix<T> const& data,
+    bool ignore_non_finite_values = true
+) {
     auto ret = std::vector<MinMaxPair<T>>( data.rows(), {
         std::numeric_limits<double>::quiet_NaN(),
         std::numeric_limits<double>::quiet_NaN()
@@ -187,8 +194,10 @@ std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data, bool ignore
  * See also matrix_col_sums() and matrix_row_sums().
  */
 template< typename T >
-T matrix_sum( Matrix<T> const& data, bool ignore_non_finite_values = true )
-{
+T matrix_sum(
+    genesis::utils::containers::Matrix<T> const& data,
+    bool ignore_non_finite_values = true
+) {
     // Get row sums.
     auto sum = T{};
     for( auto const& e : data ) {
@@ -206,8 +215,10 @@ T matrix_sum( Matrix<T> const& data, bool ignore_non_finite_values = true )
  * See also matrix_col_sums() and matrix_sum().
  */
 template< typename T >
-std::vector<T> matrix_row_sums( Matrix<T> const& data, bool ignore_non_finite_values = true )
-{
+std::vector<T> matrix_row_sums(
+    genesis::utils::containers::Matrix<T> const& data,
+    bool ignore_non_finite_values = true
+) {
     // Get row sums.
     auto row_sums = std::vector<T>( data.rows(), T{} );
     for( size_t i = 0; i < data.rows(); ++i ) {
@@ -228,8 +239,10 @@ std::vector<T> matrix_row_sums( Matrix<T> const& data, bool ignore_non_finite_va
  * See also matrix_row_sums() and matrix_sum().
  */
 template< typename T >
-std::vector<T> matrix_col_sums( Matrix<T> const& data, bool ignore_non_finite_values = true )
-{
+std::vector<T> matrix_col_sums(
+    genesis::utils::containers::Matrix<T> const& data,
+    bool ignore_non_finite_values = true
+) {
     // Get col sums.
     auto col_sums = std::vector<T>( data.cols(), T{} );
     for( size_t i = 0; i < data.rows(); ++i ) {
@@ -259,7 +272,9 @@ std::vector<T> matrix_col_sums( Matrix<T> const& data, bool ignore_non_finite_va
  * @param data        Input data Matrix; normalization is done inline.
  * @return            Vector containing the min and max values for each column before normalization.
  */
-std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data );
+std::vector<MinMaxPair<double>> normalize_cols(
+    genesis::utils::containers::Matrix<double>& data
+);
 
 /**
  * @brief Normalize the rows of a Matrix so that all values are in the range `[ 0.0, 1.0 ]`.
@@ -273,7 +288,9 @@ std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data );
  * @param data        Input data Matrix; normalization is done inline.
  * @return            Vector containing the min and max values for each row before normalization.
  */
-std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data );
+std::vector<MinMaxPair<double>> normalize_rows(
+    genesis::utils::containers::Matrix<double>& data
+    );
 
 /**
  * @brief Standardize the columns of a Matrix by subtracting the mean and scaling to unit variance.
@@ -293,7 +310,7 @@ std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data );
  *                    standardization.
  */
 std::vector<MeanStddevPair> standardize_cols(
-    Matrix<double>& data,
+    genesis::utils::containers::Matrix<double>& data,
     bool            scale_means = true,
     bool            scale_std = true
 );
@@ -316,7 +333,7 @@ std::vector<MeanStddevPair> standardize_cols(
  *                    standardization.
  */
 std::vector<MeanStddevPair> standardize_rows(
-    Matrix<double>& data,
+    genesis::utils::containers::Matrix<double>& data,
     bool            scale_means = true,
     bool            scale_std = true
 );
@@ -324,7 +341,7 @@ std::vector<MeanStddevPair> standardize_rows(
 /**
  * @brief Filter out columns that have nearly constant values, measured using an @p epsilon.
  *
- * The @link utils::Matrix Matrix@endlink is modified so that all columns `c` with
+ * The @link genesis::utils::containers::Matrix Matrix@endlink is modified so that all columns `c` with
  * `max(c) - min(c) <= epsilon` are removed.
  *
  * The function returns a sorted list of all column indices of the original matrix that are kept,
@@ -336,7 +353,7 @@ std::vector<MeanStddevPair> standardize_rows(
  * @return                List of original column indices that are kept (not filtered).
  */
 std::vector<size_t> filter_constant_columns(
-    Matrix<double>& data,
+    genesis::utils::containers::Matrix<double>& data,
     double          epsilon = 1e-5
 );
 
@@ -350,7 +367,9 @@ std::vector<size_t> filter_constant_columns(
  * This is done by standardizing the mean and variance of the given `data` and then calculating the
  * sums_of_squares_and_cross_products_matrix().
  */
-Matrix<double> correlation_matrix( Matrix<double> const& data );
+genesis::utils::containers::Matrix<double> correlation_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+);
 
 /**
  * @brief Calculate the covariance Matrix of a given `data` Matrix.
@@ -358,12 +377,16 @@ Matrix<double> correlation_matrix( Matrix<double> const& data );
  * This is done by standardizing the mean of the given `data` and then calculating the
  * sums_of_squares_and_cross_products_matrix().
  */
-Matrix<double> covariance_matrix( Matrix<double> const& data );
+genesis::utils::containers::Matrix<double> covariance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+);
 
 /**
  * @brief Calculate the Sums of Squares and Cross Products Matrix (SSCP Matrix).
  */
-Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& data );
+genesis::utils::containers::Matrix<double> sums_of_squares_and_cross_products_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+);
 
 // =================================================================================================
 //     Sorting
@@ -381,13 +404,14 @@ Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& 
  * the same Matrix.
  */
 template< typename T >
-Matrix<T> matrix_sort_by_row_sum_symmetric( Matrix<T> const& data )
-{
+genesis::utils::containers::Matrix<T> matrix_sort_by_row_sum_symmetric(
+    genesis::utils::containers::Matrix<T> const& data
+) {
     if( data.rows() != data.cols() ) {
         throw std::runtime_error( "Symmetric sort only works on square matrices." );
     }
 
-    auto result = Matrix<T>( data.rows(), data.cols() );
+    auto result = genesis::utils::containers::Matrix<T>( data.rows(), data.cols() );
     auto row_sums = matrix_row_sums( data );
     auto si = sort_indices( row_sums.begin(), row_sums.end() );
 
@@ -412,13 +436,14 @@ Matrix<T> matrix_sort_by_row_sum_symmetric( Matrix<T> const& data )
  * the same Matrix.
  */
 template< typename T >
-Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
-{
+genesis::utils::containers::Matrix<T> matrix_sort_by_col_sum_symmetric(
+    genesis::utils::containers::Matrix<T> const& data
+) {
     if( data.rows() != data.cols() ) {
         throw std::runtime_error( "Symmetric sort only works on square matrices." );
     }
 
-    auto result = Matrix<T>( data.rows(), data.cols() );
+    auto result = genesis::utils::containers::Matrix<T>( data.rows(), data.cols() );
     auto col_sums = matrix_col_sums( data );
     auto si = sort_indices( col_sums.begin(), col_sums.end() );
 
@@ -440,15 +465,16 @@ Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
  * The Matrix does not have to be symmetrical, but sorting keeps rows and columns intact.
  */
 template< typename T >
-Matrix<T> matrix_sort_diagonal_symmetric( Matrix<T> const& data )
-{
+genesis::utils::containers::Matrix<T> matrix_sort_diagonal_symmetric(
+    genesis::utils::containers::Matrix<T> const& data
+) {
     if( data.rows() != data.cols() ) {
         throw std::runtime_error( "Symmetric sort only works on square matrices." );
     }
 
     // Find the row and col that contains the max element in the rest of the matrix,
     // that is, excluding the first rows and cols according to start.
-    auto find_max = []( Matrix<T> const& mat, size_t start ){
+    auto find_max = []( genesis::utils::containers::Matrix<T> const& mat, size_t start ){
         size_t max_r = start;
         size_t max_c = start;
         for( size_t r = start; r < mat.rows(); ++r ) {
@@ -483,13 +509,15 @@ Matrix<T> matrix_sort_diagonal_symmetric( Matrix<T> const& data )
  * The two matrices need to have the same dimensions.
  */
 template< typename T = double, typename A = double, typename B = double >
-Matrix<T> matrix_addition( Matrix<A> const& a, Matrix<B> const& b )
-{
+genesis::utils::containers::Matrix<T> matrix_addition(
+    genesis::utils::containers::Matrix<A> const& a,
+    genesis::utils::containers::Matrix<B> const& b
+) {
     if( a.rows() != b.rows() || a.cols() != b.cols() ) {
         throw std::runtime_error( "Cannot add matrices with different dimensions." );
     }
 
-    auto result = Matrix<T>( a.rows(), a.cols() );
+    auto result = genesis::utils::containers::Matrix<T>( a.rows(), a.cols() );
     for( size_t r = 0; r < a.rows(); ++r ) {
         for( size_t c = 0; c < a.cols(); ++c ) {
             result( r, c ) = a( r, c ) + b( r, c );
@@ -502,9 +530,11 @@ Matrix<T> matrix_addition( Matrix<A> const& a, Matrix<B> const& b )
  * @brief Calculate the element-wise sum of a Matrix and a scalar.
  */
 template< typename T = double, typename A = double, typename B = double >
-Matrix<T> matrix_addition( Matrix<A> const& matrix, B const& scalar )
-{
-    auto result = Matrix<T>( matrix.rows(), matrix.cols() );
+genesis::utils::containers::Matrix<T> matrix_addition(
+    genesis::utils::containers::Matrix<A> const& matrix,
+    B const& scalar
+) {
+    auto result = genesis::utils::containers::Matrix<T>( matrix.rows(), matrix.cols() );
     for( size_t r = 0; r < matrix.rows(); ++r ) {
         for( size_t c = 0; c < matrix.cols(); ++c ) {
             result( r, c ) = matrix( r, c ) + scalar;
@@ -519,13 +549,15 @@ Matrix<T> matrix_addition( Matrix<A> const& matrix, B const& scalar )
  * The two matrices need to have the same dimensions.
  */
 template< typename T = double, typename A = double, typename B = double >
-Matrix<T> matrix_subtraction( Matrix<A> const& a, Matrix<B> const& b )
-{
+genesis::utils::containers::Matrix<T> matrix_subtraction(
+    genesis::utils::containers::Matrix<A> const& a,
+    genesis::utils::containers::Matrix<B> const& b
+) {
     if( a.rows() != b.rows() || a.cols() != b.cols() ) {
         throw std::runtime_error( "Cannot add matrices with different dimensions." );
     }
 
-    auto result = Matrix<T>( a.rows(), a.cols() );
+    auto result = genesis::utils::containers::Matrix<T>( a.rows(), a.cols() );
     for( size_t r = 0; r < a.rows(); ++r ) {
         for( size_t c = 0; c < a.cols(); ++c ) {
             result( r, c ) = a( r, c ) - b( r, c );
@@ -545,8 +577,10 @@ Matrix<T> matrix_subtraction( Matrix<A> const& a, Matrix<B> const& b )
  * in a Matrix of dimensions `r[ l, n ]`.
  */
 template< typename T = double, typename A = double, typename B = double >
-Matrix<T> matrix_multiplication( Matrix<A> const& a, Matrix<B> const& b )
-{
+genesis::utils::containers::Matrix<T> matrix_multiplication(
+    genesis::utils::containers::Matrix<A> const& a,
+    genesis::utils::containers::Matrix<B> const& b
+) {
     if( a.cols() != b.rows() ) {
         throw std::runtime_error( "Cannot multiply matrices if a.cols() != b.rows()." );
     }
@@ -554,7 +588,7 @@ Matrix<T> matrix_multiplication( Matrix<A> const& a, Matrix<B> const& b )
     // Simple and naive. Fast enough for the few occasions were we need this.
     // If Genesis at some point starts to need more elaborate matrix operations, it might be
     // worth including some proper library for this.
-    auto result = Matrix<T>( a.rows(), b.cols() );
+    auto result = genesis::utils::containers::Matrix<T>( a.rows(), b.cols() );
     for( size_t r = 0; r < a.rows(); ++r ) {
         for( size_t c = 0; c < b.cols(); ++c ) {
             result( r, c ) = 0.0;
@@ -575,8 +609,10 @@ Matrix<T> matrix_multiplication( Matrix<A> const& a, Matrix<B> const& b )
  * resulting vector has size `n`, which represent the columns of the result Matrix.
  */
 template< typename T = double, typename A = double, typename B = double >
-std::vector<T> matrix_multiplication( std::vector<A> const& a, Matrix<B> const& b )
-{
+std::vector<T> matrix_multiplication(
+    std::vector<A> const& a,
+    genesis::utils::containers::Matrix<B> const& b
+) {
     if( a.size() != b.rows() ) {
         throw std::runtime_error( "Cannot multiply vector with matrix if a.size() != b.rows()." );
     }
@@ -599,8 +635,10 @@ std::vector<T> matrix_multiplication( std::vector<A> const& a, Matrix<B> const& 
  * resulting vector has size `l`, which represent the rows of the result Matrix.
  */
 template< typename T = double, typename A = double, typename B = double >
-std::vector<T> matrix_multiplication( Matrix<A> const& a, std::vector<B> const& b )
-{
+std::vector<T> matrix_multiplication(
+    genesis::utils::containers::Matrix<A> const& a,
+    std::vector<B> const& b
+) {
     if( a.cols() != b.size() ) {
         throw std::runtime_error( "Cannot multiply matrix with vector if a.cols() != b.size()." );
     }
@@ -619,9 +657,11 @@ std::vector<T> matrix_multiplication( Matrix<A> const& a, std::vector<B> const& 
  * @brief Calculate the element-wise multiplication of a Matrix and a scalar.
  */
 template< typename T = double, typename A = double, typename B = double >
-Matrix<T> matrix_multiplication( Matrix<A> const& matrix, B const& scalar )
-{
-    auto result = Matrix<T>( matrix.rows(), matrix.cols() );
+genesis::utils::containers::Matrix<T> matrix_multiplication(
+    genesis::utils::containers::Matrix<A> const& matrix,
+    B const& scalar
+) {
+    auto result = genesis::utils::containers::Matrix<T>( matrix.rows(), matrix.cols() );
     for( size_t r = 0; r < matrix.rows(); ++r ) {
         for( size_t c = 0; c < matrix.cols(); ++c ) {
             result( r, c ) = matrix( r, c ) * scalar;
@@ -630,6 +670,7 @@ Matrix<T> matrix_multiplication( Matrix<A> const& matrix, B const& scalar )
     return result;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

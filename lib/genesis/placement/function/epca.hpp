@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,15 +69,15 @@ namespace placement {
 /**
  * @brief Helper stucture that collects the output of epca().
  *
- * It contains the same elements as utils::PcaData, but extends it by a vector of the
+ * It contains the same elements as genesis::utils::PcaData, but extends it by a vector of the
  * @link tree::TreeEdge::index() edge indices@endlink that the rows of the eigenvectors Matrix
  * correspond to. This is necessary for back-mapping the eigenvectors onto the edges of the tree.
  */
 struct EpcaData
 {
     std::vector<double>   eigenvalues;
-    utils::Matrix<double> eigenvectors;
-    utils::Matrix<double> projection;
+    genesis::utils::containers::Matrix<double> eigenvectors;
+    genesis::utils::containers::Matrix<double> projection;
     std::vector<size_t>   edge_indices;
 };
 
@@ -112,7 +112,7 @@ std::vector<double> epca_imbalance_vector(
  * edge imbalance matrix. We chose to use our internal edge index instead, as it is consistent and
  * needs no checking for correctly labeled edge nums.
  *
- * @see epca_imbalance_matrix() for the @link utils::Matrix Matrix@endlink of imbalances for a whole
+ * @see epca_imbalance_matrix() for the @link genesis::utils::containers::Matrix Matrix@endlink of imbalances for a whole
  * SampleSet.
  */
 std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize = true );
@@ -121,7 +121,7 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
  * @brief Calculate the imbalance matrix of placment mass for all Sample%s in a SampleSet.
  *
  * The first step to perform @link epca() Edge PCA@endlink is to make a
- * @link utils::Matrix Matrix@endlink with rows indexed by the Sample%s, and columns by the
+ * @link genesis::utils::containers::Matrix Matrix@endlink with rows indexed by the Sample%s, and columns by the
  * @link PlacementTreeEdge Edges@endlink of the Tree. Each entry of this matrix is the
  * difference between the distribution of mass on either side of an edge for a Sample.
  * Specifically, it is the amount of mass on the distal (non-root) side of the edge minus the amount
@@ -142,7 +142,7 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
  *
  * Lastly @p normalize is used as in epca_imbalance_vector(). See there for details.
  */
-utils::Matrix<double> epca_imbalance_matrix(
+genesis::utils::containers::Matrix<double> epca_imbalance_matrix(
     SampleSet const& samples,
     bool include_leaves = false,
     bool normalize = true
@@ -165,7 +165,7 @@ utils::Matrix<double> epca_imbalance_matrix(
  * @param[in]     kappa            Scaling value for abundance information. Has to be >= 0.
  */
 void epca_splitify_transform(
-    utils::Matrix<double>& imbalance_matrix,
+    genesis::utils::containers::Matrix<double>& imbalance_matrix,
     double                 kappa = 1.0
 );
 
@@ -175,7 +175,7 @@ void epca_splitify_transform(
  * The parameters @p kappa and @p epsilon are as described in epca_splitify_transform() and
  * epca_filter_constant_columns(), respectively.
  *
- * The result is returned as a `struct` similar to the one used by utils::pca(),
+ * The result is returned as a `struct` similar to the one used by genesis::utils::pca(),
  * but containing an additional vector of the @link tree::TreeEdge::index() edge indices@endlink
  * that the rows of the eigenvectors Matrix correspond to.
  * This is necessary for back-mapping the eigenvectors onto the edges of the tree.

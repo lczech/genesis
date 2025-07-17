@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Forward Declarations
@@ -269,7 +270,7 @@ public:
      * distance across the palette.
      *
      * This is for example useful for creating a palette to write a bitmap file, see
-     * @link BmpWriter::write( Matrix<unsigned char> const&, std::vector<Color> const&, std::shared_ptr<utils::BaseOutputTarget> ) const BmpWriter::to_file()@endlink.
+     * @link BmpWriter::write( Matrix<unsigned char> const&, std::vector<Color> const&, std::shared_ptr< genesis::utils::io::BaseOutputTarget> ) const BmpWriter::to_file()@endlink.
      *
      * If `n == 0`, the original palette is returned, making it equal to palette().
      * If `n == 1`, the mid point color is returned.
@@ -378,6 +379,7 @@ private:
 
 };
 
+} // namespace color
 } // namespace utils
 } // namespace genesis
 

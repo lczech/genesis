@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Helper Functions
@@ -54,9 +55,9 @@ std::string svg_arc(
 ) {
     std::string large_arc;
     if( start_angle > end_angle ) {
-        large_arc = ( end_angle - start_angle <= utils::PI ? "1" : "0" );
+        large_arc = ( end_angle - start_angle <= genesis::utils::math::PI ? "1" : "0" );
     } else {
-        large_arc = ( end_angle - start_angle <= utils::PI ? "0" : "1" );
+        large_arc = ( end_angle - start_angle <= genesis::utils::math::PI ? "0" : "1" );
     }
 
     double start_x = center_x + ( radius * std::cos( end_angle ));
@@ -140,5 +141,6 @@ SvgBox svg_bounding_box(
     };
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

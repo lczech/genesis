@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Iterator Substitutions
@@ -236,7 +237,7 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-inline utils::Range< IteratorSubstitutions > iterate_substitutions( TwobitVector const& vector )
+inline genesis::utils::containers::Range< IteratorSubstitutions > iterate_substitutions( TwobitVector const& vector )
 {
     return {
         IteratorSubstitutions( vector ),
@@ -244,6 +245,7 @@ inline utils::Range< IteratorSubstitutions > iterate_substitutions( TwobitVector
     };
 }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 

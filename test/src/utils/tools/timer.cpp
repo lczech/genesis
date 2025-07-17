@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@
 #include <thread>
 
 using namespace genesis;
-using namespace utils;
+using namespace genesis::utils;
 
 // Function to test
 void time_example_function_( int milliseconds )

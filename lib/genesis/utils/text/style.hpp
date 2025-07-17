@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // =================================================================================================
 //     Text Style
@@ -202,6 +203,7 @@ inline void swap (Style& lhs, Style& rhs)
 
 std::ostream& operator << ( std::ostream& out, Style const& style );
 
+} // namespace text
 } // namespace utils
 } // namespace genesis
 

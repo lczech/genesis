@@ -84,7 +84,7 @@ double amnm_( // get_aMnm_buffer
     // two functions, so at maximum re-used once, which kind of defies the purpose of caching.
     // So, deactivated. Way less memory, and a slight improvement in runtim in our tests at least.
 
-    // static genesis::utils::FunctionCache<double, size_t, size_t, size_t> amnm_cache_{ [](
+    // static genesis::utils::containers::FunctionCache<double, size_t, size_t, size_t> amnm_cache_{ [](
     //     size_t poolsize, size_t nucleotide_count, size_t allele_frequency
     // ) {
     //     // ...
@@ -106,7 +106,7 @@ double amnm_( // get_aMnm_buffer
     // see log_binomial_distribution() for the underlying implementation.
     auto const k = allele_frequency;
     auto const n = nucleotide_count;
-    auto const log_coeff = utils::log_binomial_coefficient( n, k );
+    auto const log_coeff = genesis::utils::math::log_binomial_coefficient( n, k );
     assert( k <= n );
 
     double result = 0.0;
@@ -121,7 +121,7 @@ double amnm_( // get_aMnm_buffer
         double const log_pow_1 = static_cast<double>(     k ) * std::log(       p );
         double const log_pow_2 = static_cast<double>( n - k ) * std::log( 1.0 - p );
         double const binom = std::exp( log_coeff + log_pow_1 + log_pow_2 );
-        // double const binom = utils::binomial_distribution(
+        // double const binom = genesis::utils::math::binomial_distribution(
         //     allele_frequency, nucleotide_count, p
         // );
 
@@ -143,7 +143,7 @@ double amnm_( // get_aMnm_buffer
 
 double heterozygosity( SampleCounts const& sample, bool with_bessel )
 {
-    using namespace genesis::utils;
+    using namespace genesis::utils::math;
 
     double h = 1.0;
     double const nt_cnt = static_cast<double>( nucleotide_sum( sample ));
@@ -174,7 +174,8 @@ double theta_pi_pool_denominator(
     // nucleotide_count: M
 
     // Local cache for speed.
-    static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
+    using namespace genesis::utils::containers;
+    static FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
         size_t min_count, size_t poolsize, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
@@ -230,7 +231,8 @@ double theta_watterson_pool_denominator(
     // nucleotide_count: M
 
     // Local cache for speed.
-    static genesis::utils::FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
+    using namespace genesis::utils::containers;
+    static FunctionCache<double, size_t, size_t, size_t> denom_cache_{ [](
         size_t min_count, size_t poolsize, size_t nucleotide_count
     ){
         // Boundary: if not held, we'd return zero, and that would not be a useful denominator.
@@ -273,7 +275,8 @@ double theta_watterson_pool_denominator(
 double a_n( double n ) // get_an_buffer
 {
     // Local cache for speed.
-    static genesis::utils::FunctionCache<double, size_t> a_n_cache_{ []( size_t n ){
+    using namespace genesis::utils::containers;
+    static FunctionCache<double, size_t> a_n_cache_{ []( size_t n ){
         double sum = 0.0;
         for( size_t i = 1; i < n; ++i ) {
             sum += 1.0 / static_cast<double>( i );
@@ -295,7 +298,8 @@ double a_n( double n ) // get_an_buffer
 double b_n( double n ) // get_bn_buffer
 {
     // Local cache for speed.
-    static genesis::utils::FunctionCache<double, size_t> b_n_cache_{ []( size_t n ){
+    using namespace genesis::utils::containers;
+    static FunctionCache<double, size_t> b_n_cache_{ []( size_t n ){
         double sum = 0.0;
         for( size_t i = 1; i < n; ++i ) {
             sum += 1.0 / ( static_cast<double>( i ) * static_cast<double>( i ));
@@ -322,8 +326,9 @@ double alpha_star( double n ) // get_alphastar_calculator
     }
 
     // Local cache for speed.
-    static genesis::utils::FunctionCache<double, double> alpha_star_cache_{ []( double n ){
-        using namespace genesis::utils;
+    using namespace genesis::utils::containers;
+    static FunctionCache<double, double> alpha_star_cache_{ []( double n ){
+        using namespace genesis::utils::math;
 
         // Prepare some constants: n as double, a_n, and f_star.
         double const nd = static_cast<double>( n );
@@ -350,8 +355,9 @@ double beta_star( double n ) // get_betastar_calculator
     }
 
     // Local cache for speed.
-    static genesis::utils::FunctionCache<double, double> beta_star_cache_{ []( double n ){
-        using namespace genesis::utils;
+    using namespace genesis::utils::containers;
+    static FunctionCache<double, double> beta_star_cache_{ []( double n ){
+        using namespace genesis::utils::math;
 
         // Prepare some constants: n as double, a_n, b_n, and f_star.
         double const nd = static_cast<double>( n );
@@ -380,15 +386,16 @@ double beta_star( double n ) // get_betastar_calculator
     return beta_star_cache_( n );
 }
 
-genesis::utils::Matrix<double> pij_matrix_( // _get_pij_matrix
+genesis::utils::containers::Matrix<double> pij_matrix_( // _get_pij_matrix
     size_t max_read_depth, size_t poolsize
 ) {
     // Prepare a matrix with the needed dimensions. PoPoolation only computes this matrix
     // for min( max_read_depth, poolsize ) many columns, but we go all the way and compute
     // all that is needed. Just seems cleaner. Also it avoids a bug that PoPoolation might have there.
     // auto const max_width = max_read_depth < poolsize ? max_read_depth : poolsize;
+    using namespace genesis::utils::containers;
     auto const max_width = poolsize;
-    auto result = genesis::utils::Matrix<double>( max_read_depth + 1, max_width + 1 );
+    auto result = Matrix<double>( max_read_depth + 1, max_width + 1 );
 
     // Prepare double conversion constants.
     double const poold = static_cast<double>( poolsize );
@@ -414,7 +421,7 @@ genesis::utils::Matrix<double> pij_matrix_( // _get_pij_matrix
     return result;
 }
 
-genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_resolver
+genesis::utils::containers::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_resolver
     size_t max_read_depth, size_t poolsize
 ) {
     // Here, we need to cache only by poolsize, but additionally make sure that for a given
@@ -428,7 +435,7 @@ genesis::utils::Matrix<double> const& pij_matrix_resolver_( // get_nbase_matrix_
     // Hence, simple map here, so that we can do our own caching with overwriting.
 
     // Map from poolsizes to the matrix for that poolsize.
-    using PijMatrix = genesis::utils::Matrix<double>;
+    using PijMatrix = genesis::utils::containers::Matrix<double>;
     static std::unordered_map<size_t, PijMatrix> pij_matrix_cache_;
 
     // Make sure this function is called thread savely, for concurrent access to the cache.
@@ -466,7 +473,8 @@ double n_base_matrix( size_t read_depth, size_t poolsize ) // get_nbase_buffer
     // }
 
     // Local cache for speed.
-    static genesis::utils::FunctionCache<double, size_t, size_t> nbase_cache_{ [](
+    using namespace genesis::utils::containers;
+    static FunctionCache<double, size_t, size_t> nbase_cache_{ [](
         size_t read_depth, size_t poolsize
     ) {
 
@@ -517,7 +525,7 @@ double tajima_d_pool_denominator( // get_ddivisor
     // poolsize:         n
     // nucleotide_count: M
 
-    using namespace genesis::utils;
+    using namespace genesis::utils::math;
 
     // Edge cases, only relevant for the Kofler-based correction denomiator variants.
     if(

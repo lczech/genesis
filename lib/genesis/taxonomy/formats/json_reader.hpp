@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ public:
      * This function is called for every Taxon, and can be used to read the additional data
      * in the Json object of that Taxon that was stored there by the JsonWriter.
      */
-    std::function<void( utils::JsonDocument::ObjectType const&, Taxon& )> json_to_taxon;
+    std::function<void( genesis::utils::formats::JsonDocument::ObjectType const&, Taxon& )> json_to_taxon;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -90,14 +90,14 @@ public:
     /**
      * @brief Read a Taxonomy from an input source.
      */
-    Taxonomy read( std::shared_ptr<utils::BaseInputSource> source ) const;
+    Taxonomy read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
 
     /**
      * @brief Read a Taxonomy from an input JsonDocument.
      *
      * This is destructive, to save at least some memory while reading.
      */
-    Taxonomy read( utils::JsonDocument& doc ) const;
+    Taxonomy read( genesis::utils::formats::JsonDocument& doc ) const;
 
     // ---------------------------------------------------------------------
     //     Members
@@ -105,7 +105,7 @@ public:
 
 private:
 
-    Taxon object_to_taxon_( utils::JsonDocument::ObjectType& obj ) const;
+    Taxon object_to_taxon_( genesis::utils::formats::JsonDocument::ObjectType& obj ) const;
 
 };
 

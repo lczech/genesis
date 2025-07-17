@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     GLM Data Structures
@@ -120,7 +121,7 @@ struct GlmOutput
     /**
      * @brief Orthogonal basis for X space (`N * M` matrix, with `N * rank` being used).
      */
-    Matrix<double> Xb;
+    genesis::utils::containers::Matrix<double> Xb;
 
     /**
      * @brief Fitted values (size `N`).
@@ -185,7 +186,7 @@ struct GlmOutput
  * on the license and original authors.
  */
 GlmOutput glm_fit(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmFamily const&           family,
     GlmLink const&             link,
@@ -202,7 +203,7 @@ GlmOutput glm_fit(
  * on the license and original authors.
  */
 GlmOutput glm_fit(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmFamily const&           family,
     GlmExtras const&           extras = {},
@@ -216,7 +217,7 @@ GlmOutput glm_fit(
  * on the license and original authors.
  */
 GlmOutput glm_fit(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras = {},
     GlmControl const&          control = {}
@@ -259,7 +260,7 @@ std::vector<double> glm_estimate_betas( GlmOutput const& output );
  * function to specify the link function.
  */
 double glm_estimate_intercept(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmOutput const&           output,
     std::vector<double> const& betas
@@ -282,7 +283,7 @@ double glm_estimate_intercept(
  * log link. Then, this function here computes the intercept as originally specified, i.e., `0.5`.
  */
 double glm_estimate_intercept(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmLink const&             link,
     GlmOutput const&           output,
@@ -301,7 +302,7 @@ double glm_estimate_intercept(
  * function to specify the link function.
  */
 std::vector<double> glm_coefficients(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmOutput const&           output
 );
@@ -317,12 +318,13 @@ std::vector<double> glm_coefficients(
  * glm_estimate_intercept() for an example of the value computed.
  */
 std::vector<double> glm_coefficients(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmLink const&             link,
     GlmOutput const&           output
 );
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

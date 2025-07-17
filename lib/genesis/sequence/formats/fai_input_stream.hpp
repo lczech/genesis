@@ -65,7 +65,7 @@ namespace sequence {
  *         std::cout << s.length << "\n";
  *     }
  *
- * Use functions such as utils::from_file() and utils::from_string() to conveniently
+ * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
  * get an input source that can be used here.
  *
  * Thread safety: No thread safety. The common use case for this iterator is to loop over a file.
@@ -181,7 +181,7 @@ public:
             }
 
             // Start reading from the input source into a stream.
-            input_stream_ = std::make_shared<utils::InputStream>( parent_->input_source_ );
+            input_stream_ = std::make_shared<genesis::utils::io::InputStream>( parent_->input_source_ );
 
             // Start streaming the data
             increment_();
@@ -271,6 +271,8 @@ public:
 
         void increment_()
         {
+            using namespace genesis::utils::text;
+
             assert( parent_ );
 
             // Check whether the input stream is good (not end-of-stream) and can be read from.
@@ -286,10 +288,10 @@ public:
             // Depending on the standard, we can use a view, which is cheaper.
             #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
                 auto const line = input_stream_->get_line_view();
-                utils::split_view( line, col_buffer_, '\t', false );
+                split_view( line, col_buffer_, '\t', false );
             #else
                 auto const line = input_stream_->get_line();
-                utils::split( line, col_buffer_, '\t', false );
+                split( line, col_buffer_, '\t', false );
             #endif
             ++line_cnt_;
 
@@ -309,13 +311,13 @@ public:
                 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
                     record_.line   = line_cnt_;
                     record_.name   = col_buffer_[0];
-                    record_.length = utils::convert_from_chars<size_t>( col_buffer_[1] );
+                    record_.length = convert_from_chars<size_t>( col_buffer_[1] );
                     if( ! parent_->only_name_and_length_ ) {
-                        record_.offset     = utils::convert_from_chars<size_t>( col_buffer_[2] );
-                        record_.linebases  = utils::convert_from_chars<size_t>( col_buffer_[3] );
-                        record_.linewidth  = utils::convert_from_chars<size_t>( col_buffer_[4] );
+                        record_.offset     = convert_from_chars<size_t>( col_buffer_[2] );
+                        record_.linebases  = convert_from_chars<size_t>( col_buffer_[3] );
+                        record_.linewidth  = convert_from_chars<size_t>( col_buffer_[4] );
                         if( col_buffer_.size() == 6 ) {
-                            record_.qualoffset = utils::convert_from_chars<size_t>( col_buffer_[5] );
+                            record_.qualoffset = convert_from_chars<size_t>( col_buffer_[5] );
                         }
                     }
                 #else
@@ -359,7 +361,7 @@ public:
         FaiInputStream const* parent_ = nullptr;
 
         // Data stream to read from, and number of lines read.
-        std::shared_ptr<utils::InputStream> input_stream_;
+        std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
         size_t line_cnt_ = 0;
 
         // The record that we parse the input into and expose to the user.
@@ -394,7 +396,7 @@ public:
      * FastqReader.
      */
     explicit FaiInputStream(
-        std::shared_ptr<utils::BaseInputSource> source
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source
     )
         : input_source_( source )
     {}
@@ -425,7 +427,7 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
-    std::shared_ptr<utils::BaseInputSource> input_source() const
+    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source() const
     {
         return input_source_;
     }
@@ -452,7 +454,7 @@ public:
 
 private:
 
-    std::shared_ptr<utils::BaseInputSource> input_source_;
+    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source_;
     bool only_name_and_length_ = false;
 };
 

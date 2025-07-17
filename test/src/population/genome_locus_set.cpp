@@ -39,6 +39,9 @@
 
 using namespace genesis::population;
 using namespace genesis::utils;
+using namespace genesis::utils::bit;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
 TEST( GenomeLocusSet, ParseFile )
 {

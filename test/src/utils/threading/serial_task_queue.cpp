@@ -45,6 +45,7 @@
 #include <vector>
 
 using namespace genesis::utils;
+using namespace genesis::utils::threading;
 
 // =================================================================================================
 //     Basics

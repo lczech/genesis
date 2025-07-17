@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 
 namespace genesis {
 namespace utils {
+namespace threading {
 
 // =================================================================================================
 //     Sequential Output Buffer
@@ -281,7 +282,7 @@ private:
         // Get the block we need, creating it if not present.
         while( block_deque_.size() < block_index + 1 ) {
             block_deque_.emplace_back(
-                genesis::utils::make_unique<Block>()
+                genesis::utils::core::make_unique<Block>()
             );
         }
         assert( block_deque_.size() > block_index );
@@ -429,6 +430,7 @@ private:
     std::function<void( T&& )> output_function_;
 };
 
+} // namespace threading
 } // namespace utils
 } // namespace genesis
 

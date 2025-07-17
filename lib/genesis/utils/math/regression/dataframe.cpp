@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,13 +43,20 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Dataframe Helper Functions
 // =================================================================================================
 
-Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
-{
+genesis::utils::containers::Dataframe glm_prepare_dataframe(
+    genesis::utils::containers::Dataframe const& df,
+    std::string& report
+) {
+    using namespace genesis::utils::containers;
+    using namespace genesis::utils::math;
+    using namespace genesis::utils::text;
+
     // Prepare rows of the resulting dataframe.
     Dataframe result;
     for( size_t i = 0; i < df.rows(); ++i ) {
@@ -178,17 +185,18 @@ Dataframe glm_prepare_dataframe( Dataframe const& df, std::string& report )
     return result;
 }
 
-Dataframe glm_prepare_dataframe( Dataframe const& df )
-{
+genesis::utils::containers::Dataframe glm_prepare_dataframe(
+    genesis::utils::containers::Dataframe const& df
+) {
     std::string report;
     return glm_prepare_dataframe( df, report );
 }
 
-Matrix<double> glm_convert_dataframe(
-    Dataframe const& df,
+genesis::utils::containers::Matrix<double> glm_convert_dataframe(
+    genesis::utils::containers::Dataframe const& df,
     std::vector<std::string> row_order
 ) {
-    auto result = Matrix<double>( df.rows(), df.cols() );
+    auto result = genesis::utils::containers::Matrix<double>( df.rows(), df.cols() );
 
     // Prepare row name order.
     if( ! row_order.empty() && row_order.size() != df.rows() ) {
@@ -201,10 +209,10 @@ Matrix<double> glm_convert_dataframe(
 
     // Iterate columns of the dataframe.
     for( size_t c = 0; c < df.cols(); ++c ) {
-        if( ! df[c].Dataframe::ColumnBase::is<double>() ) {
+        if( ! df[c].genesis::utils::containers::Dataframe::ColumnBase::is<double>() ) {
             throw std::runtime_error( "GLM Dataframe conversion expects Columns of type double." );
         }
-        auto const& col = df[c].Dataframe::ColumnBase::as<double>();
+        auto const& col = df[c].genesis::utils::containers::Dataframe::ColumnBase::as<double>();
 
         // Add row content in the provided order.
         for( size_t r = 0; r < row_names.size(); ++r ) {
@@ -220,11 +228,12 @@ Matrix<double> glm_convert_dataframe(
     return result;
 }
 
-Matrix<double> glm_convert_dataframe(
-    Dataframe const& df
+genesis::utils::containers::Matrix<double> glm_convert_dataframe(
+    genesis::utils::containers::Dataframe const& df
 ) {
     return glm_convert_dataframe( df, std::vector<std::string>() );
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

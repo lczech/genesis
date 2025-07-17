@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -284,7 +284,7 @@ public:
                         c = '_';
                     }
                 }
-                // name = utils::replace_all(name, " ", "_");
+                // name = genesis::utils::text::replace_all(name, " ", "_");
             }
 
             // Filter out default names if needed.
@@ -304,7 +304,7 @@ public:
     {
         if (enable_branch_lengths_) {
             auto const& edge_data = edge.data<CommonEdgeData>();
-            auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision_ );
+            auto bl = genesis::utils::text::to_string_rounded( edge_data.branch_length, branch_length_precision_ );
             element.values.insert (element.values.begin(), bl );
         }
     }

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // ================================================================================================
 //     General gzip/zlib Functions
@@ -62,18 +63,19 @@ bool is_gzip_compressed_file( std::string const& file_name );
  * If compiled without zlib support, the exepction has no use and contains a dummy message.
  */
 class GzipError
-    : public IOError
+    : public genesis::utils::core::IOError
 {
 public:
 
     GzipError( std::string const& z_stream_message, int error_code );
 
     GzipError( std::string const msg )
-        : IOError(msg)
+        : genesis::utils::core::IOError(msg)
     {}
 
 };
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

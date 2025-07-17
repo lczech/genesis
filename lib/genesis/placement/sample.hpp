@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -271,14 +271,14 @@ public:
      *
      * This makes iterating Pqueries via a range based for loop easy.
      */
-    utils::Range<iterator_pqueries>       pqueries();
+    genesis::utils::containers::Range<iterator_pqueries>       pqueries();
 
     /**
      * @brief Return a const Range iterator to the @link Pquery Pqueries @endlink.
      *
      * This makes iterating Pqueries via a range based for loop easy.
      */
-    utils::Range<const_iterator_pqueries> pqueries() const;
+    genesis::utils::containers::Range<const_iterator_pqueries> pqueries() const;
 
     // -------------------------------------------------------------------------
     //     Members

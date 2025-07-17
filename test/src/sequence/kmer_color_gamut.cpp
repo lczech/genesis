@@ -69,6 +69,12 @@
 using namespace genesis;
 using namespace genesis::sequence;
 using namespace genesis::utils;
+using namespace genesis::utils::bit;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 // =================================================================================================
 //     Functionality Tests
@@ -562,7 +568,7 @@ void kmer_color_gamut_concurrency_test_(
 TEST( KmerColorGamut, Concurrency )
 {
     // Deactivate logging output for regular tests.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);

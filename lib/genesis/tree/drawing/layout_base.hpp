@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -126,36 +126,36 @@ public:
     //     Edge Strokes
     // -------------------------------------------------------------
 
-    void set_edge_strokes( utils::SvgStroke const& stroke );
-    void set_edge_strokes( std::vector< utils::SvgStroke > const& strokes );
+    void set_edge_strokes( genesis::utils::formats::SvgStroke const& stroke );
+    void set_edge_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
 
-    void set_edge_spreading_strokes( utils::SvgStroke const& stroke );
-    void set_edge_spreading_strokes( std::vector< utils::SvgStroke > const& strokes );
+    void set_edge_spreading_strokes( genesis::utils::formats::SvgStroke const& stroke );
+    void set_edge_spreading_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
 
-    void set_edge_distance_strokes( utils::SvgStroke const& stroke );
-    void set_edge_distance_strokes( std::vector< utils::SvgStroke > const& strokes );
+    void set_edge_distance_strokes( genesis::utils::formats::SvgStroke const& stroke );
+    void set_edge_distance_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
 
     void set_label_spacer_strokes(
-        utils::SvgStroke const& stroke,
+        genesis::utils::formats::SvgStroke const& stroke,
         LayoutSpreading spreading = LayoutSpreading::kLeafNodesOnly
     );
-    void set_label_spacer_strokes( std::vector< utils::SvgStroke > const& strokes );
+    void set_label_spacer_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
 
     // -------------------------------------------------------------
     //     Edge and Node Shapes
     // -------------------------------------------------------------
 
-    void set_edge_shapes( utils::SvgGroup const& shape );
-    void set_edge_shapes( std::vector<utils::SvgGroup> const& shapes );
+    void set_edge_shapes( genesis::utils::formats::SvgGroup const& shape );
+    void set_edge_shapes( std::vector<genesis::utils::formats::SvgGroup> const& shapes );
 
-    void set_node_shapes( utils::SvgGroup const& shape );
-    void set_node_shapes( std::vector<utils::SvgGroup> const& shapes );
+    void set_node_shapes( genesis::utils::formats::SvgGroup const& shape );
+    void set_node_shapes( std::vector<genesis::utils::formats::SvgGroup> const& shapes );
 
     // -------------------------------------------------------------
     //     Drawing
     // -------------------------------------------------------------
 
-    utils::SvgDocument to_svg_document() const
+    genesis::utils::formats::SvgDocument to_svg_document() const
     {
         return to_svg_document_();
     }
@@ -195,9 +195,9 @@ public:
     void extra_spacer( double value );
     double extra_spacer() const;
 
-    void text_template( utils::SvgText const& tt );
-    utils::SvgText& text_template();
-    utils::SvgText const& text_template() const;
+    void text_template( genesis::utils::formats::SvgText const& tt );
+    genesis::utils::formats::SvgText& text_template();
+    genesis::utils::formats::SvgText const& text_template() const;
 
     // -------------------------------------------------------------
     //     Protected Functions
@@ -213,7 +213,7 @@ protected:
 
 protected:
 
-    virtual utils::SvgDocument to_svg_document_() const = 0;
+    virtual genesis::utils::formats::SvgDocument to_svg_document_() const = 0;
 
     // -------------------------------------------------------------
     //     Private Members
@@ -243,7 +243,7 @@ private:
     bool align_labels_ = false;
     double extra_spacer_ = 10.0;
 
-    utils::SvgText text_template_ = utils::SvgText();
+    genesis::utils::formats::SvgText text_template_ = genesis::utils::formats::SvgText();
 
 };
 

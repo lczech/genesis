@@ -43,30 +43,30 @@ class TestGenesisUtilsCoreIoInputSource(unittest.TestCase):
 
     def test_from_file_with_str(self):
         # 1) Pass in a plain Python string path
-        src = utils.from_file(self.path)
-        result = utils.read_input_source(src)
+        src = utils.io.from_file(self.path)
+        result = utils.io.read_input_source(src)
         self.assertEqual(result, self.content)
 
     def test_from_file_with_pathlib(self):
         # 2) Pass in a pathlib.Path
         p = pathlib.Path(self.path)
-        src = utils.from_file(p)
-        result = utils.read_input_source(src)
+        src = utils.io.from_file(p)
+        result = utils.io.read_input_source(src)
         self.assertEqual(result, self.content)
 
     def test_from_file_with_file_like(self):
         # 3) Pass in a file-like object
         # with open(self.path, 'r', encoding='utf-8') as f:
         with open(self.path, 'r') as f:
-            src = utils.from_file(f)
-            result = utils.read_input_source(src)
+            src = utils.io.from_file(f)
+            result = utils.io.read_input_source(src)
             self.assertEqual(result, self.content)
 
     def test_from_file_with_stringio(self):
         # 4) Pass in a text-mode, file-like object
         buf = io.StringIO(self.content)
-        src = utils.from_file(buf)
-        result = utils.read_input_source(src)
+        src = utils.io.from_file(buf)
+        result = utils.io.read_input_source(src)
         self.assertEqual(result, self.content)
 
 if __name__ == '__main__':

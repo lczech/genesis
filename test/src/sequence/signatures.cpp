@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,13 +46,17 @@
 
 using namespace genesis::sequence;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 TEST( Sequence, KmerList )
 {
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
         auto list = SignatureSpecifications( "ACGT", k ).kmer_list();
-        EXPECT_EQ( genesis::utils::int_pow( 4, k ), list.size() );
+        EXPECT_EQ( genesis::utils::math::int_pow( 4, k ), list.size() );
         EXPECT_EQ( std::string( k, 'A' ), list.front() );
         EXPECT_EQ( std::string( k, 'T' ), list.back() );
 

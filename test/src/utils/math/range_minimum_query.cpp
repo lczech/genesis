@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@
 #include "genesis/utils/math/range_minimum_query.hpp"
 
 using namespace genesis;
-using namespace utils;
+using namespace genesis::utils;
+using namespace genesis::utils::math;
 
 // =================================================================================================
 //     Helper Functions

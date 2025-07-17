@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ class SequenceSet;
  *     std::string outfile = "path/to/file.fastq";
  *     SequenceSet sequence_set;
  *
- *     FastqWriter().write( sequence_set, utils::to_file( outfile ));
+ *     FastqWriter().write( sequence_set, genesis::utils::io::to_file( outfile ));
  *
  * See FastqReader for a description of the Fastq format.
  * Sequences are written to Fastq format, using the Sanger encoding (phred score plus offset 33),
@@ -100,12 +100,12 @@ public:
     /**
      * @brief Write a single Sequence to an output target, using the Fastq format.
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
     void write(
         Sequence const& sequence,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     /**
@@ -116,24 +116,24 @@ public:
      * as the sequece itself, or empty, in which case this function behaves according to
      * fill_missing_quality(). If the sequence itself already has a phred score, an exception is thrown.
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
     void write(
         Sequence const& sequence,
         std::string const& quality,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     /**
      * @brief Write a SequenceSet to an output target, using the Fastq format.
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
     void write(
         SequenceSet const& sequence_set,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -149,7 +149,7 @@ public:
         std::string_view const& label,
         std::string_view const& sites,
         std::string_view const& quality,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Xml Value
@@ -182,7 +183,7 @@ public:
 
     inline XmlComment* append_comment (const std::string& comment)
     {
-        auto elm = utils::make_unique<XmlComment>(comment);
+        auto elm = genesis::utils::core::make_unique<XmlComment>(comment);
         auto ptr = elm.get();
         content.push_back(std::move(elm));
         return ptr;
@@ -190,7 +191,7 @@ public:
 
     inline XmlMarkup* append_markup (const std::string& text)
     {
-        auto elm = utils::make_unique<XmlMarkup>(text);
+        auto elm = genesis::utils::core::make_unique<XmlMarkup>(text);
         auto ptr = elm.get();
         content.push_back(std::move(elm));
         return ptr;
@@ -198,7 +199,7 @@ public:
 
     inline XmlElement* append_element (const std::string& tag_value)
     {
-        auto elm = utils::make_unique<XmlElement>(tag_value);
+        auto elm = genesis::utils::core::make_unique<XmlElement>(tag_value);
         auto ptr = elm.get();
         content.push_back(std::move(elm));
         return ptr;
@@ -243,6 +244,7 @@ const XmlComment* xml_value_to_comment (const XmlValue* v);
 const XmlMarkup*  xml_value_to_markup  (const XmlValue* v);
 const XmlElement* xml_value_to_element (const XmlValue* v);
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

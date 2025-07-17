@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Iterator Deletions
@@ -217,7 +218,7 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-inline utils::Range< IteratorDeletions > iterate_deletions( TwobitVector const& vector )
+inline genesis::utils::containers::Range< IteratorDeletions > iterate_deletions( TwobitVector const& vector )
 {
     return {
         IteratorDeletions( vector ),
@@ -225,6 +226,7 @@ inline utils::Range< IteratorDeletions > iterate_deletions( TwobitVector const& 
     };
 }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 

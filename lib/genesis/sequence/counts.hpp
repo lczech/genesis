@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ class SequenceSet;
  * @brief Store counts of the occurence for certain characters at the sites of Sequence%s.
  *
  * This class is a helper for statistical analyses of Sequences, and for calculating consensus
- * sequences and the like. It stores a @link utils::Matrix Matrix@endlink of counts, for a
+ * sequences and the like. It stores a @link genesis::utils::containers::Matrix Matrix@endlink of counts, for a
  * set of characters and a given sequence length. That is, it expected aligned (same length)
  * sequences.
  *
@@ -181,7 +181,7 @@ public:
      * @brief Return the count for a character and a site, given their indices.
      *
      * The characters are indexed in the order given by characters(). This function is thus
-     * mainly for speedup reasons when iterating the whole @link utils::Matrix Matrix@endlink.
+     * mainly for speedup reasons when iterating the whole @link genesis::utils::containers::Matrix Matrix@endlink.
      */
     CountsIntType count_at( size_t character_index, size_t site_index ) const;
 
@@ -243,8 +243,8 @@ public:
 private:
 
     std::string                        characters_;
-    utils::CharLookup< unsigned char > lookup_;
-    utils::Matrix< CountsIntType >     counts_;
+    genesis::utils::CharLookup< unsigned char > lookup_;
+    genesis::utils::containers::Matrix< CountsIntType >     counts_;
     CountsIntType                      num_seqs_ = 0;
 
 };

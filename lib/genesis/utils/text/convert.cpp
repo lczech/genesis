@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // =================================================================================================
 //     Bool Text Conversion
@@ -239,5 +240,6 @@ bool is_convertible_to_unsigned_integer( std::string const& str )
     return convert_to_unsigned_integer( str, result );
 }
 
+} // namespace text
 } // namespace utils
 } // namespace genesis

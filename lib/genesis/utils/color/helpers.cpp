@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Gradients
@@ -181,6 +182,8 @@ std::map<double, std::string> color_tickmarks( ColorNormalization const& norm, s
 
 std::map<double, std::string> color_tickmarks( ColorNormalizationLinear const& norm, size_t num_ticks )
 {
+    using genesis::utils::text::to_string_nice;
+
     std::map<double, std::string> result;
     auto tm = Tickmarks();
     auto const tm_labels = tm.linear_labels( norm.min_value(), norm.max_value(), num_ticks );
@@ -192,6 +195,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationLinear const& n
 
 std::map<double, std::string> color_tickmarks( ColorNormalizationLogarithmic const& norm, size_t num_ticks )
 {
+    using genesis::utils::text::to_string_nice;
     std::map<double, std::string> result;
 
     // Don't use them for log scale.
@@ -214,6 +218,7 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationLogarithmic con
 
 std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const& norm, size_t num_ticks )
 {
+    using genesis::utils::text::to_string_nice;
     std::map<double, std::string> result;
     auto tm = Tickmarks();
 
@@ -261,6 +266,8 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationDiverging const
 
 std::map<double, std::string> color_tickmarks( ColorNormalizationBoundary const& norm, size_t num_ticks )
 {
+    using genesis::utils::text::to_string_nice;
+
     // Ignore. We use the number of boundaries coming from the normalization.
     (void) num_ticks;
 
@@ -276,5 +283,6 @@ std::map<double, std::string> color_tickmarks( ColorNormalizationBoundary const&
     return result;
 }
 
+} // namespace color
 } // namespace utils
 } // namespace genesis

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,18 +38,28 @@
 #include <string>
 #include <vector>
 
-namespace genesis {
-namespace utils {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
+namespace genesis {
+namespace utils {
+namespace io {
+
 class InputStream;
+
+}
+}
+}
 
 // =================================================================================================
 //     Csv Reader
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace formats {
 
 /**
  * @brief Read Comma/Character Separated Values (CSV) data and other delimiter-separated formats.
@@ -100,10 +110,10 @@ public:
      * @brief Read CSV data from a source and return it as a table, using a vector per line,
      * containing a vector of fields found on that line.
      *
-     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    Table read( std::shared_ptr<BaseInputSource> source ) const;
+    Table read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -113,7 +123,7 @@ public:
      * @brief Parse a whole CSV document and return its contents.
      */
     Table parse_document(
-        utils::InputStream& input_stream
+        genesis::utils::io::InputStream& input_stream
     ) const;
 
     /**
@@ -135,7 +145,7 @@ public:
      * to change the behaviour of this function.
      */
     std::string parse_field(
-        utils::InputStream& input_stream
+        genesis::utils::io::InputStream& input_stream
     ) const;
 
     /**
@@ -149,7 +159,7 @@ public:
      * this function.
      */
     std::vector<std::string> parse_line(
-        utils::InputStream& input_stream
+        genesis::utils::io::InputStream& input_stream
     ) const;
 
     // ---------------------------------------------------------------------
@@ -423,6 +433,7 @@ private:
 
 };
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

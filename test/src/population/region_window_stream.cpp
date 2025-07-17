@@ -51,6 +51,10 @@
 
 using namespace genesis::population;
 using namespace genesis::utils;
+using namespace genesis::utils::bit;
+using namespace genesis::utils::core;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 // -------------------------------------------------------------------------
 //     Run test case
@@ -563,7 +567,7 @@ TEST( WindowStream, RegionWindowStream )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     // We have 2^9 = 512 possible combinations of variants, and the same for regions.
     // So we want at least that many tests, to have (on average across test runs) a good enough

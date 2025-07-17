@@ -47,6 +47,10 @@
 #include "genesis/utils/math/random.hpp"
 
 using namespace genesis::utils;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::core;
+using namespace genesis::utils::math;
+using namespace genesis::utils::threading;
 
 // =================================================================================================
 //     Nested Tests
@@ -452,7 +456,7 @@ TEST( ThreadPool, ParallelForFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     // 0.5s runtime, our default for normal tests.
     size_t const max_tests = 300;
@@ -595,7 +599,7 @@ TEST( ThreadPool, NestedFuzzy )
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     // On macos, we have issues with stack overflow, so let's print the stack sizes for debugging.
     pthread_attr_t attr;
@@ -723,13 +727,13 @@ void test_thread_pool_parallel_for_each_throttled_( bool range )
 
 TEST( ThreadPool, ParallelForEachThrottledRange )
 {
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
     test_thread_pool_parallel_for_each_throttled_( true );
 }
 
 TEST( ThreadPool, ParallelForEachThrottledContainer )
 {
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
     test_thread_pool_parallel_for_each_throttled_( false );
 }
 

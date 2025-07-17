@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,15 +45,15 @@ namespace taxonomy {
 // =================================================================================================
 
 void TaxonomyJsonWriter::write(
-    Taxonomy const& tax, std::shared_ptr<utils::BaseOutputTarget> target
+    Taxonomy const& tax, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
-    utils::JsonWriter().write( to_document( tax ), target );
+    genesis::utils::formats::JsonWriter().write( to_document( tax ), target );
 }
 
-utils::JsonDocument TaxonomyJsonWriter::to_document(
+genesis::utils::formats::JsonDocument TaxonomyJsonWriter::to_document(
     Taxonomy const& tax
 ) const {
-    using namespace utils;
+    using namespace genesis::utils::formats;
     JsonDocument doc = JsonDocument::array();
     for( auto const& child : tax ) {
         doc.push_back( taxon_to_object_( child ));
@@ -61,11 +61,11 @@ utils::JsonDocument TaxonomyJsonWriter::to_document(
     return doc;
 }
 
-utils::JsonDocument::ObjectType TaxonomyJsonWriter::taxon_to_object_(
+genesis::utils::formats::JsonDocument::ObjectType TaxonomyJsonWriter::taxon_to_object_(
     Taxon const& tax
 ) const {
-    using namespace utils;
-    auto obj = utils::JsonDocument::ObjectType();
+    using namespace genesis::utils::formats;
+    auto obj = genesis::utils::formats::JsonDocument::ObjectType();
 
     // Set the basic properties of a Taxon.
     obj[ "name" ] = tax.name();

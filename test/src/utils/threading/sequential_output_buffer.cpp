@@ -42,6 +42,9 @@
 #include <vector>
 
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::math;
+using namespace genesis::utils::threading;
 
 // =================================================================================================
 //     Sequential Output Buffer
@@ -90,7 +93,7 @@ TEST( Containers, SequentialOutputBuffer )
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     size_t const max_tests = 1000;
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {
@@ -183,7 +186,7 @@ TEST( Containers, SequentialOutputBufferParallel )
     auto const seed = ::time(nullptr);
     permuted_congruential_generator_init( seed );
     LOG_INFO << "Seed: " << seed;
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     size_t const max_tests = 15;
     for( size_t test_num = 0; test_num < max_tests; ++test_num ) {

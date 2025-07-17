@@ -70,14 +70,14 @@ namespace placement {
 // =================================================================================================
 
 Sample JplaceReader::read(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
 ) const {
-    auto doc = utils::JsonReader().read( source );
+    auto doc = genesis::utils::formats::JsonReader().read( source );
     return read( doc );
 }
 
 Sample JplaceReader::read(
-    utils::JsonDocument& doc
+    genesis::utils::formats::JsonDocument& doc
 ) const {
     Sample smp;
 
@@ -112,7 +112,7 @@ Sample JplaceReader::read(
 }
 
 SampleSet JplaceReader::read(
-    std::vector<std::shared_ptr<utils::BaseInputSource>> sources
+    std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources
 ) const {
     SampleSet target;
     read( sources, target );
@@ -120,7 +120,7 @@ SampleSet JplaceReader::read(
 }
 
 void JplaceReader::read(
-    std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+    std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
     SampleSet& target
 ) const {
 
@@ -130,7 +130,7 @@ void JplaceReader::read(
     auto tmp = std::vector<Sample>( sources.size() );
 
     // Parallel parsing.
-    utils::parallel_for(
+    genesis::utils::threading::parallel_for(
         0, sources.size(),
         [&]( size_t i ) {
             tmp[ i ] = read( sources[i] );
@@ -139,11 +139,11 @@ void JplaceReader::read(
 
     // Move to target SampleSet.
     for( size_t i = 0; i < sources.size(); ++i ) {
-        auto const bn = utils::file_basename( sources[i]->source_string() );
-        auto const ex = utils::file_extension( bn );
+        auto const bn = genesis::utils::core::file_basename( sources[i]->source_string() );
+        auto const ex = genesis::utils::core::file_extension( bn );
         auto name = bn;
         if( ex == "jplace" ) {
-            name = utils::file_filename( bn );
+            name = genesis::utils::core::file_filename( bn );
         }
 
         target.add( std::move( tmp[i] ), name );
@@ -158,7 +158,7 @@ void JplaceReader::read(
 //     Get Version
 // -------------------------------------------------------------------------
 
-int JplaceReader::get_jplace_version_( utils::JsonDocument const& doc ) const
+int JplaceReader::get_jplace_version_( genesis::utils::formats::JsonDocument const& doc ) const
 {
     // Check if there is a version key.
     auto v_it = doc.find( "version" );
@@ -185,7 +185,7 @@ int JplaceReader::get_jplace_version_( utils::JsonDocument const& doc ) const
 //     Processing Version
 // -------------------------------------------------------------------------
 
-void JplaceReader::process_jplace_version_( utils::JsonDocument const& doc ) const
+void JplaceReader::process_jplace_version_( genesis::utils::formats::JsonDocument const& doc ) const
 {
     auto const version = get_jplace_version_( doc );
 
@@ -208,7 +208,7 @@ void JplaceReader::process_jplace_version_( utils::JsonDocument const& doc ) con
 //     Processing Metadata
 // -------------------------------------------------------------------------
 
-void JplaceReader::process_jplace_metadata_( utils::JsonDocument const& doc, Sample& smp ) const
+void JplaceReader::process_jplace_metadata_( genesis::utils::formats::JsonDocument const& doc, Sample& smp ) const
 {
     // Check if there is metadata.
     auto meta_it = doc.find( "metadata" );
@@ -230,7 +230,7 @@ void JplaceReader::process_jplace_metadata_( utils::JsonDocument const& doc, Sam
 //     Processing Tree
 // -------------------------------------------------------------------------
 
-void JplaceReader::process_jplace_tree_( utils::JsonDocument const& doc, Sample& smp ) const
+void JplaceReader::process_jplace_tree_( genesis::utils::formats::JsonDocument const& doc, Sample& smp ) const
 {
     // Get the jplace version. Version 1 uses Newick comments in brackets [] for the edge_nums,
     // while later versions store them in "tags" in curly braces {}.
@@ -248,7 +248,7 @@ void JplaceReader::process_jplace_tree_( utils::JsonDocument const& doc, Sample&
             "Jplace document does not contain a valid Newick tree at key 'tree'."
         );
     }
-    smp.tree() = reader.read( utils::from_string( tree_it->get_string() ));
+    smp.tree() = reader.read( genesis::utils::io::from_string( tree_it->get_string() ));
 
     // The tree reader already does all necessary checks of the tree. No need to repeat them here.
 }
@@ -257,7 +257,7 @@ void JplaceReader::process_jplace_tree_( utils::JsonDocument const& doc, Sample&
 //     Processing Fields
 // -------------------------------------------------------------------------
 
-std::vector<std::string> JplaceReader::process_jplace_fields_( utils::JsonDocument const& doc ) const
+std::vector<std::string> JplaceReader::process_jplace_fields_( genesis::utils::formats::JsonDocument const& doc ) const
 {
     // Basics.
     auto fields_it = doc.find( "fields" );
@@ -313,14 +313,14 @@ std::vector<std::string> JplaceReader::process_jplace_fields_( utils::JsonDocume
         "edge_num", "likelihood", "like_weight_ratio", "pendant_length"
     };
     for( auto const& req : required_fields ) {
-        if( ! utils::contains( fields, req ) ) {
+        if( ! genesis::utils::core::contains( fields, req ) ) {
             throw std::runtime_error(
                 "Jplace document does not contain necessary field '" + req + "' at key 'fields'."
             );
         }
     }
-    auto const contains_distal = utils::contains( fields, "distal_length" );
-    auto const contains_proximal = utils::contains( fields, "proximal_length" );
+    auto const contains_distal = genesis::utils::core::contains( fields, "distal_length" );
+    auto const contains_proximal = genesis::utils::core::contains( fields, "proximal_length" );
     if( ! contains_distal && ! contains_proximal ) {
         throw std::runtime_error(
             "Jplace document does not contain one of the necessary fields 'distal_length' "
@@ -342,7 +342,7 @@ std::vector<std::string> JplaceReader::process_jplace_fields_( utils::JsonDocume
 // -------------------------------------------------------------------------
 
 void JplaceReader::process_jplace_placements_(
-    utils::JsonDocument&            doc,
+    genesis::utils::formats::JsonDocument&            doc,
     Sample&                         smp,
     std::vector<std::string> const& fields
 ) const {
@@ -394,7 +394,7 @@ void JplaceReader::process_jplace_placements_(
 // -------------------------------------------------------------------------
 
 void JplaceReader::process_jplace_placements_p_(
-    utils::JsonDocument const&      pqry_obj,
+    genesis::utils::formats::JsonDocument const&      pqry_obj,
     Pquery&                         pquery,
     std::vector<std::string> const& fields,
     std::unordered_map<size_t, PlacementTreeEdge*> const& edge_num_map
@@ -568,7 +568,7 @@ void JplaceReader::process_jplace_placements_p_(
 // -------------------------------------------------------------------------
 
 void JplaceReader::process_jplace_placements_nm_(
-    utils::JsonDocument const&      pqry_obj,
+    genesis::utils::formats::JsonDocument const&      pqry_obj,
     Pquery&                         pquery
 ) const {
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -64,13 +64,13 @@ TaxonomyReader::TaxonomyReader()
 //     Reading
 // =================================================================================================
 
-void TaxonomyReader::read( std::shared_ptr<utils::BaseInputSource> source, Taxonomy& target ) const
+void TaxonomyReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source, Taxonomy& target ) const
 {
-    utils::InputStream it( source );
+    genesis::utils::io::InputStream it( source );
     parse_document( it, target );
 }
 
-Taxonomy TaxonomyReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
+Taxonomy TaxonomyReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
 {
     Taxonomy result;
     read( source, result );
@@ -82,7 +82,7 @@ Taxonomy TaxonomyReader::read( std::shared_ptr<utils::BaseInputSource> source ) 
 // =================================================================================================
 
 void TaxonomyReader::parse_document(
-    utils::InputStream& it,
+    genesis::utils::io::InputStream& it,
     Taxonomy&           tax
 ) const {
     while( it ) {
@@ -110,7 +110,7 @@ void TaxonomyReader::parse_document(
 }
 
 TaxonomyReader::Line TaxonomyReader::parse_line(
-    utils::InputStream& it
+    genesis::utils::io::InputStream& it
 ) const {
     // Get the fields of the current line.
     auto fields = csv_reader_.parse_line( it );
@@ -154,7 +154,7 @@ TaxonomyReader::Line TaxonomyReader::parse_line(
 //     Properties
 // =================================================================================================
 
-utils::CsvReader& TaxonomyReader::csv_reader()
+genesis::utils::formats::CsvReader& TaxonomyReader::csv_reader()
 {
     return csv_reader_;
 }

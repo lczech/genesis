@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,7 +96,8 @@ namespace population {
  *     for( auto const& window : window_iterator ) {
  *
  *         // Return the SampleCounts part of the Variants in the window.
- *         auto sample_counts_range = utils::make_transform_range([&]( Variant const& var )
+ *         using namespace genesis::utils::containers;
+ *         auto sample_counts_range = make_transform_range([&]( Variant const& var )
  *         -> std::vector<SampleCounts> const& {
  *             return var.samples;
  *         }, window);
@@ -119,7 +120,7 @@ namespace population {
  * for this pair of samples, and stored in the resulting matrix at positions `(i,j)` and `(j,i)`.
  */
 template<class ForwardIterator, typename FstFunctor>
-utils::Matrix<double> compute_pairwise_f_st(
+genesis::utils::containers::Matrix<double> compute_pairwise_f_st(
     ForwardIterator begin, ForwardIterator end,
     FstFunctor fst_functor
 ) {
@@ -132,7 +133,7 @@ utils::Matrix<double> compute_pairwise_f_st(
     // base pair samples in the range. We later check that this is the same for each entry.
     // Use that size to initialize the resulting matrix.
     size_t const size = static_cast<std::vector<SampleCounts> const&>( *begin ).size();
-    auto result = utils::Matrix<double>( size, size, 0.0 );
+    auto result = genesis::utils::containers::Matrix<double>( size, size, 0.0 );
 
     // We use a lambda that returns a tranforming rage to select an entry at a given index
     // in the set of SampleCounts at the current iterator position.
@@ -142,7 +143,7 @@ utils::Matrix<double> compute_pairwise_f_st(
         // Will have to revisit later if we get to use cases where the SampleCounts are not stored
         // in a vector, but some other container.
         // using T = typename ForwardIterator::value_type;
-        return utils::make_transform_range(
+        return genesis::utils::containers::make_transform_range(
             [size, index]( std::vector<SampleCounts> const& samples ) -> SampleCounts const& {
                 if( samples.size() != size ) {
                     throw std::runtime_error(
@@ -234,7 +235,7 @@ double f_st_pool_kofler( // get_conventional_fstcalculator
  * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_pool_kofler(
+genesis::utils::containers::Matrix<double> f_st_pool_kofler(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {
@@ -270,8 +271,6 @@ double f_st_pool_karlsson( // get_asymptunbiased_fstcalculator
     ForwardIterator2 p2_begin, ForwardIterator2 p2_end,
     bool only_passing_samples = true
 ) {
-    using namespace genesis::utils;
-
     // Init the calculator.
     FstPoolCalculatorKarlsson calc{};
 
@@ -306,7 +305,7 @@ double f_st_pool_karlsson( // get_asymptunbiased_fstcalculator
  * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_pool_karlsson(
+genesis::utils::containers::Matrix<double> f_st_pool_karlsson(
     ForwardIterator begin, ForwardIterator end
 ) {
     return compute_pairwise_f_st(
@@ -388,7 +387,7 @@ std::pair<double, double> f_st_pool_unbiased(
  * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_pool_unbiased_nei(
+genesis::utils::containers::Matrix<double> f_st_pool_unbiased_nei(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {
@@ -420,7 +419,7 @@ utils::Matrix<double> f_st_pool_unbiased_nei(
  * @see See compute_pairwise_f_st() for the expected input range specification.
  */
 template<class ForwardIterator>
-utils::Matrix<double> f_st_pool_unbiased_hudson(
+genesis::utils::containers::Matrix<double> f_st_pool_unbiased_hudson(
     std::vector<size_t> const& poolsizes,
     ForwardIterator begin, ForwardIterator end
 ) {

@@ -21,7 +21,7 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-#include <custom/utils/extra_bindings.hpp>
+#include <custom/utils/io/extra_bindings.hpp>
 
 #include <sstream>
 #include <string>
@@ -39,7 +39,7 @@ namespace py  = pybind11;
 void genesis_binder_utils_io_input_source(py::module &m)
 {
     m.def("from_file",
-    [](py::object src) -> std::shared_ptr<genesis::utils::BaseInputSource>
+    [](py::object src) -> std::shared_ptr<genesis::utils::io::BaseInputSource>
     {
          // cache the two Python classes we'll test against:
         py::object Path        = py::module::import("pathlib").attr("Path");
@@ -47,12 +47,12 @@ void genesis_binder_utils_io_input_source(py::module &m)
 
         // 1) string path
         if (py::isinstance<py::str>(src)) {
-            return genesis::utils::from_file(src.cast<std::string>());
+            return genesis::utils::io::from_file(src.cast<std::string>());
         }
         // 2) pathlib.Path
         if (py::isinstance(src, Path)) {
             std::string p = src.attr("as_posix")().cast<std::string>();
-            return genesis::utils::from_file(p);
+            return genesis::utils::io::from_file(p);
         }
         // 3) Any object exposing the buffer protocol
         if (py::isinstance<py::buffer>(src)) {
@@ -62,12 +62,12 @@ void genesis_binder_utils_io_input_source(py::module &m)
             auto ptr  = static_cast<const char*>(info.ptr);
             size_t n  = info.size * info.itemsize;
             std::string_view sv(ptr, n);
-            return genesis::utils::from_string_view(sv);
+            return genesis::utils::io::from_string_view(sv);
         }
         // 4) Fallback for file‐like objects (read entire content once)
         if (py::hasattr(src, "read")) {
             std::string data = src.attr("read")().cast<std::string>();
-            return genesis::utils::from_string(std::move(data));
+            return genesis::utils::io::from_string(std::move(data));
         }
         throw std::invalid_argument(
             "from_file(): expected str, pathlib.Path, buffer-protocol object, or file-like object"
@@ -81,6 +81,6 @@ void genesis_binder_utils_io_input_source(py::module &m)
     "That means, gzip-compressed files can be decompressed automatically and on the fly.\n\n"
     "See from_files(), from_string(), from_strings(), and from_stream() for similar\n"
     "helper functions for other types of input sources.\n\n"
-    "C++: genesis::utils::from_file(const std::string &) --> class std::shared_ptr<class genesis::utils::BaseInputSource>"
+    "C++: genesis::utils::io::from_file(const std::string &) --> class std::shared_ptr<class genesis::utils::io::BaseInputSource>"
     );
 }

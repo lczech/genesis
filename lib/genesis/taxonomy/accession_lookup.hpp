@@ -126,7 +126,7 @@ public:
     // -------------------------------------------------------------------------
 
     AccessionLookup()
-        : mtx_( ::genesis::utils::make_unique<std::mutex>() )
+        : mtx_( ::genesis::utils::core::make_unique<std::mutex>() )
     {}
 
     ~AccessionLookup() = default;
@@ -372,7 +372,7 @@ private:
             return it;
         }
         if( also_look_up_first_word ) {
-            auto const words = utils::split( accession, "\t ", true );
+            auto const words = genesis::utils::text::split( accession, "\t ", true );
             if( words.empty() ) {
                 return map_.end();
             }

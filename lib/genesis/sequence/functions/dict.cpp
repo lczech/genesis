@@ -48,11 +48,13 @@ namespace sequence {
 //     Sequence Dict
 // =================================================================================================
 
-SequenceDict read_sequence_dict( std::shared_ptr< utils::BaseInputSource > source )
+SequenceDict read_sequence_dict( std::shared_ptr< genesis::utils::io::BaseInputSource > source )
 {
+    using namespace genesis::utils::text;
+
     // Prepare the result and the input stream.
     SequenceDict result;
-    utils::InputStream it( source );
+    genesis::utils::io::InputStream it( source );
 
     // Read lines while there is data.
     // We don't need to be super efficient here, dict files typically only contain a few dozen lines.
@@ -61,7 +63,7 @@ SequenceDict read_sequence_dict( std::shared_ptr< utils::BaseInputSource > sourc
         ++line_cnt;
 
         // Get the line and split it on tabs; do some basic format sanity checks.
-        auto const line = utils::split( it.get_line(), "\t" );
+        auto const line = genesis::utils::text::split( it.get_line(), "\t" );
         if( line.size() == 0 ) {
             continue;
         }
@@ -96,18 +98,18 @@ SequenceDict read_sequence_dict( std::shared_ptr< utils::BaseInputSource > sourc
             assert( field[2] == ':' );
 
             // Get the two fields we are itnerested in.
-            if( utils::starts_with( field, "SN:" )) {
+            if( starts_with( field, "SN:" )) {
                 sn = field.substr( 3 );
             }
-            if( utils::starts_with( field, "LN:" )) {
-                if( ! utils::is_convertible_to_unsigned_integer( field.substr( 3 ) )) {
+            if( starts_with( field, "LN:" )) {
+                if( ! is_convertible_to_unsigned_integer( field.substr( 3 ) )) {
                     throw std::runtime_error(
                         "Invalid sequence dict file: Line " + std::to_string( line_cnt ) +
                         " contains an @SQ record with a field for the sequence length LN"
                         " whose VALUE is not a number, but '" + field.substr( 3 ) + "'."
                     );
                 }
-                ln = utils::convert_to_unsigned_integer( field.substr( 3 ));
+                ln = convert_to_unsigned_integer( field.substr( 3 ));
             }
         }
 
@@ -128,11 +130,13 @@ SequenceDict read_sequence_dict( std::shared_ptr< utils::BaseInputSource > sourc
     return result;
 }
 
-SequenceDict read_sequence_fai( std::shared_ptr<utils::BaseInputSource> source )
+SequenceDict read_sequence_fai( std::shared_ptr<genesis::utils::io::BaseInputSource> source )
 {
+    using namespace genesis::utils::text;
+
     // Prepare the result and the input stream.
     SequenceDict result;
-    utils::InputStream it( source );
+    genesis::utils::io::InputStream it( source );
 
     // Read lines while there is data.
     // We don't need to be super efficient here, fai files typically only contain a few dozen lines.
@@ -141,7 +145,7 @@ SequenceDict read_sequence_fai( std::shared_ptr<utils::BaseInputSource> source )
         ++line_cnt;
 
         // Get the line and split it on tabs; do some basic format sanity checks.
-        auto const line = utils::split( it.get_line(), "\t", false );
+        auto const line = split( it.get_line(), "\t", false );
         if( line.size() == 0 ) {
             continue;
         }
@@ -156,13 +160,13 @@ SequenceDict read_sequence_fai( std::shared_ptr<utils::BaseInputSource> source )
         // Now we know that we have a valid line. Let's see if it's one that we are intersted in.
         assert( line.size() == 5 || line.size() == 6 );
         std::string const sn = line[0];
-        if( ! utils::is_convertible_to_unsigned_integer( line[1] )) {
+        if( ! is_convertible_to_unsigned_integer( line[1] )) {
             throw std::runtime_error(
                 "Invalid sequence fai file: Line " + std::to_string( line_cnt ) +
                 " contains a record with a LENGTH field that is not a number, but '" + line[1] + "'."
             );
         }
-        size_t const ln = utils::convert_to_unsigned_integer( line[1] );
+        size_t const ln = convert_to_unsigned_integer( line[1] );
 
         // We are a bit pedantic here, and throw in case of empty results.
         // Technically, those could actually occur in the data, but that would be some weird edge
@@ -288,8 +292,8 @@ bool verify( SequenceDict const& dict, SequenceSet const& set, bool match_first_
             return false;
         }
         if( match_first_word ) {
-            auto const s_dct = utils::split( dict[i].name, "\t " );
-            auto const s_set = utils::split( set[i].label(), "\t " );
+            auto const s_dct = genesis::utils::text::split( dict[i].name, "\t " );
+            auto const s_set = genesis::utils::text::split( set[i].label(), "\t " );
             assert( ! s_dct.empty() );
             assert( ! s_set.empty() );
             if( s_dct[0] != s_set[0] ) {

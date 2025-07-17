@@ -49,6 +49,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     Helpful Functions
@@ -298,8 +299,10 @@ std::string print( Matrix<T> const& matrix, size_t rows = 10, size_t cols = 10 )
 }
 
 template<typename T>
-Serializer& operator<<( Serializer& serializer, Matrix<T> const& mat )
-{
+genesis::utils::io::Serializer& operator<<(
+    genesis::utils::io::Serializer& serializer,
+    Matrix<T> const& mat
+) {
     // We write the number of rows and cols first.
     // Then, the data serialization will additionally store the size of the underlying vector
     // that is used in the Matrix, which is a bit of overhead, but we live with that for now.
@@ -310,8 +313,10 @@ Serializer& operator<<( Serializer& serializer, Matrix<T> const& mat )
 }
 
 template<typename T>
-Deserializer& operator>>( Deserializer& deserializer, Matrix<T>& mat )
-{
+genesis::utils::io::Deserializer& operator>>(
+    genesis::utils::io::Deserializer& deserializer,
+    Matrix<T>& mat
+) {
     // This funciton is a friend of the Matrix class, so that we can write to its data directly.
     // Otherwise, we'd need special constructors etc, which is a bit cumbersome.
     deserializer >> mat.rows_;
@@ -365,6 +370,7 @@ void swap_cols( Matrix<T>& data, size_t col_a, size_t col_b )
     }
 }
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,14 +44,19 @@
 #include "genesis/utils/color/norm_linear.hpp"
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::utils::core;
+using namespace genesis::utils::color;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::formats;
+using namespace genesis::utils::io;
 
 TEST(Tree, Drawing)
 {
     // std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L,(M,N)O)R;";
 
-    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
     // EXPECT_TRUE( CommonTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
     // auto layout = RectangularLayout( tree, LayoutType::kPhylogram );
@@ -87,11 +92,11 @@ TEST(Tree, Drawing)
     };
 
     // Set colourful edges.
-    std::vector<utils::SvgStroke> strokes;
+    std::vector<SvgStroke> strokes;
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         auto const& cv = scheme[ i % scheme.size() ];
-        strokes.push_back( utils::SvgStroke() );
-        strokes.back().color = utils::color_from_name_web( cv );
+        strokes.push_back( SvgStroke() );
+        strokes.back().color = color_from_name_web( cv );
 
         // auto& node = tree.edge_at(i).secondary_link().node();
         // if( is_leaf(node) ) {
@@ -103,25 +108,25 @@ TEST(Tree, Drawing)
     // Set label alignment.
     layout.align_labels( true );
     layout.extra_spacer( 50.0 );
-    auto spacer_stroke = utils::SvgStroke( utils::Color( 0.8, 0.8, 0.8 ));
+    auto spacer_stroke = SvgStroke( utils::color::Color( 0.8, 0.8, 0.8 ));
     spacer_stroke.dash_array = std::vector<double>({ 2.0, 0.5 });
     spacer_stroke.dash_offset = 2.0;
     layout.set_label_spacer_strokes( spacer_stroke, spreading );
 
     // Set colourful node shapes.
-    std::vector<utils::SvgGroup> node_shapes;
+    std::vector<SvgGroup> node_shapes;
     node_shapes.resize( tree.node_count() );
     for( size_t i = 0; i < tree.node_count(); ++i ) {
-        node_shapes[i].add( utils::SvgCircle(
-            utils::SvgPoint( 0, 0 ),
+        node_shapes[i].add( SvgCircle(
+            SvgPoint( 0, 0 ),
             10,
-            utils::SvgStroke(),
-            utils::SvgFill( utils::Color() )
+            SvgStroke(),
+            SvgFill( utils::color::Color() )
         ));
-        // node_shapes[i].add( utils::SvgImage(
+        // node_shapes[i].add( SvgImage(
         //     "http://files.gamebanana.com/img/ico/sprays/516c32f08e03d.png",
-        //     utils::SvgPoint( -60, -60 ),
-        //     utils::SvgSize( 120, 120 )
+        //     SvgPoint( -60, -60 ),
+        //     SvgSize( 120, 120 )
         // ));
     }
     // layout.set_node_shapes( node_shapes );
@@ -134,26 +139,28 @@ TEST(Tree, Drawing)
     layout.to_svg_document().write( out );
 
     // LOG_DBG << out.str();
-    // utils::file_write( out.str(), "/home/lucas/tree.svg" );
+    // file_write( out.str(), "/home/lucas/tree.svg" );
 
 }
 
 TEST( Tree, DrawingHeatTree )
 {
     using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
     HeatTreeParameters params;
 
     // std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L,(M,N)O)R;";
-    params.tree = CommonTreeNewickReader().read( utils::from_string( input ));
+    params.tree = CommonTreeNewickReader().read( from_string( input ));
 
     // auto const row_count = params.tree.node_count();
     // auto const row_count = params.tree.edge_count();
     auto const row_count = leaf_node_count( params.tree );
 
     // Set colourful edges.
-    std::vector<utils::SvgStroke> strokes;
+    std::vector<SvgStroke> strokes;
     for( size_t i = 0; i < params.tree.edge_count(); ++i ) {
         auto const ve = static_cast<double>( i ) / static_cast<double>( params.tree.edge_count() );
         params.color_per_branch.push_back( Color( ve, 0.0, 0.0 ));
@@ -189,5 +196,5 @@ TEST( Tree, DrawingHeatTree )
     std::ostringstream out;
     doc.write( out );
     // LOG_DBG << out.str();
-    // utils::file_write( out.str(), "/home/lucas/tree.svg" );
+    // file_write( out.str(), "/home/lucas/tree.svg" );
 }

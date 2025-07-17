@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Constructors and Rule of Five
@@ -176,5 +177,6 @@ Histogram HistogramAccumulator::build_uniform_ranges_histogram(
     return h;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

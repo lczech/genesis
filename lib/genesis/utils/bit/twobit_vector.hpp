@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 class TwobitVector
 {
@@ -146,6 +147,7 @@ private:
 
 };
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 

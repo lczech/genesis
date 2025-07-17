@@ -180,7 +180,7 @@ public:
         fill_taxon_map_( tax );
     }
 
-    AccessionLookupReader( Taxonomy& tax, std::shared_ptr<utils::ThreadPool> thread_pool )
+    AccessionLookupReader( Taxonomy& tax, std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool )
     {
         fill_taxon_map_( tax );
         thread_pool_ = thread_pool;
@@ -204,7 +204,7 @@ public:
      */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_positions(
-        std::shared_ptr<utils::BaseInputSource> source,
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source,
         size_t accession_column_position = 0,
         size_t taxid_column_position = 1
     ) const {
@@ -221,12 +221,12 @@ public:
      */
     template<template<typename...> class Hashmap = std::unordered_map>
     void read_with_column_positions(
-        std::shared_ptr<utils::BaseInputSource> source,
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source,
         AccessionLookup<Hashmap>& target,
         size_t accession_column_position = 0,
         size_t taxid_column_position = 1
     ) const {
-        utils::InputStream instream( source );
+        genesis::utils::io::InputStream instream( source );
         auto report = read_table_(
             instream, accession_column_position, taxid_column_position, target
         );
@@ -240,14 +240,14 @@ public:
      */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_positions(
-        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
         size_t accession_column_position = 0,
         size_t taxid_column_position = 1
     ) const {
         // Read all provided files, either in parallel if we have a thread pool, or consecutively.
         AccessionLookup<Hashmap> target;
         for( auto& source : sources ) {
-            utils::InputStream instream( source );
+            genesis::utils::io::InputStream instream( source );
             auto report = read_table_(
                 instream, accession_column_position, taxid_column_position, target
             );
@@ -267,7 +267,7 @@ public:
      */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
-        std::shared_ptr<utils::BaseInputSource> source,
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source,
         std::string const& accession_column_name = "accession.version",
         std::string const& taxid_column_name = "taxid"
     ) const {
@@ -284,12 +284,12 @@ public:
      */
     template<template<typename...> class Hashmap = std::unordered_map>
     void read_with_column_names(
-        std::shared_ptr<utils::BaseInputSource> source,
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source,
         AccessionLookup<Hashmap>& target,
         std::string const& accession_column_name = "accession.version",
         std::string const& taxid_column_name = "taxid"
     ) const {
-        utils::InputStream instream( source );
+        genesis::utils::io::InputStream instream( source );
         auto const col_pos = get_table_header_column_positions_(
             instream, accession_column_name, taxid_column_name
         );
@@ -306,14 +306,14 @@ public:
      */
     template<template<typename...> class Hashmap = std::unordered_map>
     AccessionLookup<Hashmap> read_with_column_names(
-        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
         std::string const& accession_column_name = "accession.version",
         std::string const& taxid_column_name = "taxid"
     ) const {
         // Read all provided files, either in parallel if we have a thread pool, or consecutively.
         AccessionLookup<Hashmap> target;
         for( auto& source : sources ) {
-            utils::InputStream instream( source );
+            genesis::utils::io::InputStream instream( source );
             auto const col_pos = get_table_header_column_positions_(
                 instream, accession_column_name, taxid_column_name
             );
@@ -483,13 +483,13 @@ private:
     // -------------------------------------------------------------------------
 
     std::pair<size_t, size_t> get_table_header_column_positions_(
-        utils::InputStream& instream,
+        genesis::utils::io::InputStream& instream,
         std::string const& accession_column_name,
         std::string const& taxid_column_name
     ) const {
         // Read the header row, and split it into column names
         auto const header = instream.get_line();
-        auto const cols = utils::split( header, separator_char_, false );
+        auto const cols = genesis::utils::text::split( header, separator_char_, false );
 
         // Find the two columns we are intersted in.
         size_t const max = std::numeric_limits<size_t>::max();
@@ -530,7 +530,7 @@ private:
 
     template<template<typename...> class Hashmap>
     Report read_table_(
-        utils::InputStream& instream,
+        genesis::utils::io::InputStream& instream,
         size_t acc_pos,
         size_t tid_pos,
         AccessionLookup<Hashmap>& target
@@ -565,7 +565,7 @@ private:
         // Parse the table, line by line, and accumulate the reports from each block.
         // For the multi threaded case, we need to keep a future for the block processing,
         // to know when we are done with the block. Bit ugly, but works.
-        utils::ProactiveFuture<void> block_future;
+        genesis::utils::threading::ProactiveFuture<void> block_future;
         while( instream ) {
             // For simplicity of code, we always process the input data in blocks,
             // independently of whether we use threads or not.
@@ -583,10 +583,10 @@ private:
                 // Depending on the standard, we can use a view, which is cheaper.
                 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
                     auto const line = instream.get_line_view();
-                    utils::split_view( line, col_buffer, separator_char_, false );
+                    genesis::utils::text::split_view( line, col_buffer, separator_char_, false );
                 #else
                     auto const line = instream.get_line();
-                    utils::split( line, col_buffer, separator_char_, false );
+                    genesis::utils::text::split( line, col_buffer, separator_char_, false );
                 #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
                 // Basic sanity check of the columns.
@@ -600,7 +600,9 @@ private:
                 // Convert the tax id to numeric. Using two methods here
                 // for string and string view, again for speed.
                 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
-                    auto const taxid = utils::convert_from_chars<uint64_t>( col_buffer[tid_pos] );
+                    auto const taxid = genesis::utils::text::convert_from_chars<uint64_t>(
+                        col_buffer[tid_pos]
+                    );
                 #else
                     auto const taxid = std::stoull( col_buffer[tid_pos] );
                 #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -657,7 +659,7 @@ private:
         std::shared_ptr<std::vector<Entry>> block,
         AccessionLookup<Hashmap>& target,
         AtomicReport& report,
-        utils::ProactiveFuture<void>& block_future
+        genesis::utils::threading::ProactiveFuture<void>& block_future
     ) const {
         using MapType = Hashmap<std::string, Taxon*>;
         static_assert( ! is_phmap_<MapType>::value );
@@ -681,7 +683,7 @@ private:
         std::shared_ptr<std::vector<Entry>> block,
         AccessionLookup<Hashmap>& target,
         AtomicReport& report,
-        utils::ProactiveFuture<void>& block_future
+        genesis::utils::threading::ProactiveFuture<void>& block_future
     ) const {
         using MapType = Hashmap<std::string, Taxon*>;
         static_assert( is_phmap_<MapType>::value );
@@ -763,7 +765,7 @@ private:
         assert( thread_pool_ );
 
         // Submit the processing of the block as many times as there are sub-maps in the hash map.
-        utils::MultiFuture<void> futures( target.data().subcnt() );
+        genesis::utils::threading::MultiFuture<void> futures( target.data().subcnt() );
         for( size_t i = 0; i < target.data().subcnt(); ++i ) {
             futures[i] = thread_pool_->enqueue_and_retrieve(
                 [ this, block, &target, &report ]( size_t j ){
@@ -877,7 +879,7 @@ private:
     // Store all reports for a read operation
     mutable std::vector<Report> reports_;
 
-    std::shared_ptr<utils::ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool_;
 
 };
 

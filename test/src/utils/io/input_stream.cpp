@@ -53,6 +53,10 @@
 
 using namespace genesis;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 static void input_stream_test_input_specs_( InputStream& instr, size_t lines, size_t columns )
 {
@@ -72,7 +76,7 @@ static void input_stream_test_input_specs_( InputStream& instr, size_t lines, si
 
 static void input_stream_test_string_ ( std::string str, size_t lines, size_t columns )
 {
-    InputStream instr( utils::make_unique< StringInputSource >( str ));
+    InputStream instr( genesis::utils::core::make_unique< StringInputSource >( str ));
     input_stream_test_input_specs_( instr, lines, columns );
 }
 
@@ -93,7 +97,7 @@ TEST(InputStream, FileReading)
     SCOPED_TRACE("InputStream.FileReading");
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    InputStream instr( utils::make_unique< FileInputSource >( infile ));
+    InputStream instr( genesis::utils::core::make_unique< FileInputSource >( infile ));
 
     input_stream_test_input_specs_( instr, 110, 51 );
 }
@@ -189,7 +193,7 @@ void run_test_input_stream_fuzzy_()
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     size_t num_tests = 50;
     for( size_t i = 0; i < num_tests; ++i ) {
@@ -260,7 +264,7 @@ TEST( InputStream, GetLineViewsFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     size_t num_tests = 50;
     for( size_t i = 0; i < num_tests; ++i ) {
@@ -394,7 +398,7 @@ TEST( InputStream, GetLineLargeFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
 
     size_t num_tests = 50;
     for( size_t i = 0; i < num_tests; ++i ) {

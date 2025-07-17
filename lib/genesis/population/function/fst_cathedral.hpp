@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,9 +51,11 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
     class JsonDocument;
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 
@@ -151,9 +153,9 @@ private:
     // Store our accumualted values. We are using a Neumaier summation here,
     // as we might be adding and subtracting values of different orders of magnitude,
     // which would lead to large errors with the standard Kahan sum.
-    utils::NeumaierSum pi_within_sum_  = 0.0;
-    utils::NeumaierSum pi_between_sum_ = 0.0;
-    utils::NeumaierSum pi_total_sum_   = 0.0;
+    genesis::utils::math::NeumaierSum pi_within_sum_  = 0.0;
+    genesis::utils::math::NeumaierSum pi_between_sum_ = 0.0;
+    genesis::utils::math::NeumaierSum pi_total_sum_   = 0.0;
     size_t value_count_ = 0;
 };
 
@@ -229,12 +231,12 @@ inline void compute_fst_cathedral_matrix(
 
 /**
  * @brief Get a user-readable description of the data of a FstCathedralPlotRecord as a
- * @link genesis::utils::JsonDocument JsonDocument@endlink.
+ * @link genesis::utils::formats::JsonDocument JsonDocument@endlink.
  *
  * @see cathedral_plot_record_to_json_document(), cathedral_plot_parameters_to_json_document(),
  * save_cathedral_plot_record_to_files(), load_cathedral_plot_record_from_files()
  */
-genesis::utils::JsonDocument fst_cathedral_plot_record_to_json_document(
+genesis::utils::formats::JsonDocument fst_cathedral_plot_record_to_json_document(
     FstCathedralPlotRecord const& record
 );
 

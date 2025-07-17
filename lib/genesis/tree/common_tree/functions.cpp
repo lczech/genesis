@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ TreeNode const* find_node(
 ) {
     auto clean_name = name;
     if (replace_underscores) {
-        clean_name = utils::replace_all(name, "_", " ");
+        clean_name = genesis::utils::text::replace_all(name, "_", " ");
     }
 
     // Try to find the node, return immediately on success.

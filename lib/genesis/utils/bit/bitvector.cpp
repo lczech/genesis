@@ -42,6 +42,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =============================================================================
 //     Constants
@@ -360,5 +361,6 @@ bool Bitvector::operator != (const Bitvector &other) const
     return !(*this == other);
 }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis

@@ -42,6 +42,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Bitvector Operators
@@ -162,12 +163,18 @@ std::istream& operator >> ( std::istream& in, Bitvector& bv );
 /**
  * @brief Serialize a Bitvector to a binary target.
  */
-Serializer& operator<<( Serializer& serializer, Bitvector const& bv );
+genesis::utils::io::Serializer& operator<<(
+    genesis::utils::io::Serializer& serializer,
+    Bitvector const& bv
+);
 
 /**
  * @brief Deserialize a Bitvector from a binary source.
  */
-Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv );
+genesis::utils::io::Deserializer& operator>>(
+    genesis::utils::io::Deserializer& deserializer,
+    Bitvector& bv
+);
 
 /**
  * @brief Get the size in the binary output of a serialized Bitvector using Serializer,
@@ -208,9 +215,9 @@ inline size_t serialized_bitvector_size( Bitvector const& bv )
  */
 struct BitvectorHash
 {
-    std::size_t operator() ( genesis::utils::Bitvector const& value ) const
+    std::size_t operator() ( genesis::utils::bit::Bitvector const& value ) const
     {
-        return genesis::utils::bitvector_hash(value);
+        return genesis::utils::bit::bitvector_hash(value);
     }
 };
 
@@ -231,12 +238,13 @@ struct BitvectorHash
  */
 struct BitvectorXhash
 {
-    std::size_t operator() ( genesis::utils::Bitvector const& value ) const
+    std::size_t operator() ( genesis::utils::bit::Bitvector const& value ) const
     {
         return static_cast<std::size_t>( bitvector_x_hash( value ));
     }
 };
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 
@@ -254,11 +262,11 @@ namespace std {
  * for a variant that uses Bitvector::x_hash() instead as the hashing function.
  */
 template<>
-struct hash<genesis::utils::Bitvector>
+struct hash<genesis::utils::bit::Bitvector>
 {
-    std::size_t operator() ( genesis::utils::Bitvector const& value ) const
+    std::size_t operator() ( genesis::utils::bit::Bitvector const& value ) const
     {
-        return genesis::utils::bitvector_hash(value);
+        return genesis::utils::bit::bitvector_hash(value);
     }
 };
 

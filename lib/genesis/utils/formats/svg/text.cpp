@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Text
@@ -101,6 +102,7 @@ SvgBox SvgText::bounding_box() const
 
 void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<text";
 
@@ -255,5 +257,6 @@ std::string SvgText::alignment_baseline_to_string( SvgText::AlignmentBaseline va
     }
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

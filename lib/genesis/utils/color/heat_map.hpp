@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Heat Map Parameters
@@ -151,15 +152,16 @@ struct HeatmapParameters
 // =================================================================================================
 
 std::unique_ptr<ColorNormalization> make_heatmap_color_norm(
-    Matrix<double> const& values,
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 );
 
-Matrix<Color> make_heatmap_matrix(
-    Matrix<double> const& values,
+genesis::utils::containers::Matrix<Color> make_heatmap_matrix(
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 );
 
+} // namespace color
 } // namespace utils
 } // namespace genesis
 

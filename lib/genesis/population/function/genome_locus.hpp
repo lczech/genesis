@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -241,7 +241,7 @@ inline int locus_compare(
         return chr_cmp;
     }
     assert( l_chromosome == r_chromosome );
-    return utils::compare_threeway( l_position, r_position );
+    return genesis::utils::math::compare_threeway( l_position, r_position );
 }
 
 /**
@@ -257,14 +257,14 @@ inline int locus_compare(
     // and only if they are not equal, we get their indices, and compare those.
     if( l_chromosome == r_chromosome ) {
         // For identical chromosomes, we compare the positions.
-        return utils::compare_threeway( l_position, r_position );
+        return genesis::utils::math::compare_threeway( l_position, r_position );
     }
 
     // Here, we know the chromosomes are different, so we compare their indices.
     // No need to compare the positions here again. We assert that they are indeed different.
     auto const l_chr_idx = sequence_dict.index_of( l_chromosome );
     auto const r_chr_idx = sequence_dict.index_of( r_chromosome );
-    auto const chr_cmp = utils::compare_threeway( l_chr_idx, r_chr_idx );
+    auto const chr_cmp = genesis::utils::math::compare_threeway( l_chr_idx, r_chr_idx );
     assert( chr_cmp != 0 );
     return chr_cmp;
 }

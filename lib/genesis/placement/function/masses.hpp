@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ std::vector<double> placement_mass_per_edges_with_multiplicities( Sample const& 
  * See placement_mass_per_edges_with_multiplicities( Sample const& ) for details.
  * The Matrix is simply a row-wise concatenation of this vector function.
  */
-utils::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet const& sample_set );
+genesis::utils::containers::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet const& sample_set );
 
 /**
  * @brief Get the mass of all PqueryPlacement%s of the Sample, using the
@@ -115,7 +115,7 @@ std::vector<double> placement_mass_per_edge_without_multiplicities( Sample const
  * See placement_mass_per_edge_without_multiplicities( Sample const& ) for details.
  * The Matrix is simply a row-wise concatenation of this vector function.
  */
-utils::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet const& sample_set );
+genesis::utils::containers::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet const& sample_set );
 
 /**
  * @brief Get the summed mass of all PqueryPlacement%s in all @link Pquery Pqueries @endlink of the

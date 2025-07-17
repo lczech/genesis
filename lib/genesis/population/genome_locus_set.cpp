@@ -49,6 +49,8 @@ void GenomeLocusSet::add(
     size_t start,
     size_t end
 ) {
+    using namespace genesis::utils::bit;
+
     // Check chromosome.
     if( chromosome.empty() ) {
         throw std::invalid_argument(
@@ -80,12 +82,12 @@ void GenomeLocusSet::add(
     // for amortization in the long run. Might find a better strategy later.
     auto& bv = locus_map_[ chromosome ];
     if( bv.empty() ) {
-        bv = utils::Bitvector( end + 1 );
+        bv = Bitvector( end + 1 );
     } else if( bv.size() < end + 1 ) {
         if( bv.size() * 2 < end + 1 ) {
-            bv = utils::Bitvector( end + 1, bv );
+            bv = Bitvector( end + 1, bv );
         } else {
-            bv = utils::Bitvector( bv.size() * 2, bv );
+            bv = Bitvector( bv.size() * 2, bv );
         }
     }
     assert( bv.size() >= end + 1 );
@@ -97,13 +99,17 @@ void GenomeLocusSet::add(
     // }
 }
 
-void GenomeLocusSet::add( std::string const& chromosome, utils::Bitvector const& values )
-{
-    add( chromosome, utils::Bitvector( values ));
+void GenomeLocusSet::add(
+    std::string const& chromosome,
+    genesis::utils::bit::Bitvector const& values
+) {
+    add( chromosome, genesis::utils::bit::Bitvector( values ));
 }
 
-void GenomeLocusSet::add( std::string const& chromosome, utils::Bitvector&& values )
-{
+void GenomeLocusSet::add(
+    std::string const& chromosome,
+    genesis::utils::bit::Bitvector&& values
+) {
     // Checks.
     if( chromosome.empty() ) {
         throw std::invalid_argument(
@@ -139,7 +145,7 @@ void GenomeLocusSet::add( std::string const& chromosome, utils::Bitvector&& valu
 
 void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
 {
-    using namespace genesis::utils;
+    using namespace genesis::utils::bit;
 
     // Shorthand for clarity and for ease of refactoring
     // if we need to make this a free function later.
@@ -219,7 +225,7 @@ void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
 void GenomeLocusSet::set_union( GenomeLocusSet const& rhs )
 {
     // Remark on the name: `union` is a C++ keyword, so we cannot name the function just that...
-    using namespace genesis::utils;
+    using namespace genesis::utils::bit;
 
     // Shorthand for clarity and for ease of refactoring
     // if we need to make this a free function later.
@@ -260,7 +266,7 @@ void GenomeLocusSet::set_union( GenomeLocusSet const& rhs )
 
 void GenomeLocusSet::invert( sequence::SequenceDict const& sequence_dict )
 {
-    using namespace genesis::utils;
+    using namespace genesis::utils::bit;
 
     for( auto& chr_bv : locus_map_ ) {
         // Basic check for the chromosome

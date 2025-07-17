@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ namespace population {
 inline constexpr bool is_valid_base( char c )
 {
     // Can't use a function call here, to comply with C++11 constexpr rules.
-    // c = utils::to_upper( c );
+    // c = genesis::utils::text::to_upper( c );
     return (
         c == 'A' || c == 'a' ||
         c == 'C' || c == 'c' ||
@@ -71,7 +71,7 @@ inline constexpr bool is_valid_base( char c )
 inline constexpr bool is_valid_base_or_n( char c )
 {
     // Can't use a function call here, to comply with C++11 constexpr rules.
-    // c = utils::to_upper( c );
+    // c = genesis::utils::text::to_upper( c );
     return (
         c == 'A' || c == 'a' ||
         c == 'C' || c == 'c' ||

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Nexus Block
@@ -83,6 +84,7 @@ inline std::ostream& operator<< ( std::ostream& os, NexusBlock const& block )
     return os;
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

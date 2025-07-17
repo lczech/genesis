@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //      Helpers
@@ -94,7 +95,7 @@ struct EmptyGenericInputStreamData
  *
  * ~~~{.cpp}
  *     // Use a pileup iterator, which does not offer begin and end.
- *     auto it = SimplePileupInputIterator( utils::from_file( pileup_file_.value ), reader );
+ *     auto it = SimplePileupInputIterator( genesis::utils::io::from_file( pileup_file_.value ), reader );
  *     auto generator = GenericInputStream<Variant>(
  *         [it]( Variant& var ) mutable {
  *             if( it ) {
@@ -209,6 +210,9 @@ public:
         using iterator_category = std::input_iterator_tag;
 
         using Data              = D;
+
+        template<typename U>
+        using ProactiveFuture = genesis::utils::threading::ProactiveFuture<U>;
 
         /**
          * @brief Default constructor for empty (past-the-end) data.
@@ -789,20 +793,21 @@ public:
      */
     GenericInputStream(
         std::function<bool(value_type&)> get_element,
-        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : get_element_(get_element)
         , block_size_( block_size )
     {
         // We only need to set the thread pool if we are going to use buffering.
+        using namespace genesis::utils::core;
         if( block_size > 0 ) {
             thread_pool_ = thread_pool ? thread_pool : Options::get().global_thread_pool();
         }
     }
 
     /**
-     * @copydoc GenericInputStream( std::function<bool(value_type&)>, std::shared_ptr<utils::ThreadPool>, size_t )
+     * @copydoc GenericInputStream( std::function<bool(value_type&)>, std::shared_ptr<genesis::utils::threading::ThreadPool>, size_t )
      *
      * Additionally, @p data can be given here, which we simply store and make accessible
      * via data(). This is a convenience so that iterators generated via a `make` function
@@ -811,7 +816,7 @@ public:
     GenericInputStream(
         std::function<bool(value_type&)> get_element,
         Data const& data,
-        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : GenericInputStream( get_element, thread_pool, block_size )
@@ -820,14 +825,14 @@ public:
     }
 
     /**
-     * @copydoc GenericInputStream( std::function<bool(value_type&)>, Data const&, std::shared_ptr<utils::ThreadPool>, size_t )
+     * @copydoc GenericInputStream( std::function<bool(value_type&)>, Data const&, std::shared_ptr<genesis::utils::threading::ThreadPool>, size_t )
      *
      * This version of the constructor takes the data by r-value reference, for moving it.
      */
     GenericInputStream(
         std::function<bool(value_type&)> get_element,
         Data&& data,
-        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr,
         size_t block_size = DEFAULT_BLOCK_SIZE
     )
         : GenericInputStream( get_element, thread_pool, block_size )
@@ -1044,8 +1049,9 @@ public:
      *
      * See also add_end_callback().
      */
-    self_type& add_begin_callback( std::function<void(GenericInputStream const&)> const& callback )
-    {
+    self_type& add_begin_callback(
+        std::function<void(GenericInputStream const&)> const& callback
+    ) {
         if( has_started_ ) {
             throw std::runtime_error(
                 "GenericInputStream: Cannot change callbacks after iteration has started."
@@ -1062,8 +1068,9 @@ public:
      * callback when starting the iteration, it is called when ending it. Again, this is meant
      * as a means to reduce user code duplication, for example for logging needs.
      */
-    self_type& add_end_callback( std::function<void(GenericInputStream const&)> const& callback )
-    {
+    self_type& add_end_callback(
+        std::function<void(GenericInputStream const&)> const& callback
+    )     {
         if( has_started_ ) {
             throw std::runtime_error(
                 "GenericInputStream: Cannot change callbacks after iteration has started."
@@ -1096,7 +1103,7 @@ public:
     /**
      * @brief Get the thread pool used for buffering of elements in this iterator.
      */
-    std::shared_ptr<utils::ThreadPool> thread_pool() const
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool() const
     {
         return thread_pool_;
     }
@@ -1106,7 +1113,7 @@ public:
      *
      * Shall not be changed after iteration has started, that is, after calling begin().
      */
-    self_type& thread_pool( std::shared_ptr<utils::ThreadPool> value )
+    self_type& thread_pool( std::shared_ptr<genesis::utils::threading::ThreadPool> value )
     {
         if( has_started_ ) {
             throw std::runtime_error(
@@ -1176,7 +1183,7 @@ private:
     Data data_;
 
     // Thread pool to run the buffering in the background.
-    std::shared_ptr<utils::ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool_;
 
     // Block buffering settings.
     size_t block_size_ = DEFAULT_BLOCK_SIZE;
@@ -1187,6 +1194,7 @@ private:
 
 };
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

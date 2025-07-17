@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,8 @@
 
 using namespace genesis::population;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::text;
 
 TEST( Vcf, Header )
 {
@@ -721,7 +723,7 @@ TEST( Vcf, FormatIteratorDoc )
     // class, and test whether it compiles. Not much more, as the actual tests are above.
     // Decativate the logging output, so that we can compile with logging, but without
     // polluting our test output.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::LoggingLevel::kNone );
+    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::LoggingLevel::kNone );
 
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;

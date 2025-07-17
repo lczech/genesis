@@ -52,6 +52,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     K-Means Helpers
@@ -343,7 +344,7 @@ protected:
         std::atomic<bool> changed_assignment{ false };
 
         // Assign each Point to its nearest centroid.
-        utils::parallel_for( 0, data.size(), [&]( size_t i )
+        genesis::utils::threading::parallel_for( 0, data.size(), [&]( size_t i )
         {
             auto const new_idx = find_nearest_cluster( centroids, data[i] ).first;
 
@@ -392,7 +393,7 @@ protected:
         result.distances = std::vector<double>( data.size(), 0.0 );
 
         // Work through the data and assignments and accumulate.
-        utils::parallel_for( 0, data.size(), [&]( size_t i )
+        genesis::utils::threading::parallel_for( 0, data.size(), [&]( size_t i )
         {
             // Shorthands.
             auto const a = assignments[ i ];
@@ -587,7 +588,7 @@ private:
         assignments_ = std::vector<size_t>( data.size(), 0 );
 
         // Prepare a random distribution in range [0,k).
-        auto& engine = Options::get().random_engine();
+        auto& engine = genesis::utils::core::Options::get().random_engine();
         std::uniform_int_distribution<size_t> distribution( 0, k - 1 );
 
         // Assign random cluster indices for each data point.
@@ -623,7 +624,7 @@ private:
         centroids_ = std::vector<Point>();
 
         // Shorthand.
-        auto& engine = Options::get().random_engine();
+        auto& engine = genesis::utils::core::Options::get().random_engine();
 
         // Use a random point as first centroid.
         std::uniform_int_distribution<size_t> first_dist( 0, data.size() - 1 );
@@ -636,7 +637,7 @@ private:
         for( size_t i = 1; i < k; ++i ) {
 
             // For each data point...
-            utils::parallel_for( 0, data.size(), [&]( size_t di )
+            genesis::utils::threading::parallel_for( 0, data.size(), [&]( size_t di )
             {
                 // ...find the closest centroid (of the ones that are produced so far), ...
                 double const min_d = find_nearest_cluster( centroids_, data[ di ] ).second;
@@ -698,6 +699,7 @@ private:
 
 };
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

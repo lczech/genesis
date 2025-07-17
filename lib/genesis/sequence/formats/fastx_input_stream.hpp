@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ using FastqInputStream = FastxInputStream<FastqReader>;
  *         std::cout << s.length() << "\n";
  *     }
  *
- * Use functions such as utils::from_file() and utils::from_string() to conveniently
+ * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
  * get an input source that can be used here.
  *
  * See FastaReader and FastqReader for a description of the expected formats. In order to change
@@ -145,7 +145,7 @@ public:
             }
 
             // Start reading from the input source into a stream.
-            input_stream_ = std::make_shared<utils::InputStream>( parent_->input_source_ );
+            input_stream_ = std::make_shared<genesis::utils::io::InputStream>( parent_->input_source_ );
 
             // Start streaming the data
             increment_();
@@ -259,7 +259,7 @@ public:
         FastxInputStream const* parent_ = nullptr;
 
         // Data stream to read from.
-        std::shared_ptr<utils::InputStream> input_stream_;
+        std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
 
         // The sequence that we parse the input into and expose to the user.
         Sequence sequence_;
@@ -286,7 +286,7 @@ public:
      * FastqReader.
      */
     explicit FastxInputStream(
-        std::shared_ptr<utils::BaseInputSource> source
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source
     )
         : input_source_( source )
         , reader_()
@@ -297,7 +297,7 @@ public:
      * using the settings of a given FastaReader oder FastqReader.
      */
     FastxInputStream(
-        std::shared_ptr<utils::BaseInputSource> source,
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source,
         Reader const& reader
     )
         : input_source_( source )
@@ -330,7 +330,7 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
-    std::shared_ptr<utils::BaseInputSource> input_source() const
+    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source() const
     {
         return input_source_;
     }
@@ -351,7 +351,7 @@ public:
 
 private:
 
-    std::shared_ptr<utils::BaseInputSource> input_source_;
+    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source_;
     Reader reader_;
 };
 

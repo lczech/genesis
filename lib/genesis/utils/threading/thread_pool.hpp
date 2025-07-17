@@ -51,6 +51,7 @@
 
 namespace genesis {
 namespace utils {
+namespace threading {
 
 // =================================================================================================
 //     Forward Declarations
@@ -482,9 +483,9 @@ public:
      */
     template<typename F, typename... Args>
     inline auto enqueue_and_retrieve( F&& f, Args&&... args )
-    -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
+    -> ProactiveFuture<typename genesis::utils::core::genesis_invoke_result<F, Args...>::type>
     {
-        using result_type = typename genesis_invoke_result<F, Args...>::type;
+        using result_type = typename genesis::utils::core::genesis_invoke_result<F, Args...>::type;
 
         // Make sure that we do not enqueue more tasks than the max size.
         run_tasks_until_below_max_queue_size_();
@@ -869,6 +870,7 @@ std::future_status ProactiveFuture<T>::wait_until(
     return std::future_status::timeout;
 }
 
+} // namespace threading
 } // namespace utils
 } // namespace genesis
 

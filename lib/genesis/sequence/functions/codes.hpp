@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,27 +31,17 @@
  * @ingroup sequence
  */
 
+#include <genesis/utils/color/color.hpp>
+
 #include <map>
 #include <string>
 
 // =================================================================================================
-//     Forward Declarations
+//     Codes
 // =================================================================================================
-
-namespace genesis {
-namespace utils {
-
-    class Color;
-
-}
-}
 
 namespace genesis {
 namespace sequence {
-
-// =================================================================================================
-//     Codes
-// =================================================================================================
 
 // ---------------------------------------------------------------------
 //     Nucleic Acids
@@ -201,7 +191,7 @@ bool nucleic_acid_code_containment( char a, char b, bool undetermined_matches_al
 /**
  * @brief Return a map of text colors for each nucleic acid code.
  *
- * This function gives a color name usable for utils::Style for each nucleic acid code.
+ * This function gives a color name usable for genesis::utils::text::Style for each nucleic acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
  */
 std::map<char, std::string> nucleic_acid_text_colors();
@@ -209,7 +199,7 @@ std::map<char, std::string> nucleic_acid_text_colors();
 /**
  * @brief Return a map of text colors for each amino acid code.
  *
- * This function gives a color name usable for utils::Style for each amino acid code.
+ * This function gives a color name usable for genesis::utils::text::Style for each amino acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
  */
 std::map<char, std::string> amino_acid_text_colors();
@@ -219,14 +209,14 @@ std::map<char, std::string> amino_acid_text_colors();
  *
  * This function gives a Color for each nucleic acid code.
  */
-std::map<char, utils::Color> nucleic_acid_colors();
+std::map<char, genesis::utils::color::Color> nucleic_acid_colors();
 
 /**
  * @brief Return a map of Color%s for each amino acid code.
  *
  * This function gives a Color for each amino acid code.
  */
-std::map<char, utils::Color> amino_acid_colors();
+std::map<char, genesis::utils::color::Color> amino_acid_colors();
 
 // =================================================================================================
 //     Code Names

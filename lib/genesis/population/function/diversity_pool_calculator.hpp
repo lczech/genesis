@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,8 +84,8 @@ namespace population {
  * There are multiple ways that this filtering can be applied. Typically for example, we want
  * to process a VariantInputStream, which allows us to use input from a variety of input
  * file formats, all converted into Variant%s at each position in the genome. This internally
- * is a genesis::utils::GenericInputStream, which offers to add
- * @link genesis::utils::GenericInputStream::add_transform_filter() add_transform_filter()@endlink
+ * is a genesis::utils::containers::GenericInputStream, which offers to add
+ * @link genesis::utils::containers::GenericInputStream::add_transform_filter() add_transform_filter()@endlink
  * functions for this purpose. The make_sample_counts_filter_numerical_tagging() is a convenience
  * function that creates such a filter/transform function given a SampleCountsFilter settings
  * instance.
@@ -348,8 +348,8 @@ private:
     bool enable_tajima_d_        = true;
 
     // Data Accumulation
-    utils::NeumaierSum theta_pi_sum_;
-    utils::NeumaierSum theta_watterson_sum_;
+    genesis::utils::math::NeumaierSum theta_pi_sum_;
+    genesis::utils::math::NeumaierSum theta_watterson_sum_;
     SampleCountsFilterStats filter_stats_;
 
     // Find the minimum empirical read depth that we see in the processed data.

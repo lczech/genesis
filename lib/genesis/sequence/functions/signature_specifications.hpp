@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -210,7 +210,7 @@ private:
 
     // Induced Settings and Helpers
     bool        is_nucleic_acids_ = false;
-    utils::CharLookup<size_t> index_lookup_;
+    genesis::utils::CharLookup<size_t> index_lookup_;
 
     // Cached lookup lists
     mutable std::vector<std::string> kmer_list_;

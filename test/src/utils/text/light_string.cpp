@@ -37,6 +37,7 @@
 #include <string>
 
 using namespace genesis::utils;
+using namespace genesis::utils::text;
 
 TEST( LightString, Construction )
 {

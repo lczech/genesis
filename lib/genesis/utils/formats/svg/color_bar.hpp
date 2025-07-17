@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,12 +39,13 @@
 #include <utility>
 #include <vector>
 
-namespace genesis {
-namespace utils {
-
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace color {
 
 class ColorMap;
 class ColorNormalization;
@@ -52,9 +53,17 @@ class ColorNormalizationDiverging;
 class ColorNormalizationLinear;
 class ColorNormalizationLogarithmic;
 
+} // namespace color
+} // namespace utils
+} // namespace genesis
+
 // =================================================================================================
 //     Svg Color Bar
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace formats {
 
 struct SvgColorBarSettings
 {
@@ -92,21 +101,22 @@ public:
 
 std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar(
     SvgColorBarSettings const& settings,
-    ColorMap const& map,
-    ColorNormalization const& norm,
+    genesis::utils::color::ColorMap const& map,
+    genesis::utils::color::ColorNormalization const& norm,
     std::string const& id = ""
 );
 
 SvgGroup make_svg_color_list(
-    ColorMap const& map,
+    genesis::utils::color::ColorMap const& map,
     std::vector<std::string> const& labels
 );
 
 SvgGroup make_svg_color_list(
-    std::vector<Color> const& colors,
+    std::vector<genesis::utils::color::Color> const& colors,
     std::vector<std::string> const& labels
 );
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

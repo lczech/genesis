@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
     The implementation is based on the [SimpleMatrix library](https://sites.google.com/site/simpmatrix/)
     by [Quan Wang](https://github.com/wq2012), with his explicit permission to use this code here.
     The copyright (C) of the implementation is held by Quan Wang, 2013.
-    We adapted the implementation to our genesis::utils::Matrix class and changed the error reporting
+    We adapted the implementation to our genesis::utils::containers::Matrix class and changed the error reporting
     mechanism to exceptions. For further details, see the Acknowledgements section of the documentation.
 */
 
@@ -53,6 +53,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     MDS Algorithms
@@ -60,12 +61,14 @@ namespace utils {
 
 constexpr double MDS_EPSILON = 0.0000001;
 
-static Matrix<double> multi_dimensional_scaling_ucf(
-    Matrix<double> const& distances,
-    Matrix<double> const& initial_values,
+static genesis::utils::containers::Matrix<double> multi_dimensional_scaling_ucf(
+    genesis::utils::containers::Matrix<double> const& distances,
+    genesis::utils::containers::Matrix<double> const& initial_values,
     size_t                dimensions,
     size_t                iterations
 ) {
+    using namespace genesis::utils::containers;
+
     // This function is local, and we already checked the conditions below.
     // Thus, just assert them here again.
     assert( is_square( distances ));
@@ -93,8 +96,9 @@ static Matrix<double> multi_dimensional_scaling_ucf(
     // Make a matrix with column-wise permutations of consecutive numbers.
     auto perms = Matrix<size_t>( n, iterations );
     for( size_t j = 0; j < perms.cols(); ++j ) {
+        auto& rand_eng = genesis::utils::core::Options::get().random_engine();
         std::iota( perms.col(j).begin(), perms.col(j).end(), 0 );
-        std::shuffle( perms.col(j).begin(), perms.col(j).end(), Options::get().random_engine() );
+        std::shuffle( perms.col(j).begin(), perms.col(j).end(), rand_eng );
     }
 
     // Run the iterations.
@@ -152,12 +156,14 @@ static Matrix<double> multi_dimensional_scaling_ucf(
     return result;
 }
 
-static Matrix<double> multi_dimensional_scaling_smacof(
-    Matrix<double> const& distances,
-    Matrix<double> const& initial_values,
+static genesis::utils::containers::Matrix<double> multi_dimensional_scaling_smacof(
+    genesis::utils::containers::Matrix<double> const& distances,
+    genesis::utils::containers::Matrix<double> const& initial_values,
     size_t                dimensions,
     size_t                iterations
 ) {
+    using namespace genesis::utils::containers;
+
     // This function is local, and we already checked the conditions below.
     // Thus, just assert them here again.
     assert( is_square( distances ));
@@ -228,18 +234,19 @@ static Matrix<double> multi_dimensional_scaling_smacof(
 //     MDS API Functions
 // ================================================================================================
 
-Matrix<double> multi_dimensional_scaling(
-    Matrix<double> const& distances,
+genesis::utils::containers::Matrix<double> multi_dimensional_scaling(
+    genesis::utils::containers::Matrix<double> const& distances,
     size_t                dimensions,
     size_t                iterations,
     MdsAlgorithm          algorithm
 ) {
+    using namespace genesis::utils::containers;
     // We skip all error checks here, because they will be done in the other function anyway.
 
     // Make a random init matrix in the range -0.5 to 0.5, and get the mean of the values
     // as if they were in the range 0.0 to 1.0. We need this for proper normalization.
     auto initial = Matrix<double>( distances.rows(), dimensions );
-    auto& engine = Options::get().random_engine();
+    auto& engine = genesis::utils::core::Options::get().random_engine();
     auto distrib = std::uniform_real_distribution<double>( 0.0, 1.0 );
     double mean = 0.0;
     for( auto& e : initial ) {
@@ -259,9 +266,9 @@ Matrix<double> multi_dimensional_scaling(
     return multi_dimensional_scaling( distances, initial, dimensions, iterations, algorithm );
 }
 
-Matrix<double> multi_dimensional_scaling(
-    Matrix<double> const& distances,
-    Matrix<double> const& initial_values,
+genesis::utils::containers::Matrix<double> multi_dimensional_scaling(
+    genesis::utils::containers::Matrix<double> const& distances,
+    genesis::utils::containers::Matrix<double> const& initial_values,
     size_t                dimensions,
     size_t                iterations,
     MdsAlgorithm          algorithm
@@ -300,5 +307,6 @@ Matrix<double> multi_dimensional_scaling(
     return {};
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

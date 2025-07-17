@@ -46,6 +46,7 @@
 
 namespace genesis {
 namespace utils {
+namespace threading {
 
 // =================================================================================================
 //     Serial Task Queue
@@ -150,10 +151,10 @@ public:
      */
     template<typename F, typename... Args>
     inline auto enqueue_and_retrieve( F&& f, Args&&... args )
-    -> ProactiveFuture<typename genesis_invoke_result<F, Args...>::type>
+    -> ProactiveFuture<typename genesis::utils::core::genesis_invoke_result<F, Args...>::type>
     {
         // Deduce the return type of the function.
-        using result_type = typename genesis_invoke_result<F, Args...>::type;
+        using result_type = typename genesis::utils::core::genesis_invoke_result<F, Args...>::type;
 
         // Create a shared pointer to a packaged task wrapping the function and its arguments.
         auto task = std::make_shared<std::packaged_task<result_type()>>(
@@ -255,6 +256,7 @@ private:
     std::atomic<bool> running_;
 };
 
+} // namespace threading
 } // namespace utils
 } // namespace genesis
 

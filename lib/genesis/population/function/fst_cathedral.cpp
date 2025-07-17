@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -304,10 +304,10 @@ std::vector<FstCathedralPlotRecord> compute_fst_cathedral_records(
 //     Storage Functions
 // =================================================================================================
 
-genesis::utils::JsonDocument fst_cathedral_plot_record_to_json_document(
+genesis::utils::formats::JsonDocument fst_cathedral_plot_record_to_json_document(
     FstCathedralPlotRecord const& record
 ) {
-    using namespace genesis::utils;
+    using namespace genesis::utils::formats;
 
     // Get the base class fields. This also sets up the document.
     auto document = cathedral_plot_record_to_json_document( record );

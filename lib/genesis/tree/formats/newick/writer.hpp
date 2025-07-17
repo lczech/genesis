@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ struct NewickBrokerElement;
  * This class supports to write a Tree into a Newick format representation, for example
  *
  *     Tree tree;
- *     CommonTreeNewickWriter().write( tree, utils::to_file( "path/to/file.newick" ));
+ *     CommonTreeNewickWriter().write( tree, genesis::utils::io::to_file( "path/to/file.newick" ));
  *
  * It understands the Newick format, but is agnostic of the actual data representation of
  * TreeNode and TreeEdge data. This approach allows to store data in any wanted format.
@@ -168,10 +168,10 @@ public:
     /**
      * @brief Write a Tree to an output target, using the Newick format.
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( Tree const& tree, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
 
     /**
      * @brief Write all Tree%s in a TreeSet to an output target, using the Newick format.
@@ -181,12 +181,12 @@ public:
      *
      *     name = (<newick tree>);
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
     void write(
         TreeSet const& tree_set,
-        std::shared_ptr<utils::BaseOutputTarget> target,
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
         bool with_names = false
     ) const;
 
@@ -452,7 +452,7 @@ public:
     /**
      * @brief Write a NewickBroker to an output target, in Newick format.
      */
-    void write( NewickBroker const& broker, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( NewickBroker const& broker, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
 
     // -------------------------------------------------------------------------
     //     Internal Functions

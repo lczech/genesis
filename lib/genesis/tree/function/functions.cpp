@@ -260,11 +260,11 @@ std::vector<size_t> leaf_node_indices( Tree const& tree )
 //     Tree Sides
 // =================================================================================================
 
-utils::Matrix<signed char> edge_sides( Tree const& tree )
+genesis::utils::containers::Matrix<signed char> edge_sides( Tree const& tree )
 {
     // Get a quadratic matrix: for each edge, it gives a value whether each other edge is
     // proximal (1) or distal (-1) relative to itself (0).
-    auto result = utils::Matrix<signed char>( tree.edge_count(), tree.edge_count(), 0 );
+    auto result = genesis::utils::containers::Matrix<signed char>( tree.edge_count(), tree.edge_count(), 0 );
 
     // Helper function that traverses the subtree starting at a link,
     // and for each edge in the subtree, sets its entry in the matrix to the given sign.
@@ -287,12 +287,12 @@ utils::Matrix<signed char> edge_sides( Tree const& tree )
     return result;
 }
 
-utils::Matrix<signed char> node_root_direction_matrix( Tree const& tree )
+genesis::utils::containers::Matrix<signed char> node_root_direction_matrix( Tree const& tree )
 {
-    auto mat = utils::Matrix<signed char>( tree.node_count(), tree.node_count(), 0 );
+    auto mat = genesis::utils::containers::Matrix<signed char>( tree.node_count(), tree.node_count(), 0 );
 
     // Fill every row of the matrix.
-    utils::parallel_for( 0, tree.node_count(), [&]( size_t i ){
+    genesis::utils::threading::parallel_for( 0, tree.node_count(), [&]( size_t i ){
         auto const& row_node     = tree.node_at(i);
         auto const  row_index    = row_node.index();
         auto const  primary_link = &row_node.primary_link();
@@ -499,11 +499,11 @@ std::vector<size_t> subtree_max_path_heights( Tree const& tree )
     return subtree_max_path_heights( tree, tree.root_node() );
 }
 
-utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
+genesis::utils::containers::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
 {
     // Edge cases and input checks.
     if( tree.empty() ) {
-        return utils::Matrix<signed char>();
+        return genesis::utils::containers::Matrix<signed char>();
     }
     if( ! is_rooted( tree )) {
         throw std::invalid_argument( "Tree is not rooted. Cannot calculate its sign matrix." );
@@ -514,7 +514,7 @@ utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
 
     // Prepare a result matrix of the full size. For the compressed version,
     // we later replate it again.
-    auto result = utils::Matrix<signed char>( tree.node_count(), tree.node_count(), 0 );
+    auto result = genesis::utils::containers::Matrix<signed char>( tree.node_count(), tree.node_count(), 0 );
 
     // Helper function that fills all columns of a subtree with a given sign.
     auto fill_subtree_indices = [&]( size_t row_idx, Subtree const& st, signed char sign ){
@@ -524,7 +524,7 @@ utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
     };
 
     // Fill every row of the matrix.
-    utils::parallel_for( 0, tree.node_count(), [&]( size_t i ){
+    genesis::utils::threading::parallel_for( 0, tree.node_count(), [&]( size_t i ){
         auto const& row_node = tree.node_at(i);
         auto const  row_idx  = row_node.index();
 
@@ -551,7 +551,7 @@ utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed )
         // Create a matrix with rows for each inner node and columns for each tip node.
         auto const in_node_idcs = inner_node_indices( tree );
         auto const lf_node_idcs = leaf_node_indices( tree );
-        auto result_cmpr = utils::Matrix<signed char>( in_node_idcs.size(), lf_node_idcs.size(), 0 );
+        auto result_cmpr = genesis::utils::containers::Matrix<signed char>( in_node_idcs.size(), lf_node_idcs.size(), 0 );
 
         // Fill the matrix at the indices that belong to inner nodes (for rows) and
         // leaf nodes (for columns).
@@ -649,9 +649,9 @@ TreeNode& lowest_common_ancestor( TreeNode& node_a, TreeNode& node_b )
     return const_cast< TreeNode& >( lowest_common_ancestor( c_node_a, c_node_b ));
 }
 
-utils::Matrix<size_t> lowest_common_ancestors( Tree const& tree )
+genesis::utils::containers::Matrix<size_t> lowest_common_ancestors( Tree const& tree )
 {
-    auto res = utils::Matrix<size_t>( tree.node_count(), tree.node_count() );
+    auto res = genesis::utils::containers::Matrix<size_t>( tree.node_count(), tree.node_count() );
 
     // This is not the best way to calculate all pairwise LCAs.
     // In the Quartet Scores code, we use range minimum queries and eulertours to achive the
@@ -659,11 +659,11 @@ utils::Matrix<size_t> lowest_common_ancestors( Tree const& tree )
 
     // We only need to calculate the upper triangle. Get the number of indices needed
     // to describe this triangle.
-    size_t const max_k = utils::triangular_size( tree.node_count() );
+    size_t const max_k = genesis::utils::containers::triangular_size( tree.node_count() );
 
-    utils::parallel_for( 0, max_k, [&]( size_t k ){
+    genesis::utils::threading::parallel_for( 0, max_k, [&]( size_t k ){
         // For the given linear index, get the actual position in the Matrix.
-        auto const rc = utils::triangular_indices( k, tree.node_count() );
+        auto const rc = genesis::utils::containers::triangular_indices( k, tree.node_count() );
         auto const r = rc.first;
         auto const c = rc.second;
 

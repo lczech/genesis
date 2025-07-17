@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Helper Structs and Typedefs
@@ -1466,6 +1467,7 @@ static NamedColorList::const_iterator get_color_list_iterator_(
     NamedColorList const & list,
     std::string       name
 ) {
+    using namespace genesis::utils::text;
     name = remove_all_non_alnum( name );
 
     // We also strip spaces and undescores from the list names itself.
@@ -1475,8 +1477,8 @@ static NamedColorList::const_iterator get_color_list_iterator_(
         list.begin(),
         list.end(),
         [&name] ( std::pair<std::string, ColorBytes> const& elem ) {
-            auto elem_name = utils::remove_all_non_alnum( elem.first );
-            return utils::equals_ci( elem_name, name );
+            auto elem_name = remove_all_non_alnum( elem.first );
+            return equals_ci( elem_name, name );
         }
     );
 }
@@ -1605,5 +1607,6 @@ std::vector<Color> color_palette_lego()
     return convert_to_palette_( color_list_lego_ );
 }
 
+} // namespace color
 } // namespace utils
 } // namespace genesis

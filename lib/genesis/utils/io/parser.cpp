@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Integer
@@ -69,13 +70,13 @@ namespace utils {
 #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 
 // Forward declaration
-size_t parse_unsigned_integer_naive_( utils::InputStream& source );
+size_t parse_unsigned_integer_naive_( genesis::utils::io::InputStream& source );
 
 /**
  * @brief Super fast loop-less parsing of unsigned ints from < 8 chars,
  * using GCC/Clang compiler intrinsic builtins.
  */
-size_t parse_unsigned_integer_gcc_intrinsic_( utils::InputStream& source )
+size_t parse_unsigned_integer_gcc_intrinsic_( genesis::utils::io::InputStream& source )
 {
     // This function only works on little endian systems (I think).
     // We do not check this here, as so far, no one has tried to run our code on any machine
@@ -249,7 +250,7 @@ size_t parse_unsigned_integer_gcc_intrinsic_( utils::InputStream& source )
  * @brief Re-implementation of the C++17 function std::from_chars().
  * Currently not in use and not well tested!
  */
-size_t parse_unsigned_integer_from_chars_( utils::InputStream& source )
+size_t parse_unsigned_integer_from_chars_( genesis::utils::io::InputStream& source )
 {
     // Re-implementation of the gcc from_chars() code.
     // https://github.com/gcc-mirror/gcc/blob/12bb62fbb47bd2848746da53c72ed068a4274daf/libstdc++-v3/include/std/charconv
@@ -263,7 +264,7 @@ size_t parse_unsigned_integer_from_chars_( utils::InputStream& source )
 
     // Prepare. We alias T, in case we want to refactor to a template function at some point.
     using T = size_t;
-    using namespace utils;
+    using namespace genesis::utils::text;
     T x = 0;
 
     // If we want to use __builtin_mul_overflow here, we should check its existence first,
@@ -341,7 +342,7 @@ size_t parse_unsigned_integer_from_chars_( utils::InputStream& source )
  * @brief Another speedup technique using std::from_chars(),
  * which however only works when compiled with C++17 or later.
  */
-size_t parse_unsigned_integer_std_from_chars_( utils::InputStream& source )
+size_t parse_unsigned_integer_std_from_chars_( genesis::utils::io::InputStream& source )
 {
     // Uses the C++17 std::from_chars() function.
     // Currently not in use and not well tested!
@@ -407,7 +408,7 @@ size_t parse_unsigned_integer_std_from_chars_( utils::InputStream& source )
 /**
  * @brief Naive parsing that simply loops over chars.
  */
-size_t parse_unsigned_integer_naive_( utils::InputStream& source )
+size_t parse_unsigned_integer_naive_( genesis::utils::io::InputStream& source )
 {
     // Get the internals of the input stream.
     auto buffer_pair = source.buffer();
@@ -420,13 +421,13 @@ size_t parse_unsigned_integer_naive_( utils::InputStream& source )
     using namespace utils;
     T x = 0;
 
-    if( data_pos >= data_end || ! utils::is_digit( buffer[ data_pos ] ) ) {
+    if( data_pos >= data_end || ! genesis::utils::text::is_digit( buffer[ data_pos ] ) ) {
         throw std::runtime_error(
             "Expecting digit in " + source.source_name() + " at " + source.at() + "."
         );
     }
 
-    while(( data_pos < data_end ) && utils::is_digit( buffer[ data_pos ] )) {
+    while(( data_pos < data_end ) && genesis::utils::text::is_digit( buffer[ data_pos ] )) {
         T y = buffer[ data_pos ] - '0';
 
         if( x > ( std::numeric_limits<T>::max() - y ) / 10 ) {
@@ -459,7 +460,7 @@ size_t parse_unsigned_integer_naive_( utils::InputStream& source )
 //     parse_unsigned_integer_size_t
 // -------------------------------------------------------------------------
 
-size_t parse_unsigned_integer_size_t( utils::InputStream& source )
+size_t parse_unsigned_integer_size_t( genesis::utils::io::InputStream& source )
 {
     // Select the fastest alternative available for a given compiler and C++ version.
     #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
@@ -486,8 +487,10 @@ size_t parse_unsigned_integer_size_t( utils::InputStream& source )
 // =================================================================================================
 
 std::string parse_number_string(
-    utils::InputStream& source
+    genesis::utils::io::InputStream& source
 ) {
+    using namespace genesis::utils::text;
+
     // Parse the format [+-][123][.456][eE[+-]789]
     std::string result;
 
@@ -501,7 +504,7 @@ std::string parse_number_string(
     }
 
     // Integer part. Read while char is digit.
-    while( source && utils::is_digit( *source )) {
+    while( source && is_digit( *source )) {
         result += *source;
         ++source;
         found_digits = true;
@@ -514,7 +517,7 @@ std::string parse_number_string(
     }
 
     // Decimal part. Read while char is digit.
-    while( source && utils::is_digit( *source )) {
+    while( source && is_digit( *source )) {
         result += *source;
         ++source;
         found_digits = true;
@@ -541,7 +544,7 @@ std::string parse_number_string(
     }
 
     // Exponent. Read while char is digit.
-    while( source && utils::is_digit( *source )) {
+    while( source && is_digit( *source )) {
         result += *source;
         ++source;
     }
@@ -554,11 +557,13 @@ std::string parse_number_string(
 // =================================================================================================
 
 std::string parse_quoted_string(
-    utils::InputStream& source,
+    genesis::utils::io::InputStream& source,
     bool use_escapes,
     bool use_twin_quotes,
     bool include_qmarks
 ) {
+    using namespace genesis::utils::text;
+
     // Prepare the return value.
     std::string value = "";
 
@@ -643,5 +648,6 @@ std::string parse_quoted_string(
     return value;
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis

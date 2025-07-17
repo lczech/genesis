@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ namespace tree {
  *
  * The elements of the matrix are indexed using node().index().
  */
-utils::Matrix<double> node_branch_length_distance_matrix(
+genesis::utils::containers::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 );
 
@@ -68,7 +68,7 @@ std::vector<double> node_branch_length_distance_vector(
     TreeNode const* node = nullptr
 );
 
-utils::Matrix<double> edge_branch_length_distance_matrix(
+genesis::utils::containers::Matrix<double> edge_branch_length_distance_matrix(
     Tree const& tree
 );
 
@@ -103,7 +103,7 @@ std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
 
 std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
     Tree const& tree,
-    utils::Matrix<double> const& node_branch_length_distance_mat
+    genesis::utils::containers::Matrix<double> const& node_branch_length_distance_mat
 );
 
 /**
@@ -115,7 +115,7 @@ std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
 
 std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
     Tree const& tree,
-    utils::Matrix<double> const& node_branch_length_distance_mat
+    genesis::utils::containers::Matrix<double> const& node_branch_length_distance_mat
 );
 
 } // namespace tree

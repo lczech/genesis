@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Deserializer
@@ -80,7 +81,7 @@ public:
     //     Constructor and Destructor
     // -------------------------------------------------------------------------
 
-    explicit Deserializer( std::shared_ptr<BaseInputSource> input_source )
+    explicit Deserializer( std::shared_ptr<genesis::utils::io::BaseInputSource> input_source )
         : buffer_( input_source )
     {
         if( !input_source ) {
@@ -153,7 +154,7 @@ public:
      */
     template <typename T>
     inline
-    typename std::enable_if<is_container<T>::value>::type
+    typename std::enable_if<genesis::utils::core::is_container<T>::value>::type
     get( T& container )
     {
         size_t size = 0;
@@ -198,7 +199,7 @@ public:
      */
     template <typename T>
     inline
-    typename std::enable_if<is_container<T>::value, T>::type
+    typename std::enable_if<genesis::utils::core::is_container<T>::value, T>::type
     get()
     {
         T container;
@@ -224,7 +225,7 @@ private:
  * @brief Generic operator>> template for trivial non-container types to stream from a Deserializer.
  */
 template <typename T>
-inline typename std::enable_if<!is_container<T>::value, Deserializer&>::type
+inline typename std::enable_if<!genesis::utils::core::is_container<T>::value, Deserializer&>::type
 operator>>( Deserializer& deserializer, T& value )
 {
     deserializer.get( value );
@@ -247,7 +248,8 @@ inline Deserializer& operator>>( Deserializer& deserializer, std::string& str )
  */
 template <typename Container>
 inline typename std::enable_if<
-    is_container<Container>::value && has_reserve<Container>::value, Deserializer&
+    genesis::utils::core::is_container<Container>::value &&
+    genesis::utils::core::has_reserve<Container>::value, Deserializer&
 >::type
 operator>>( Deserializer& deserializer, Container& container )
 {
@@ -277,7 +279,8 @@ operator>>( Deserializer& deserializer, Container& container )
  */
 template <typename Container>
 inline typename std::enable_if<
-    is_container<Container>::value && !has_reserve<Container>::value, Deserializer&
+    genesis::utils::core::is_container<Container>::value &&
+    !genesis::utils::core::has_reserve<Container>::value, Deserializer&
 >::type
 operator>>( Deserializer& deserializer, Container& container )
 {
@@ -293,6 +296,7 @@ operator>>( Deserializer& deserializer, Container& container )
     return deserializer;
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

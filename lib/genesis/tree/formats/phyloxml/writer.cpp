@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,14 +53,14 @@ namespace tree {
 //     Printing
 // =================================================================================================
 
-void PhyloxmlWriter::write( Tree const& tree, std::shared_ptr<utils::BaseOutputTarget> target ) const
+void PhyloxmlWriter::write( Tree const& tree, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
 {
-    utils::XmlDocument xml;
+    genesis::utils::formats::XmlDocument xml;
     to_document( tree, xml );
-    utils::XmlWriter().write( xml, target );
+    genesis::utils::formats::XmlWriter().write( xml, target );
 }
 
-void PhyloxmlWriter::to_document ( Tree const& tree, utils::XmlDocument& xml ) const
+void PhyloxmlWriter::to_document ( Tree const& tree, genesis::utils::formats::XmlDocument& xml ) const
 {
     xml.clear();
 
@@ -84,13 +84,13 @@ void PhyloxmlWriter::to_document ( Tree const& tree, utils::XmlDocument& xml ) c
     xml.attributes.emplace("xmlns",     "http://www.phyloxml.org");
 
     // Add the (phylogeny) element.
-    auto phylogeny = utils::make_unique< utils::XmlElement >();
+    auto phylogeny = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >();
     phylogeny->tag = "phylogeny";
     phylogeny->attributes.emplace("rooted",     "true");
     //~ phylogeny.attributes.emplace("rerootable", "true");
 
     // Create a stack where we will push the tree elements to. Use the phylogeny element as root.
-    std::vector< utils::XmlElement* > stack;
+    std::vector< genesis::utils::formats::XmlElement* > stack;
     stack.push_back(phylogeny.get());
     xml.content.push_back(std::move(phylogeny));
     size_t cur_d = 0;
@@ -115,7 +115,7 @@ void PhyloxmlWriter::to_document ( Tree const& tree, utils::XmlDocument& xml ) c
 
         // Create clade element, append it to the stack, so that all sub-elements will use it as
         // parent.
-        auto clade = utils::make_unique< utils::XmlElement >();
+        auto clade = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >();
         clade->tag = "clade";
 
         // Call all plugins to translate node and edge data to xml.

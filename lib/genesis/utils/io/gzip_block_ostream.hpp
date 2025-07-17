@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // ================================================================================================
 //     Gzip Block Output Stream
@@ -95,14 +96,14 @@ public:
         std::ostream& os,
         std::size_t block_size = GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::shared_ptr<ThreadPool> thread_pool = nullptr
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr
     );
 
     explicit GzipBlockOStream(
         std::streambuf* sbuf_p,
         std::size_t block_size = GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::shared_ptr<ThreadPool> thread_pool = nullptr
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr
     );
 
     virtual ~GzipBlockOStream();
@@ -110,6 +111,7 @@ public:
     static const std::size_t GZIP_DEFAULT_BLOCK_SIZE = 1ul << 16;
 };
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

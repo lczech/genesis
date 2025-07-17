@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ namespace utils {
  *
  * If you simply need the hash for a string or content of a file, use read_hex() or
  * read_digest(), which are static shortcuts for the above using an input source.
- * Use functions such as utils::from_file() and utils::from_string() to conveniently
+ * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
  * get an input source that can be used here.
  *
  * The implementation is based on http://www.zedwood.com/article/cpp-sha256-function,
@@ -118,6 +118,7 @@ public:
      * be compared using normal `==`.
      */
     using DigestType = std::array< uint32_t, 8 >;
+    using BaseInputSource = genesis::utils::io::BaseInputSource;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five

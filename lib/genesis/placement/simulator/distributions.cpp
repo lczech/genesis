@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -120,7 +120,7 @@ void SimulatorExtraPlacementDistribution::prepare( Sample const& sample )
 std::vector<size_t> SimulatorExtraPlacementDistribution::generate( PlacementTreeEdge const& edge )
 {
     // Draw a number of placements and build a result vector of that size.
-    size_t placement_num = placement_number_distrib_( utils::Options::get().random_engine() );
+    size_t placement_num = placement_number_distrib_( genesis::utils::core::Options::get().random_engine() );
     auto result = std::vector<size_t>( placement_num );
 
     // If we are not creating any additional placements, we can skip the next steps.
@@ -159,7 +159,7 @@ std::vector<size_t> SimulatorExtraPlacementDistribution::generate( PlacementTree
             // central one. As we set the weight for path length 0 to 0.0, there should never
             // be a path of 0 length, so assert it.
             size_t path_len = placement_path_length_distrib_(
-                utils::Options::get().random_engine()
+                genesis::utils::core::Options::get().random_engine()
             );
             assert( path_len > 0 );
 

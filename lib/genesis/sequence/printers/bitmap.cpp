@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,10 +50,10 @@ namespace sequence {
 // =================================================================================================
 
 void PrinterBitmap::write(
-    SequenceSet const& set, std::shared_ptr<utils::BaseOutputTarget> target
+    SequenceSet const& set, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     auto image = make_image_( set );
-    auto writer = utils::BmpWriter();
+    auto writer = genesis::utils::formats::BmpWriter();
     writer.write( image, target );
 }
 
@@ -61,14 +61,14 @@ void PrinterBitmap::write(
 //     Internal Helper Functions
 // =================================================================================================
 
-utils::Matrix<utils::Color> PrinterBitmap::make_image_( SequenceSet const& set ) const
+genesis::utils::containers::Matrix<genesis::utils::color::Color> PrinterBitmap::make_image_( SequenceSet const& set ) const
 {
     // Create a black image of the correct size.
     size_t const max_line = longest_sequence_length( set );
-    auto image = utils::Matrix<utils::Color>(
+    auto image = genesis::utils::containers::Matrix<genesis::utils::color::Color>(
         set.size() * pixel_height_,
         max_line   * pixel_width_,
-        utils::Color( 0.0, 0.0, 0.0 )
+        genesis::utils::color::Color( 0.0, 0.0, 0.0 )
     );
 
     // Iterate the sequences in the set.
@@ -79,7 +79,7 @@ utils::Matrix<utils::Color> PrinterBitmap::make_image_( SequenceSet const& set )
         for( size_t c = 0; c < seq.length(); ++c ) {
 
             // Find the color for the current char, or use black if no color available.
-            auto pixel = utils::Color( 0.0, 0.0, 0.0 );
+            auto pixel = genesis::utils::color::Color( 0.0, 0.0, 0.0 );
             auto color_it = color_map_.find( seq[c] );
             if( color_it != color_map_.end() ) {
                 pixel = color_it->second;
@@ -103,13 +103,13 @@ utils::Matrix<utils::Color> PrinterBitmap::make_image_( SequenceSet const& set )
 //     Properties
 // =================================================================================================
 
-PrinterBitmap& PrinterBitmap::color_map( std::map<char, utils::Color> const& value )
+PrinterBitmap& PrinterBitmap::color_map( std::map<char, genesis::utils::color::Color> const& value )
 {
     color_map_ = value;
     return *this;
 }
 
-std::map<char, utils::Color> const& PrinterBitmap::color_map() const
+std::map<char, genesis::utils::color::Color> const& PrinterBitmap::color_map() const
 {
     return color_map_;
 }

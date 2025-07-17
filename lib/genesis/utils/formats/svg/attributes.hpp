@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Stroke
@@ -55,6 +56,7 @@ public:
     // -------------------------------------------------------------------------
 
     using self_type = SvgStroke;
+    using Color = genesis::utils::color::Color;
 
     enum class Type
     {
@@ -137,6 +139,7 @@ public:
     // -------------------------------------------------------------------------
 
     using self_type = SvgFill;
+    using Color = genesis::utils::color::Color;
 
     enum class Type
     {
@@ -561,7 +564,7 @@ public:
         Transformation( T const& object )
             // Although we are in utils namespace here, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
-            : pimpl_( genesis::utils::make_unique< Model<T> >( object ))
+            : pimpl_( genesis::utils::core::make_unique< Model<T> >( object ))
         {}
 
         Transformation( Transformation const& other )
@@ -629,7 +632,7 @@ public:
             {
                 // Although we are in utils namespace here, we specify the namespace full,
                 // in order to avoid ambiguous overload when compiled with C++17.
-                return genesis::utils::make_unique< Model<T> >( object_ );
+                return genesis::utils::core::make_unique< Model<T> >( object_ );
             }
 
             T object_;
@@ -692,6 +695,7 @@ public:
 
 };
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Static Assersions
@@ -1258,6 +1259,7 @@ inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quart
     return res;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

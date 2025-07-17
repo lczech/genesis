@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     Dataframe
@@ -499,8 +500,8 @@ public:
     using       pointer   = value_type*;
     using const_pointer   = value_type const*;
 
-    using       iterator  = utils::DereferenceIterator< container_type::iterator >;
-    using const_iterator  = utils::DereferenceIterator< container_type::const_iterator >;
+    using       iterator  = genesis::utils::containers::DereferenceIterator< container_type::iterator >;
+    using const_iterator  = genesis::utils::containers::DereferenceIterator< container_type::const_iterator >;
 
     using size_type       = size_t;
 
@@ -1135,6 +1136,7 @@ private:
 static_assert( std::is_move_constructible<Dataframe>::value, "Dataframe is not move constructible." );
 static_assert( std::is_move_assignable<Dataframe>::value, "Dataframe is not move assignable." );
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

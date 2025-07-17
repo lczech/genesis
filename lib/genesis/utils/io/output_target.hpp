@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Output Target Convenience Functions
@@ -72,7 +73,7 @@ namespace utils {
  *
  * If the file cannot be written to, the function throws an exception.
  * Also, by default, if the file already exists, an exception is thrown. See
- * @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
+ * @link genesis::utils::core::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
  * to change this behaviour.
  *
  * See also to_gzip_block_file() for a version that offers multithreaded gzip compression
@@ -85,7 +86,7 @@ inline std::shared_ptr<BaseOutputTarget> to_file(
     bool auto_adjust_filename = true
 ) {
     auto fn = file_name;
-    auto const ext = file_extension( fn );
+    auto const ext = genesis::utils::core::file_extension( fn );
 
     // With compression
     if( compression_level != GzipCompressionLevel::kNoCompression ) {
@@ -152,7 +153,7 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
     std::string const& file_name,
     std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
     GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-    std::shared_ptr<ThreadPool> thread_pool = nullptr,
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr,
     bool auto_adjust_filename = true
 ) {
     if( compression_level == GzipCompressionLevel::kNoCompression ) {
@@ -163,7 +164,7 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
 
     // Adjust filename if needed and wanted
     auto fn = file_name;
-    auto const ext = file_extension( fn );
+    auto const ext = genesis::utils::core::file_extension( fn );
     if( auto_adjust_filename && ext != "gz" ) {
         fn += ".gz";
     }
@@ -233,6 +234,7 @@ inline std::shared_ptr<BaseOutputTarget> to_stderr() {
     return std::make_shared< StreamOutputTarget >( std::cerr );
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,7 +46,8 @@
 #include <algorithm>
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::utils::io;
 
 TEST(CommonTree, EdgeColorBranchLengthGradient)
 {
@@ -55,14 +56,14 @@ TEST(CommonTree, EdgeColorBranchLengthGradient)
 
     // Read and process tree.
     std::string infile = environment->data_dir + "tree/distances.newick";
-    Tree tree = CommonTreeNewickReader().read( utils::from_file( infile ));
+    Tree tree = CommonTreeNewickReader().read( from_file( infile ));
 
     // Colorize the branches according to their length.
     auto colors = edge_color_branch_length_gradient(tree);
 
     // We expect at least one branch to have max color (red) and one to have min color (green).
-    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::Color(1, 0, 0)) );
-    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::Color(0, 1, 0)) );
+    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::color::Color(1, 0, 0)) );
+    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::color::Color(0, 1, 0)) );
 }
 
 TEST(CommonTree, NodeNames)
@@ -71,7 +72,7 @@ TEST(CommonTree, NodeNames)
 
     // Using a tree with all names set to some value.
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    tree = CommonTreeNewickReader().read( utils::from_string( input ));
+    tree = CommonTreeNewickReader().read( from_string( input ));
 
     EXPECT_EQ( 13, tree.node_count() );
     EXPECT_EQ(  7, leaf_node_count(tree) );
@@ -84,7 +85,7 @@ TEST(CommonTree, NodeNames)
 
     // Using a tree where some names are empty.
     input = "((A,(B,))E,((,(G,H))J,)L);";
-    tree = CommonTreeNewickReader().read( utils::from_string( input ));
+    tree = CommonTreeNewickReader().read( from_string( input ));
 
     EXPECT_EQ( 13, tree.node_count() );
     EXPECT_EQ(  7, leaf_node_count(tree) );

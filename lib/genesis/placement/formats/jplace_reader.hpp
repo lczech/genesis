@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,7 +46,11 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
+namespace formats {
+
     class JsonDocument;
+
+}
 }
 
 namespace tree {
@@ -122,11 +126,11 @@ public:
     /**
      * @brief Read from an input source.
      *
-     * Use functions such as utils::from_file() and utils::from_string() to conveniently
+     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
      * get an input source that can be used here.
      */
     Sample read(
-        std::shared_ptr<utils::BaseInputSource> source
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source
     ) const;
 
     /**
@@ -135,14 +139,14 @@ public:
      * Note that the JsonDocument is modified, in order to save memory.
      */
     Sample read(
-        utils::JsonDocument& doc
+        genesis::utils::formats::JsonDocument& doc
     ) const;
 
     /**
      * @brief Read from multiple sources and parse them as a Jplace documents into a SampleSet.
      */
     SampleSet read(
-        std::vector<std::shared_ptr<utils::BaseInputSource>> sources
+        std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources
     ) const;
 
     /**
@@ -152,7 +156,7 @@ public:
      * The Sample%s are added to the SampleSet, so that existing Samples in the SampleSet are kept.
      */
     void read(
-        std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+        std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
         SampleSet& target
     ) const;
 
@@ -171,38 +175,38 @@ private:
      * According to the standard, this is an integer number. If this ever changes to a different
      * format, this function has to be changed accordingly.
      */
-    int get_jplace_version_( utils::JsonDocument const& doc ) const;
+    int get_jplace_version_( genesis::utils::formats::JsonDocument const& doc ) const;
 
     /**
      * @brief Internal helper function that checks whether the `version` key in a JsonDocument
      * corresponds to a valid version number for the JplaceReader.
      */
-    void process_jplace_version_( utils::JsonDocument const& doc ) const;
+    void process_jplace_version_( genesis::utils::formats::JsonDocument const& doc ) const;
 
     /**
      * @brief Internal helper function that processes the `metadata` key of a JsonDocument and stores
      * its value in the Sample metadata member.
      */
-    void process_jplace_metadata_( utils::JsonDocument const& doc, Sample& smp ) const;
+    void process_jplace_metadata_( genesis::utils::formats::JsonDocument const& doc, Sample& smp ) const;
 
     /**
      * @brief Internal helper function that processes the `tree` key of a JsonDocument and stores it as
      * the Tree of a Sample.
      */
-    void process_jplace_tree_( utils::JsonDocument const& doc, Sample& smp ) const;
+    void process_jplace_tree_( genesis::utils::formats::JsonDocument const& doc, Sample& smp ) const;
 
     /**
      * @brief Internal helper function that processes the `fields` key of a JsonDocument and returns
      * its values.
      */
-    std::vector<std::string> process_jplace_fields_( utils::JsonDocument const& doc ) const;
+    std::vector<std::string> process_jplace_fields_( genesis::utils::formats::JsonDocument const& doc ) const;
 
     /**
      * @brief Internal helper function that processes the `placements` key of a JsonDocument and stores
      * the contained pqueries in the Sample.
      */
     void process_jplace_placements_(
-        utils::JsonDocument&            doc,
+        genesis::utils::formats::JsonDocument&            doc,
         Sample&                         smp,
         std::vector<std::string> const& fields
     ) const;
@@ -211,7 +215,7 @@ private:
      * @brief Internal helper function that processes the `p` part of a placement.
      */
     void process_jplace_placements_p_(
-        utils::JsonDocument const&      pqry_obj,
+        genesis::utils::formats::JsonDocument const&      pqry_obj,
         Pquery&                         pquery,
         std::vector<std::string> const& fields,
         std::unordered_map<size_t, PlacementTreeEdge*> const& edge_num_map
@@ -221,7 +225,7 @@ private:
      * @brief Internal helper function that processes the `n`, `m`, and `nm` part of a placement.
      */
     void process_jplace_placements_nm_(
-        utils::JsonDocument const&      pqry_obj,
+        genesis::utils::formats::JsonDocument const&      pqry_obj,
         Pquery&                         pquery
     ) const;
 

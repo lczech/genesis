@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ namespace sequence {
 //
 // }
 
-void PhylipWriter::write( SequenceSet const& sequence_set, std::shared_ptr<utils::BaseOutputTarget> target ) const
+void PhylipWriter::write( SequenceSet const& sequence_set, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
 {
     // Shorthand
     auto& os = target->ostream();

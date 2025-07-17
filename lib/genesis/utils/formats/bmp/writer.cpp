@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Writing Matrix of Color
@@ -52,7 +53,7 @@ namespace utils {
 
 void BmpWriter::write(
     Matrix<Color> const& image,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     auto& outstream = target->ostream();
 
@@ -128,7 +129,7 @@ void BmpWriter::write(
 
 void BmpWriter::write(
     Matrix<unsigned char> const& image,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     // Build a simple grayscale palette.
     auto palette = std::vector<Color>( 256 );
@@ -147,7 +148,7 @@ void BmpWriter::write(
 void BmpWriter::write(
     Matrix<unsigned char> const& image,
     std::vector<Color> const& palette,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
     auto& outstream = target->ostream();
 
@@ -233,7 +234,7 @@ void BmpWriter::write_uint16_( uint16_t data, std::ostream& target ) const
 {
     auto const bytes = reinterpret_cast< uint8_t const* >( &data );
 
-    static const bool is_little_endian = info_get_hardware().is_little_endian;
+    static const bool is_little_endian = genesis::utils::core::info_get_hardware().is_little_endian;
     if( is_little_endian ) {
         target.put( bytes[0] );
         target.put( bytes[1] );
@@ -247,7 +248,7 @@ void BmpWriter::write_uint32_( uint32_t data, std::ostream& target ) const
 {
     auto const bytes = reinterpret_cast< uint8_t const* >( &data );
 
-    static const bool is_little_endian = info_get_hardware().is_little_endian;
+    static const bool is_little_endian = genesis::utils::core::info_get_hardware().is_little_endian;
     if( is_little_endian ) {
         target.put( bytes[0] );
         target.put( bytes[1] );
@@ -296,5 +297,6 @@ void BmpWriter::write_info_( BitmapInfo const& info, std::ostream& target ) cons
     }
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

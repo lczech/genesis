@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ public:
 
     HeatmapColorization() = default;
 
-    explicit HeatmapColorization( std::vector<utils::Color> const& palette )
+    explicit HeatmapColorization( std::vector<genesis::utils::color::Color> const& palette )
     {
         color_map_.palette( palette );
     }
@@ -95,18 +95,18 @@ public:
     //     Heatmap Functions
     // -------------------------------------------------------------------------
 
-    std::pair<utils::Matrix<utils::Color>, double> spectrum_to_image(
+    std::pair<genesis::utils::containers::Matrix<genesis::utils::color::Color>, double> spectrum_to_image(
         Spectrum const& spectrum
     ) const;
 
-    std::pair<utils::SvgGroup, double> spectrum_to_svg(
+    std::pair<genesis::utils::formats::SvgGroup, double> spectrum_to_svg(
         Spectrum const& spectrum,
-        utils::SvgMatrixSettings settings = {}
+        genesis::utils::formats::SvgMatrixSettings settings = {}
     ) const;
 
     double spectrum_to_bmp_file(
         Spectrum const& spectrum,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     // -------------------------------------------------------------------------
@@ -157,12 +157,12 @@ public:
         return *this;
     }
 
-    utils::Color const& empty_window_color() const
+    genesis::utils::color::Color const& empty_window_color() const
     {
         return color_map_.mask_color();
     }
 
-    self_type& empty_window_color( utils::Color const& value )
+    self_type& empty_window_color( genesis::utils::color::Color const& value )
     {
         color_map_.mask_color( value );
         return *this;
@@ -179,13 +179,13 @@ public:
         return *this;
     }
 
-    self_type& palette( std::vector<utils::Color> const& value )
+    self_type& palette( std::vector<genesis::utils::color::Color> const& value )
     {
         color_map_.palette( value );
         return *this;
     }
 
-    utils::ColorMap& color_map()
+    genesis::utils::color::ColorMap& color_map()
     {
         return color_map_;
     }
@@ -202,7 +202,7 @@ private:
     bool max_per_column_ = false;
 
     bool use_empty_window_color_ = true;
-    utils::ColorMap color_map_;
+    genesis::utils::color::ColorMap color_map_;
 
 };
 

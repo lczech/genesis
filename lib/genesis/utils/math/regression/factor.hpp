@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Factors and Categorical Variables
@@ -211,7 +212,7 @@ std::vector<size_t> glm_factor_summary( GlmFactor<T> const& factor )
  * Missing/exluded levels are encoded as `NaN`.
  */
 template<class T>
-Dataframe glm_indicator_variables(
+genesis::utils::containers::Dataframe glm_indicator_variables(
     GlmFactor<T> const& factor,
     T const& reference_level,
     std::vector<std::string> const& row_names = std::vector<std::string>{}
@@ -243,7 +244,7 @@ Dataframe glm_indicator_variables(
     assert( ref_idx >= 0 );
 
     // Prepare result, add all needed rows.
-    Dataframe result;
+    genesis::utils::containers::Dataframe result;
     if( row_names.empty() ) {
         for( size_t i = 0; i < factor.values.size(); ++i ) {
             result.add_unnamed_row();
@@ -299,7 +300,7 @@ Dataframe glm_indicator_variables(
  * @link glm_indicator_variables( GlmFactor<T> const&, T const&, std::vector<std::string> const& ) glm_indicator_variables()@endlink.
  */
 template<class T>
-Dataframe glm_indicator_variables(
+genesis::utils::containers::Dataframe glm_indicator_variables(
     GlmFactor<T> const& factor,
     std::vector<std::string> const& row_names = std::vector<std::string>{}
 ) {
@@ -316,6 +317,7 @@ Dataframe glm_indicator_variables(
     return glm_indicator_variables( factor, factor.levels[max_level], row_names );
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

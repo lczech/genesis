@@ -55,6 +55,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // We only include all the class definitions if we actually use zlib.
 // If not, we later also provide dummy implementations that throw if instanciated.
@@ -308,6 +309,10 @@ class GzipBlockOStreambuf
 
 private:
 
+    template<class T>
+    using ProactiveFuture = genesis::utils::threading::ProactiveFuture<T>;
+    using ThreadPool      = genesis::utils::threading::ThreadPool;
+
     /**
      * @brief Helper struct that stores one block of compression, and its status in form of a future.
      *
@@ -358,7 +363,11 @@ public:
         size_t num_blocks = 0
     )
         : sbuf_p_( sbuf_p )
-        , thread_pool_( thread_pool ? thread_pool : Options::get().global_thread_pool() )
+        , thread_pool_(
+            thread_pool
+            ? thread_pool
+            : genesis::utils::core::Options::get().global_thread_pool()
+        )
     {
         // Basic setup. We take the number of threads as provided, and if given a number of blocks,
         // also use that. If not, we aim to use twice as many blocks as threads, so that there is
@@ -674,7 +683,7 @@ GzipBlockOStream::GzipBlockOStream(
     std::ostream& os,
     std::size_t block_size,
     GzipCompressionLevel compression_level,
-    std::shared_ptr<ThreadPool> thread_pool
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool
 )
     : GzipBlockOStream( os.rdbuf(), block_size, compression_level, thread_pool )
 {
@@ -685,7 +694,7 @@ GzipBlockOStream::GzipBlockOStream(
     std::streambuf* sbuf_p,
     std::size_t block_size,
     GzipCompressionLevel compression_level,
-    std::shared_ptr<ThreadPool> thread_pool
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool
 )
     : std::ostream( new GzipBlockOStreambuf(
         sbuf_p,
@@ -728,5 +737,6 @@ GzipBlockOStream::~GzipBlockOStream()
 
 #endif // GENESIS_ZLIB
 
+} // namespace io
 } // namespace utils
 } // namespace genesis

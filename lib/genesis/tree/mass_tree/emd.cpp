@@ -178,7 +178,7 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double c
     return work;
 }
 
-utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double const p )
+genesis::utils::containers::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double const p )
 {
     // Check.
     if( p <= 0.0 ) {
@@ -188,18 +188,18 @@ utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees,
     }
 
     // Init result matrix.
-    auto result = utils::Matrix<double>( trees.size(), trees.size(), 0.0 );
+    auto result = genesis::utils::containers::Matrix<double>( trees.size(), trees.size(), 0.0 );
 
     // We only need to calculate the upper triangle. Get the number of indices needed
     // to describe this triangle.
-    size_t const max_k = utils::triangular_size( trees.size() );
+    size_t const max_k = genesis::utils::containers::triangular_size( trees.size() );
 
     // Use dynamic parallelization, as trees might be of different size
     // (in terms of number of mass points).
-    utils::parallel_for( 0, max_k, [&]( size_t k )
+    genesis::utils::threading::parallel_for( 0, max_k, [&]( size_t k )
     {
         // For the given linear index, get the actual position in the Matrix.
-        auto const ij = utils::triangular_indices( k, trees.size() );
+        auto const ij = genesis::utils::containers::triangular_indices( k, trees.size() );
         auto const i = ij.first;
         auto const j = ij.second;
 

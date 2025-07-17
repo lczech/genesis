@@ -42,6 +42,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Bitvector Functions
@@ -295,6 +296,7 @@ size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs );
 //  */
 // bool is_lexicographically_greater_or_equal( Bitvector const& lhs, Bitvector const& rhs );
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 

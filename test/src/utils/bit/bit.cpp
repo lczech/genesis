@@ -33,6 +33,7 @@
 #include "genesis/utils/bit/bit.hpp"
 
 using namespace genesis::utils;
+using namespace genesis::utils::bit;
 
 TEST( Bit, PopCount )
 {

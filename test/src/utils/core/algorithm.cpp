@@ -36,6 +36,7 @@
 #include <vector>
 
 using namespace genesis::utils;
+using namespace genesis::utils::core;
 
 TEST( Algorithm, SortIndices )
 {

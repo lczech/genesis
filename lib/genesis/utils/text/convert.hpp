@@ -51,6 +51,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // =================================================================================================
 //     Generic Conversion
@@ -73,7 +74,7 @@ T convert_from_string( std::string const& str, bool trim = false )
     // Convert, and fail if there is more in the string that we expect.
     bool good = true;
     try {
-        std::stringstream ss( trim ? utils::trim(str) : str );
+        std::stringstream ss( trim ? genesis::utils::text::trim(str) : str );
         ss >> std::noskipws >> value;
         ss.peek();
         good = ss.eof();
@@ -99,7 +100,7 @@ inline std::string convert_from_string<std::string>( std::string const& str, boo
 {
     // We need special treatment of strings here, as the stringstream would only give
     // us the first word of the input otherwise.
-    return (trim ? utils::trim(str) : str);
+    return (trim ? genesis::utils::text::trim(str) : str);
 }
 
 /**
@@ -110,7 +111,7 @@ template <>
 inline double convert_from_string<double>( std::string const& str, bool trim )
 {
     // For double, we use a more fitting function that also parses inf and nan.
-    auto const input = (trim ? utils::trim(str) : str);
+    auto const input = (trim ? genesis::utils::text::trim(str) : str);
     char* end = nullptr;
     auto const value = std::strtod( input.c_str(), &end );
     if( end == nullptr || *end != '\0' || end - input.c_str() != static_cast<long>( input.size() )) {
@@ -455,6 +456,7 @@ bool is_convertible_to_unsigned_integer(
     return true;
 }
 
+} // namespace text
 } // namespace utils
 } // namespace genesis
 

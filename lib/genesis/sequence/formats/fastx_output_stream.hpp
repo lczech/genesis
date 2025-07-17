@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,14 +71,14 @@ using FastqOutputStream = FastxOutputStream<FastqWriter>;
  *
  * Exemplary usage:
  *
- *     auto out_it = FastqOutputStream( utils::to_file( "path/to/out.fastq" ));
+ *     auto out_it = FastqOutputStream( genesis::utils::io::to_file( "path/to/out.fastq" ));
  *     while( ... ) {
  *         Sequence seq = ...
  *         out_it << seq;
  *     }
  *
- * See the output target convenience functions utils::to_file(), utils::to_stream(), and
- * utils::to_string() for examples of how to obtain a suitable output target.
+ * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+ * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
  */
 template<class Writer>
 class FastxOutputStream
@@ -98,14 +98,14 @@ public:
     FastxOutputStream() = delete;
 
     explicit FastxOutputStream(
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     )
         : target_( target )
         , writer_()
     {}
 
     FastxOutputStream(
-        std::shared_ptr<utils::BaseOutputTarget> target,
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
         Writer const& writer
     )
         : target_( target )
@@ -177,7 +177,7 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
-    std::shared_ptr<utils::BaseOutputTarget> output_target() const
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> output_target() const
     {
         return target_;
     }
@@ -204,7 +204,7 @@ public:
 
 private:
 
-    std::shared_ptr<utils::BaseOutputTarget> target_;
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target_;
     Writer writer_;
 };
 

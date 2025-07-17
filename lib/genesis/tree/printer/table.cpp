@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ void PrinterTable::print( std::ostream& out, Tree const& tree )
 {
     /*
     // nodes
-    auto node_table = utils::Table();
+    auto node_table = genesis::utils::Table();
     node_table.add_column("Node");
     node_table.add_column("Main Link").justify(utils::Table::Column::Justification::kRight);
     node_table.add_column("...");
@@ -58,7 +58,7 @@ void PrinterTable::print( std::ostream& out, Tree const& tree )
                    << std::to_string( tree.node_at(i)->link()->index() )
                    << tree.node_at(i)->dump();
     }
-    out << utils::simple_layout()(node_table) << "\n";
+    out << genesis::utils::simple_layout()(node_table) << "\n";
     */
 
     // nodes

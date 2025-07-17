@@ -74,7 +74,7 @@ public:
     //     Types and Enums
     // -------------------------------------------------------------------------
 
-    using Bitvector = genesis::utils::Bitvector;
+    using Bitvector = genesis::utils::bit::Bitvector;
 
     struct Color
     {
@@ -187,7 +187,7 @@ public:
     );
 
     void precompute_gamut(
-        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr
     );
 
     // -------------------------------------------------------------------------
@@ -238,7 +238,7 @@ public:
         return lookup_;
     }
 
-    utils::Matrix<size_t> const& get_gamut_matrix() const
+    genesis::utils::containers::Matrix<size_t> const& get_gamut_matrix() const
     {
         return gamut_;
     }
@@ -356,7 +356,7 @@ private:
     // the new color indices of the color that is the minimal superset of those two.
     // Many of them will not be exact matches for the color we would want (hence the minimal subset),
     // so in a sense, these are imaginary colors: They cannot be exactly produced.
-    utils::Matrix<size_t> gamut_;
+    genesis::utils::containers::Matrix<size_t> gamut_;
 
     // For debugging and performance assessment, we keep track of statis of the gamut.
     // We use a private atomic variant of this, as we are writing the gamut concurrently.
@@ -377,7 +377,7 @@ private:
     mutable std::shared_timed_mutex color_mutex_;
     mutable std::atomic<bool> gamut_started_ = false;
     mutable std::atomic<bool> gamut_filled_ = false;
-    mutable utils::ConcurrentVectorGuard gamut_guard_;
+    mutable genesis::utils::threading::ConcurrentVectorGuard gamut_guard_;
 
 };
 

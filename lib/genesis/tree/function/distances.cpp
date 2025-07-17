@@ -51,14 +51,14 @@ namespace tree {
 //     Node Distance Measures
 // =================================================================================================
 
-utils::Matrix<size_t> node_path_length_matrix(
+genesis::utils::containers::Matrix<size_t> node_path_length_matrix(
     Tree const& tree
 ) {
     auto max_val = std::numeric_limits<size_t>::max();
-    utils::Matrix<size_t> mat( tree.node_count(), tree.node_count(), max_val );
+    genesis::utils::containers::Matrix<size_t> mat( tree.node_count(), tree.node_count(), max_val );
 
     // Fill every row of the matrix.
-    utils::parallel_for( 0, tree.node_count(), [&]( size_t ni ){
+    genesis::utils::threading::parallel_for( 0, tree.node_count(), [&]( size_t ni ){
         auto const& row_node = tree.node_at( ni );
         assert( row_node.index() == ni );
 
@@ -138,11 +138,11 @@ std::vector<size_t> node_path_length_vector(
 //     Edge Distance Measures
 // =================================================================================================
 
-utils::Matrix<size_t> edge_path_length_matrix(
+genesis::utils::containers::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
 ) {
     // Result matrix that will be returned.
-    utils::Matrix<size_t> mat (tree.edge_count(), tree.edge_count());
+    genesis::utils::containers::Matrix<size_t> mat (tree.edge_count(), tree.edge_count());
 
     // For calculating the distance between edges, we use the distances between nodes and for every
     // pair of edged find the nodes at the ends of the edges that are closest to each other. This

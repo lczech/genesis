@@ -42,18 +42,20 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     Normalize
 // ================================================================================================
 
-std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data )
-{
+std::vector<MinMaxPair<double>> normalize_cols(
+    genesis::utils::containers::Matrix<double>& data
+) {
     auto col_minmax = matrix_col_minmax( data );
     assert( col_minmax.size() == data.cols() );
 
     // Iterate the matrix.
-    utils::parallel_for( 0, data.cols(), [&]( size_t c )
+    genesis::utils::threading::parallel_for( 0, data.cols(), [&]( size_t c )
     {
         for( size_t r = 0; r < data.rows(); ++r ) {
                 // Adjust column values.
@@ -66,13 +68,14 @@ std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data )
     return col_minmax;
 }
 
-std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data )
-{
+std::vector<MinMaxPair<double>> normalize_rows(
+    genesis::utils::containers::Matrix<double>& data
+) {
     auto row_minmax = matrix_row_minmax( data );
     assert( row_minmax.size() == data.rows() );
 
     // Iterate the matrix.
-    utils::parallel_for( 0, data.rows(), [&]( size_t r )
+    genesis::utils::threading::parallel_for( 0, data.rows(), [&]( size_t r )
     {
         for( size_t c = 0; c < data.cols(); ++c ) {
             // Adjust row values.
@@ -90,14 +93,14 @@ std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data )
 // ================================================================================================
 
 std::vector<MeanStddevPair> standardize_cols(
-    Matrix<double>& data,
+    genesis::utils::containers::Matrix<double>& data,
     bool            scale_means,
     bool            scale_std
 ) {
     auto col_mean_stddev = std::vector<MeanStddevPair>( data.cols() );
 
     // Iterate the matrix.
-    utils::parallel_for( 0, data.cols(), [&]( size_t c )
+    genesis::utils::threading::parallel_for( 0, data.cols(), [&]( size_t c )
     {
         col_mean_stddev[c] = mean_stddev( data.col(c).begin(), data.col(c).end(), 0.0000001 );
 
@@ -120,14 +123,14 @@ std::vector<MeanStddevPair> standardize_cols(
 }
 
 std::vector<MeanStddevPair> standardize_rows(
-    Matrix<double>& data,
+    genesis::utils::containers::Matrix<double>& data,
     bool            scale_means,
     bool            scale_std
 ) {
     auto row_mean_stddev = std::vector<MeanStddevPair>( data.rows() );
 
     // Iterate the matrix.
-    utils::parallel_for( 0, data.rows(), [&]( size_t r )
+    genesis::utils::threading::parallel_for( 0, data.rows(), [&]( size_t r )
     {
         row_mean_stddev[r] = mean_stddev( data.row(r).begin(), data.row(r).end(), 0.0000001 );
 
@@ -153,10 +156,12 @@ std::vector<MeanStddevPair> standardize_rows(
 //     Filter Constant Columns
 // =================================================================================================
 
-std::vector<size_t> filter_constant_columns( utils::Matrix<double>& data, double epsilon )
-{
+std::vector<size_t> filter_constant_columns(
+    genesis::utils::containers::Matrix<double>& data,
+    double epsilon
+) {
     // Get the column-wise min and max values.
-    auto const col_minmax = utils::matrix_col_minmax( data );
+    auto const col_minmax = matrix_col_minmax( data );
 
     // Store which columns to keep, by index.
     std::vector<size_t> keep_cols;
@@ -174,9 +179,11 @@ std::vector<size_t> filter_constant_columns( utils::Matrix<double>& data, double
     assert( keep_cols.size() <= data.cols() );
 
     // Produce new, filtered matrix.
-    auto new_mat = utils::Matrix<double>( data.rows(), keep_cols.size() );
+    auto new_mat = genesis::utils::containers::Matrix<double>(
+        data.rows(), keep_cols.size()
+    );
 
-    utils::parallel_for( 0, data.rows(), [&]( size_t r )
+    genesis::utils::threading::parallel_for( 0, data.rows(), [&]( size_t r )
     {
         for( size_t i = 0; i < keep_cols.size(); ++i ) {
             new_mat( r, i ) = data( r, keep_cols[i] );
@@ -192,8 +199,9 @@ std::vector<size_t> filter_constant_columns( utils::Matrix<double>& data, double
 //     Correlation and Covariance
 // =================================================================================================
 
-Matrix<double> correlation_matrix( Matrix<double> const& data )
-{
+genesis::utils::containers::Matrix<double> correlation_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+)  {
     // Standardize mean and variance.
     auto stddata = data;
     standardize_cols( stddata, true, true );
@@ -206,8 +214,9 @@ Matrix<double> correlation_matrix( Matrix<double> const& data )
     return sscp;
 }
 
-Matrix<double> covariance_matrix( Matrix<double> const& data )
-{
+genesis::utils::containers::Matrix<double> covariance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+) {
     // Standardize mean, but not the variance.
     auto stddata = data;
     standardize_cols( stddata, true, false );
@@ -220,9 +229,10 @@ Matrix<double> covariance_matrix( Matrix<double> const& data )
     return sscp;
 }
 
-Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& data )
-{
-    auto mat = Matrix<double>( data.cols(), data.cols() );
+genesis::utils::containers::Matrix<double> sums_of_squares_and_cross_products_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+) {
+    auto mat = genesis::utils::containers::Matrix<double>( data.cols(), data.cols() );
 
     // Calculate the covariance matrix.
     for( size_t c1 = 0; c1 < data.cols(); ++c1 ) {
@@ -238,5 +248,6 @@ Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& 
     return mat;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

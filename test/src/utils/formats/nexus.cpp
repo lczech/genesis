@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,9 @@
 
 using namespace genesis;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::formats;
 
 TEST(Nexus, Writer)
 {
@@ -47,11 +50,11 @@ TEST(Nexus, Writer)
     // TODO create a factory method for each class, just for simplicity.
     // TODO make all functions comparing block names case insensitive!
 
-    auto trees = make_unique<NexusTrees>();
+    auto trees = genesis::utils::core::make_unique<NexusTrees>();
     trees->add_tree( "life", "(human, mouse, rat);" );
     doc.set_block( std::move(trees) );
 
-    auto taxa = make_unique<NexusTaxa>();
+    auto taxa = genesis::utils::core::make_unique<NexusTaxa>();
     taxa->add_taxa({ "human", "mouse", "rat" });
     doc.set_block( std::move(taxa) );
 

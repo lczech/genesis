@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace core {
 
 // =================================================================================================
 //     Shortcomings of the C++ 11 STL...
@@ -360,6 +361,7 @@ inline std::vector<size_t> stable_sort_indices(
     );
 }
 
+} // namespace core
 } // namespace utils
 } // namespace genesis
 

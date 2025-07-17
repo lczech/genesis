@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     HAC with Linkage
@@ -404,7 +405,7 @@ inline HierarchicalAgglomerativeClustering<std::vector<size_t>> hac_with_index_v
  * in that step (which hence is the template type of the returned HAC instance).
  */
 inline HierarchicalAgglomerativeClustering<std::vector<size_t>> hac_with_distance_matrix(
-    Matrix<double> const& distance_matrix,
+    genesis::utils::containers::Matrix<double> const& distance_matrix,
     HierarchicalAgglomerativeClusteringLinkage linkage
 ) {
     // Need square symmetrical matrix with finite entries and zero diagonal.
@@ -444,6 +445,7 @@ inline HierarchicalAgglomerativeClustering<std::vector<size_t>> hac_with_distanc
     return hac_with_index_vectors( distance_matrix.rows(), dist_fct, linkage );
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

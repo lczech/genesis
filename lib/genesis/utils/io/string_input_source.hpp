@@ -41,6 +41,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     String Input Source
@@ -171,6 +172,7 @@ private:
 
 };
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

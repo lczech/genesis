@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Bitvector Operators
@@ -225,8 +226,10 @@ std::istream& operator >> ( std::istream& in, Bitvector& bv )
     return in;
 }
 
-Serializer& operator<<( Serializer& serializer, Bitvector const& bv )
-{
+genesis::utils::io::Serializer& operator<<(
+    genesis::utils::io::Serializer& serializer,
+    Bitvector const& bv
+) {
     // We write the size in number of bits first.
     // Then, the data serialization will additionally store the size of the underlying vector
     // that is used in the Bitvector, which is a bit of overhead, but we live with that for now.
@@ -235,8 +238,10 @@ Serializer& operator<<( Serializer& serializer, Bitvector const& bv )
     return serializer;
 }
 
-Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv )
-{
+genesis::utils::io::Deserializer& operator>>(
+    genesis::utils::io::Deserializer& deserializer,
+    Bitvector& bv
+) {
     // This funciton is a friend of the Bitvector class, so that we can write to its data directly.
     // Otherwise, we'd need special constructors etc, which is a bit cumbersome.
     deserializer >> bv.size_;
@@ -265,5 +270,6 @@ Deserializer& operator>>( Deserializer& deserializer, Bitvector& bv )
     return deserializer;
 }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis

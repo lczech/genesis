@@ -83,6 +83,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // We only include all the class definitions if we actually use zlib.
 // If not, we later also provide dummy implementations that throw if instanciated.
@@ -674,5 +675,6 @@ GzipOFStream& GzipOFStream::flush()
 
 #endif // GENESIS_ZLIB
 
+} // namespace io
 } // namespace utils
 } // namespace genesis

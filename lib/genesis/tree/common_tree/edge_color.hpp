@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,7 +40,11 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
+namespace color {
+
     class Color;
+
+}
 }
 
 namespace tree {
@@ -51,7 +55,7 @@ class Tree;
 //     Edge Color Functions
 // =================================================================================================
 
-std::vector<utils::Color> edge_color_branch_length_gradient(
+std::vector<genesis::utils::color::Color> edge_color_branch_length_gradient(
     Tree const& tree,
     bool zero_based = false
 );

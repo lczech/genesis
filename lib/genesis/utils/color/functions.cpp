@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Color Conversion
@@ -66,7 +67,7 @@ Color color_from_hex( std::string const& hex_color, std::string const& prefix )
     if (hex_color.substr(0, prefix.size()) != prefix) {
         throw std::invalid_argument("String does not start with given prefix.");
     }
-    auto const h = utils::trim( hex_color.substr( prefix.size() ));
+    auto const h = genesis::utils::text::trim( hex_color.substr( prefix.size() ));
 
     // Check for incorrect chars, as std::stoul (used later for the actual conversion)
     // might just end parsing instead of throwing...
@@ -137,10 +138,10 @@ std::ostream& operator<< (std::ostream& os, Color const& color)
 
 Color resolve_color_string( std::string const& color_str )
 {
-    auto const str = trim( color_str );
+    auto const str = genesis::utils::text::trim( color_str );
 
     // Check if it is a hex color string.
-    if( starts_with( str, "#" ) ) {
+    if( genesis::utils::text::starts_with( str, "#" ) ) {
         return color_from_hex( str );
     }
 
@@ -214,5 +215,6 @@ Color heat_gradient (double percentage)
     return interpolate(yellow, red, (percentage - 0.5) / 0.5);
 }
 
+} // namespace color
 } // namespace utils
 } // namespace genesis

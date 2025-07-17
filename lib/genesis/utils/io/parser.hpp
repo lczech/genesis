@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Integer
@@ -55,7 +56,7 @@ namespace utils {
  * parse_unsigned_integer() and parse_signed_integer(). That means, our internal int size
  * cannot exceed 64 bits. That should be okay.
  */
-size_t parse_unsigned_integer_size_t( utils::InputStream& source );
+size_t parse_unsigned_integer_size_t( genesis::utils::io::InputStream& source );
 
 /**
  * @brief Read an unsigned integer from a stream and return it.
@@ -65,7 +66,7 @@ size_t parse_unsigned_integer_size_t( utils::InputStream& source );
  * In case the value range is too small, the function throws `std::overflow_error`.
  */
 template<class T>
-T parse_unsigned_integer( utils::InputStream& source )
+T parse_unsigned_integer( genesis::utils::io::InputStream& source )
 {
     // No need to assert unsignedness here. We will later check that casting to the desired
     // type worked, and we test for the correct sign there as well, so that it workes for
@@ -98,7 +99,7 @@ T parse_unsigned_integer( utils::InputStream& source )
  * or `underflow_error`, respectively.
  */
 template<class T>
-T parse_signed_integer( utils::InputStream& source )
+T parse_signed_integer( genesis::utils::io::InputStream& source )
 {
     static_assert(
         std::is_signed<T>::value,
@@ -151,7 +152,7 @@ T parse_signed_integer( utils::InputStream& source )
  * @brief Alias for parse_signed_integer().
  */
 template<class T>
-T parse_integer( utils::InputStream& source )
+T parse_integer( genesis::utils::io::InputStream& source )
 {
     return parse_signed_integer<T>(source);
 }
@@ -173,7 +174,7 @@ T parse_integer( utils::InputStream& source )
  * after the 'E') does not fit into integer value range.
  */
 template<class T>
-T parse_float( utils::InputStream& source )
+T parse_float( genesis::utils::io::InputStream& source )
 {
     T x = 0.0;
 
@@ -194,7 +195,7 @@ T parse_float( utils::InputStream& source )
 
     // Integer Part
     bool found_mantisse = false;
-    while( source && utils::is_digit( *source )) {
+    while( source && genesis::utils::text::is_digit( *source )) {
         int y = *source - '0';
         x *= 10;
         x += y;
@@ -206,14 +207,14 @@ T parse_float( utils::InputStream& source )
     if( source && *source == '.' ) {
         ++source;
 
-        if( ! source || ! utils::is_digit( *source ) ) {
+        if( ! source || ! genesis::utils::text::is_digit( *source ) ) {
             throw std::runtime_error(
                 "Invalid number in " + source.source_name() + " at " + source.at() + "."
             );
         }
 
         T pos = 1.0;
-        while( source && utils::is_digit( *source )) {
+        while( source && genesis::utils::text::is_digit( *source )) {
             pos /= 10.0;
             int y = *source - '0';
             x += y * pos;
@@ -251,7 +252,7 @@ T parse_float( utils::InputStream& source )
         // Bit stricter than usual double parsing, but should cover all cases except for
         // the `nanCHAR` notation. If this check fails, we instead continue,
         // which will throw in the next check below.
-        if( value != 0.0 && ( !source || ! is_alnum( *source ))) {
+        if( value != 0.0 && ( !source || ! genesis::utils::text::is_alnum( *source ))) {
             return value;
         }
     }
@@ -264,7 +265,7 @@ T parse_float( utils::InputStream& source )
     }
 
     // Exponential part
-    if( source && utils::to_lower(*source) == 'e' ) {
+    if( source && genesis::utils::text::to_lower(*source) == 'e' ) {
         ++source;
 
         // Read the exp. If there are no digits, this throws.
@@ -315,7 +316,7 @@ T parse_float( utils::InputStream& source )
  * whether it is valid. Use parse_float() to turn such a number string into an actual float/double.
  */
 std::string parse_number_string(
-    utils::InputStream& source
+    genesis::utils::io::InputStream& source
 );
 
 // =================================================================================================
@@ -348,12 +349,13 @@ std::string parse_number_string(
  *        marks are included in the output or not. Default is `false`.
  */
 std::string parse_quoted_string(
-    utils::InputStream& source,
+    genesis::utils::io::InputStream& source,
     bool use_escapes     = true,
     bool use_twin_quotes = false,
     bool include_qmarks  = false
 );
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

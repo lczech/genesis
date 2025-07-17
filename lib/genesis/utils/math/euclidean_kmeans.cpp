@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     Euclidian K-Means Specialization
@@ -79,9 +80,9 @@ void EuclideanKmeans::update_centroids(
     assert( data.size() == assignments.size() );
 
     auto const k = centroids.size();
-    if( utils::Options::get().has_global_thread_pool() ) {
+    if( genesis::utils::core::Options::get().has_global_thread_pool() ) {
         // Parallelize over centroids
-        utils::parallel_for( 0, k, [&]( size_t i )
+        genesis::utils::threading::parallel_for( 0, k, [&]( size_t i )
         {
             // Thread-local Point
             auto centroid = Point( dimensions_, 0.0 );
@@ -158,5 +159,6 @@ double EuclideanKmeans::distance( Point const& lhs, Point const& rhs ) const
     return std::sqrt( sum );
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

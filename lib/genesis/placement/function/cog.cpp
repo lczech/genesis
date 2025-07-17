@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     };
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::core::Logging::kInfo)
 
     // Store a balance value per link, so that each element contains the mass and its torque that
     // lies downwards the tree in the direction of this link.
@@ -612,7 +612,7 @@ double center_of_gravity_distance (
     }
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::core::Logging::kInfo)
 
     auto cog_a = center_of_gravity(smp_a, with_pendant_length);
     auto cog_b = center_of_gravity(smp_b, with_pendant_length);

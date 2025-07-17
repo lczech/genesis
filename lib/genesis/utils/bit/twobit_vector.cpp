@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // ================================================================================================
 //     Typedefs and Constants
@@ -408,5 +409,6 @@ void TwobitVector::clear()
     data_.clear();
 }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis

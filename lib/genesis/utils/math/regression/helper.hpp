@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Linear Algebra Helper Functions
@@ -141,6 +142,7 @@ double weighted_sum(
     std::vector<double> const& weights = std::vector<double>{}
 );
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

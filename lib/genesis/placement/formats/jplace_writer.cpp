@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,14 +65,14 @@ namespace placement {
 JplaceWriter::JplaceWriter()
 {
     program_ = "genesis " + genesis_version();
-    invocation_ = utils::Options::get().command_line_string();
+    invocation_ = genesis::utils::core::Options::get().command_line_string();
 }
 
 // =================================================================================================
 //     Printing
 // =================================================================================================
 
-void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutputTarget> target ) const
+void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
 {
     // Shorthand.
     auto& os = target->ostream();
@@ -88,10 +88,10 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
 
     // Write metadata.
     os << in << "\"metadata\": {\n";
-    os << in << in << "\"program\": \"" << utils::escape( program_ ) << "\",\n";
-    os << in << in << "\"invocation\": \"" << utils::escape( invocation_ ) << "\",\n";
-    os << in << in << "\"created\": \"" << utils::escape( utils::current_date() );
-    os << " " << utils::escape( utils::current_time() ) << "\"\n";
+    os << in << in << "\"program\": \"" << genesis::utils::text::escape( program_ ) << "\",\n";
+    os << in << in << "\"invocation\": \"" << genesis::utils::text::escape( invocation_ ) << "\",\n";
+    os << in << in << "\"created\": \"" << genesis::utils::text::escape( genesis::utils::current_date() );
+    os << " " << genesis::utils::text::escape( genesis::utils::current_time() ) << "\"\n";
     os << in << "},\n";
 
     // Write tree.
@@ -101,7 +101,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
     newick_writer.branch_length_precision( branch_length_precision_ );
     newick_writer.trailing_new_line( false );
     os << in << "\"tree\": \"";
-    os << utils::escape( newick_writer.to_string( sample.tree() ));
+    os << genesis::utils::text::escape( newick_writer.to_string( sample.tree() ));
     os << "\",\n";
 
     // Write field names.
@@ -154,7 +154,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
             os << in << in << in << "\"nm\": [\n";
             for( size_t j = 0; j < pquery.name_size(); ++j ) {
                 os << in << in << in << in << "[ \"";
-                os << utils::escape( pquery.name_at(j).name ) << "\", ";
+                os << genesis::utils::text::escape( pquery.name_at(j).name ) << "\", ";
                 os << pquery.name_at(j).multiplicity << " ]";
 
                 if( j < pquery.name_size() - 1 ) {
@@ -169,7 +169,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
             // Without multiplicity.
             os << in << in << in << "\"n\": [ ";
             for( size_t j = 0; j < pquery.name_size(); ++j ) {
-                os << "\"" << utils::escape( pquery.name_at(j).name ) << "\"";
+                os << "\"" << genesis::utils::text::escape( pquery.name_at(j).name ) << "\"";
 
                 if( j < pquery.name_size() - 1 ) {
                     os << ", ";
@@ -192,9 +192,9 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr<utils::BaseOutpu
     os << "}\n";
 }
 
-utils::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
+genesis::utils::formats::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
 {
-    using namespace utils;
+    using namespace genesis::utils::formats;
     JsonDocument doc = JsonDocument::object();
 
     // set tree
@@ -276,7 +276,7 @@ utils::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
     auto jmetadata = JsonDocument::object();
     jmetadata[ "program" ] = program_;
     jmetadata[ "invocation" ] = invocation_;
-    jmetadata[ "created" ] = utils::current_date() + " " + utils::current_time();
+    jmetadata[ "created" ] = genesis::utils::current_date() + " " + genesis::utils::current_time();
     doc[ "metadata" ] = jmetadata;
 
     return doc;

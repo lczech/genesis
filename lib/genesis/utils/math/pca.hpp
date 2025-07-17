@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     Settings for Functions
@@ -95,8 +96,8 @@ struct TridiagonalDecompositionData
 struct PcaData
 {
     std::vector<double> eigenvalues;
-    Matrix<double>      eigenvectors;
-    Matrix<double>      projection;
+    genesis::utils::containers::Matrix<double> eigenvectors;
+    genesis::utils::containers::Matrix<double> projection;
 };
 
 // ================================================================================================
@@ -127,7 +128,7 @@ struct PcaData
  *             during execution of the function.
  */
 TridiagonalDecompositionData reduce_to_tridiagonal_matrix(
-    Matrix<double>& data
+    genesis::utils::containers::Matrix<double>& data
 );
 
 /**
@@ -152,9 +153,9 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix(
  *                       data, this might result in an infinite loop.
  */
 void tridiagonal_ql_algorithm(
-    Matrix<double>&               data,
+    genesis::utils::containers::Matrix<double>& data,
     TridiagonalDecompositionData& tri,
-    size_t                        max_iterations = 1000
+    size_t max_iterations = 1000
 );
 
 // ================================================================================================
@@ -179,11 +180,12 @@ void tridiagonal_ql_algorithm(
  *                        See PcaData for details.
  */
 PcaData principal_component_analysis(
-    Matrix<double> const& data,
-    size_t                components      = 0,
-    PcaStandardization    standardization = PcaStandardization::kCorrelation
+    genesis::utils::containers::Matrix<double> const& data,
+    size_t components = 0,
+    PcaStandardization standardization = PcaStandardization::kCorrelation
 );
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

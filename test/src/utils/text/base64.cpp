@@ -38,6 +38,7 @@
 #include <unistd.h>
 
 using namespace genesis::utils;
+using namespace genesis::utils::text;
 
 // From https://en.wikipedia.org/wiki/Base64 - quote from Thomas Hobbes's Leviathan:
 

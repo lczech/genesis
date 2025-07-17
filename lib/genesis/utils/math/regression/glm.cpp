@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,13 +73,14 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Iteratively Reweighted Least Squares
 // =================================================================================================
 
 static void glm_irls_(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmFamily const&           family,
     GlmLink const&             link,
@@ -262,7 +263,7 @@ static void glm_irls_(
 // =================================================================================================
 
 static void glm_gaussian_(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras,
     GlmControl const&          control,
@@ -353,7 +354,7 @@ static void glm_gaussian_(
 // =================================================================================================
 
 GlmOutput glm_fit(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmFamily const&           family,
     GlmLink const&             link,
@@ -398,7 +399,7 @@ GlmOutput glm_fit(
 
     // Prepare results.
     GlmOutput result;
-    result.Xb      = Matrix<double>( N, M );
+    result.Xb      = genesis::utils::containers::Matrix<double>( N, M );
     result.fitted  = std::vector<double>( N );
     result.resid   = std::vector<double>( N );
     result.weights = std::vector<double>( N );
@@ -517,7 +518,7 @@ GlmOutput glm_fit(
 }
 
 GlmOutput glm_fit(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmFamily const&           family,
     GlmExtras const&           extras,
@@ -530,7 +531,7 @@ GlmOutput glm_fit(
 }
 
 GlmOutput glm_fit(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmExtras const&           extras,
     GlmControl const&          control
@@ -712,7 +713,7 @@ std::pair<std::vector<double>, std::vector<double>> glm_estimate_betas_and_var_c
 }
 
 double glm_estimate_intercept(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmOutput const&           output,
     std::vector<double> const& betas
@@ -723,7 +724,7 @@ double glm_estimate_intercept(
 }
 
 double glm_estimate_intercept(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmLink const&             link,
     GlmOutput const&           output,
@@ -773,7 +774,7 @@ double glm_estimate_intercept(
 }
 
 std::vector<double> glm_coefficients(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmOutput const&           output
 ) {
@@ -781,7 +782,7 @@ std::vector<double> glm_coefficients(
 }
 
 std::vector<double> glm_coefficients(
-    Matrix<double> const&      x_predictors,
+    genesis::utils::containers::Matrix<double> const&      x_predictors,
     std::vector<double> const& y_response,
     GlmLink const&             link,
     GlmOutput const&           output
@@ -792,5 +793,6 @@ std::vector<double> glm_coefficients(
     return coeffs;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

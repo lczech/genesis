@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -176,8 +176,8 @@ bool apply_variant_filter_numerical(
         }
 
         // Get the frequency, based on whether we can uses the bases or not.
-        auto const ref_base = utils::to_upper( variant.reference_base );
-        auto const alt_base = utils::to_upper( variant.alternative_base );
+        auto const ref_base = genesis::utils::text::to_upper( variant.reference_base );
+        auto const alt_base = genesis::utils::text::to_upper( variant.alternative_base );
         size_t ref_cnt = 0;
         size_t alt_cnt = 0;
         if( ! is_valid_base( ref_base )) {

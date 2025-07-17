@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,7 +40,9 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
+namespace color {
     class Color;
+}
 }
 
 namespace tree {
@@ -62,7 +64,9 @@ namespace placement {
 
 namespace placement {
 
-std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, bool linear = false );
+std::vector<genesis::utils::color::Color> placement_color_count_gradient(
+    Sample const& smp, bool linear = false
+);
 
 } // namespace placement
 } // namespace genesis

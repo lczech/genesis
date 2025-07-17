@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,7 +37,11 @@
 #include <iostream>
 
 using namespace genesis;
-using namespace utils;
+using namespace genesis::utils;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::io;
+using namespace genesis::utils::formats;
+using namespace genesis::utils::math;
 
 inline Matrix<double> read_pca_csv_data( std::string const& filename, size_t rows, size_t cols )
 {

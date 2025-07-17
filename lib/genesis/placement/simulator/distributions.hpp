@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ public:
      */
     size_t generate()
     {
-        return distrib_( utils::Options::get().random_engine() );
+        return distrib_( genesis::utils::core::Options::get().random_engine() );
     }
 
     // -------------------------------------------------
@@ -213,7 +213,7 @@ public:
      */
     double generate()
     {
-        return distrib_( utils::Options::get().random_engine() );
+        return distrib_( genesis::utils::core::Options::get().random_engine() );
     }
 
     // -----------------------------------------------------
@@ -272,7 +272,7 @@ public:
         // We don't use the edge in the default distribution.
         (void) edge;
 
-        return distrib_( utils::Options::get().random_engine() );
+        return distrib_( genesis::utils::core::Options::get().random_engine() );
     }
 
     // -----------------------------------------------------
@@ -331,7 +331,7 @@ public:
         // We do a multiplication with the branch length here, because this allows for a single
         // distribution instance instead of one per different length.
         auto branch_length = edge.data<PlacementEdgeData>().branch_length;
-        return distrib_( utils::Options::get().random_engine() ) * branch_length;
+        return distrib_( genesis::utils::core::Options::get().random_engine() ) * branch_length;
     }
 
     // -----------------------------------------------------

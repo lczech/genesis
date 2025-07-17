@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,13 +44,14 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Helper Functions and Function Templates
 // =================================================================================================
 
-MinMaxPair<double> heat_map_matrix_update_min_max_(
-    MinMaxPair<double> const& min_max,
+genesis::utils::math::MinMaxPair<double> heat_map_matrix_update_min_max_(
+    genesis::utils::math::MinMaxPair<double> const& min_max,
     HeatmapParameters const& parameters
 ) {
     auto result = min_max;
@@ -64,15 +65,18 @@ MinMaxPair<double> heat_map_matrix_update_min_max_(
 }
 
 template<class ColorNorm>
-Matrix<utils::Color> heat_map_matrix_range_all_(
-    Matrix<double> const& values,
+genesis::utils::containers::Matrix<genesis::utils::color::Color> heat_map_matrix_range_all_(
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 ) {
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::containers;
+
     // Prepare the matrix with the same dimensions as the input.
-    auto result = Matrix<utils::Color>( values.rows(), values.cols() );
+    auto result = Matrix<Color>( values.rows(), values.cols() );
 
     // Get the min and max value to use, and make a color normalization.
-    auto min_max = finite_minimum_maximum( values.begin(), values.end() );
+    auto min_max = genesis::utils::math::finite_minimum_maximum( values.begin(), values.end() );
     min_max = heat_map_matrix_update_min_max_( min_max, parameters );
     auto norm = ColorNorm( min_max.min, min_max.max );
 
@@ -86,17 +90,22 @@ Matrix<utils::Color> heat_map_matrix_range_all_(
 }
 
 template<class ColorNorm>
-Matrix<utils::Color> heat_map_matrix_range_row_(
-    Matrix<double> const& values,
+genesis::utils::containers::Matrix<genesis::utils::color::Color> heat_map_matrix_range_row_(
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 ) {
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::containers;
+
     // Prepare the matrix with the same dimensions as the input.
-    auto result = Matrix<utils::Color>( values.rows(), values.cols() );
+    auto result = Matrix<Color>( values.rows(), values.cols() );
 
     // Fill the pixels, normalizing each row.
     for( size_t row = 0; row < values.rows(); ++row ) {
         // Get the min and max value to use, and make a color normalization.
-        auto min_max = finite_minimum_maximum( values.row(row).begin(), values.row(row).end() );
+        auto min_max = genesis::utils::math::finite_minimum_maximum(
+            values.row(row).begin(), values.row(row).end()
+        );
         min_max = heat_map_matrix_update_min_max_( min_max, parameters );
         auto norm = ColorNorm( min_max.min, min_max.max );
 
@@ -108,12 +117,15 @@ Matrix<utils::Color> heat_map_matrix_range_row_(
 }
 
 template<class ColorNorm>
-Matrix<utils::Color> heat_map_matrix_range_col_(
-    Matrix<double> const& values,
+genesis::utils::containers::Matrix<genesis::utils::color::Color> heat_map_matrix_range_col_(
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 ) {
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::containers;
+
     // Prepare the matrix with the same dimensions as the input.
-    auto result = Matrix<utils::Color>( values.rows(), values.cols() );
+    auto result = Matrix<Color>( values.rows(), values.cols() );
 
     // Fill the pixels, normalizing each col.
     // We here traverse the matrix col-first, which is a bit slower, but needed to avoid
@@ -121,7 +133,9 @@ Matrix<utils::Color> heat_map_matrix_range_col_(
     // first, but well, this works, too.
     for( size_t col = 0; col < values.cols(); ++col ) {
         // Get the min and max value to use, and make a color normalization.
-        auto min_max = finite_minimum_maximum( values.col(col).begin(), values.col(col).end() );
+        auto min_max = genesis::utils::math::finite_minimum_maximum(
+            values.col(col).begin(), values.col(col).end()
+        );
         min_max = heat_map_matrix_update_min_max_( min_max, parameters );
         auto norm = ColorNorm( min_max.min, min_max.max );
 
@@ -133,8 +147,8 @@ Matrix<utils::Color> heat_map_matrix_range_col_(
 }
 
 template<class ColorNorm>
-Matrix<utils::Color> heat_map_matrix_range_(
-    Matrix<double> const& values,
+genesis::utils::containers::Matrix<genesis::utils::color::Color> heat_map_matrix_range_(
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 ) {
     switch( parameters.normalization_range ) {
@@ -156,7 +170,7 @@ Matrix<utils::Color> heat_map_matrix_range_(
 // =================================================================================================
 
 std::unique_ptr<ColorNormalization> make_heatmap_color_norm(
-    Matrix<double> const& values,
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 ) {
     // Error checks
@@ -167,27 +181,27 @@ std::unique_ptr<ColorNormalization> make_heatmap_color_norm(
     }
 
     // Get the min and max value to use. Repetivive call, but well... refactor later...
-    auto min_max = finite_minimum_maximum( values.begin(), values.end() );
+    auto min_max = genesis::utils::math::finite_minimum_maximum( values.begin(), values.end() );
     min_max = heat_map_matrix_update_min_max_( min_max, parameters );
 
     // Make a color norm for the given type... this is repetitive code from make_heatmap_matrix(),
     // and we need to refactor that in the future. But works for now.
     switch( parameters.color_norm ) {
         case HeatmapParameters::ColorNorm::kLinear: {
-            return utils::make_unique<ColorNormalizationLinear>( min_max.min, min_max.max );
+            return genesis::utils::core::make_unique<ColorNormalizationLinear>( min_max.min, min_max.max );
         }
         case HeatmapParameters::ColorNorm::kLogarithmic: {
-            return utils::make_unique<ColorNormalizationLogarithmic>( min_max.min, min_max.max );
+            return genesis::utils::core::make_unique<ColorNormalizationLogarithmic>( min_max.min, min_max.max );
         }
         case HeatmapParameters::ColorNorm::kDiverging: {
-            return utils::make_unique<ColorNormalizationDiverging>( min_max.min, min_max.max );
+            return genesis::utils::core::make_unique<ColorNormalizationDiverging>( min_max.min, min_max.max );
         }
     }
     throw std::invalid_argument( "make_heatmap_color_norm(): Invalid HeatmapParameters::ColorNorm" );
 }
 
-Matrix<Color> make_heatmap_matrix(
-    Matrix<double> const& values,
+genesis::utils::containers::Matrix<Color> make_heatmap_matrix(
+    genesis::utils::containers::Matrix<double> const& values,
     HeatmapParameters const& parameters
 ) {
     switch( parameters.color_norm ) {
@@ -204,5 +218,6 @@ Matrix<Color> make_heatmap_matrix(
     throw std::invalid_argument( "make_heatmap_matrix(): Invalid HeatmapParameters::ColorNorm" );
 }
 
+} // namespace color
 } // namespace utils
 } // namespace genesis

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -104,6 +104,7 @@
 // sees through the typedefs here.
 namespace genesis {
 namespace utils {
+namespace containers {
 
     template<class T>
     using Optional = std::optional<T>;
@@ -114,6 +115,7 @@ namespace utils {
 
     using std::make_optional;
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 
@@ -128,6 +130,7 @@ namespace utils {
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 /**
  * @brief Type for nullopt.
@@ -572,6 +575,7 @@ inline Optional<T> make_optional( T const & v )
     return Optional<T>( v );
 }
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

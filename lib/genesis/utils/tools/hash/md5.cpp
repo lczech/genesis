@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,15 +93,17 @@ MD5::MD5()
 //     Full Hashing
 // ================================================================================================
 
-std::string MD5::read_hex( std::shared_ptr<BaseInputSource> source )
-{
+std::string MD5::read_hex(
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+) {
     MD5 checksum;
     checksum.update( source );
     return checksum.final_hex();
 }
 
-MD5::DigestType MD5::read_digest( std::shared_ptr<BaseInputSource> source )
-{
+MD5::DigestType MD5::read_digest(
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+) {
     MD5 checksum;
     checksum.update( source );
     return checksum.final_digest();
@@ -157,9 +159,9 @@ void MD5::clear()
     reset_();
 }
 
-void MD5::update( std::shared_ptr<BaseInputSource> source )
+void MD5::update( std::shared_ptr<genesis::utils::io::BaseInputSource> source )
 {
-    auto ib = InputBuffer( source );
+    auto ib = genesis::utils::io::InputBuffer( source );
     char sbuf[MD5::BlockSize];
 
     while (true) {

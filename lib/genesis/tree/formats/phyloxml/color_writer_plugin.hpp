@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ public:
     //      Plugin Functions
     // -------------------------------------------------------------------------
 
-    void prepare_writing( Tree const& tree, utils::XmlDocument& xml ) const
+    void prepare_writing( Tree const& tree, genesis::utils::formats::XmlDocument& xml ) const
     {
         (void) xml;
 
@@ -103,7 +103,7 @@ public:
         }
     }
 
-    void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) const
+    void edge_to_element( TreeEdge const& edge, genesis::utils::formats::XmlElement& element ) const
     {
         if (!ColorWriterPlugin::enable_color()) {
             return;
@@ -119,12 +119,12 @@ public:
     void register_with( PhyloxmlWriter& writer ) const
     {
         writer.prepare_writing_plugins.push_back(
-            [&]( Tree const& tree, utils::XmlDocument& xml ) {
+            [&]( Tree const& tree, genesis::utils::formats::XmlDocument& xml ) {
                 prepare_writing( tree, xml );
             }
         );
         writer.edge_to_element_plugins.push_back(
-            [&]( TreeEdge const& edge, utils::XmlElement& element ) {
+            [&]( TreeEdge const& edge, genesis::utils::formats::XmlElement& element ) {
                 edge_to_element( edge, element );
             }
         );
@@ -136,26 +136,26 @@ public:
 
 private:
 
-    void set_color_( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b ) const
+    void set_color_( genesis::utils::formats::XmlElement& element, unsigned char r, unsigned char g, unsigned char b ) const
     {
         if(
             ColorWriterPlugin::use_ignored_color() &&
-            utils::Color(r, g, b) == ColorWriterPlugin::ignored_color()
+            genesis::utils::color::Color(r, g, b) == ColorWriterPlugin::ignored_color()
         ) {
             return;
         }
 
         // TODO do not create new element if there is already one!
-        auto re = utils::make_unique< utils::XmlElement >("red");
+        auto re = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("red");
         re->append_markup(std::to_string(r));
 
-        auto ge = utils::make_unique< utils::XmlElement >("green");
+        auto ge = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("green");
         ge->append_markup(std::to_string(g));
 
-        auto be = utils::make_unique< utils::XmlElement >("blue");
+        auto be = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("blue");
         be->append_markup(std::to_string(b));
 
-        auto color = utils::make_unique< utils::XmlElement >("color");
+        auto color = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("color");
         color->content.push_back(std::move(re));
         color->content.push_back(std::move(ge));
         color->content.push_back(std::move(be));
@@ -163,7 +163,7 @@ private:
         element.content.push_back(std::move(color));
     }
 
-    void set_color_( utils::XmlElement& element, utils::Color color ) const
+    void set_color_( genesis::utils::formats::XmlElement& element, genesis::utils::color::Color color ) const
     {
         set_color_( element, color.r_byte(), color.g_byte(), color.b_byte() );
     }

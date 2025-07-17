@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Forward Declarations
@@ -76,10 +77,10 @@ public:
     /**
      * @brief Write a NexusDocument to an output target, using the Nexus format.
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( NexusDocument const& document, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( NexusDocument const& document, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
 
     /**
      * @brief Directly return a NexusDocument as a string in Nexus format.
@@ -89,6 +90,7 @@ public:
     std::string to_string( NexusDocument const& document ) const;
 };
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

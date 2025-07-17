@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorEulertour< true >>
+genesis::utils::containers::Range< IteratorEulertour< true >>
 eulertour( ElementType const& element )
 {
     return {
@@ -212,7 +212,7 @@ eulertour( ElementType const& element )
 }
 
 template<typename ElementType>
-utils::Range< IteratorEulertour< false >>
+genesis::utils::containers::Range< IteratorEulertour< false >>
 eulertour( ElementType& element )
 {
     return {

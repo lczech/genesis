@@ -50,6 +50,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // ================================================================================================
 //     General gzip/zlib Functions
@@ -58,7 +59,7 @@ namespace utils {
 bool is_gzip_compressed_file( std::string const& file_name )
 {
     // Check if the file extension hints at gzip.
-    auto const ext = file_extension( file_name );
+    auto const ext = genesis::utils::core::file_extension( file_name );
     bool const ext_gz = ( ext == "gz" || ext == "gzip" );
 
     // Open the file in binary mode.
@@ -106,7 +107,7 @@ bool is_gzip_compressed_file( std::string const& file_name )
 #ifdef GENESIS_ZLIB
 
 GzipError::GzipError( std::string const& z_stream_message, int error_code )
-    : IOError("")
+    : genesis::utils::core::IOError("")
 {
     // Need to have this method in the cpp file, so that we do not expose the zlib header
     // to the header file, which would include all its symbols to whichever class uses our headers...
@@ -142,12 +143,13 @@ GzipError::GzipError( std::string const& z_stream_message, int error_code )
 #else // GENESIS_ZLIB
 
 GzipError::GzipError( std::string const&, int )
-    : IOError("")
+    : genesis::utils::core::IOError("")
 {
     message_ = "zlib: Genesis was not compiled with zlib support.";
 }
 
 #endif // GENESIS_ZLIB
 
+} // namespace io
 } // namespace utils
 } // namespace genesis

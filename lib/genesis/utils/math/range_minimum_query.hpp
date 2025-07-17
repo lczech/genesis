@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 /**
  * @brief Class that allows to efficiently find the index of the minimum element within an interval
@@ -54,7 +55,7 @@ namespace utils {
  * We added some convenience by introducing the ability to use data with only a few elements.
  * The original code expected input data with > 100 elements.
  * Furthermore, we adapted the code to C++11, by replacing manually allocated data (`new ...`) with
- * `std::vector` and utils::Matrix, and by replacing C-style casts with proper C++-casts.
+ * `std::vector` and genesis::utils::containers::Matrix, and by replacing C-style casts with proper C++-casts.
  * The functions, variables and typedefs were renamed and the code reformatted in order to fit our
  * code guidelines.
  */
@@ -76,6 +77,9 @@ public:
 
     using SuccinctType  = unsigned char;
     using BlockTypeType = unsigned short;
+
+    template<class T>
+    using Matrix = genesis::utils::containers::Matrix<T>;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -201,6 +205,7 @@ private:
 
 };
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

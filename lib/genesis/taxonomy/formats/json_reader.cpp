@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,15 +40,15 @@ namespace taxonomy {
 //     Reading
 // =================================================================================================
 
-Taxonomy TaxonomyJsonReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
+Taxonomy TaxonomyJsonReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
 {
-    auto doc = utils::JsonReader().read( source );
+    auto doc = genesis::utils::formats::JsonReader().read( source );
     return read( doc );
 }
 
-Taxonomy TaxonomyJsonReader::read( utils::JsonDocument& doc ) const
+Taxonomy TaxonomyJsonReader::read( genesis::utils::formats::JsonDocument& doc ) const
 {
-    using namespace utils;
+    using namespace genesis::utils::formats;
     Taxonomy tax;
     auto& arr = doc.get_array();
     for( auto& child : arr ) {
@@ -57,7 +57,7 @@ Taxonomy TaxonomyJsonReader::read( utils::JsonDocument& doc ) const
     return tax;
 }
 
-Taxon TaxonomyJsonReader::object_to_taxon_( utils::JsonDocument::ObjectType& obj ) const
+Taxon TaxonomyJsonReader::object_to_taxon_( genesis::utils::formats::JsonDocument::ObjectType& obj ) const
 {
     Taxon tax;
 

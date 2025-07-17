@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Strings
@@ -51,6 +52,7 @@ std::string to_nucleic_acids( TwobitVector const& vec );
 std::string bitstring( TwobitVector const& vec );
 std::string bitstring( TwobitVector::WordType const& vec );
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 

@@ -44,6 +44,8 @@ PYBIND11_MODULE(genesis, root_module) {
 	std::vector< std::pair<std::string, std::string> > sub_modules {
 		{"", "genesis"},
 		{"genesis", "utils"},
+		{"genesis::utils", "core"},
+		{"genesis::utils", "io"},
 	};
 	for(auto &p : sub_modules ) modules[ p.first.empty() ? p.second :  p.first+"::"+p.second ] = modules[p.first].def_submodule( mangle_namespace_name(p.second).c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() );
 

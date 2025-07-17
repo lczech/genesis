@@ -46,6 +46,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     HAC Analysis and Output Functions
@@ -71,12 +72,12 @@ namespace utils {
  * @see HierarchicalAgglomerativeClustering
  */
 template<typename T>
-Matrix<double> hac_distance_matrix(
+genesis::utils::containers::Matrix<double> hac_distance_matrix(
     HierarchicalAgglomerativeClustering<T> const& clustering
 ) {
     auto const& clusters = clustering.clusters();
     auto const num_elem = clusters.size();
-    auto result = Matrix<double>( num_elem, num_elem, 0.0 );
+    auto result = genesis::utils::containers::Matrix<double>( num_elem, num_elem, 0.0 );
     for( size_t r = 0; r < num_elem; ++r ) {
         for( size_t c = 0; c < r; ++c ) {
             assert( clusters[r].distances.size() == r );
@@ -102,7 +103,7 @@ Matrix<double> hac_distance_matrix(
 template<typename T>
 void hac_write_cluster_table(
     HierarchicalAgglomerativeClustering<T> const& clustering,
-    std::shared_ptr<utils::BaseOutputTarget> target,
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
     std::vector<std::string> const& labels = std::vector<std::string>{},
     char delimiter = '\t'
 ) {
@@ -146,7 +147,7 @@ void hac_write_cluster_table(
 template<typename T>
 void hac_write_merger_table(
     HierarchicalAgglomerativeClustering<T> const& clustering,
-    std::shared_ptr<utils::BaseOutputTarget> target,
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
     char delimiter = '\t'
 ) {
     auto const& mergers = clustering.mergers();
@@ -202,6 +203,7 @@ std::string hac_dendrogram(
         auto const all_newick_compatible = std::all_of(
             label.cbegin(), label.cend(),
             []( char c ) {
+                using namespace genesis::utils::text;
                 auto const is_quote = ( c == '\"' ) || ( c == '\'' );
                 auto const is_paren = ( c == '(' ) || ( c == ')' ) || ( c == '[' ) || ( c == ']' );
                 auto const is_weird = ( c == ':' ) || ( c == ';' ) || ( c == ',' ) || ( c == '=' );
@@ -225,8 +227,8 @@ std::string hac_dendrogram(
         list[ cm.cluster_index_a ].clear();
         list[ cm.cluster_index_b ].clear();
         if( with_branch_lengths ) {
-            node_a += ":" + to_string_nice( cm.branch_length_a );
-            node_b += ":" + to_string_nice( cm.branch_length_b );
+            node_a += ":" + genesis::utils::text::to_string_nice( cm.branch_length_a );
+            node_b += ":" + genesis::utils::text::to_string_nice( cm.branch_length_b );
         }
         list.push_back(
             "(" + std::move( node_a ) + "," + std::move( node_b ) + ")" +
@@ -251,6 +253,7 @@ std::string hac_dendrogram(
     return result;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

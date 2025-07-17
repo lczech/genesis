@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -155,6 +155,7 @@
 
 namespace genesis {
 namespace utils {
+namespace core {
 
 // =================================================================================================
 //     Compiler Info
@@ -797,6 +798,7 @@ InfoHardware const& info_get_hardware()
 
 std::string info_print_hardware( bool full )
 {
+    using genesis::utils::text::to_string_byte_format;
     auto const& info_hardware = info_get_hardware();
 
     std::stringstream ss;
@@ -1977,6 +1979,7 @@ std::string info_process_print_total_usage()
     auto const time = info_process_total_cpu_time();
     auto const memory = info_process_peak_memory_usage();
     auto const energy = info_process_total_energy_consumption();
+    using genesis::utils::text::to_string_byte_format;
 
     // Print everything.
     std::stringstream ss;
@@ -1989,5 +1992,6 @@ std::string info_process_print_total_usage()
     return ss.str();
 }
 
+} // namespace core
 } // namespace utils
 } // namespace genesis

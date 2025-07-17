@@ -162,13 +162,13 @@ LabelAttributes label_attributes( std::string const& label )
     // Set the label to the first part (before the first semicolon).
     // This is always correct, even if there are no semicola.
     LabelAttributes result;
-    auto const attribs = utils::split( label, ";", true );
+    auto const attribs = genesis::utils::text::split( label, ";", true );
     assert( attribs.size() > 0 );
     result.label = attribs.front();
 
     // Set the other parts. We here require that the attribs follow the needed structure.
     for( size_t i = 1; i < attribs.size(); ++i ) {
-        auto const ap = utils::split( attribs[i], "=", true );
+        auto const ap = genesis::utils::text::split( attribs[i], "=", true );
         if( ap.size() != 2 ) {
             throw std::runtime_error( "Invalid Sequence label for extracting label attributes." );
         }
@@ -191,7 +191,7 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
         if( case_sensitive ) {
             label = seq.label();
         } else {
-            label = utils::to_lower( seq.label() );
+            label = genesis::utils::text::to_lower( seq.label() );
         }
 
         if( label_set.count( label ) > 0 ) {
@@ -203,13 +203,13 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
     return true;
 }
 
-void relabel_with_hash( Sequence& seq, utils::HashingFunctions hash_function )
+void relabel_with_hash( Sequence& seq, genesis::utils::HashingFunctions hash_function )
 {
-    auto const digest = utils::hash_hex( utils::from_string( seq.sites() ), hash_function );
+    auto const digest = genesis::utils::hash_hex( genesis::utils::io::from_string( seq.sites() ), hash_function );
     seq.label( digest );
 }
 
-void relabel_with_hash( SequenceSet& set, utils::HashingFunctions hash_function )
+void relabel_with_hash( SequenceSet& set, genesis::utils::HashingFunctions hash_function )
 {
     for( auto& seq : set ) {
         relabel_with_hash( seq, hash_function );

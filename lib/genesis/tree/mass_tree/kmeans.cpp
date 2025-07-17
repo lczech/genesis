@@ -121,10 +121,10 @@ void MassTreeKmeans::update_centroids(
     assert( data.size() == assignments.size() );
 
     // We use a bit of a different scheme when parallelizing.
-    if( utils::Options::get().has_global_thread_pool() ) {
+    if( genesis::utils::core::Options::get().has_global_thread_pool() ) {
 
         // Parallelize over centroids
-        utils::parallel_for( 0, k, [&]( size_t c )
+        genesis::utils::threading::parallel_for( 0, k, [&]( size_t c )
         {
             // Thread-local data.
             auto& centroid = centroids[ c ];
@@ -148,7 +148,7 @@ void MassTreeKmeans::update_centroids(
 
             // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
             // of the double equality check, but we have to live with it.
-            assert( utils::almost_equal_relative(
+            assert( genesis::utils::math::almost_equal_relative(
                 count, mass_tree_sum_of_masses( centroid ), 0.00001
             ));
             (void) count;
@@ -184,7 +184,7 @@ void MassTreeKmeans::update_centroids(
 
             // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
             // of the double equality check, but we have to live with it.
-            assert( utils::almost_equal_relative(
+            assert( genesis::utils::math::almost_equal_relative(
                 counts[ c ], mass_tree_sum_of_masses( centroids[ c ] ), 0.00001
             ));
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,12 +66,13 @@ namespace placement {
  * reasonable to emphasize the differences between those edges with a lower placement count - which
  * is what the default does.
  *
- * See color heat_gradient() for more information.
+ * See genesis::utils::color::heat_gradient() for more information.
  */
-std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, bool linear )
-{
+std::vector<genesis::utils::color::Color> placement_color_count_gradient(
+    Sample const& smp, bool linear
+) {
     // Init the result vector with grey color for each edge.
-    auto ret = std::vector<utils::Color>( smp.tree().edge_count(), utils::Color(0.5,0.5,0.5) );
+    auto ret = std::vector<genesis::utils::color::Color>( smp.tree().edge_count(), genesis::utils::color::Color(0.5,0.5,0.5) );
 
     // Get the highest number of placements on any edge.
     // If this is zero, there are no placements, so we can immediately return.
@@ -93,7 +94,7 @@ std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, boo
             } else {
                 val = log( placements_on_edge ) / log( max_placements_per_edge );
             }
-            ret[edge.index()] = utils::heat_gradient(val);
+            ret[edge.index()] = genesis::utils::color::heat_gradient(val);
         }
 
         // LOG_DBG <<  edge.placements.size() << " --> "

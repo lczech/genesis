@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Forward Declarations
@@ -147,6 +148,7 @@ Color gradient ( std::map<double, Color> const& ranges, double value );
  */
 Color heat_gradient (double percentage);
 
+} // namespace color
 } // namespace utils
 } // namespace genesis
 

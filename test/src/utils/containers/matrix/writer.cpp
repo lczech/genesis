@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,7 +37,10 @@
 #include "genesis/utils/containers/matrix/writer.hpp"
 
 using namespace genesis;
-using namespace utils;
+using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::containers;
 
 // ================================================================================================
 //     Reader
@@ -55,30 +58,30 @@ TEST( Matrix, Writer )
     std::string target;
 
     writer.format( MatrixWriter<double>::Format::kMatrix );
-    writer.write( simple, utils::to_string( target ) );
-    writer.write( simple, utils::to_string( target ),
+    writer.write( simple, utils::io::to_string( target ) );
+    writer.write( simple, utils::io::to_string( target ),
         { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
     );
-    writer.write( simple, utils::to_string( target ),
+    writer.write( simple, utils::io::to_string( target ),
         { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
         { "A", "B", "C" }
     );
-    writer.write( simple, utils::to_string( target ),
+    writer.write( simple, utils::io::to_string( target ),
         { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
         { "A", "B", "C" },
         "x"
     );
 
     writer.format( MatrixWriter<double>::Format::kList );
-    writer.write( simple, utils::to_string( target ));
-    writer.write( simple, utils::to_string( target ),
+    writer.write( simple, utils::io::to_string( target ));
+    writer.write( simple, utils::io::to_string( target ),
         { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }
     );
-    writer.write( simple, utils::to_string( target ),
+    writer.write( simple, utils::io::to_string( target ),
         { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
         { "A", "B", "C" }
     );
-    writer.write( simple, utils::to_string( target ),
+    writer.write( simple, utils::io::to_string( target ),
         { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" },
         { "A", "B", "C" },
         "x"
@@ -94,15 +97,15 @@ TEST( Matrix, Writer )
     );
 
     writer.format( MatrixWriter<double>::Format::kTriangular );
-    writer.write( mat, utils::to_string( target ) );
-    writer.write( mat, utils::to_string( target ),
+    writer.write( mat, utils::io::to_string( target ) );
+    writer.write( mat, utils::io::to_string( target ),
         { "a", "b", "c", "d" }
     );
-    writer.write( mat, utils::to_string( target ),
+    writer.write( mat, utils::io::to_string( target ),
         { "a", "b", "c", "d" },
         { "A", "B", "C", "D" }
     );
-    writer.write( mat, utils::to_string( target ),
+    writer.write( mat, utils::io::to_string( target ),
         { "a", "b", "c", "d" },
         { "A", "B", "C", "D" },
         "x"

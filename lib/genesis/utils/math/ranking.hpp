@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Ranking Standard
@@ -63,7 +64,7 @@ std::vector<size_t> ranking_standard( RandomAccessIterator first, RandomAccessIt
     // Prepare result, and get the sorting order of the vector.
     auto const size = static_cast<size_t>( std::distance( first, last ));
     auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
+    auto const order = genesis::utils::core::stable_sort_indices( first, last );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -114,7 +115,7 @@ std::vector<size_t> ranking_modified( RandomAccessIterator first, RandomAccessIt
     // Prepare result, and get the sorting order of the vector.
     auto const size = static_cast<size_t>( std::distance( first, last ));
     auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
+    auto const order = genesis::utils::core::stable_sort_indices( first, last );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -171,7 +172,7 @@ std::vector<size_t> ranking_dense( RandomAccessIterator first, RandomAccessItera
     // Prepare result, and get the sorting order of the vector.
     auto const size = static_cast<size_t>( std::distance( first, last ));
     auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
+    auto const order = genesis::utils::core::stable_sort_indices( first, last );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -221,7 +222,7 @@ std::vector<size_t> ranking_ordinal( RandomAccessIterator first, RandomAccessIte
     // Prepare result, and get the sorting order of the vector.
     auto const size = static_cast<size_t>( std::distance( first, last ));
     auto result = std::vector<size_t>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
+    auto const order = genesis::utils::core::stable_sort_indices( first, last );
 
     // Shortcuts for better readability.
     auto ordered_result = [&]( size_t i ) -> size_t& {
@@ -264,7 +265,7 @@ std::vector<double> ranking_fractional( RandomAccessIterator first, RandomAccess
     // Prepare result, and get the sorting order of the vector.
     auto const size = static_cast<size_t>( std::distance( first, last ));
     auto result = std::vector<double>( size, 1 );
-    auto const order = stable_sort_indices( first, last );
+    auto const order = genesis::utils::core::stable_sort_indices( first, last );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -385,6 +386,7 @@ std::vector<T> n_first_elements(
     return result;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,11 +61,11 @@ std::string TaxopathGenerator::to_string( Taxopath const& taxopath ) const
                 cpy[i] = "";
             }
         }
-        res = utils::join( cpy, delimiter_ );
+        res = genesis::utils::text::join( cpy, delimiter_ );
 
     } else {
         // Without trimming, the result is easy to create.
-        res = utils::join( taxopath.elements(), delimiter_ );
+        res = genesis::utils::text::join( taxopath.elements(), delimiter_ );
     }
 
     if( append_delimiter_ ) {
@@ -123,7 +123,7 @@ std::string TaxopathGenerator::to_string( Taxon const& taxon ) const
 
     // Now reverse and return the joined result.
     std::reverse( taxa.begin(), taxa.end() );
-    auto res = utils::join( taxa, delimiter_ );
+    auto res = genesis::utils::text::join( taxa, delimiter_ );
 
     if( append_delimiter_ ) {
         return res + delimiter_;

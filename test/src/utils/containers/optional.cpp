@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include <vector>
 
 using namespace genesis::utils;
+using namespace genesis::utils::containers;
 
 // Test cases adapted from https://github.com/martinmoene/optional-bare/blob/master/test/optional.t.cpp
 // See our Optional implementation in genesis/lib/genesis/utils/containers/optional.hpp

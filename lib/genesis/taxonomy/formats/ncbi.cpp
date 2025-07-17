@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,11 +48,11 @@ namespace taxonomy {
 //     Local Helper Functions
 // =================================================================================================
 
-utils::CsvReader get_ncbi_file_reader_()
+genesis::utils::formats::CsvReader get_ncbi_file_reader_()
 {
     // Prepare a reader for the stupid NCBI table specifications.
     // Why can't they use normal csv files like everyone else?
-    auto reader = utils::CsvReader();
+    auto reader = genesis::utils::formats::CsvReader();
     reader.separator_chars( "|" );
     reader.trim_chars( "\t" );
     reader.quotation_chars( "" );
@@ -64,7 +64,7 @@ utils::CsvReader get_ncbi_file_reader_()
 // =================================================================================================
 
 NcbiNodeLookup read_ncbi_node_table(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
 ) {
     // Use default params.
     NcbiTableParameters params;
@@ -72,7 +72,7 @@ NcbiNodeLookup read_ncbi_node_table(
 }
 
 NcbiNodeLookup read_ncbi_node_table(
-    std::shared_ptr<utils::BaseInputSource> source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
     NcbiTableParameters const& params
 ) {
     NcbiNodeLookup result;
@@ -88,7 +88,7 @@ NcbiNodeLookup read_ncbi_node_table(
 
     // Helper to get a field or throw.
     auto get_field = [](
-        utils::CsvReader::Line& line, size_t pos, std::string const& field_name
+        genesis::utils::formats::CsvReader::Line& line, size_t pos, std::string const& field_name
     ) -> std::string& {
         if( pos >= line.size() ) {
             throw std::runtime_error(
@@ -102,7 +102,7 @@ NcbiNodeLookup read_ncbi_node_table(
     };
 
     // Set up the csv reader iterator.
-    auto csv_iterator = utils::CsvInputIterator( source, get_ncbi_file_reader_() );
+    auto csv_iterator = genesis::utils::formats::CsvInputIterator( source, get_ncbi_file_reader_() );
 
     // Iterate lines and get all fields into the result lookup table.
     while( csv_iterator ) {
@@ -136,7 +136,7 @@ NcbiNodeLookup read_ncbi_node_table(
 }
 
 NcbiNameLookup read_ncbi_name_table(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
 ) {
     // Use default params.
     NcbiTableParameters params;
@@ -144,7 +144,7 @@ NcbiNameLookup read_ncbi_name_table(
 }
 
 NcbiNameLookup read_ncbi_name_table(
-    std::shared_ptr<utils::BaseInputSource> source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
     NcbiTableParameters const& params
 ) {
     NcbiNameLookup result;
@@ -160,7 +160,7 @@ NcbiNameLookup read_ncbi_name_table(
 
     // Helper to get a field or throw.
     auto get_field = [](
-        utils::CsvReader::Line& line, size_t pos, std::string const& field_name
+        genesis::utils::formats::CsvReader::Line& line, size_t pos, std::string const& field_name
     ) -> std::string& {
         if( pos >= line.size() ) {
             throw std::runtime_error(
@@ -174,7 +174,7 @@ NcbiNameLookup read_ncbi_name_table(
     };
 
     // Set up the csv reader iterator.
-    auto csv_iterator = utils::CsvInputIterator( source, get_ncbi_file_reader_() );
+    auto csv_iterator = genesis::utils::formats::CsvInputIterator( source, get_ncbi_file_reader_() );
 
     // Iterate lines and get all fields into the result lookup table.
     while( csv_iterator ) {
@@ -201,7 +201,7 @@ NcbiNameLookup read_ncbi_name_table(
         // Check name validity
         if( params.validate_name_characters ) {
             auto const all_print = std::all_of(
-                name_entry.name.begin(), name_entry.name.end(), utils::is_print
+                name_entry.name.begin(), name_entry.name.end(), genesis::utils::text::is_print
             );
             if( !all_print ) {
                 throw std::runtime_error(
@@ -322,7 +322,7 @@ Taxonomy read_ncbi_taxonomy(
     // Use default params.
     NcbiTableParameters params;
     return read_ncbi_taxonomy(
-        utils::from_file( node_file ), utils::from_file( name_file ), params
+        genesis::utils::io::from_file( node_file ), genesis::utils::io::from_file( name_file ), params
     );
 }
 
@@ -332,13 +332,13 @@ Taxonomy read_ncbi_taxonomy(
     NcbiTableParameters const& params
 ) {
     return read_ncbi_taxonomy(
-        utils::from_file( node_file ), utils::from_file( name_file ), params
+        genesis::utils::io::from_file( node_file ), genesis::utils::io::from_file( name_file ), params
     );
 }
 
 Taxonomy read_ncbi_taxonomy(
-    std::shared_ptr<utils::BaseInputSource> node_source,
-    std::shared_ptr<utils::BaseInputSource> name_source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> node_source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> name_source
 ) {
     // Use default params.
     NcbiTableParameters params;
@@ -348,8 +348,8 @@ Taxonomy read_ncbi_taxonomy(
 }
 
 Taxonomy read_ncbi_taxonomy(
-    std::shared_ptr<utils::BaseInputSource> node_source,
-    std::shared_ptr<utils::BaseInputSource> name_source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> node_source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> name_source,
     NcbiTableParameters const& params
 ) {
     // Read data into lookup tables.

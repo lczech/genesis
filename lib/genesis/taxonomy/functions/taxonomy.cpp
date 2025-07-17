@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ size_t taxa_count_with_rank(
                 ++count;
             }
         } else {
-            if( utils::equals_ci( t.rank(), rank )) {
+            if( genesis::utils::text::equals_ci( t.rank(), rank )) {
                 ++count;
             }
         }
@@ -196,7 +196,7 @@ std::unordered_map< std::string, size_t> taxa_count_ranks(
         if( case_sensitive ) {
             ++result[ taxon.rank() ];
         } else {
-            ++result[ utils::to_lower( taxon.rank() ) ];
+            ++result[ genesis::utils::text::to_lower( taxon.rank() ) ];
         }
 
         // Recurse.
@@ -237,7 +237,7 @@ void sort_by_name( Taxonomy& tax, bool recursive, bool case_sensitive )
         return lhs.name() < rhs.name();
     };
     auto comp_by_name_ci = []( Taxon const& lhs, Taxon const& rhs ) {
-        return utils::to_lower( lhs.name() ) < utils::to_lower( rhs.name() );
+        return genesis::utils::text::to_lower( lhs.name() ) < genesis::utils::text::to_lower( rhs.name() );
     };
 
     // Sort.

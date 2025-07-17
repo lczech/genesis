@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 using namespace genesis;
 using namespace genesis::taxonomy;
+using namespace genesis::utils::io;
 
 TEST( Taxonomy, Counts )
 {
@@ -56,7 +57,7 @@ TEST( Taxonomy, Counts )
     // Read file.
     Taxonomy tax;
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
-    EXPECT_NO_THROW( reader.read( utils::from_file( infile ), tax ));
+    EXPECT_NO_THROW( reader.read( from_file( infile ), tax ));
     EXPECT_EQ( 32, total_taxa_count(tax) );
     EXPECT_TRUE( validate( tax ));
 
@@ -105,7 +106,7 @@ TEST( Taxonomy, IsLeaf )
 
     // Read the test taxonomy
     std::string const infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
-    auto const tax = TaxonomyReader().read( utils::from_file( infile ));
+    auto const tax = TaxonomyReader().read( from_file( infile ));
 
     size_t il_cnt = 0;
     size_t is_cnt = 0;

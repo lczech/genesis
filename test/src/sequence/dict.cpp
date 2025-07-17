@@ -45,6 +45,8 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
 void test_tair10_dict_file( SequenceDict const& dict )
 {
@@ -92,7 +94,7 @@ TEST( SequenceDict, DictReader )
 
     // Read sequence dict file and test it.
     std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.dict";
-    auto const dict = read_sequence_dict( utils::from_file( infile ));
+    auto const dict = read_sequence_dict( from_file( infile ));
     test_tair10_dict_file( dict );
 }
 
@@ -103,7 +105,7 @@ TEST( SequenceDict, FaiReader )
 
     // Read sequence fai file and test it.
     std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.fa.fai";
-    auto const dict = read_sequence_fai( utils::from_file( infile ));
+    auto const dict = read_sequence_fai( from_file( infile ));
     test_tair10_dict_file( dict );
 }
 
@@ -116,7 +118,7 @@ TEST( SequenceDict, FaiInputStream )
     std::string infile = environment->data_dir + "sequence/TAIR10_chr_all.fa.fai";
 
     SequenceDict dict;
-    auto fai_str = FaiInputStream( utils::from_file( infile ));
+    auto fai_str = FaiInputStream( from_file( infile ));
     fai_str.only_name_and_length( true );
     for( auto const& rec : fai_str ) {
         dict.add( std::string( rec.name ), rec.length );
@@ -131,7 +133,7 @@ TEST( SequenceDict, FastaReader )
 
     // Read sequence dict file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto const dict = FastaReader().read_dict( utils::from_file( infile ));
+    auto const dict = FastaReader().read_dict( from_file( infile ));
 
     // Check data.
     ASSERT_EQ(           10, dict.size() );
@@ -146,7 +148,7 @@ TEST( SequenceDict, FastaConvert )
 
     // Read sequence dict file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto const seqs = FastaReader().read( utils::from_file( infile ));
+    auto const seqs = FastaReader().read( from_file( infile ));
     auto const dict = sequence_set_to_dict( seqs );
 
     // Check data.

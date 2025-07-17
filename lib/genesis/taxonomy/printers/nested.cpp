@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ bool PrinterNested::print_to_ostream_(
     }
 
     // Indent string.
-    auto in = utils::repeat( indent_string_, depth );
+    auto in = genesis::utils::text::repeat( indent_string_, depth );
 
     bool finished = true;
     for( auto const& t : tax ) {

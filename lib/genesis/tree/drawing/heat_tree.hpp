@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,31 +55,31 @@ struct HeatTreeParameters
     CommonTree                  tree;
     LayoutType                  type      = LayoutType::kCladogram;
     bool                        ladderize = true;
-    std::vector<utils::Color>   color_per_branch;
-    utils::SvgStroke            stroke;
+    std::vector<genesis::utils::color::Color>   color_per_branch;
+    genesis::utils::formats::SvgStroke            stroke;
 
     // Matrix parameters
-    utils::Matrix<utils::Color> matrix;
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> matrix;
     std::vector<std::string>    column_labels;
     bool                        matrix_as_bmp = false;
 };
 
-utils::SvgDocument heat_tree(
+genesis::utils::formats::SvgDocument heat_tree(
     HeatTreeParameters const&        params
 );
 
-utils::SvgDocument heat_tree(
+genesis::utils::formats::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm
+    genesis::utils::color::ColorMap const&           matrix_color_map,
+    genesis::utils::color::ColorNormalization const& matrix_color_norm
 );
 
-utils::SvgDocument heat_tree(
+genesis::utils::formats::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm,
-    utils::ColorMap const&           tree_color_map,
-    utils::ColorNormalization const& tree_color_norm
+    genesis::utils::color::ColorMap const&           matrix_color_map,
+    genesis::utils::color::ColorNormalization const& matrix_color_norm,
+    genesis::utils::color::ColorMap const&           tree_color_map,
+    genesis::utils::color::ColorNormalization const& tree_color_norm
 );
 
 } // namespace tree

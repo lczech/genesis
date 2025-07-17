@@ -48,8 +48,14 @@
 #include <utility>
 
 using namespace genesis;
-using namespace tree;
-using namespace utils;
+using namespace genesis::tree;
+using namespace genesis::utils;
+using namespace genesis::utils::bit;
+using namespace genesis::utils::core;
+using namespace genesis::utils::containers;
+using namespace genesis::utils::io;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 template<typename T>
 void print_hac_(

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Color Names
@@ -134,6 +135,7 @@ bool is_color_name_lego( std::string const& name );
  */
 Color color_from_name_lego( std::string const& name );
 
+} // namespace color
 } // namespace utils
 } // namespace genesis
 

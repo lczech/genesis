@@ -127,7 +127,7 @@ struct KmerAlphabet
     {
         // Basic input checks. Checking upper and lower case in one condition is faster in our tests
         // than turning it into one case and doing fewer checks - likely due to branch prediction.
-        // c = utils::to_upper( c );
+        // c = genesis::utils::text::to_upper( c );
         if(
             ( c != 'A' ) && ( c != 'C' ) && ( c != 'G' ) && ( c != 'T' ) &&
             ( c != 'a' ) && ( c != 'c' ) && ( c != 'g' ) && ( c != 't' )

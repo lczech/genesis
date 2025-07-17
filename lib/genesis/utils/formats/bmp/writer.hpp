@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,21 +38,33 @@
 
 #include <genesis/utils/io/output_target.hpp>
 
-namespace genesis {
-namespace utils {
-
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
+namespace genesis {
+namespace utils {
+namespace color {
+
 class Color;
+
+} // namespace color
+namespace containers {
 
 template<typename T>
 class Matrix;
 
+} // namespace containers
+} // namespace utils
+} // namespace genesis
+
 // =================================================================================================
 //     Bmp Writer
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace formats {
 
 /**
  * @brief Write Bitmap image files.
@@ -60,6 +72,10 @@ class Matrix;
 class BmpWriter
 {
 public:
+
+    template<typename T>
+    using Matrix = genesis::utils::containers::Matrix<T>;
+    using Color = genesis::utils::color::Color;
 
     // ---------------------------------------------------------------------
     //     Typedefs and Enums
@@ -205,7 +221,7 @@ public:
      */
     void write(
         Matrix<Color> const& image,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     /**
@@ -220,7 +236,7 @@ public:
      */
     void write(
         Matrix<unsigned char> const& image,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     /**
@@ -237,7 +253,7 @@ public:
     void write(
         Matrix<unsigned char> const& image,
         std::vector<Color> const& palette,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
     ) const;
 
     // ---------------------------------------------------------------------
@@ -256,6 +272,7 @@ private:
 
 };
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

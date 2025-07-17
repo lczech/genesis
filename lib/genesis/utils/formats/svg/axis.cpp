@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Axis
@@ -207,12 +208,13 @@ SvgGroup make_svg_axis(
 ) {
     std::map<double, std::string> ticks;
     for( auto const& tick : labels ) {
-        ticks[ tick.relative_position ] = to_string_nice(
+        ticks[ tick.relative_position ] = genesis::utils::text::to_string_nice(
             round_labels ? std::round( tick.label ) : tick.label
         );
     }
     return make_svg_axis( settings, ticks, name );
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

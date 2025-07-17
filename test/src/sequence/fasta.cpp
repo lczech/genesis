@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,9 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
+using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
 TEST( Sequence, FastaReaderValidating )
 {
@@ -60,7 +63,7 @@ TEST( Sequence, FastaReaderValidating )
     SequenceSet sset;
     FastaReader()
         .valid_chars( nucleic_acid_codes_all() )
-        .read( utils::from_file(infile), sset);
+        .read( from_file(infile), sset);
 
     // Check data.
     EXPECT_EQ( 10, sset.size() );
@@ -75,7 +78,7 @@ TEST( FastaInputStream, ReadingLoop )
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto it = FastaInputStream( utils::from_file( infile ));
+    auto it = FastaInputStream( from_file( infile ));
 
     size_t len = 0;
     size_t cnt = 0;
@@ -103,7 +106,7 @@ TEST( FastaInputStream, ReadingLoop )
 //     NEEDS_TEST_DATA;
 //
 //     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-//     auto stream = FastaInputStream( utils::from_file( infile ));
+//     auto stream = FastaInputStream( from_file( infile ));
 //     auto it = stream.begin();
 //
 //     std::advance( it, 3 );
@@ -129,7 +132,7 @@ TEST( FastaInputStream, RangeBased )
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
 
     size_t cnt = 0;
-    for( auto const& s : FastaInputStream( utils::from_file( infile ))) {
+    for( auto const& s : FastaInputStream( from_file( infile ))) {
         (void) s;
         // std::cout << s.length() << "\n";
         ++cnt;
@@ -182,8 +185,8 @@ TEST( Sequence, FastaCompressed )
 
     // Get sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta.gz";
-    utils::InputStream cit { utils::make_unique<utils::GzipInputSource>(
-        utils::make_unique<utils::FileInputSource>( infile )
+    InputStream cit { genesis::utils::core::make_unique<GzipInputSource>(
+        genesis::utils::core::make_unique<FileInputSource>( infile )
     )};
 
     // Read.
@@ -206,7 +209,7 @@ TEST( Sequence, FastaGzip )
     std::string infile = environment->data_dir + "sequence/dna_10.fasta.gz";
 
     // Read.
-    auto const sset = FastaReader().read( utils::from_file( infile ));
+    auto const sset = FastaReader().read( from_file( infile ));
 
     // Check data.
     EXPECT_EQ( 10, sset.size() );
@@ -225,7 +228,7 @@ TEST( Sequence, FastaInputViewStream )
 
     size_t cnt = 0;
     size_t sum_labels = 0;
-    auto it = FastxInputViewStream( utils::from_file( infile ));
+    auto it = FastxInputViewStream( from_file( infile ));
     for( auto const& seq : it ) {
         EXPECT_TRUE( seq.label().size() >= 10 || seq.label().size() <= 15 );
         EXPECT_EQ( 460, seq.sites().size() );
@@ -248,15 +251,15 @@ TEST( Sequence, FastaWriter )
     SequenceSet sset;
     FastaReader()
         .valid_chars( nucleic_acid_codes_all() )
-        .read( utils::from_file(infile), sset);
+        .read( from_file(infile), sset);
 
     // Check data.
     EXPECT_EQ( 10, sset.size() );
 
     std::string target;
-    FastaWriter().line_length(50).write( sset, utils::to_string( target ));
+    FastaWriter().line_length(50).write( sset, utils::io::to_string( target ));
 
-    auto const read_again = utils::file_read( infile );
+    auto const read_again = file_read( infile );
     EXPECT_FALSE( target.empty() );
     EXPECT_EQ( read_again, target );
 }
@@ -268,12 +271,12 @@ TEST( Sequence, FastaOutputStream )
 
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto const sset = FastaReader().read( utils::from_file( infile ));
+    auto const sset = FastaReader().read( from_file( infile ));
 
     // Write to string. Need scope to actually do the writing.
     std::string target;
     {
-        auto out_it = FastaOutputStream( utils::to_string( target ));
+        auto out_it = FastaOutputStream( utils::io::to_string( target ));
         out_it.writer().line_length( 50 );
         for( auto const& seq : sset ) {
             out_it << seq;
@@ -281,6 +284,6 @@ TEST( Sequence, FastaOutputStream )
     }
 
     // Compare to raw file.
-    auto const data = utils::file_read( infile );
+    auto const data = file_read( infile );
     EXPECT_EQ( data, target );
 }

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,19 +42,28 @@
 #include <utility>
 #include <vector>
 
-namespace genesis {
-namespace utils {
-
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
+namespace genesis {
+namespace utils {
+namespace color {
+
 class Color;
 class ColorMap;
+
+} // namespace color
+} // namespace utils
+} // namespace genesis
 
 // =================================================================================================
 //     Svg Pie Chart
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace formats {
 
 /**
  * @brief Make a pie chart in SVG.
@@ -69,12 +78,13 @@ class ColorMap;
  */
 SvgGroup make_svg_pie_chart(
     std::vector<double> const& values,
-    std::vector<Color> const& colors,
+    std::vector<genesis::utils::color::Color> const& colors,
     double radius = 1.0,
-    double start_angle = - PI / 2.0,
+    double start_angle = - genesis::utils::math::PI / 2.0,
     bool clockwise = true
 );
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

@@ -51,6 +51,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // =================================================================================================
 //     Compare and Find
@@ -968,5 +969,6 @@ std::string to_string_byte_format( size_t value )
     return oss.str();
 }
 
+} // namespace text
 } // namespace utils
 } // namespace genesis

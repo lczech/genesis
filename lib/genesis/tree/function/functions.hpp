@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -201,7 +201,7 @@ std::vector<size_t> leaf_node_indices( Tree const& tree );
 // =================================================================================================
 
 /**
- * @brief Create a @link utils::Matrix Matrix@endlink that indiciaces the relative position of the
+ * @brief Create a @link genesis::utils::containers::Matrix Matrix@endlink that indiciaces the relative position of the
  * @link TreeEdge Edges@endlink of a Tree, i.e., whether they are on the root side or non-root side.
  *
  * For a Tree with `e` many Edges, the resulting square Matrix has dimensions `( e, e )`. The row
@@ -217,7 +217,7 @@ std::vector<size_t> leaf_node_indices( Tree const& tree );
  * the diagonal entry, which still is `0`). This is because for leaf edges, all other edges are on
  * the root side of the tree.
  */
-utils::Matrix<signed char> edge_sides( Tree const& tree );
+genesis::utils::containers::Matrix<signed char> edge_sides( Tree const& tree );
 
 /**
  * @brief Calculate a Matrix that indicates the nodes on the root side of a given node.
@@ -227,7 +227,7 @@ utils::Matrix<signed char> edge_sides( Tree const& tree );
  * that contains the root (value `1`), or in a subtree that does not contain the root (value `-1`),
  * while the diagonale contains `0`.
  */
-utils::Matrix<signed char> node_root_direction_matrix( Tree const& tree );
+genesis::utils::containers::Matrix<signed char> node_root_direction_matrix( Tree const& tree );
 
 // TODO the naming convention of the above two functions is really off!
 
@@ -322,7 +322,7 @@ std::vector<size_t> subtree_max_path_heights( Tree const& tree );
  * > Elife, vol. 6, p. e21887, Feb. 2017.
  * > https://elifesciences.org/articles/21887
  */
-utils::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed = false );
+genesis::utils::containers::Matrix<signed char> sign_matrix( Tree const& tree, bool compressed = false );
 
 // =================================================================================================
 //     Misc
@@ -350,7 +350,7 @@ TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b
 
 /**
  * @brief Return the lowest common ancestor of each pair of TreeNode%s for a given tree,
- * in form of a @link utils::Matrix Matrix@endlink of their indices.
+ * in form of a @link genesis::utils::containers::Matrix Matrix@endlink of their indices.
  *
  * The entries in the resulting Matrix are the Node indices of the lowest common ancestor (LCA) of a
  * given pair of Nodes. For example, for the result Matrix `r`, the entry `r[ 3, 5 ] == 7` means
@@ -358,7 +358,7 @@ TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b
  *
  * These Nodes can for example be accesses via Tree::node_at().
  */
-utils::Matrix<size_t> lowest_common_ancestors( Tree const& tree );
+genesis::utils::containers::Matrix<size_t> lowest_common_ancestors( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis

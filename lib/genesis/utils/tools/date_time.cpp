@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -264,7 +264,7 @@ bool convert_to_tm_(
 
     // Prepare a locale and a stream
     auto loc = std::locale( locale.c_str() );
-    std::istringstream iss( trim( str ));
+    std::istringstream iss( genesis::utils::text::trim( str ));
     iss.imbue( loc );
 
     // Explicitly create a time facet and other helper objects
@@ -301,7 +301,7 @@ bool convert_to_tm_(
 
     // Simple version that does not work with gcc < 5
     // // Run the conversion, using all provided information.
-    // std::istringstream iss( trim( str ));
+    // std::istringstream iss( genesis::utils::text::trim( str ));
     // iss.imbue( std::locale( locale.c_str() ));
     // iss >> std::get_time( &t, format.c_str() );
     //

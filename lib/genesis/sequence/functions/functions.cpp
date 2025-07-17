@@ -60,45 +60,45 @@ namespace sequence {
 //     Characteristics
 // =================================================================================================
 
-utils::Bitvector find_sites(
+genesis::utils::bit::Bitvector find_sites(
     Sequence const& seq,
     std::string const& chars
 ) {
     // Init lookup array.
-    auto lookup = utils::CharLookup<bool>( false );
+    auto lookup = genesis::utils::CharLookup<bool>( false );
     lookup.set_selection_upper_lower( chars, true );
 
     return find_sites( seq, lookup );
 }
 
-utils::Bitvector find_sites(
+genesis::utils::bit::Bitvector find_sites(
     Sequence const& seq,
-    utils::CharLookup<bool> const& chars
+    genesis::utils::CharLookup<bool> const& chars
 ) {
-    auto result = utils::Bitvector( seq.length(), false );
+    auto result = genesis::utils::bit::Bitvector( seq.length(), false );
     for( size_t i = 0; i < seq.length(); ++i ) {
         result.set( i, chars[ seq[ i ] ] );
     }
     return result;
 }
 
-utils::Bitvector gap_sites( Sequence const& seq, std::string const& gap_chars )
+genesis::utils::bit::Bitvector gap_sites( Sequence const& seq, std::string const& gap_chars )
 {
     return find_sites( seq, gap_chars );
 }
 
-utils::Bitvector gap_sites( SequenceSet const& set, std::string const& gap_chars )
+genesis::utils::bit::Bitvector gap_sites( SequenceSet const& set, std::string const& gap_chars )
 {
     // Edge case.
     if( set.size() == 0 ) {
-        return utils::Bitvector();
+        return genesis::utils::bit::Bitvector();
     }
 
     // Init result bitvector to all true. Then, for every site that is not a gap, reset to false.
-    auto result = utils::Bitvector( set[0].length(), true );
+    auto result = genesis::utils::bit::Bitvector( set[0].length(), true );
 
     // Init lookup array.
-    auto lookup = utils::CharLookup<bool>( false );
+    auto lookup = genesis::utils::CharLookup<bool>( false );
     lookup.set_selection_upper_lower( gap_chars, true );
 
     // Process all sequences in the set.
@@ -124,7 +124,7 @@ utils::Bitvector gap_sites( SequenceSet const& set, std::string const& gap_chars
 bool validate_chars( SequenceSet const& set, std::string const& chars )
 {
     // Init array to false, then set all necessary chars to true.
-    auto lookup = utils::CharLookup<bool>( false );
+    auto lookup = genesis::utils::CharLookup<bool>( false );
     lookup.set_selection_upper_lower( chars, true );
 
     for( auto& s : set ) {
@@ -183,7 +183,7 @@ bool is_alignment( SequenceSet const& set )
 //     Modifiers
 // =================================================================================================
 
-void remove_sites( Sequence& seq, utils::Bitvector sites )
+void remove_sites( Sequence& seq, genesis::utils::bit::Bitvector sites )
 {
     if( seq.length() != sites.size() ) {
         throw std::runtime_error(
@@ -205,7 +205,7 @@ void remove_sites( Sequence& seq, utils::Bitvector sites )
     seq.sites( result );
 }
 
-void remove_sites( SequenceSet& set, utils::Bitvector sites )
+void remove_sites( SequenceSet& set, genesis::utils::bit::Bitvector sites )
 {
     for( auto const& seq : set ) {
         if( seq.length() != sites.size() ) {
@@ -256,7 +256,7 @@ void remove_all_gaps( SequenceSet& set, std::string const& gap_chars )
 
 void replace_characters( Sequence& seq, std::string const& search, char replacement )
 {
-    seq.sites() = utils::replace_all_chars( seq.sites(), search, replacement );
+    seq.sites() = genesis::utils::text::replace_all_chars( seq.sites(), search, replacement );
 }
 
 void replace_characters( SequenceSet& set, std::string const& search, char replacement )

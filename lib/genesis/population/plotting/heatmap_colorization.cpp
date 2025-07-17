@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,10 +52,12 @@ namespace population {
 //     Allele Frequency Heatmap
 // =================================================================================================
 
-std::pair<utils::Matrix<utils::Color>, double> HeatmapColorization::spectrum_to_image(
+std::pair<genesis::utils::containers::Matrix<genesis::utils::color::Color>, double> HeatmapColorization::spectrum_to_image(
     Spectrum const& spectrum
 ) const {
-    using namespace utils;
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::containers;
+    using namespace genesis::utils::formats;
 
     // Check.
     if( color_map_.empty() ) {
@@ -191,9 +193,9 @@ std::pair<utils::Matrix<utils::Color>, double> HeatmapColorization::spectrum_to_
     return { image, max_per_column_ ? 1 : abs_max };
 }
 
-std::pair<utils::SvgGroup, double> HeatmapColorization::spectrum_to_svg(
+std::pair<genesis::utils::formats::SvgGroup, double> HeatmapColorization::spectrum_to_svg(
     Spectrum const& spectrum,
-    utils::SvgMatrixSettings settings
+    genesis::utils::formats::SvgMatrixSettings settings
 ) const {
     // Generate the pixel color image matrix.
     auto const spec_img_and_max = spectrum_to_image( spectrum );
@@ -204,12 +206,12 @@ std::pair<utils::SvgGroup, double> HeatmapColorization::spectrum_to_svg(
 
 double HeatmapColorization::spectrum_to_bmp_file(
     HeatmapColorization::Spectrum const& spectrum,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) const {
 
     // Generate the pixel color image matrix, and write the image to file.
     auto const spec_img_and_max = spectrum_to_image( spectrum );
-    utils::BmpWriter().write( spec_img_and_max.first, target );
+    genesis::utils::formats::BmpWriter().write( spec_img_and_max.first, target );
 
     // Return only the max value here.
     return spec_img_and_max.second;

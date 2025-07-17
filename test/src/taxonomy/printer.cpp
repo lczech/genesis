@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@
 
 using namespace genesis;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 using namespace genesis::taxonomy;
 
 TEST( Taxonomy, PrinterNested )
@@ -78,7 +80,7 @@ TEST( Taxonomy, PrinterNested )
         printer.line_limit( i );
         auto head = printer( tax );
 
-        EXPECT_EQ( utils::head( all, i ) + "\n...\n", head );
+        EXPECT_EQ( genesis::utils::text::head( all, i ) + "\n...\n", head );
     }
 
     // printer.print_ranks( true );

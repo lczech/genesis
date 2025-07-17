@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Creation
@@ -132,7 +133,7 @@ size_t bitvector_hash( Bitvector const& bv )
     // also have differing hashes.
     size_t seed = std::hash<size_t>()( bv.size() );
     for( auto word : bv.data() ) {
-        seed = hash_combine( seed, word );
+        seed = genesis::utils::core::hash_combine( seed, word );
     }
     return seed;
 }
@@ -650,5 +651,6 @@ size_t hamming_distance( Bitvector const& lhs, Bitvector const& rhs )
 //     return lexicographically_compare_helper_( rhs, lhs, true );
 // }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis

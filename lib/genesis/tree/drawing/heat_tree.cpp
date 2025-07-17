@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ static std::vector<size_t> heat_tree_row_order_(
         }
     }
 
-    auto const sorting = utils::sort_indices( tmp.begin(), tmp.end() );
+    auto const sorting = genesis::utils::core::sort_indices( tmp.begin(), tmp.end() );
     auto result = std::vector<size_t>( sorting.size() );
     for( size_t i = 0; i < sorting.size(); ++i ) {
         assert( sorting[i] < result.size() );
@@ -118,15 +118,15 @@ static std::vector<size_t> heat_tree_row_order_(
 }
 
 template<class T>
-utils::Matrix<T> heat_tree_reorder_rows_(
-    utils::Matrix<T> const& mat,
+genesis::utils::containers::Matrix<T> heat_tree_reorder_rows_(
+    genesis::utils::containers::Matrix<T> const& mat,
     std::vector<size_t> const& order
 ) {
     if( order.size() != mat.rows() ) {
         throw std::invalid_argument( "Wrong order size for reordering matrix rows." );
     }
 
-    auto result = utils::Matrix<T>( mat.rows(), mat.cols() );
+    auto result = genesis::utils::containers::Matrix<T>( mat.rows(), mat.cols() );
     for( size_t r = 0; r < order.size(); ++r ) {
         assert( order[r] < mat.rows() );
         result.row(r) = mat.row( order[r] ).to_vector();
@@ -167,7 +167,8 @@ struct HeatTreeGrid
 RectangularLayout heat_tree_tree_layout_(
     HeatTreeParameters const& params
 ) {
-    using namespace genesis::utils;
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::formats;
 
     // Prepare layout for the tree.
     auto layout = RectangularLayout( params.tree, params.type, params.ladderize );
@@ -213,12 +214,13 @@ RectangularLayout heat_tree_tree_layout_(
 
 void heat_tree_add_tree_color_scale_(
     RectangularLayout const&         layout,
-    utils::ColorMap const&           tree_color_map,
-    utils::ColorNormalization const& tree_color_norm,
-    utils::SvgDocument&              svg_doc,
+    genesis::utils::color::ColorMap const&           tree_color_map,
+    genesis::utils::color::ColorNormalization const& tree_color_norm,
+    genesis::utils::formats::SvgDocument&              svg_doc,
     HeatTreeGrid&                    grid
 ) {
-    using namespace genesis::utils;
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::formats;
 
     // Add color scale for the tree.
     double const svg_pal_top = 1.2 * svg_doc.bounding_box().height();
@@ -254,11 +256,12 @@ void heat_tree_add_tree_color_scale_(
 void heat_tree_add_heat_matrix_svg_(
     HeatTreeParameters const&          params,
     RectangularLayout const&           layout,
-    utils::Matrix<utils::Color> const& matrix,
-    utils::SvgDocument&                svg_doc,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& matrix,
+    genesis::utils::formats::SvgDocument&                svg_doc,
     HeatTreeGrid&                      grid
 ) {
-    using namespace genesis::utils;
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::formats;
 
     // Make the heat matrix, with row heights so that it fits the total tree height.
     SvgMatrixSettings svg_mat_set;
@@ -283,18 +286,19 @@ void heat_tree_add_heat_matrix_svg_(
 void heat_tree_add_heat_matrix_bmp_(
     HeatTreeParameters const&          params,
     RectangularLayout const&           layout,
-    utils::Matrix<utils::Color> const& matrix,
-    utils::SvgDocument&                svg_doc,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& matrix,
+    genesis::utils::formats::SvgDocument&                svg_doc,
     HeatTreeGrid&                      grid
 ) {
-    using namespace genesis::utils;
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::formats;
 
     // TODO
     (void) params.column_labels;
 
     // Make a bmp version of the matrix.
     std::string matrix_bmp;
-    BmpWriter().write( matrix, to_string( matrix_bmp ));
+    BmpWriter().write( matrix, genesis::utils::io::to_string( matrix_bmp ));
 
     // Get position and scale for the matrix.
     auto const pixel_height = layout.height() / static_cast<double>( matrix.rows() - 1 );
@@ -321,12 +325,13 @@ void heat_tree_add_heat_matrix_bmp_(
 }
 
 void heat_tree_add_matrix_color_scale_(
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm,
-    utils::SvgDocument&              svg_doc,
+    genesis::utils::color::ColorMap const&           matrix_color_map,
+    genesis::utils::color::ColorNormalization const& matrix_color_norm,
+    genesis::utils::formats::SvgDocument&              svg_doc,
     HeatTreeGrid&                    grid
 ) {
-    using namespace genesis::utils;
+    using namespace genesis::utils::color;
+    using namespace genesis::utils::formats;
 
     // Add color scale for the matrix.
     if( ! matrix_color_map.empty() ) {
@@ -356,38 +361,38 @@ void heat_tree_add_matrix_color_scale_(
 //     SVG Functions
 // =================================================================================================
 
-utils::SvgDocument heat_tree(
+genesis::utils::formats::SvgDocument heat_tree(
     HeatTreeParameters const&        params
 ) {
     // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
     // purely virtual functiosn and can thus not be instanciated). As the color map however is
     // empty, the called function will not use the norm.
     return heat_tree(
-        params, {}, utils::ColorNormalizationLinear(), {}, utils::ColorNormalizationLinear()
+        params, {}, genesis::utils::color::ColorNormalizationLinear(), {}, genesis::utils::color::ColorNormalizationLinear()
     );
 }
 
-utils::SvgDocument heat_tree(
+genesis::utils::formats::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm
+    genesis::utils::color::ColorMap const&           matrix_color_map,
+    genesis::utils::color::ColorNormalization const& matrix_color_norm
 ) {
     // We use a dummy linear norm here, to satisfy the compiler (because the standard norm has
     // purely virtual functiosn and can thus not be instanciated). As the color map however is
     // empty, the called function will not use the norm.
     return heat_tree(
-        params, matrix_color_map, matrix_color_norm, {}, utils::ColorNormalizationLinear()
+        params, matrix_color_map, matrix_color_norm, {}, genesis::utils::color::ColorNormalizationLinear()
     );
 }
 
-utils::SvgDocument heat_tree(
+genesis::utils::formats::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm,
-    utils::ColorMap const&           tree_color_map,
-    utils::ColorNormalization const& tree_color_norm
+    genesis::utils::color::ColorMap const&           matrix_color_map,
+    genesis::utils::color::ColorNormalization const& matrix_color_norm,
+    genesis::utils::color::ColorMap const&           tree_color_map,
+    genesis::utils::color::ColorNormalization const& tree_color_norm
 ) {
-    using namespace genesis::utils;
+    using namespace genesis::utils::formats;
     HeatTreeGrid grid;
 
     // Get the tree layout, including colored branches.

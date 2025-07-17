@@ -47,6 +47,10 @@
 #include <limits>
 
 using namespace genesis::utils;
+using namespace genesis::utils::io;
+using namespace genesis::utils::bit;
+using namespace genesis::utils::math;
+using namespace genesis::utils::text;
 
 // =================================================================================================
 //     I/O Operators

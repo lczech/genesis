@@ -50,10 +50,10 @@ namespace tree {
 //     Branch Distance Measures
 // =================================================================================================
 
-utils::Matrix<double> node_branch_length_distance_matrix(
+genesis::utils::containers::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 ) {
-    utils::Matrix<double> result( tree.node_count(), tree.node_count(), 0.0 );
+    genesis::utils::containers::Matrix<double> result( tree.node_count(), tree.node_count(), 0.0 );
 
     // We need to keep track of the edges for which we run updates in the iterations below.
     // Init with root node, as it does not have a proximal edge, and hence is not going to be visited.
@@ -148,11 +148,11 @@ std::vector<double> node_branch_length_distance_vector(
     return vec;
 }
 
-utils::Matrix<double> edge_branch_length_distance_matrix(
+genesis::utils::containers::Matrix<double> edge_branch_length_distance_matrix(
     Tree const& tree
 ) {
     // Result matrix that will be returned.
-    utils::Matrix<double> mat (tree.edge_count(), tree.edge_count());
+    genesis::utils::containers::Matrix<double> mat (tree.edge_count(), tree.edge_count());
 
     // For calculating the distance between edges, we use the distances between nodes and for every
     // pair of edged find the nodes at the ends of the edges that are closest to each other. This
@@ -292,7 +292,7 @@ double deepest_distance(Tree const& tree)
 template< class Comparator >
 std::vector<std::pair< TreeNode const*, double >> leaf_distance_vector(
     Tree const& tree,
-    utils::Matrix<double> const& node_distances,
+    genesis::utils::containers::Matrix<double> const& node_distances,
     Comparator  comp
 ) {
     // prepare a result vector with the size of number of nodes.
@@ -346,7 +346,7 @@ std::vector<std::pair< TreeNode const*, double >> closest_leaf_distance_vector(
 
 std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
     Tree const& tree,
-    utils::Matrix<double> const& node_distances
+    genesis::utils::containers::Matrix<double> const& node_distances
 ) {
     return leaf_distance_vector( tree, node_distances, std::less<double>() );
 }
@@ -362,7 +362,7 @@ std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
 
 std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
     Tree const& tree,
-    utils::Matrix<double> const& node_distances
+    genesis::utils::containers::Matrix<double> const& node_distances
 ) {
     return leaf_distance_vector( tree, node_distances, std::greater<double>() );
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,13 +41,15 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     Reduce to Tridiagonal Matrix
 // ================================================================================================
 
-TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data )
-{
+TridiagonalDecompositionData reduce_to_tridiagonal_matrix(
+    genesis::utils::containers::Matrix<double>& data
+) {
     if( data.empty() ) {
         throw std::runtime_error(
             "Cannot calculate reduce_to_tridiagonal_matrix() with an empty matrix."
@@ -158,9 +160,9 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
 // ================================================================================================
 
 void tridiagonal_ql_algorithm(
-    Matrix<double>&               data,
+    genesis::utils::containers::Matrix<double>& data,
     TridiagonalDecompositionData& tri,
-    size_t                        max_iterations
+    size_t max_iterations
 ) {
     if( data.empty() ) {
         throw std::runtime_error(
@@ -258,9 +260,9 @@ void tridiagonal_ql_algorithm(
 // ================================================================================================
 
 PcaData principal_component_analysis(
-    Matrix<double> const& data,
-    size_t                components,
-    PcaStandardization    standardization
+    genesis::utils::containers::Matrix<double> const& data,
+    size_t components,
+    PcaStandardization standardization
 ) {
     // Prepare result struct.
     PcaData result;
@@ -307,13 +309,13 @@ PcaData principal_component_analysis(
     assert( symmat.cols()            == standardized_data.cols() );
 
     // Sort Eigenvalues and Eigenvectors and store in result struct.
-    auto sorted_indices = sort_indices(
+    auto sorted_indices = genesis::utils::core::sort_indices(
         tri.eigenvalues.begin(),
         tri.eigenvalues.end(),
         std::greater<double>()
     );
     result.eigenvalues  = std::vector<double>( components );
-    result.eigenvectors = Matrix<double>( symmat.rows(), components );
+    result.eigenvectors = genesis::utils::containers::Matrix<double>( symmat.rows(), components );
     for( size_t c = 0; c < components; ++c ) {
         result.eigenvalues[c] = tri.eigenvalues[ sorted_indices[c] ];
 
@@ -359,5 +361,6 @@ PcaData principal_component_analysis(
     return result;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

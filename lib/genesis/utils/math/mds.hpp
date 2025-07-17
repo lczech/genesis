@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     Settings for Functions
@@ -77,11 +78,11 @@ enum class MdsAlgorithm
  *
  * Run MDS with randomly initialized embedding values.
  *
- * @see @link multi_dimensional_scaling( Matrix<double> const&, Matrix<double> const&, size_t, size_t, MdsAlgorithm ) multi_dimensional_scaling()@endlink
+ * @see @link multi_dimensional_scaling( genesis::utils::containers::Matrix<double> const&, genesis::utils::containers::Matrix<double> const&, size_t, size_t, MdsAlgorithm ) multi_dimensional_scaling()@endlink
  * for details on the function, its parameters, and the license of the implementation.
  */
-Matrix<double> multi_dimensional_scaling(
-    Matrix<double> const& distances,
+genesis::utils::containers::Matrix<double> multi_dimensional_scaling(
+    genesis::utils::containers::Matrix<double> const& distances,
     size_t                dimensions = 2,
     size_t                iterations = 100,
     MdsAlgorithm          algorithm = MdsAlgorithm::kUcf
@@ -91,7 +92,7 @@ Matrix<double> multi_dimensional_scaling(
  * @brief Multi-Dimensional Scaling (MDS).
  *
  * The function expectes a square @p distances matrix as well as a set of initial embedding values.
- * See @link multi_dimensional_scaling( Matrix<double> const&, size_t, size_t, MdsAlgorithm ) multi_dimensional_scaling()@endlink
+ * See @link multi_dimensional_scaling( genesis::utils::containers::Matrix<double> const&, size_t, size_t, MdsAlgorithm ) multi_dimensional_scaling()@endlink
  * for a version that uses randomly initialized embedding values.
  * The function then runs multi-dimensional scaling (MDS) for a given number of @p dimensions,
  * and optimizes the embeddings in @p iterations. It offers two choices for the MDS @p algorithm,
@@ -101,19 +102,20 @@ Matrix<double> multi_dimensional_scaling(
  * [SimpleMatrix library](https://sites.google.com/site/simpmatrix/) by
  * [Quan Wang](https://github.com/wq2012), with his explicit permission to use this code here.
  * The copyright (C) of the implementation is held by Quan Wang, 2013.
- * We adapted the implementation to our @link genesis::utils::Matrix Matrix@endlink class and
+ * We adapted the implementation to our @link genesis::utils::containers::Matrix Matrix@endlink class and
  * changed the error reporting mechanism to exceptions.
  * For further details, see the
  * @link supplement_acknowledgements_code_reuse_mds Acknowledgements@endlink.
  */
-Matrix<double> multi_dimensional_scaling(
-    Matrix<double> const& distances,
-    Matrix<double> const& initial_values,
+genesis::utils::containers::Matrix<double> multi_dimensional_scaling(
+    genesis::utils::containers::Matrix<double> const& distances,
+    genesis::utils::containers::Matrix<double> const& initial_values,
     size_t                dimensions = 2,
     size_t                iterations = 100,
     MdsAlgorithm          algorithm = MdsAlgorithm::kUcf
 );
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

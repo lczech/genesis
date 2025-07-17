@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,12 +56,17 @@ namespace placement {
 }
 
 namespace utils {
+namespace containers {
 
     template<typename T>
     class Matrix;
 
+}
+namespace math {
+
     class Histogram;
 
+}
 }
 
 namespace placement {
@@ -82,7 +87,7 @@ namespace placement {
  *
  * @see edpl( Sample const& ) for details.
  */
-double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances );
+double edpl( Pquery const& pquery, genesis::utils::containers::Matrix<double> const& node_distances );
 
 /**
  * @brief Calculate the @link edpl( Sample const&, Pquery const& ) edpl()@endlink
@@ -92,7 +97,7 @@ double edpl( Pquery const& pquery, utils::Matrix<double> const& node_distances )
  *
  * @see edpl( Sample const& ) for details.
  */
-std::vector<double> edpl( Sample const& sample, utils::Matrix<double> const& node_distances );
+std::vector<double> edpl( Sample const& sample, genesis::utils::containers::Matrix<double> const& node_distances );
 
 /**
  * @brief Calculate the EDPL uncertainty values for a Pquery.

@@ -69,7 +69,7 @@ std::vector<Bipartition> bipartition_set( Tree const& tree )
             continue;
         }
 
-        auto bp = Bipartition( it.link(), utils::Bitvector( num_leaves ));
+        auto bp = Bipartition( it.link(), genesis::utils::bit::Bitvector( num_leaves ));
 
         // If the iterator is at a leaf, just set one bit in the bitvector.
         if( is_leaf( it.node() ) ) {
@@ -132,7 +132,7 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree )
 
         // Get an order mapping list, that gives us the n-th index according to order.
         // That is, it maps order to indices.
-        auto const ordered = utils::sort_indices( node_names.begin(), node_names.end() );
+        auto const ordered = genesis::utils::core::sort_indices( node_names.begin(), node_names.end() );
 
         // Check for duplicate names.
         for( size_t i = 1; i < ordered.size(); ++i ) {
@@ -173,10 +173,10 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree )
     return nodes_to_leafs;
 }
 
-utils::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode const*> leaf_nodes )
+genesis::utils::bit::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode const*> leaf_nodes )
 {
     auto const node_to_leafs = node_to_leaf_map( tree );
-    utils::Bitvector result( leaf_node_count( tree ));
+    genesis::utils::bit::Bitvector result( leaf_node_count( tree ));
     for( auto n : leaf_nodes ) {
         auto const leaf_idx = node_to_leafs[ n->index() ];
         if( leaf_idx == std::numeric_limits<std::size_t>::max() ) {
@@ -248,13 +248,13 @@ Bipartition find_smallest_subtree(
         }
 
         auto const inverted = ~(bip.leaf_nodes());
-        if( utils::is_subset( comp, bip.leaf_nodes() )) {
+        if( genesis::utils::bit::is_subset( comp, bip.leaf_nodes() )) {
             if( min_count == 0 || pop_count(bip.leaf_nodes()) < min_count ) {
                 best_bip = bip;
                 min_count = pop_count(best_bip.leaf_nodes());
             }
         }
-        if( utils::is_subset( comp, inverted ) ) {
+        if( genesis::utils::bit::is_subset( comp, inverted ) ) {
             if( min_count == 0 || pop_count(inverted) < min_count ) {
                 best_bip = bip;
                 best_bip.invert();
@@ -280,7 +280,7 @@ std::vector<size_t> find_monophyletic_subtree_edges(
     bool include_leaf_edges
 ) {
     // Result. We use a bitvec of the edges that we want, to save space.
-    auto result_edges = utils::Bitvector( tree.edge_count() );
+    auto result_edges = genesis::utils::bit::Bitvector( tree.edge_count() );
 
     // Helper funciton to set result edges of a bipartition.
     auto set_result_edges = [&]( Bipartition const& bip ){

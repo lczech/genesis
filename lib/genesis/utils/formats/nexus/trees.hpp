@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Forward Declarations
@@ -190,7 +191,7 @@ public:
 
     void erase_tree( std::string const& name )
     {
-        utils::erase_if(
+        genesis::utils::core::erase_if(
             entries_,
             [&name] (Entry const& entry) {
                 return entry.name == name;
@@ -244,6 +245,7 @@ inline void swap( NexusTrees& lhs, NexusTrees& rhs )
     lhs.swap(rhs);
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

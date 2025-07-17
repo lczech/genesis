@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,15 +62,17 @@ SHA1::SHA1()
 //     Full Hashing
 // ================================================================================================
 
-std::string SHA1::read_hex( std::shared_ptr<BaseInputSource> source )
-{
+std::string SHA1::read_hex(
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+) {
     SHA1 checksum;
     checksum.update( source );
     return checksum.final_hex();
 }
 
-SHA1::DigestType SHA1::read_digest( std::shared_ptr<BaseInputSource> source )
-{
+SHA1::DigestType SHA1::read_digest(
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+) {
     SHA1 checksum;
     checksum.update( source );
     return checksum.final_digest();
@@ -126,9 +128,9 @@ void SHA1::clear()
     reset_();
 }
 
-void SHA1::update( std::shared_ptr<BaseInputSource> source )
+void SHA1::update( std::shared_ptr<genesis::utils::io::BaseInputSource> source )
 {
-    auto ib = InputBuffer( source );
+    auto ib = genesis::utils::io::InputBuffer( source );
     char sbuf[SHA1::BlockBytes];
 
     while (true) {

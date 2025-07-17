@@ -100,7 +100,7 @@ double earth_movers_distance (
 //     EMD matrix for a SampleSet
 // -------------------------------------------------------------------------
 
-utils::Matrix<double> earth_movers_distance(
+genesis::utils::containers::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
     double const     p,
     bool const       with_pendant_length

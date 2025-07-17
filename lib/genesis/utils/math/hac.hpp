@@ -50,6 +50,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // ================================================================================================
 //     Hierarchical Agglomerative Clustering
@@ -248,8 +249,9 @@ public:
     HierarchicalAgglomerativeClustering() = default;
 
     HierarchicalAgglomerativeClustering(
-        std::shared_ptr<utils::ThreadPool> thread_pool
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool
     ) {
+        using namespace genesis::utils::core;
         thread_pool_ = thread_pool ? thread_pool : Options::get().global_thread_pool();
     }
 
@@ -687,10 +689,11 @@ private:
     std::vector<Merger>  mergers_;
 
     // Keep the internally used thread pool
-    std::shared_ptr<utils::ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool_;
 
 };
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

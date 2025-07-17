@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -105,6 +105,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Multinomial Distribution
@@ -124,7 +125,7 @@ std::vector<size_t> multinomial_distribution_( std::vector<T> const& p, size_t n
     }
 
     // For now, we use a global random engine (thread safe).
-    auto& engine = Options::get().random_engine();
+    auto& engine = genesis::utils::core::Options::get().random_engine();
 
     // Do the drawing, filling a result vector x.
     auto x = std::vector<size_t>( p.size() );
@@ -231,7 +232,7 @@ size_t hypergeometric_distribution_ratio_of_unifoms_( size_t n, size_t m, size_t
     }
 
     // loop until accepted
-    auto& engine = Options::get().random_engine();
+    auto& engine = genesis::utils::core::Options::get().random_engine();
     std::uniform_real_distribution<double> distrib( 0.0, 1.0 );
     size_t k = 0;
     while( true ) {
@@ -334,7 +335,7 @@ size_t hypergeometric_distribution_inversion_mode_( size_t n, size_t m, size_t N
     }
 
     // loop until accepted
-    auto& engine = Options::get().random_engine();
+    auto& engine = genesis::utils::core::Options::get().random_engine();
     std::uniform_real_distribution<double> distrib( 0.0, 1.0 );
     while( true ) {
         // uniform random number to be converted
@@ -479,7 +480,7 @@ size_t hypergeometric_distribution_gsl( size_t n1, size_t n2, size_t t )
     }
 
 	// For now, we use a global random engine (thread safe).
-    auto& engine = Options::get().random_engine();
+    auto& engine = genesis::utils::core::Options::get().random_engine();
     std::uniform_real_distribution<double> distrib( 0.0, 1.0 );
 
     size_t a = n1;
@@ -562,5 +563,6 @@ std::vector<size_t> multivariate_hypergeometric_distribution( std::vector<size_t
     return x;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

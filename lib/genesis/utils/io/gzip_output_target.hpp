@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Gzip Output Target
@@ -103,7 +104,7 @@ private:
         if( !stream_ || !stream_->good() ) {
             // Although we are in utils namespace here already, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
-            stream_ = genesis::utils::make_unique<GzipOStream>(
+            stream_ = genesis::utils::core::make_unique<GzipOStream>(
                 output_target_->ostream(), compression_level_
             );
         }
@@ -191,7 +192,7 @@ public:
         std::shared_ptr<BaseOutputTarget> output_target,
         std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
         GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-        std::shared_ptr<ThreadPool> thread_pool = nullptr
+        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr
     )
         : output_target_( output_target )
         , block_size_( block_size )
@@ -229,7 +230,7 @@ private:
         if( !stream_ || !stream_->good() ) {
             // Although we are in untils namespace here, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
-            stream_ = genesis::utils::make_unique<GzipBlockOStream>(
+            stream_ = genesis::utils::core::make_unique<GzipBlockOStream>(
                 output_target_->ostream(), block_size_, compression_level_, thread_pool_
             );
         }
@@ -271,10 +272,11 @@ private:
     // Need to store our settings, as we use lazy instanciation of the output stream
     std::size_t                 block_size_;
     GzipCompressionLevel        compression_level_;
-    std::shared_ptr<ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool_;
 
 };
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     MatrixWriter
@@ -101,7 +102,7 @@ public:
      */
     void write(
         Matrix<T> const& matrix,
-        std::shared_ptr<utils::BaseOutputTarget> target,
+        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
         std::vector<std::string> row_names = {},
         std::vector<std::string> col_names = {},
         std::string corner = ""
@@ -332,6 +333,7 @@ private:
 
 };
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

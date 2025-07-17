@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,23 +59,23 @@ namespace tree {
 //     Reading
 // =================================================================================================
 
-Tree NewickReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
+Tree NewickReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
 {
-    utils::InputStream it( source );
+    genesis::utils::io::InputStream it( source );
     return parse_single_tree( it );
 }
 
 void NewickReader::read(
-    std::shared_ptr<utils::BaseInputSource> source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
     TreeSet&           target,
     std::string const& default_name
 ) const {
-    utils::InputStream it( source );
+    genesis::utils::io::InputStream it( source );
     parse_multiple_trees( it, target, default_name );
 }
 
 void NewickReader::read(
-    std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+    std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
     TreeSet& target,
     std::string const& default_name
 ) const {
@@ -85,7 +85,7 @@ void NewickReader::read(
 }
 
 TreeSet NewickReader::read(
-    std::vector<std::shared_ptr<utils::BaseInputSource>> sources,
+    std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
     std::string const& default_name
 ) const {
     TreeSet result;
@@ -99,7 +99,7 @@ TreeSet NewickReader::read(
 //     Parse Single Tree
 // =================================================================================================
 
-Tree NewickReader::parse_single_tree( utils::InputStream& input_stream ) const
+Tree NewickReader::parse_single_tree( genesis::utils::io::InputStream& input_stream ) const
 {
     // Get name and tree, only use tree.
     auto tree = parse_named_tree( input_stream ).second;
@@ -118,7 +118,7 @@ Tree NewickReader::parse_single_tree( utils::InputStream& input_stream ) const
 // =================================================================================================
 
 void NewickReader::parse_multiple_trees(
-    utils::InputStream& input_stream,
+    genesis::utils::io::InputStream& input_stream,
     TreeSet&            tree_set,
     std::string const&  default_name
 ) const {
@@ -150,12 +150,14 @@ void NewickReader::parse_multiple_trees(
 //     Parse Named Tree
 // =================================================================================================
 
-std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStream& input_stream ) const
+std::pair< std::string, Tree > NewickReader::parse_named_tree( genesis::utils::io::InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+
     // Helper function for valid tree name chars.
     auto is_valid_tree_name_char = [&]( char c ){
-        return   utils::is_print(c)
-            && ! utils::is_space(c)
+        return   genesis::utils::text::is_print(c)
+            && ! genesis::utils::text::is_space(c)
             && c != ';'
             && c != '('
             && c != ')'
@@ -167,7 +169,7 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
     while( input_stream ) {
 
         // Whitespaces.
-        utils::skip_while( input_stream, utils::is_space );
+        skip_while( input_stream, genesis::utils::text::is_space );
 
         // No input, return empty tree.
         // We can never read an empty tree from an input, so this is useful to distungish
@@ -179,7 +181,7 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
         // Skip comments.
         if( *input_stream == '[' ) {
             ++input_stream;
-            utils::read_until( input_stream, ']' );
+            read_until( input_stream, ']' );
 
             if( !input_stream ) {
                 throw std::runtime_error(
@@ -204,13 +206,13 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
         // Distinguish between names in quotes, and those without.
         // Names without quotes cannot contain certain chars, see is_valid_tree_name_char().
         if( *input_stream == '"' || *input_stream == '\'' ) {
-            name = utils::parse_quoted_string( input_stream, false, true, false );
+            name = parse_quoted_string( input_stream, false, true, false );
         } else {
-            name =  utils::read_while( input_stream, is_valid_tree_name_char );
+            name =  read_while( input_stream, is_valid_tree_name_char );
         }
 
         // Always allow white spaces...
-        utils::skip_while( input_stream, utils::is_space );
+        skip_while( input_stream, genesis::utils::text::is_space );
 
         // After a name, we expect an equals sign.
         if( *input_stream != '=' ) {
@@ -239,7 +241,7 @@ std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStrea
 //     Parse Trailing Input
 // =================================================================================================
 
-void NewickReader::parse_trailing_input_( utils::InputStream& input_stream ) const
+void NewickReader::parse_trailing_input_( genesis::utils::io::InputStream& input_stream ) const
 {
     // Check for more data after the semicolon. We cannot do this check in the parsing function,
     // as there are cases where we read a Newick tree as part of another file (e.g, Nexus or Jplace),
@@ -258,8 +260,10 @@ void NewickReader::parse_trailing_input_( utils::InputStream& input_stream ) con
 //     Token Lexing
 // =================================================================================================
 
-NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_stream ) const
+NewickReader::Token NewickReader::get_next_token_( genesis::utils::io::InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+
     // Prepare result token.
     Token result;
 
@@ -273,8 +277,8 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
     // But we knew before that Newick is not a good format anyway...
     // Also, if enable_tags_ is true, we do not allow {}, as those are used for tags.
     auto is_valid_name_char = [&]( char c ){
-        return   utils::is_print(c)
-            && ! utils::is_space(c)
+        return   genesis::utils::text::is_print(c)
+            && ! genesis::utils::text::is_space(c)
             && c != ':'
             && c != ';'
             && c != '('
@@ -288,7 +292,7 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
 
     // Skip initial whitespace, then set the current position in the stream.
     // This is where the token begins.
-    utils::skip_while( is, utils::is_space );
+    skip_while( is, genesis::utils::text::is_space );
     result.line = is.line();
     result.column = is.column();
 
@@ -319,7 +323,7 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
     } else if( *is == '[' ) {
         result.type = TokenType::kComment;
         ++is;
-        result.text = utils::read_until( is, ']' );
+        result.text = read_until( is, ']' );
 
         if( !is ) {
             throw std::runtime_error( "Reached unexpected end of Newick tree at " + is.at() );
@@ -330,12 +334,12 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
     } else if( *is == ':' ) {
         result.type = TokenType::kValue;
         ++is;
-        result.text = utils::parse_number_string( is );
+        result.text = parse_number_string( is );
 
     } else if( *is == '{' && enable_tags_ ) {
         result.type = TokenType::kTag;
         ++is;
-        result.text = utils::read_until( is, '}' );
+        result.text = read_until( is, '}' );
 
         if( !is ) {
             throw std::runtime_error( "Reached unexpected end of Newick tree at " + is.at() );
@@ -345,11 +349,11 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
 
     } else if( *is == '"' || *is == '\''  ) {
         result.type = TokenType::kString;
-        result.text = utils::parse_quoted_string( is, false, true, false );
+        result.text = parse_quoted_string( is, false, true, false );
 
     } else if( is_valid_name_char( *is )) {
         result.type = TokenType::kString;
-        result.text = utils::read_while( is, is_valid_name_char );
+        result.text = read_while( is, is_valid_name_char );
 
     } else {
         result.type = TokenType::kUnknown;
@@ -362,7 +366,7 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
 //     Parse Tree into Broker
 // =================================================================================================
 
-NewickBroker NewickReader::parse_tree_to_broker_( utils::InputStream& input_stream ) const
+NewickBroker NewickReader::parse_tree_to_broker_( genesis::utils::io::InputStream& input_stream ) const
 {
     // Create result broker.
     NewickBroker broker;
@@ -699,7 +703,7 @@ void NewickReader::broker_to_tree_element_(
     auto& edges = tree.expose_edge_container();
 
     // create the tree node for this broker node
-    auto cur_node_u  = utils::make_unique< TreeNode >();
+    auto cur_node_u  = genesis::utils::core::make_unique< TreeNode >();
     auto cur_node    = cur_node_u.get();
     cur_node->reset_index( nodes.size() );
 
@@ -719,7 +723,7 @@ void NewickReader::broker_to_tree_element_(
 
     // create the link that points towards the root.
     // this link is created for every node, root, inner and leaves.
-    auto up_link_u  = utils::make_unique< TreeLink >();
+    auto up_link_u  = genesis::utils::core::make_unique< TreeLink >();
     auto up_link    = up_link_u.get();
     up_link->reset_node( cur_node );
     cur_node->reset_primary_link( up_link );
@@ -739,7 +743,7 @@ void NewickReader::broker_to_tree_element_(
         link_stack.back()->reset_outer( up_link );
 
         // also, create an edge that connects both nodes
-        auto up_edge = utils::make_unique< TreeEdge >(
+        auto up_edge = genesis::utils::core::make_unique< TreeEdge >(
             edges.size(),
             link_stack.back(),
             up_link
@@ -776,7 +780,7 @@ void NewickReader::broker_to_tree_element_(
     // in summary, make all next pointers of a node point to each other in a circle.
     auto prev_link = up_link;
     for (int i = 0; i < broker_node.rank(); ++i) {
-        auto down_link = utils::make_unique< TreeLink >();
+        auto down_link = genesis::utils::core::make_unique< TreeLink >();
         prev_link->reset_next( down_link.get() );
         prev_link = down_link.get();
 

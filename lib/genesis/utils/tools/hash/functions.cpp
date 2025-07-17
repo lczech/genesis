@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,8 +44,10 @@ namespace utils {
 //     Hashing
 // ================================================================================================
 
-std::string hash_hex( std::shared_ptr<BaseInputSource> source, HashingFunctions hash_fct )
-{
+std::string hash_hex(
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
+    HashingFunctions hash_fct
+)  {
     switch( hash_fct ) {
         case HashingFunctions::kMD5: {
             return MD5::read_hex( source );

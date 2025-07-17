@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 
 namespace genesis {
 namespace utils {
+namespace color {
 
 // =================================================================================================
 //     Nextstrain Sequential Color Lists
@@ -488,7 +489,7 @@ std::vector<Color> const& color_list_misc( ColorListMisc palette )
 
 std::vector<Color> const& color_list_misc( std::string const& palette )
 {
-    auto const p = to_lower_ascii( palette );
+    auto const p = genesis::utils::text::to_lower_ascii( palette );
 
     if( p == "nextstrain" ) {
         return color_list_nextstrain_256_;
@@ -504,5 +505,6 @@ std::vector<std::string> color_list_misc_names()
     };
 }
 
+} // namespace color
 } // namespace utils
 } // namespace genesis

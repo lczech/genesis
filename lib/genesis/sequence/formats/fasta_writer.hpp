@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ class SequenceSet;
  *     std::string outfile = "path/to/file.fasta";
  *     SequenceSet sequence_set;
  *
- *     FastaWriter().line_length( 100 ).write( sequence_set, utils::to_file( outfile ));
+ *     FastaWriter().line_length( 100 ).write( sequence_set, genesis::utils::io::to_file( outfile ));
  *
  * See FastaReader for a description of the Fasta format.
  */
@@ -113,18 +113,18 @@ public:
     /**
      * @brief Write a single Sequence to an output target, using the Fasta format.
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( Sequence const& sequence, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( Sequence const& sequence, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
 
     /**
      * @brief Write a SequenceSet to an output target, using the Fasta format.
      *
-     * See the output target convenience functions utils::to_file(), utils::to_stream(), and
-     * utils::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
+     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( SequenceSet const& sequence_set, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( SequenceSet const& sequence_set, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
 
     /**
      * @brief Write a single Sequence to an output stream in Fasta format.

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ using MassTree = Tree;
  * > Elife, vol. 6, p. e21887, Feb. 2017.
  * > https://elifesciences.org/articles/21887
  */
-utils::Matrix<double> phylogenetic_ilr_transform(
+genesis::utils::containers::Matrix<double> phylogenetic_ilr_transform(
     BalanceData const& data,
     bool reverse_signs = false
 );
@@ -84,7 +84,7 @@ utils::Matrix<double> phylogenetic_ilr_transform(
  * in that it splits the tree at each edge, but instead of calculating the imbalance, we
  * use the ILR transform to calculate balances instead.
  */
-utils::Matrix<double> edge_balances(
+genesis::utils::containers::Matrix<double> edge_balances(
     BalanceData const& data,
     bool reverse_signs = false
 );

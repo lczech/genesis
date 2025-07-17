@@ -213,7 +213,7 @@ convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize )
     auto pend_works = std::vector<double>( sample_set.size(), 0.0 );
 
     // Add the placement mass of each Sample to its MassTree.
-    utils::parallel_for( 0, sample_set.size(), [&]( size_t i ) {
+    genesis::utils::threading::parallel_for( 0, sample_set.size(), [&]( size_t i ) {
         // Get the total sum of placement masses for the sample...
         double const scaler = normalize
             ? total_placement_mass_with_multiplicities( sample_set[i] )
@@ -238,8 +238,8 @@ convert_sample_set_to_mass_trees( SampleSet const& sample_set, bool normalize )
 
 std::ostream& operator << (std::ostream& out, Sample const& smp)
 {
-    auto table = utils::Table();
-    auto const kRight = utils::Table::Column::Justification::kRight;
+    auto table = genesis::utils::text::Table();
+    auto const kRight = genesis::utils::text::Table::Column::Justification::kRight;
 
     table.add_column("#").justify(kRight);
     table.add_column("name");
@@ -269,7 +269,7 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
         ++i;
     }
 
-    out << utils::simple_layout()(table);
+    out << genesis::utils::text::simple_layout()(table);
     return out;
 }
 

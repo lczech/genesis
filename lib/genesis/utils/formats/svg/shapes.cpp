@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Line
@@ -89,6 +90,7 @@ SvgBox SvgLine::bounding_box() const
 
 void SvgLine::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<line";
 
@@ -148,6 +150,7 @@ SvgBox SvgRect::bounding_box() const
 
 void SvgRect::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<rect";
 
@@ -216,6 +219,7 @@ SvgBox SvgCircle::bounding_box() const
 
 void SvgCircle::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<circle";
 
@@ -278,6 +282,7 @@ SvgBox SvgEllipse::bounding_box() const
 
 void SvgEllipse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<ellipse";
 
@@ -349,6 +354,7 @@ SvgBox SvgPolyline::bounding_box() const
 
 void SvgPolyline::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polyline";
 
@@ -425,6 +431,7 @@ SvgBox SvgPolygon::bounding_box() const
 
 void SvgPolygon::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polygon";
 
@@ -491,6 +498,8 @@ SvgPath& SvgPath::operator <<( std::string elem )
 
 SvgBox SvgPath::bounding_box() const
 {
+    using namespace genesis::utils::text;
+
     // We collect all points that are part of the path, and transform later.
     // Could be done more mem efficient by doing the transforms immediately,
     // but well... easier that way for now.
@@ -690,6 +699,7 @@ SvgBox SvgPath::bounding_box() const
 
 void SvgPath::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     (void) options;
 
     out << repeat( SvgDocument::indentation_string, indent );
@@ -735,6 +745,7 @@ SvgBox SvgUse::bounding_box() const
 
 void SvgUse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    using namespace genesis::utils::text;
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<use";
     if( ! id.empty() ) {
@@ -747,5 +758,6 @@ void SvgUse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& o
     out << " />\n";
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

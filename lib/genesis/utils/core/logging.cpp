@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@
 
 namespace genesis {
 namespace utils {
+namespace core {
 
 // =============================================================================
 //     Settings
@@ -152,13 +153,13 @@ void Logging::log_to_stream (std::ostream& os)
 void Logging::log_to_file( std::string const& filename )
 {
     // std::ofstream* file_stream = new std::ofstream();
-    // utils::file_output_stream( filename, *file_stream );
+    // genesis::utils::io::file_output_stream( filename, *file_stream );
     // fstreams_.push_back( file_stream );
 
     // Although we are in untils namespace here, we specify the namespace full,
     // in order to avoid ambiguous overload when compiled with C++17.
-    fstreams_.push_back( genesis::utils::make_unique<std::ofstream>());
-    utils::file_output_stream( filename, *fstreams_.back() );
+    fstreams_.push_back( genesis::utils::core::make_unique<std::ofstream>());
+    genesis::utils::io::file_output_stream( filename, *fstreams_.back() );
 }
 
 /**
@@ -236,13 +237,13 @@ Logging::~Logging()
     // and trim trailing whitespace, as we only want one newline at the end
     std::string msg = det_buff.str();
     if (msg.length() > 0) {
-        msg += utils::replace_all(
+        msg += genesis::utils::text::replace_all(
             buff_.str(), "\n", "\n" + std::string(msg.length(), ' ')
         );
     } else {
         msg += buff_.str();
     }
-    msg = utils::trim_right(msg);
+    msg = genesis::utils::text::trim_right(msg);
 
     // output the message to every stream, thread safe!
     std::lock_guard<std::mutex> lock( genesis_log_mutex_ );
@@ -296,5 +297,6 @@ std::ostringstream& Logging::get(
     return buff_;
 }
 
+} // namespace core
 } // namespace utils
 } // namespace genesis

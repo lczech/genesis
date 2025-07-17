@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,11 @@
 #include <utility>
 
 using namespace genesis;
-using namespace utils;
+using namespace genesis::utils;
+using namespace genesis::utils::color;
+using namespace genesis::utils::core;
+using namespace genesis::utils::formats;
+using namespace genesis::utils::math;
 
 // =================================================================================================
 //     Test Cases
@@ -50,9 +54,9 @@ TEST( Math, Kmeans )
     using Point = std::vector<double>;
 
     // utils::Logging::details.time = true;
-    // utils::Options::get().number_of_threads( 4 );
-    // utils::Options::get().random_seed( 174333141 );
-    // LOG_BOLD << utils::Options::get().info();
+    // utils::core::Options::get().number_of_threads( 4 );
+    // utils::core::Options::get().random_seed( 174333141 );
+    // LOG_BOLD << utils::core::Options::get().info();
     // LOG_BOLD;
 
     // -------------------------------------------------------------------------

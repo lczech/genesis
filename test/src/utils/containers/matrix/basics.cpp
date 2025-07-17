@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@
 #include "genesis/utils/containers/matrix/operators.hpp"
 
 using namespace genesis;
-using namespace utils;
+using namespace genesis::utils;
+using namespace genesis::utils::containers;
 
 TEST(Matrix, Copy)
 {
@@ -184,6 +185,8 @@ TEST( Matrix, TriangularIndices )
 
 using namespace genesis;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
 int main( int argc, char** argv )
 {
@@ -194,9 +197,9 @@ int main( int argc, char** argv )
 
     size_t const num_threads = 4;
 
-    utils::Options::get().command_line( argc, argv );
-    utils::Options::get().number_of_threads( num_threads );
-    LOG_BOLD << utils::Options::get().info();
+    utils::core::Options::get().command_line( argc, argv );
+    utils::core::Options::get().number_of_threads( num_threads );
+    LOG_BOLD << utils::core::Options::get().info();
     LOG_BOLD;
 
     LOG_INFO << "Started";
@@ -279,6 +282,8 @@ int main( int argc, char** argv )
 
 using namespace genesis;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
 
 int main( int argc, char** argv )
 {
@@ -288,8 +293,8 @@ int main( int argc, char** argv )
     utils::Logging::details.time = true;
 
 
-    utils::Options::get().command_line( argc, argv );
-    LOG_BOLD << utils::Options::get().info();
+    utils::core::Options::get().command_line( argc, argv );
+    LOG_BOLD << utils::core::Options::get().info();
     LOG_BOLD;
 
     LOG_INFO << "Started";

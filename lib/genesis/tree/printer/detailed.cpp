@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,10 +59,10 @@ void PrinterDetailed::print (
     std::vector<size_t> done;
 
     // Prepare text color styles.
-    auto node_color = utils::Style( "red", true );
-    auto link_color = utils::Style( "blue" );
-    auto next_color = utils::Style( "green" );
-    auto edge_color = utils::Style( "cyan" );
+    auto node_color = genesis::utils::text::Style( "red", true );
+    auto link_color = genesis::utils::text::Style( "blue" );
+    auto next_color = genesis::utils::text::Style( "green" );
+    auto edge_color = genesis::utils::text::Style( "cyan" );
 
     if( ! use_color_ ) {
         node_color.enabled( false );
@@ -86,7 +86,7 @@ void PrinterDetailed::print (
     do {
         auto& n = l->node();
         std::string indent = std::string(4 * depth[n.index()], ' ');
-        if( ! utils::contains( done, n.index() )) {
+        if( ! genesis::utils::core::contains( done, n.index() )) {
             out << indent
                 // TODO typesafety!
                 << node_color( "Node " + std::to_string(n.index()) + ": \"" + n.data<CommonNodeData>().name + "\"" )

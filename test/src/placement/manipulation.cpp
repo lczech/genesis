@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech, Pierre Barbera and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,8 +48,9 @@
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
-using namespace placement;
-using namespace tree;
+using namespace genesis::placement;
+using namespace genesis::tree;
+using namespace genesis::utils::io;
 
 // =================================================================================================
 //     Reroot
@@ -65,7 +66,7 @@ static void TestPlacementReroot(
 
     // Input data.
     std::string infile = environment->data_dir + "placement/unrooted.jplace";
-    Sample sample = JplaceReader().read( utils::from_file( infile ));
+    Sample sample = JplaceReader().read( from_file( infile ));
     auto& tree = sample.tree();
     EXPECT_TRUE( has_correct_edge_nums( tree ));
 
@@ -88,7 +89,7 @@ static void TestPlacementReroot(
     }
 
     // Check if the edge_nums reordering outcome is correct.
-    EXPECT_EQ( check_string, utils::trim( result )) << " with start edge " << reroot_edge_id;
+    EXPECT_EQ( check_string, utils::text::trim( result )) << " with start edge " << reroot_edge_id;
 
     // check if proximal lengths were adjusted correctly
     size_t i = 0;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Accessors
@@ -88,16 +89,16 @@ NexusBlock* NexusDocument::set_block( std::unique_ptr<NexusBlock> block )
 // {
 //     for( auto& bptr : data_ ) {
 //         if( bptr->block_name() == trees.block_name() ) {
-//             bptr = utils::make_unique<Trees>(trees);
+//             bptr = genesis::utils::core::make_unique<Trees>(trees);
 //             return;
 //         }
 //     }
-//     data_.push_back( utils::make_unique<Trees>(trees) );
+//     data_.push_back( genesis::utils::core::make_unique<Trees>(trees) );
 // }
 //
 // void NexusDocument::set_block_taxa( Taxa const& taxa )
 // {
-//     data_.push_back( utils::make_unique<Taxa>(taxa) );
+//     data_.push_back( genesis::utils::core::make_unique<Taxa>(taxa) );
 // }
 
 // const_iterator NexusDocument::begin() const
@@ -110,5 +111,6 @@ NexusBlock* NexusDocument::set_block( std::unique_ptr<NexusBlock> block )
 //
 // }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

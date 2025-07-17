@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,6 +51,9 @@
 using namespace genesis;
 using namespace genesis::tree;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::text;
 
 // =================================================================================================
 //     Reroot
@@ -85,7 +88,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     }
 
     // Check if the levelorder outcome is correct.
-    EXPECT_EQ( out_nodes, utils::trim( nodes )) << " with start node " << root_node_name;
+    EXPECT_EQ( out_nodes, utils::text::trim( nodes )) << " with start node " << root_node_name;
 }
 
 TEST( TreeManipulation, Reroot )
@@ -508,7 +511,7 @@ TEST( TreeManipulation, DeleteEdges )
         //         //     std::string result;
         //         //     result += "[" + std::to_string( edge.index() ) + "] ";
         //         //     // if( edge.has_data() ) {
-        //         //     //     result += utils::to_string_nice( edge.data<CommonEdgeData>().branch_length );
+        //         //     //     result += utils::io::to_string_nice( edge.data<CommonEdgeData>().branch_length );
         //         //     // }
         //         //     // if( edge.has_data() && node.has_data() && ! node.data<CommonNodeData>().name.empty() ) {
         //         //     //     result += ": ";

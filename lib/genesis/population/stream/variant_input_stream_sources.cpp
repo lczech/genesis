@@ -82,7 +82,7 @@ std::shared_ptr<T> make_input_stream_with_sample_filter_(
         // in the file, then create our correctly sized bool vector, and then open the file again
         // to start iterating with the filter. Cumbersome, but an unfortunate detail of the
         // current implementation. Might need fixing later.
-        input = std::make_shared<T>( utils::from_file( filename ), reader );
+        input = std::make_shared<T>( genesis::utils::io::from_file( filename ), reader );
         auto const smp_cnt = (*input)->samples.size();
 
         // Make the filter. We check the condition that the make function checks here as well,
@@ -98,25 +98,27 @@ std::shared_ptr<T> make_input_stream_with_sample_filter_(
         }
 
         // Now make a bool filter, inverse as needed, and restart the file with it.
-        auto smp_flt = utils::make_bool_vector_from_indices( sample_indices, smp_cnt );
+        auto smp_flt = genesis::utils::bit::make_bool_vector_from_indices(
+            sample_indices, smp_cnt
+        );
         if( inverse_sample_indices ) {
             smp_flt.flip();
         }
         input = std::make_shared<T>(
-            utils::from_file( filename ),
+            genesis::utils::io::from_file( filename ),
             smp_flt,
             reader
         );
 
     } else if( ! sample_filter.empty() ) {
         input = std::make_shared<T>(
-            utils::from_file( filename ),
+            genesis::utils::io::from_file( filename ),
             sample_filter,
             reader
         );
     } else {
         input = std::make_shared<T>(
-            utils::from_file( filename ),
+            genesis::utils::io::from_file( filename ),
             reader
         );
     }
@@ -207,7 +209,7 @@ VariantInputStream make_variant_input_stream_from_sam_file(
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputStreamData data;
     data.file_path = filename;
-    data.source_name = utils::file_basename( filename, { ".sam", ".sam.gz", ".bam", ".cram" });
+    data.source_name = genesis::utils::core::file_basename( filename, { ".sam", ".sam.gz", ".bam", ".cram" });
 
     // Get the sample names from the read group tags. If they are empty, because the reader
     // was not set up to split by read group tags, we instead use an empty name, to indicate that
@@ -275,7 +277,7 @@ VariantInputStream make_variant_input_stream_from_pileup_file_(
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputStreamData data;
     data.file_path = filename;
-    data.source_name = utils::file_basename(
+    data.source_name = genesis::utils::core::file_basename(
         filename, { ".gz", ".plp", ".mplp", ".pileup", ".mpileup" }
     );
 
@@ -346,12 +348,12 @@ VariantInputStream make_variant_input_stream_from_sync_file_(
     >(
         filename, SyncReader(), sample_indices, inverse_sample_indices, sample_filter
     );
-    // auto input = std::make_shared<SyncInputStream>( utils::from_file( filename ));
+    // auto input = std::make_shared<SyncInputStream>( genesis::utils::io::from_file( filename ));
 
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputStreamData data;
     data.file_path = filename;
-    data.source_name = utils::file_basename( filename, { ".gz", ".sync" });
+    data.source_name = genesis::utils::core::file_basename( filename, { ".gz", ".sync" });
 
     if( input->get_sample_names().size() > 0 ) {
         // If we have sample names, using our ad-hoc extension, use these.
@@ -430,7 +432,7 @@ VariantInputStream make_variant_input_stream_from_frequency_table_file(
     // We wrap this in a shared pointer so that this very instance can stay alive
     // when being copied over to the lambda that we return from this function.
     auto input = std::make_shared<FrequencyTableInputStream>( reader );
-    input->input_source( utils::from_file( filename ));
+    input->input_source( genesis::utils::io::from_file( filename ));
     input->sample_names_filter(
         std::unordered_set<std::string>( sample_names_filter.begin(), sample_names_filter.end() )
     );
@@ -447,7 +449,7 @@ VariantInputStream make_variant_input_stream_from_frequency_table_file(
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputStreamData data;
     data.file_path = filename;
-    data.source_name = utils::file_basename(
+    data.source_name = genesis::utils::core::file_basename(
         filename, { ".csv", ".csv.gz", ".tsv", ".tsv.gz", ".txt" }
     );
 
@@ -511,7 +513,7 @@ VariantInputStream make_variant_input_stream_from_vcf_file_(
     // Get the data, using the file base name without path and potential extensions as source.
     VariantInputStreamData data;
     data.file_path = filename;
-    data.source_name = utils::file_basename( filename, { ".gz", ".vcf", ".bcf" });
+    data.source_name = genesis::utils::core::file_basename( filename, { ".gz", ".vcf", ".bcf" });
     data.sample_names = input->header().get_sample_names();
 
     // The input is copied over to the lambda, and that copy is kept alive

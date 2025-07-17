@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,14 +46,16 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Reading
 // =================================================================================================
 
-CsvReader::Table CsvReader::read( std::shared_ptr<BaseInputSource> source ) const
-{
-    utils::InputStream it( source );
+CsvReader::Table CsvReader::read(
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+) const {
+    genesis::utils::io::InputStream it( source );
     return parse_document( it );
 }
 
@@ -62,7 +64,7 @@ CsvReader::Table CsvReader::read( std::shared_ptr<BaseInputSource> source ) cons
 // =================================================================================================
 
 CsvReader::Table CsvReader::parse_document(
-    utils::InputStream& input_stream
+    genesis::utils::io::InputStream& input_stream
 ) const {
     auto& it = input_stream;
     Table result;
@@ -83,8 +85,11 @@ CsvReader::Table CsvReader::parse_document(
 //     Parse Field
 // =================================================================================================
 
-std::string CsvReader::parse_field( utils::InputStream& input_stream ) const
+std::string CsvReader::parse_field( genesis::utils::io::InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+    using namespace genesis::utils::text;
+
     // Init. We use a buffer in order to keep memory reallocations to a minimum.
     // See see member variable in the class declaration for more information.
     auto& it = input_stream;
@@ -157,8 +162,11 @@ std::string CsvReader::parse_field( utils::InputStream& input_stream ) const
 //     Parse Line
 // =================================================================================================
 
-std::vector<std::string> CsvReader::parse_line( utils::InputStream& input_stream ) const
+std::vector<std::string> CsvReader::parse_line( genesis::utils::io::InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+    using namespace genesis::utils::text;
+
     // Init.
     auto& it = input_stream;
     std::vector<std::string> result;
@@ -233,5 +241,6 @@ std::vector<std::string> CsvReader::parse_line( utils::InputStream& input_stream
     return result;
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

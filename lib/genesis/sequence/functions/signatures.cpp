@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -186,7 +186,9 @@ std::vector<size_t> signature_ranks(
 ) {
     // We use frequencies, because the ranking expects a vec of double,
     // and not a vec of size_t as returned by the counts signature...
-    return utils::ranking_standard( signature_frequencies( sequence, settings ) );
+    return genesis::utils::math::ranking_standard(
+        signature_frequencies( sequence, settings )
+    );
 }
 
 std::vector<size_t> signature_symmetrized_ranks(
@@ -195,7 +197,9 @@ std::vector<size_t> signature_symmetrized_ranks(
 ) {
     // We use frequencies, because the ranking expects a vec of double,
     // and not a vec of size_t as returned by the counts signature...
-    return utils::ranking_standard( signature_symmetrized_frequencies( sequence, settings ) );
+    return genesis::utils::math::ranking_standard(
+        signature_symmetrized_frequencies( sequence, settings )
+    );
 }
 
 // =================================================================================================

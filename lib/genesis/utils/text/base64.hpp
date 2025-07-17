@@ -37,6 +37,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // ================================================================================================
 //     Base 64 Encode/Decode
@@ -48,6 +49,7 @@ std::string base64_encode( std::string const& input, size_t line_length = 76 );
 std::vector<std::uint8_t> base64_decode_uint8( std::string const& input );
 std::string base64_decode_string( std::string const& input );
 
+} // namespace text
 } // namespace utils
 } // namespace genesis
 

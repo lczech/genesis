@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,10 +54,12 @@ namespace tree {
 }
 
 namespace utils {
+namespace containers {
 
     template<typename T>
     class Matrix;
 
+}
 }
 
 namespace placement {
@@ -69,7 +71,7 @@ namespace placement {
 /**
  * @brief Simple histogram data structure with equal sized bins.
  *
- * This struct is used as a fast and light-weight alternative to the proper utils::Histogram class
+ * This struct is used as a fast and light-weight alternative to the proper genesis::utils::math::Histogram class
  * for calculating Node Histogram distances.
  */
 struct NodeDistanceHistogram
@@ -101,8 +103,8 @@ struct NodeDistanceHistogramSet
  */
 NodeDistanceHistogramSet node_distance_histogram_set(
     Sample const& sample,
-    utils::Matrix<double> const& node_distances,
-    utils::Matrix<signed char> const& node_sides,
+    genesis::utils::containers::Matrix<double> const& node_distances,
+    genesis::utils::containers::Matrix<signed char> const& node_sides,
     size_t const  histogram_bins
 );
 
@@ -118,7 +120,7 @@ double node_histogram_distance(
  * @brief Given the histogram sets that describe a set of Sample%s, calculate their pairwise
  * distance matrix.
  */
-utils::Matrix<double> node_histogram_distance(
+genesis::utils::containers::Matrix<double> node_histogram_distance(
     std::vector<NodeDistanceHistogramSet> const& histogram_sets
 );
 
@@ -147,7 +149,7 @@ double node_histogram_distance(
 * This is a high level convenience function that takes a whole SampleSet, calculates
 * the necessary matrices, builds the histograms, and calculates their distances.
 */
-utils::Matrix<double> node_histogram_distance(
+genesis::utils::containers::Matrix<double> node_histogram_distance(
     SampleSet const& sample_set,
     size_t const     histogram_bins = 25
 );

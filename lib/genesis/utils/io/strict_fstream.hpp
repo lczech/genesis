@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,6 +69,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // ================================================================================================
 //     Strict Input File Stream
@@ -183,6 +184,7 @@ public:
     void open( std::string const& filename, std::ios_base::openmode mode = std::ios_base::in );
 };
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

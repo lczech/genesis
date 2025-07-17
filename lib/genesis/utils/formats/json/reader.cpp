@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,14 +47,15 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Reading
 // =================================================================================================
 
-JsonDocument JsonReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
+JsonDocument JsonReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
 {
-    utils::InputStream is( source );
+    genesis::utils::io::InputStream is( source );
     return parse( is );
 }
 
@@ -68,6 +69,9 @@ JsonDocument JsonReader::read( std::shared_ptr<utils::BaseInputSource> source ) 
 
 JsonDocument JsonReader::parse( InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+    using namespace genesis::utils::text;
+
     JsonDocument result = parse_value( input_stream );
     skip_while( input_stream, is_space );
     if( input_stream ) {
@@ -84,6 +88,8 @@ JsonDocument JsonReader::parse( InputStream& input_stream ) const
 
 JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+    using namespace genesis::utils::text;
     auto& it = input_stream;
 
     // Go to first non-white char.
@@ -111,7 +117,7 @@ JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
 
     // Either null or boolean.
     } else if( is_alpha( *it ) ) {
-        auto value = utils::to_lower( read_while( it, is_alpha ));
+        auto value = to_lower( read_while( it, is_alpha ));
 
         // If it is a null token, return an empty Json doc.
         if(  value == "null" ) {
@@ -146,6 +152,9 @@ JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
 
 JsonDocument JsonReader::parse_array( InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+    using namespace genesis::utils::text;
+
     JsonDocument doc = JsonDocument::array();
     auto& it = input_stream;
 
@@ -192,6 +201,9 @@ JsonDocument JsonReader::parse_array( InputStream& input_stream ) const
 
 JsonDocument JsonReader::parse_object( InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+    using namespace genesis::utils::text;
+
     JsonDocument doc = JsonDocument::object();
     auto& it = input_stream;
 
@@ -247,6 +259,9 @@ JsonDocument JsonReader::parse_object( InputStream& input_stream ) const
 
 JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
 {
+    using namespace genesis::utils::io;
+    using namespace genesis::utils::text;
+
     auto& it = input_stream;
     skip_while( it, is_space );
     if( !it ) {
@@ -276,7 +291,7 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
     }
 
     // If not float
-    if( found_mantisse && !( *it == '.' || utils::to_lower(*it) == 'e' ) ) {
+    if( found_mantisse && !( *it == '.' || genesis::utils::text::to_lower(*it) == 'e' ) ) {
         if( is_neg ) {
             return JsonDocument::number_signed( -ix );
         } else {
@@ -307,7 +322,7 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
     }
 
     // Exponential part
-    if( it && utils::to_lower(*it) == 'e' ) {
+    if( it && genesis::utils::text::to_lower(*it) == 'e' ) {
         ++it;
 
         // Read the exp. If there are no digits, this throws.
@@ -342,5 +357,6 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
     return JsonDocument::number_float( dx );
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

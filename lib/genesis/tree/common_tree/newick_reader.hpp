@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -233,7 +233,7 @@ public:
 
         // Handle underscores/spaces.
         if( replace_name_underscores_ ) {
-            name = utils::replace_all(name, "_", " ");
+            name = genesis::utils::text::replace_all(name, "_", " ");
         }
 
         node.data<CommonNodeData>().name = name;

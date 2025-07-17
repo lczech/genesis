@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ SiteCounts::SiteCounts( std::string const& characters, size_t length )
     // We store the chars per row, and the sites per column (e.g., one column represents the 'A's
     // for all sites, while one row represents the possible chars for one site).
     // This way, we use cache locality when filling in data.
-    counts_ = utils::Matrix< CountsIntType >( length, characters_.size() );
+    counts_ = genesis::utils::containers::Matrix< CountsIntType >( length, characters_.size() );
 }
 
 // ================================================================================================
@@ -178,7 +178,7 @@ void SiteCounts::clear()
 {
     characters_ = "";
     lookup_.set_all( 0 );
-    counts_ = utils::Matrix< CountsIntType >();
+    counts_ = genesis::utils::containers::Matrix< CountsIntType >();
     num_seqs_ = 0;
 }
 

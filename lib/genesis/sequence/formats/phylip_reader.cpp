@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ PhylipReader::PhylipReader()
 //     Reading
 // =================================================================================================
 
-SequenceSet PhylipReader::read( std::shared_ptr<utils::BaseInputSource> source ) const
+SequenceSet PhylipReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
 {
     // Create a new set and fill it.
     SequenceSet result;
@@ -70,9 +70,9 @@ SequenceSet PhylipReader::read( std::shared_ptr<utils::BaseInputSource> source )
     return result;
 }
 
-void PhylipReader::read( std::shared_ptr<utils::BaseInputSource> source, SequenceSet& target ) const
+void PhylipReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source, SequenceSet& target ) const
 {
-    utils::InputStream it( source );
+    genesis::utils::io::InputStream it( source );
     switch( mode_ ) {
         case Mode::kSequential: {
             parse_phylip_sequential( it, target );
@@ -93,13 +93,14 @@ void PhylipReader::read( std::shared_ptr<utils::BaseInputSource> source, Sequenc
 //     Parsing
 // =================================================================================================
 
-PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it ) const
+PhylipReader::Header PhylipReader::parse_phylip_header( genesis::utils::io::InputStream& it ) const
 {
+    using namespace genesis::utils::io;
     Header result;
 
     // Read number of sequences.
-    utils::skip_while( it, ::isblank );
-    std::string num_seq_str = utils::read_while( it, ::isdigit );
+    skip_while( it, ::isblank );
+    std::string num_seq_str = read_while( it, ::isdigit );
     if( num_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting sequence number at "
@@ -109,8 +110,8 @@ PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it )
     result.num_sequences = std::stoull( num_seq_str );
 
     // Read length of sequences.
-    utils::skip_while( it, ::isblank );
-    std::string len_seq_str = utils::read_while( it, ::isdigit );
+    skip_while( it, ::isblank );
+    std::string len_seq_str = read_while( it, ::isdigit );
     if( len_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting sequence length at "
@@ -127,20 +128,21 @@ PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it )
     }
 
     // Process end of header line and proceed to first non-empty line.
-    utils::skip_while( it, ::isblank );
-    result.options = utils::trim_right( utils::read_to_end_of_line( it ));
+    skip_while( it, ::isblank );
+    result.options = genesis::utils::text::trim_right( read_to_end_of_line( it ));
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting end of line at " + it.at() + "."
         );
     }
-    utils::skip_while( it, '\n' );
+    skip_while( it, '\n' );
 
     return result;
 }
 
-std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
+std::string PhylipReader::parse_phylip_label( genesis::utils::io::InputStream& it ) const
 {
+    using namespace genesis::utils::io;
     std::string label;
 
     // Labels need to start with some graphical char.
@@ -152,14 +154,14 @@ std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
 
     // Scan label until first blank/tab.
     if( label_length_ == 0 ) {
-        label = utils::read_while( it, ::isgraph );
+        label = read_while( it, ::isgraph );
         if( !it || ! ::isblank( *it ) ) {
             throw std::runtime_error(
                 "Malformed Phylip " + it.source_name() + ": Expecting delimiting white space at "
                 + it.at() + "."
             );
         }
-        utils::skip_while( it, ::isblank );
+        skip_while( it, ::isblank );
 
     // Scan label for `label_length` many chars.
     } else {
@@ -173,34 +175,34 @@ std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
             label += *it;
             ++it;
         }
-        label = utils::trim( label );
+        label = genesis::utils::text::trim( label );
     }
 
-    label = utils::trim( label );
+    label = genesis::utils::text::trim( label );
     assert( label.size() > 0 );
     return label;
 }
 
-std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) const
+std::string PhylipReader::parse_phylip_sequence_line( genesis::utils::io::InputStream& it ) const
 {
     // Read the (rest of) the current line from the input.
     auto seq = it.get_line();
 
     // Clean up as needed. Blanks always, digits only on demand.
-    utils::erase_if( seq, []( char c ){
+    genesis::utils::core::erase_if( seq, []( char c ){
         return c == ' ' || c == '\t';
     });
     if( remove_digits_ ) {
-        utils::erase_if( seq, []( char c ){
+        genesis::utils::core::erase_if( seq, []( char c ){
             return  ::isdigit( c );
         });
     }
 
     // Change case as needed.
     if( site_casing_ == SiteCasing::kToUpper ) {
-        seq = utils::to_upper_ascii( seq );
+        seq = genesis::utils::text::to_upper_ascii( seq );
     } else if( site_casing_ == SiteCasing::kToLower ) {
-        seq = utils::to_lower_ascii( seq );
+        seq = genesis::utils::text::to_lower_ascii( seq );
     }
 
     // Validate as needed.
@@ -209,7 +211,7 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) c
             if( !lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Phylip " + it.source_name() + ": Invalid sequence symbol "
-                    + utils::char_to_hex( c )
+                    + genesis::utils::text::char_to_hex( c )
                     + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
@@ -219,7 +221,7 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) c
     return seq;
 }
 
-void PhylipReader::parse_phylip_sequential(  utils::InputStream& it, SequenceSet& sset ) const
+void PhylipReader::parse_phylip_sequential(  genesis::utils::io::InputStream& it, SequenceSet& sset ) const
 {
     // Parse header line.
     auto header = parse_phylip_header( it );
@@ -260,7 +262,7 @@ void PhylipReader::parse_phylip_sequential(  utils::InputStream& it, SequenceSet
     }
 
     // Final checks.
-    utils::skip_while( it, isspace );
+    genesis::utils::io::skip_while( it, isspace );
     if( it ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expected end of file at " + it.at() + "."
@@ -269,7 +271,7 @@ void PhylipReader::parse_phylip_sequential(  utils::InputStream& it, SequenceSet
     assert( sset.size() == num_seq );
 }
 
-void PhylipReader::parse_phylip_interleaved( utils::InputStream& it, SequenceSet& sset ) const
+void PhylipReader::parse_phylip_interleaved( genesis::utils::io::InputStream& it, SequenceSet& sset ) const
 {
     // Parse header line.
     auto header = parse_phylip_header( it );
@@ -412,7 +414,7 @@ std::string PhylipReader::valid_chars() const
     }
 }
 
-utils::CharLookup<bool>& PhylipReader::valid_char_lookup()
+genesis::utils::CharLookup<bool>& PhylipReader::valid_char_lookup()
 {
     return lookup_;
 }

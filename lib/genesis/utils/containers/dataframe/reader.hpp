@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     DataframeReader
@@ -68,7 +69,7 @@ public:
         reader_.separator_chars( std::string( 1, separator_char ));
     }
 
-    explicit DataframeReader( CsvReader const& reader )
+    explicit DataframeReader( genesis::utils::formats::CsvReader const& reader )
         : reader_( reader )
     {}
 
@@ -85,9 +86,9 @@ public:
     // -------------------------------------------------------------
 
     Dataframe read(
-        std::shared_ptr<BaseInputSource> source
+        std::shared_ptr<genesis::utils::io::BaseInputSource> source
     ) const {
-        utils::InputStream is( source );
+        genesis::utils::io::InputStream is( source );
         return parse_( is );
     }
 
@@ -117,12 +118,12 @@ public:
         return *this;
     }
 
-    CsvReader& csv_reader()
+    genesis::utils::formats::CsvReader& csv_reader()
     {
         return reader_;
     }
 
-    CsvReader const& csv_reader() const
+    genesis::utils::formats::CsvReader const& csv_reader() const
     {
         return reader_;
     }
@@ -151,7 +152,7 @@ public:
 private:
 
     Dataframe parse_(
-        utils::InputStream& input_stream
+        genesis::utils::io::InputStream& input_stream
     ) const {
         Dataframe result;
         size_t const offset = ( row_names_from_first_col_ ? 1 : 0 );
@@ -216,6 +217,7 @@ private:
             }
 
             // Parse and transfer the data. User specified parser or default one.
+            using namespace genesis::utils::text;
             auto const row_idx = result.rows() - 1;
             if( parse_value_ ) {
                 for( size_t i = 0; i < result.cols(); ++i ) {
@@ -280,12 +282,13 @@ private:
     bool row_names_from_first_col_ = true;
     bool trim_whitespace_ = false;
 
-    CsvReader reader_;
+    genesis::utils::formats::CsvReader reader_;
 
     std::function<T( std::string const& )> parse_value_;
 
 };
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

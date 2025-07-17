@@ -54,44 +54,44 @@ class SequenceSet;
 // =================================================================================================
 
 /**
- * @brief Find sites by character and mark them in a @link utils::Bitvector Bitvector@endlink.
+ * @brief Find sites by character and mark them in a @link genesis::utils::bit::Bitvector Bitvector@endlink.
  *
  * The function iterates the sites of a Sequence and checkes whether the char at a site is in the
  * provided set of @p chars (case insensitive).
  * If so, the resulting Bitvector is set to `true` at that position.
  */
-utils::Bitvector find_sites(
+genesis::utils::bit::Bitvector find_sites(
     Sequence const& seq,
     std::string const& chars
 );
 
 /**
- * @brief Find sites by character and mark them in a @link utils::Bitvector Bitvector@endlink.
+ * @brief Find sites by character and mark them in a @link genesis::utils::bit::Bitvector Bitvector@endlink.
  *
  * The function iterates the sites of a Sequence and checkes whether the char at a site is set to
  * true in the provided lookup of @p chars. If so, the resulting Bitvector is set to `true` at
  * that position.
  */
-utils::Bitvector find_sites(
+genesis::utils::bit::Bitvector find_sites(
     Sequence const& seq,
-    utils::CharLookup<bool> const& chars
+    genesis::utils::CharLookup<bool> const& chars
 );
 
 /**
- * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where the Sequence has
+ * @brief Return a @link genesis::utils::bit::Bitvector Bitvector@endlink that is `true` where the Sequence has
  * a gap and `false` where not.
  *
  * The `gap_chars` are used case-insensitively to determine what is considerted to be a gap.
  * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
  * is allowed.
  */
-utils::Bitvector gap_sites(
+genesis::utils::bit::Bitvector gap_sites(
     Sequence const& seq,
     std::string const& gap_chars = nucleic_acid_codes_undetermined()
 );
 
 /**
- * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where all Sequence%s in
+ * @brief Return a @link genesis::utils::bit::Bitvector Bitvector@endlink that is `true` where all Sequence%s in
  * the SequenceSet have a gap and `false` where not, that is, where at least on Sequence is not a
  * gap.
  *
@@ -99,7 +99,7 @@ utils::Bitvector gap_sites(
  * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
  * is allowed.
  */
-utils::Bitvector gap_sites(
+genesis::utils::bit::Bitvector gap_sites(
     SequenceSet const& set,
     std::string const& gap_chars = nucleic_acid_codes_undetermined()
 );
@@ -136,18 +136,18 @@ bool is_alignment( SequenceSet const& set );
 // =================================================================================================
 
 /**
- * @brief Remove all sites from a Sequence where the given @link utils::Bitvector Bitvector@endlink
+ * @brief Remove all sites from a Sequence where the given @link genesis::utils::bit::Bitvector Bitvector@endlink
  * is `true`, and keep all others.
  *
  * The Bitvector needs to have the same size as the Sequence, otherwise an expection is thrown.
  *
  * This function is for example useful in combination with gap_sites().
  */
-void remove_sites( Sequence&    seq, utils::Bitvector sites );
+void remove_sites( Sequence&    seq, genesis::utils::bit::Bitvector sites );
 
 /**
  * @brief Remove all sites from all Sequence%s in a SequenceSet where the given
- * @link utils::Bitvector Bitvector@endlink is `true`, and keep all others.
+ * @link genesis::utils::bit::Bitvector Bitvector@endlink is `true`, and keep all others.
  *
  * The Bitvector and all Sequences need to have the same size, otherwise an expection is thrown.
  * This check is done before any Sequence is changed. Thus, if the function throws for this reason,
@@ -155,7 +155,7 @@ void remove_sites( Sequence&    seq, utils::Bitvector sites );
  *
  * This function is for example useful in combination with gap_sites().
  */
-void remove_sites( SequenceSet& set, utils::Bitvector sites );
+void remove_sites( SequenceSet& set, genesis::utils::bit::Bitvector sites );
 
 /**
  * @brief Remove all sites that only contain gap characters from the SequenceSet.

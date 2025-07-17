@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -141,7 +141,7 @@ public:
         std::pair<SortedSampleCounts, SortedSampleCounts> const& sample_counts
     ) {
         // PoPoolation2 function: calculate_nk_dk
-        using namespace genesis::utils;
+        using namespace genesis::utils::math;
 
         // Error check. We only want biallelic SNPs, so we check that the smallest two values
         // here are actually zero.
@@ -208,8 +208,8 @@ public:
 private:
 
     // Result values.
-    utils::NeumaierSum sum_nk_ = 0.0;
-    utils::NeumaierSum sum_dk_ = 0.0;
+    genesis::utils::math::NeumaierSum sum_nk_ = 0.0;
+    genesis::utils::math::NeumaierSum sum_dk_ = 0.0;
 
 };
 

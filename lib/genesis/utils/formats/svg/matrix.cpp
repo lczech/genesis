@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,13 +42,14 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Matrix
 // =================================================================================================
 
 SvgGroup make_svg_matrix(
-    Matrix<Color> const& mat,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& mat,
     SvgMatrixSettings settings,
     std::vector<std::string> const& row_labels,
     std::vector<std::string> const& col_labels
@@ -135,7 +136,7 @@ SvgGroup make_svg_matrix(
 }
 
 SvgGroup make_svg_matrix(
-    Matrix<Color> const& mat,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& mat,
     SvgMatrixSettings settings,
     std::vector<std::string> const& row_labels
 ) {
@@ -145,7 +146,7 @@ SvgGroup make_svg_matrix(
 }
 
 SvgGroup make_svg_matrix(
-    Matrix<Color> const& mat,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& mat,
     SvgMatrixSettings settings
 ) {
     return make_svg_matrix(
@@ -153,5 +154,6 @@ SvgGroup make_svg_matrix(
     );
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

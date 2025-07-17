@@ -57,7 +57,7 @@ namespace tree {
 //     Phylogenetic ILR Tranform
 // =================================================================================================
 
-utils::Matrix<double> phylogenetic_ilr_transform(
+genesis::utils::containers::Matrix<double> phylogenetic_ilr_transform(
     BalanceData const& data,
     bool reverse_signs
 ) {
@@ -96,10 +96,10 @@ utils::Matrix<double> phylogenetic_ilr_transform(
     };
 
     // Prepare result matrix.
-    auto result = utils::Matrix<double>( data.edge_masses.rows(), data.tree.node_count(), 0.0 );
+    auto result = genesis::utils::containers::Matrix<double>( data.edge_masses.rows(), data.tree.node_count(), 0.0 );
 
     // Calculate balance for every node of the tree.
-    utils::parallel_for( 0, data.tree.node_count(), [&]( size_t node_idx )
+    genesis::utils::threading::parallel_for( 0, data.tree.node_count(), [&]( size_t node_idx )
     {
         auto const& node = data.tree.node_at( node_idx );
         assert( node.index() == node_idx );
@@ -149,7 +149,7 @@ utils::Matrix<double> phylogenetic_ilr_transform(
     return result;
 }
 
-utils::Matrix<double> edge_balances(
+genesis::utils::containers::Matrix<double> edge_balances(
     BalanceData const& data,
     bool reverse_signs
 ) {
@@ -179,10 +179,10 @@ utils::Matrix<double> edge_balances(
     };
 
     // Prepare result matrix.
-    auto result = utils::Matrix<double>( data.edge_masses.rows(), data.tree.edge_count(), 0.0 );
+    auto result = genesis::utils::containers::Matrix<double>( data.edge_masses.rows(), data.tree.edge_count(), 0.0 );
 
     // Calculate balance for every node of the tree.
-    utils::parallel_for( 0, data.tree.edge_count(), [&]( size_t edge_idx )
+    genesis::utils::threading::parallel_for( 0, data.tree.edge_count(), [&]( size_t edge_idx )
     {
         auto const& edge = data.tree.edge_at( edge_idx );
         assert( edge.index() == edge_idx );

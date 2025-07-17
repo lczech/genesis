@@ -125,7 +125,7 @@ bool equal(
     // if we already know the result.
 
     bool result = true;
-    utils::parallel_for( 1, trees.size(), [&]( size_t i ){
+    genesis::utils::threading::parallel_for( 1, trees.size(), [&]( size_t i ){
         if( ! result ) {
             // continue;
             return;
@@ -197,7 +197,7 @@ bool identical_topology( std::vector<Tree> const& trees, bool identical_indices 
     // if we already know the result.
 
     bool result = true;
-    utils::parallel_for( 1, trees.size(), [&]( size_t i ){
+    genesis::utils::threading::parallel_for( 1, trees.size(), [&]( size_t i ){
         if( ! result ) {
             // continue;
             return;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,6 +51,9 @@
 using namespace genesis;
 using namespace genesis::tree;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::text;
 
 TEST(Newick, FromAndToString)
 {
@@ -168,10 +171,10 @@ TEST(Newick, ColorPlugin)
     tree = CommonTreeNewickReader().read( from_string(input));
 
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
-    auto color_vector = std::vector<utils::Color>( tree.edge_count() );
+    auto color_vector = std::vector<utils::color::Color>( tree.edge_count() );
     for( auto const& edge : tree.edges() ) {
         if( is_leaf( edge.primary_node() ) || is_leaf( edge.secondary_node() )) {
-            color_vector[ edge.index() ] = utils::Color(1, 0, 0);
+            color_vector[ edge.index() ] = utils::color::Color(1, 0, 0);
         }
     }
 
@@ -179,16 +182,16 @@ TEST(Newick, ColorPlugin)
     // We set ignored color to fuchsia ("magic pink") in order to also print out the black colored
     // inner edges.
     color_plugin.edge_colors(color_vector);
-    color_plugin.ignored_color(utils::Color(1, 0, 1));
+    color_plugin.ignored_color(utils::color::Color(1, 0, 1));
     std::string output = writer.to_string(tree);
 
     // Check if we actually got the right number of red color tag comments.
-    auto count_red = utils::count_substring_occurrences( output, "[&!color=#ff0000]" );
+    auto count_red = count_substring_occurrences( output, "[&!color=#ff0000]" );
     EXPECT_EQ( leaf_node_count(tree), count_red );
 
     // Check if we also got the right number of black color tag comments.
     // This is one fewer than the number of nodes, as no color tag is written for the root.
-    auto count_black = utils::count_substring_occurrences( output, "[&!color=#000000]" );
+    auto count_black = count_substring_occurrences( output, "[&!color=#000000]" );
     EXPECT_EQ( inner_node_count(tree) - 1, count_black );
 }
 

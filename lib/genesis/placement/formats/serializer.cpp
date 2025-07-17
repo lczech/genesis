@@ -64,7 +64,7 @@ unsigned char SampleSerializer::version = 1;
 void SampleSerializer::save( Sample const& map, std::string const& file_name )
 {
     // Prepare.
-    utils::Serializer ser( utils::to_file( file_name ));
+    genesis::utils::io::Serializer ser( genesis::utils::io::to_file( file_name ));
     // if (!ser) {
     //     throw std::invalid_argument("Serialization failed.");
     // }
@@ -81,7 +81,7 @@ void SampleSerializer::save( Sample const& map, std::string const& file_name )
     nw.enable_names(true);
     nw.enable_branch_lengths(true);
     std::string tree;
-    nw.write( map.tree(), utils::to_string( tree ));
+    nw.write( map.tree(), genesis::utils::io::to_string( tree ));
     ser.put( tree );
 
     // Write pqueries.
@@ -123,7 +123,7 @@ Sample SampleSerializer::load( std::string const& file_name )
     Sample map;
 
     // Prepare, check stream status.
-    utils::Deserializer des( utils::from_file( file_name ));
+    genesis::utils::io::Deserializer des( genesis::utils::io::from_file( file_name ));
     if( ! des ) {
         throw std::invalid_argument( "Deserialization failed: Cannot open file." );
     }
@@ -141,7 +141,9 @@ Sample SampleSerializer::load( std::string const& file_name )
 
     // Read and check tree.
     auto tree_string = des.get<std::string>();
-    map.tree() = PlacementTreeNewickReader().read( utils::from_string( tree_string ));
+    map.tree() = PlacementTreeNewickReader().read(
+        genesis::utils::io::from_string( tree_string )
+    );
 
     // Read pqueries.
     size_t num_pqueries = des.get<size_t>();
@@ -191,7 +193,7 @@ void SampleSerializer::load( std::vector<std::string> const& file_names, SampleS
     auto tmp = std::vector<Sample>( file_names.size() );
 
     // Parallel loading.
-    utils::parallel_for(
+    genesis::utils::threading::parallel_for(
         0, file_names.size(),
         [&](size_t i)
         {
@@ -201,12 +203,12 @@ void SampleSerializer::load( std::vector<std::string> const& file_names, SampleS
 
     // Move to target SampleSet.
     for( size_t i = 0; i < file_names.size(); ++i ) {
-        auto const name = utils::file_filename( utils::file_basename( file_names[i] ) );
+        auto const name = genesis::utils::core::file_filename( genesis::utils::core::file_basename( file_names[i] ) );
         sample_set.add( std::move( tmp[i] ), name );
     }
 
     // for( auto const& fn : file_names ) {
-    //     auto const name = utils::file_filename( utils::file_basename(fn) );
+    //     auto const name = genesis::utils::core::file_filename( genesis::utils::core::file_basename(fn) );
     //     sample_set.add( load( fn ), name );
     // }
 

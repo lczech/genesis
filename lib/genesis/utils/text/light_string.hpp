@@ -49,6 +49,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // =================================================================================================
 //     Lightweight String
@@ -74,7 +75,7 @@ public:
      * @brief  Default constructor creates an empty string ("")
      */
     LightString()
-        : data_( ::genesis::utils::make_unique<char[]>( 1 ))
+        : data_( ::genesis::utils::core::make_unique<char[]>( 1 ))
     {
         data_[0] = '\0';
     }
@@ -87,11 +88,11 @@ public:
         if( str ) {
             // Get the length of the string and allocate space (including null terminator)
             size_t len = std::strlen(str);
-            data_ = ::genesis::utils::make_unique<char[]>(len + 1);
+            data_ = ::genesis::utils::core::make_unique<char[]>(len + 1);
             std::memcpy(data_.get(), str, len + 1);
         } else {
             // If null pointer provided, create an empty string
-            data_ = ::genesis::utils::make_unique<char[]>(1);
+            data_ = ::genesis::utils::core::make_unique<char[]>(1);
             data_[0] = '\0';
         }
     }
@@ -111,7 +112,7 @@ public:
     explicit LightString( std::string_view sv )
     {
         size_t len = sv.size();
-        data_ = ::genesis::utils::make_unique<char[]>(len + 1);
+        data_ = ::genesis::utils::core::make_unique<char[]>(len + 1);
         std::memcpy(data_.get(), sv.data(), len);
         data_[len] = '\0';
     }
@@ -125,7 +126,7 @@ public:
     {
         assert( other.data_ );
         size_t len = std::strlen(other.data_.get());
-        data_ = ::genesis::utils::make_unique<char[]>(len + 1);
+        data_ = ::genesis::utils::core::make_unique<char[]>(len + 1);
         std::memcpy(data_.get(), other.data_.get(), len + 1);
     }
 
@@ -144,7 +145,7 @@ public:
         assert( other.data_ );
         if( this != &other ) {
             size_t len = std::strlen(other.data_.get());
-            data_ = ::genesis::utils::make_unique<char[]>(len + 1);
+            data_ = ::genesis::utils::core::make_unique<char[]>(len + 1);
             std::memcpy(data_.get(), other.data_.get(), len + 1);
         }
         return *this;
@@ -751,7 +752,7 @@ inline LightString operator+( LightString const& lhs, LightString const& rhs )
     // Allocate memory for the concatenated string (including null terminator),
     // and copy over the data of both.
     size_t new_size = lhs.size() + rhs.size();
-    auto buffer = ::genesis::utils::make_unique<char[]>(new_size + 1);
+    auto buffer = ::genesis::utils::core::make_unique<char[]>(new_size + 1);
     std::memcpy(buffer.get(), lhs.c_str(), lhs.size());
     std::memcpy(buffer.get() + lhs.size(), rhs.c_str(), rhs.size());
     buffer[new_size] = '\0';
@@ -812,6 +813,7 @@ inline LightString operator+( LightString const& lhs, std::string_view rhs )
 
 #endif // GENESIS_CPP_STD >= GENESIS_CPP_STD_17
 
+} // namespace text
 } // namespace utils
 } // namespace genesis
 
@@ -828,9 +830,9 @@ namespace std
      * @brief Provide a hash specialization for LightString
      */
     template<>
-    struct hash<::genesis::utils::LightString>
+    struct hash<::genesis::utils::text::LightString>
     {
-        inline std::size_t operator()( ::genesis::utils::LightString const& ls ) const noexcept
+        inline std::size_t operator()( ::genesis::utils::text::LightString const& ls ) const noexcept
         {
             // Construct a non-owning string_view from the LightString data without copying,
             // and use std::hash<std::string_view> which is typically equivalent to std::hash<std::string>
@@ -848,9 +850,9 @@ namespace std
      * such that we can use a std::string_view here for performance.
      */
     template<>
-    struct hash<::genesis::utils::LightString>
+    struct hash<::genesis::utils::text::LightString>
     {
-        std::size_t operator()( ::genesis::utils::LightString const& ls ) const
+        std::size_t operator()( ::genesis::utils::text::LightString const& ls ) const
         {
             // Use std::hash<std::string> on the converted std::string.
             // This is a simple solution and works well if hashing performance is not critical.

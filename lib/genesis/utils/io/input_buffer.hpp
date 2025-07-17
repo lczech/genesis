@@ -42,6 +42,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Input Buffer
@@ -312,7 +313,7 @@ private:
 
                 // Create the reader. We need to do this explictily,
                 // as we use a unique ptr to make this class movable.
-                input_reader_ = utils::make_unique<InputReader>( input_source );
+                input_reader_ = genesis::utils::core::make_unique<InputReader>( input_source );
                 input_reader_->start_reading( buffer_ + 2 * BlockLength, BlockLength );
             }
 
@@ -348,6 +349,7 @@ private:
 
 };
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

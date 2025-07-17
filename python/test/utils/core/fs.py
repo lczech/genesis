@@ -22,24 +22,24 @@
 import os
 import unittest
 from pathlib import Path
-from genesis.genesis import utils
+from genesis.genesis.utils import core
 import test_config
 
 class TestGenesisUtilsCoreFs(unittest.TestCase):
     def test_current_path(self):
-        # print(utils.current_path())
-        self.assertTrue(utils.current_path())
+        # print(core.current_path())
+        self.assertTrue(core.current_path())
 
-        gp = Path(utils.current_path()).absolute()
+        gp = Path(core.current_path()).absolute()
         op = Path(os.getcwd()).absolute()
         self.assertEqual(gp, op)
 
     def test_is_file(self):
         infile = os.path.join(test_config.test_data_dir, "utils/csv/table.csv")
-        self.assertTrue( utils.is_file(infile) )
-        self.assertFalse( utils.is_file("/road/to/nowhere") )
+        self.assertTrue( core.is_file(infile) )
+        self.assertFalse( core.is_file("/road/to/nowhere") )
 
     def test_file_read_lines(self):
         infile = os.path.join(test_config.test_data_dir, "utils/csv/table.csv")
-        lines = utils.file_read_lines( infile )
+        lines = core.file_read_lines( infile )
         self.assertEqual( len(lines), 11 )

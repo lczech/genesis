@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,8 @@
 #include "genesis/tree/tree.hpp"
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::utils::io;
 
 // =================================================================================================
 //     Preorder
@@ -52,7 +53,7 @@ void TestPreorder(std::string node_name, std::string out_nodes)
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree = CommonTreeNewickReader().read( utils::from_string(input));
+    Tree tree = CommonTreeNewickReader().read( from_string(input));
 
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
@@ -100,7 +101,7 @@ TEST (TreeIterator, PreorderSubtree)
 {
     // Prepare Tree.
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // The following heavily depends on the internal tree structure.
     // If this breaks, we might need a setup that finds nodes,

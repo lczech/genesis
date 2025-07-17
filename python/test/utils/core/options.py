@@ -20,20 +20,20 @@
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 import unittest
-from genesis.genesis import utils
+from genesis.genesis.utils import core
 
 class TestGenesisUtilsCoreOptions(unittest.TestCase):
     def test_thread_pool(self):
-        utils.Options.get().init_global_thread_pool(2)
-        self.assertEqual(utils.Options.get().global_thread_pool_size(), 2)
+        core.Options.get().init_global_thread_pool(2)
+        self.assertEqual(core.Options.get().global_thread_pool_size(), 2)
 
     def test_input_reading_policy(self):
         self.assertEqual(
-            utils.Options.get().input_reading_thread_policy(),
-            utils.Options.InputReadingThreadPolicy.kTrivialAsync
+            core.Options.get().input_reading_thread_policy(),
+            core.Options.InputReadingThreadPolicy.kTrivialAsync
         )
 
     def test_allow_file_overwriting(self):
-        self.assertEqual( utils.Options.get().allow_file_overwriting(), False )
-        utils.Options.get().allow_file_overwriting(True)
-        self.assertEqual( utils.Options.get().allow_file_overwriting(), True )
+        self.assertEqual( core.Options.get().allow_file_overwriting(), False )
+        core.Options.get().allow_file_overwriting(True)
+        self.assertEqual( core.Options.get().allow_file_overwriting(), True )

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
 // =================================================================================================
 //     Simple Cache
@@ -92,7 +93,9 @@ public:
 
     // We need a special hash function here that takes care of tuples.
     // See genesis/utils/containers/hash_tuple.hpp for details.
-    using container_type  = std::unordered_map<key_type, value_type, genesis::utils::hash<key_type>>;
+    using container_type  = std::unordered_map<
+        key_type, value_type, genesis::utils::containers::hash<key_type>
+    >;
 
     using const_iterator  = typename container_type::const_iterator;
 
@@ -134,7 +137,7 @@ public:
         for( size_t i = 0; i < shards; ++i ) {
             // Although we are in untils namespace here, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
-            shards_.push_back( genesis::utils::make_unique<Shard>() );
+            shards_.push_back( genesis::utils::core::make_unique<Shard>() );
         }
     }
 
@@ -313,7 +316,7 @@ private:
 
     size_t shard_index_( key_type const& key ) const
     {
-        return genesis::utils::hash<key_type>{}( key ) % shards_.size();
+        return genesis::utils::containers::hash<key_type>{}( key ) % shards_.size();
     }
 
     // -------------------------------------------------------------------------
@@ -344,6 +347,7 @@ private:
 
 };
 
+} // namespace containers
 } // namespace utils
 } // namespace genesis
 

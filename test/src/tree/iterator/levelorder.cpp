@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,7 +42,8 @@
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::utils::io;
 
 // =================================================================================================
 //     Levelorder
@@ -53,7 +54,7 @@ void TestLevelorder(std::string node_name, std::string out_nodes)
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     auto node = find_node( tree, node_name );
     ASSERT_NE( nullptr, node );
@@ -63,7 +64,7 @@ void TestLevelorder(std::string node_name, std::string out_nodes)
               +  it.node().data<CommonNodeData>().name
               +  " ";
     }
-    EXPECT_EQ( out_nodes, utils::trim( nodes )) << " with start node " << node_name;
+    EXPECT_EQ( out_nodes, utils::text::trim( nodes )) << " with start node " << node_name;
 }
 
 TEST (TreeIterator, Levelorder)
@@ -94,7 +95,7 @@ void TestLevelorderSubtree( Subtree const& subtree, const std::string expected_n
               +  it.node().data<CommonNodeData>().name
               +  " ";
     }
-    EXPECT_EQ( expected_nodes, utils::trim( nodes )) << " with start node " << name;
+    EXPECT_EQ( expected_nodes, utils::text::trim( nodes )) << " with start node " << name;
 
     // Use free function iterator wrapper.
     nodes = "";
@@ -105,14 +106,14 @@ void TestLevelorderSubtree( Subtree const& subtree, const std::string expected_n
               +  it.node().data<CommonNodeData>().name
               +  " ";
     }
-    EXPECT_EQ( expected_nodes, utils::trim( nodes )) << " with start node " << name;
+    EXPECT_EQ( expected_nodes, utils::text::trim( nodes )) << " with start node " << name;
 }
 
 TEST (TreeIterator, LevelorderSubtree)
 {
     // Prepare Tree.
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    Tree tree = CommonTreeNewickReader().read( utils::from_string( input ));
+    Tree tree = CommonTreeNewickReader().read( from_string( input ));
 
     // The following heavily depends on the internal tree structure.
     // If this breaks, we might need a setup that finds nodes,

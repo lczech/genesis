@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,14 +124,14 @@ public:
      */
     using EdgeContainerType  = ContainerType< TreeEdge >;
 
-    using      IteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::iterator >;
-    using ConstIteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
+    using      IteratorLinks = genesis::utils::containers::DereferenceIterator< ContainerType<TreeLink>::iterator >;
+    using ConstIteratorLinks = genesis::utils::containers::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
 
-    using      IteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::iterator >;
-    using ConstIteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
+    using      IteratorNodes = genesis::utils::containers::DereferenceIterator< ContainerType<TreeNode>::iterator >;
+    using ConstIteratorNodes = genesis::utils::containers::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
 
-    using      IteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
-    using ConstIteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
+    using      IteratorEdges = genesis::utils::containers::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
+    using ConstIteratorEdges = genesis::utils::containers::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Construction and Rule of Five
@@ -381,12 +381,12 @@ public:
         return links_.cend();
     }
 
-    utils::Range<IteratorLinks> links()
+    genesis::utils::containers::Range<IteratorLinks> links()
     {
         return { links_ };
     }
 
-    utils::Range<ConstIteratorLinks> links() const
+    genesis::utils::containers::Range<ConstIteratorLinks> links() const
     {
         return { links_ };
     }
@@ -415,12 +415,12 @@ public:
         return nodes_.cend();
     }
 
-    utils::Range<IteratorNodes> nodes()
+    genesis::utils::containers::Range<IteratorNodes> nodes()
     {
         return { nodes_ };
     }
 
-    utils::Range<ConstIteratorNodes> nodes() const
+    genesis::utils::containers::Range<ConstIteratorNodes> nodes() const
     {
         return { nodes_ };
     }
@@ -449,12 +449,12 @@ public:
         return edges_.cend();
     }
 
-    utils::Range<IteratorEdges> edges()
+    genesis::utils::containers::Range<IteratorEdges> edges()
     {
         return { edges_ };
     }
 
-    utils::Range<ConstIteratorEdges> edges() const
+    genesis::utils::containers::Range<ConstIteratorEdges> edges() const
     {
         return { edges_ };
     }

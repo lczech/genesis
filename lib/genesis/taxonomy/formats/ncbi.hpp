@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -105,20 +105,20 @@ struct NcbiTableParameters
 };
 
 NcbiNodeLookup read_ncbi_node_table(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
 );
 
 NcbiNodeLookup read_ncbi_node_table(
-    std::shared_ptr<utils::BaseInputSource> source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
     NcbiTableParameters const& params
 );
 
 NcbiNameLookup read_ncbi_name_table(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
 );
 
 NcbiNameLookup read_ncbi_name_table(
-    std::shared_ptr<utils::BaseInputSource> source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
     NcbiTableParameters const& params
 );
 
@@ -143,13 +143,13 @@ Taxonomy read_ncbi_taxonomy(
 );
 
 Taxonomy read_ncbi_taxonomy(
-    std::shared_ptr<utils::BaseInputSource> node_source,
-    std::shared_ptr<utils::BaseInputSource> name_source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> node_source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> name_source
 );
 
 Taxonomy read_ncbi_taxonomy(
-    std::shared_ptr<utils::BaseInputSource> node_source,
-    std::shared_ptr<utils::BaseInputSource> name_source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> node_source,
+    std::shared_ptr<genesis::utils::io::BaseInputSource> name_source,
     NcbiTableParameters const& params
 );
 

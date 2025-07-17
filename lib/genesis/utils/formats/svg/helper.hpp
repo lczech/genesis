@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Forward Declarations
@@ -243,7 +244,7 @@ inline std::string svg_data_uri(
 ) {
     return "data:" + media_type + (
         encode_base64
-        ? ( ";base64," + base64_encode( content ))
+        ? ( ";base64," + genesis::utils::text::base64_encode( content ))
         : ( "," + content )
     );
 }
@@ -294,6 +295,7 @@ SvgBox svg_bounding_box(
 //     return ss.str();
 // }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

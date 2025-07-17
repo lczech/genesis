@@ -51,6 +51,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Zlib Data
@@ -245,6 +246,8 @@ size_t GzipInputSource::read_( char* buffer, size_t size )
 
 std::string GzipInputSource::source_string_() const
 {
+    using namespace genesis::utils::core;
+
     // Check if the extension is one that we want to remove.
     auto const bn = file_basename( input_source_->source_string() );
     auto const ex = file_extension( bn );
@@ -359,5 +362,6 @@ std::string GzipInputSource::translate_format_( GzipInputSource::Format ) const
 
 #endif // GENESIS_ZLIB
 
+} // namespace io
 } // namespace utils
 } // namespace genesis

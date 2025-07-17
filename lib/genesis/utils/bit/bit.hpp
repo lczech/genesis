@@ -60,6 +60,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // ================================================================================================
 //     Print
@@ -322,6 +323,7 @@ inline GENESIS_COUNT_BITS_CONSTEXPR size_t count_leading_ones(T x)
 //     // }
 // }
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 

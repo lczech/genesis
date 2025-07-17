@@ -38,6 +38,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Read Input Source
@@ -59,6 +60,7 @@ std::string read_input_source( std::shared_ptr<BaseInputSource> source );
  */
 std::vector<std::string> read_input_source_lines( std::shared_ptr<BaseInputSource> source );
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

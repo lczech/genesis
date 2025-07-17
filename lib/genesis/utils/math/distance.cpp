@@ -38,25 +38,28 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =============================================================================
 //     Distance Matrices
 // =============================================================================
 
-Matrix<double> p_norm_distance_matrix( Matrix<double> const& data, double p )
-{
+genesis::utils::containers::Matrix<double> p_norm_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data,
+    double p
+) {
     // Init result matrix.
-    auto result = utils::Matrix<double>( data.rows(), data.rows(), 0.0 );
+    auto result = genesis::utils::containers::Matrix<double>( data.rows(), data.rows(), 0.0 );
 
     // We only need to calculate the upper triangle. Get the number of indices needed
     // to describe this triangle.
-    size_t const max_k = utils::triangular_size( data.rows() );
+    size_t const max_k = genesis::utils::containers::triangular_size( data.rows() );
 
     // Calculate.
-    utils::parallel_for( 0, max_k, [&]( size_t k )
+    genesis::utils::threading::parallel_for( 0, max_k, [&]( size_t k )
     {
         // For the given linear index, get the actual position in the Matrix.
-        auto const ij = utils::triangular_indices( k, data.rows() );
+        auto const ij = genesis::utils::containers::triangular_indices( k, data.rows() );
         auto const i = ij.first;
         auto const j = ij.second;
 
@@ -90,20 +93,24 @@ Matrix<double> p_norm_distance_matrix( Matrix<double> const& data, double p )
     return result;
 }
 
-Matrix<double> manhattan_distance_matrix( Matrix<double> const& data )
-{
+genesis::utils::containers::Matrix<double> manhattan_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+) {
     return p_norm_distance_matrix( data, 1.0 );
 }
 
-Matrix<double> euclidean_distance_matrix( Matrix<double> const& data )
-{
+genesis::utils::containers::Matrix<double> euclidean_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+) {
     return p_norm_distance_matrix( data, 2.0 );
 }
 
-Matrix<double> maximum_distance_matrix( Matrix<double> const& data )
-{
+genesis::utils::containers::Matrix<double> maximum_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+) {
     return p_norm_distance_matrix( data, std::numeric_limits<double>::infinity() );
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis

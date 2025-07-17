@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,22 +32,21 @@
  */
 
 #include <genesis/utils/formats/svg/text.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/containers/matrix.hpp>
 
 #include <string>
 #include <vector>
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
-class Color;
 struct SvgGroup;
-
-template<class T>
-class Matrix;
 
 // =================================================================================================
 //     Svg Matrix
@@ -67,7 +66,7 @@ public:
     double width_overlap  = 1.0;
     double height_overlap = 1.0;
 
-    utils::SvgText label_template;
+    genesis::utils::formats::SvgText label_template;
 
     /**
      * @brief Rotation of the column labels.
@@ -80,23 +79,24 @@ public:
 };
 
 SvgGroup make_svg_matrix(
-    Matrix<Color> const& mat,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& mat,
     SvgMatrixSettings settings,
     std::vector<std::string> const& row_labels,
     std::vector<std::string> const& col_labels
 );
 
 SvgGroup make_svg_matrix(
-    Matrix<Color> const& mat,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& mat,
     SvgMatrixSettings settings,
     std::vector<std::string> const& row_labels
 );
 
 SvgGroup make_svg_matrix(
-    Matrix<Color> const& mat,
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& mat,
     SvgMatrixSettings settings = {}
 );
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,12 +43,12 @@ namespace population {
 
 void GenomeHeatmap::add(
     std::string const& label,
-    utils::Matrix<utils::Color> const& heatmap,
-    utils::SvgGroup x_axis,
-    utils::SvgGroup y_axis,
-    std::pair<utils::SvgGradientLinear, utils::SvgGroup> color_bar
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& heatmap,
+    genesis::utils::formats::SvgGroup x_axis,
+    genesis::utils::formats::SvgGroup y_axis,
+    std::pair<genesis::utils::formats::SvgGradientLinear, genesis::utils::formats::SvgGroup> color_bar
 ) {
-    using namespace utils;
+    using namespace genesis::utils::formats;
 
     // Make a text, based on the template
     auto txt = text_template_;
@@ -86,7 +86,7 @@ void GenomeHeatmap::add(
     // Add the heatmap as a bitmap, embedded by encoding it in base64, and using pixelated rendering
     // (which is not really well defined in svg, but we try hard).
     std::string matrix_bmp;
-    BmpWriter().write( heatmap, genesis::utils::to_string( matrix_bmp ));
+    BmpWriter().write( heatmap, genesis::utils::io::to_string( matrix_bmp ));
     auto img = SvgImage(
         svg_data_uri( "image/bmp", matrix_bmp, true ),
         SvgPoint{ 0.0, current_y_ },
@@ -131,7 +131,7 @@ void GenomeHeatmap::add(
     current_y_ += 20.0;
 }
 
-void GenomeHeatmap::write( std::shared_ptr<utils::BaseOutputTarget> target ) const
+void GenomeHeatmap::write( std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
 {
     document_.write( target->ostream() );
 }

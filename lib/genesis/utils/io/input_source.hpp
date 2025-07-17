@@ -48,6 +48,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Input Source Convenience Functions
@@ -75,7 +76,7 @@ inline std::shared_ptr<BaseInputSource> from_file(
     bool detect_compression = true
 ) {
     if( detect_compression && is_gzip_compressed_file( file_name )) {
-        return std::make_shared<utils::GzipInputSource>(
+        return std::make_shared<genesis::utils::io::GzipInputSource>(
             std::make_shared< FileInputSource >( file_name )
         );
     } else {
@@ -88,7 +89,7 @@ inline std::shared_ptr<BaseInputSource> from_file(
  *
  * See from_file() for details. This version returnes multiple input sources, which can be used
  * for parallely reading from multiple files for speedup.
- * This function can for example be used with the output of utils::dir_list_files().
+ * This function can for example be used with the output of genesis::utils::dir_list_files().
  *
  * @see See from_file(), from_string(), from_strings(), and from_stream() for similar
  * helper functions for other types of input sources.
@@ -279,6 +280,7 @@ inline std::shared_ptr<BaseInputSource> from_stdin()
     return std::make_shared< StreamInputSource >( std::cin );
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

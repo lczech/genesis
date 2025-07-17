@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -121,7 +121,7 @@ std::vector<PqueryPlacement const*> placements_per_edge(
  */
 std::vector<size_t> placement_count_per_edge( Sample const& sample );
 
-utils::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set );
+genesis::utils::containers::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set );
 
 /**
  * @brief Return a plain representation of all pqueries of this map.

@@ -45,6 +45,7 @@
 
 namespace genesis {
 namespace utils {
+namespace threading {
 
 // =================================================================================================
 //     Vector Mutex Manager
@@ -266,6 +267,7 @@ private:
 
 };
 
+} // namespace threading
 } // namespace utils
 } // namespace genesis
 

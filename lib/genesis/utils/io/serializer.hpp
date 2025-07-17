@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@
 
 namespace genesis {
 namespace utils {
+namespace io {
 
 // =================================================================================================
 //     Serializer
@@ -140,7 +141,7 @@ public:
      */
     template <typename T>
     inline
-    typename std::enable_if<is_container<T>::value>::type
+    typename std::enable_if<genesis::utils::core::is_container<T>::value>::type
     put( T const& container )
     {
         put( container.size() );
@@ -167,7 +168,9 @@ private:
  * @brief Generic operator<< template for trivial non-container types to stream to a Serializer.
  */
 template <typename T>
-inline typename std::enable_if<!is_container<T>::value, Serializer&>::type
+inline typename std::enable_if<
+    !genesis::utils::core::is_container<T>::value, Serializer&
+>::type
 operator<<( Serializer& serializer, T const& value )
 {
     serializer.put( value );
@@ -197,7 +200,9 @@ inline Serializer& operator<<( Serializer& serializer, std::string const& str )
  * @brief Specialization of operator<< template for container types to stream to a Serializer.
  */
 template <typename Container>
-inline typename std::enable_if<is_container<Container>::value, Serializer&>::type
+inline typename std::enable_if<
+    genesis::utils::core::is_container<Container>::value, Serializer&
+>::type
 operator<<( Serializer& serializer, Container const& container )
 {
     // Serialize each element individually using operator<< recursively on each element,
@@ -209,6 +214,7 @@ operator<<( Serializer& serializer, Container const& container )
     return serializer;
 }
 
+} // namespace io
 } // namespace utils
 } // namespace genesis
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,10 @@
 
 using namespace genesis;
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::formats;
+using namespace genesis::utils::text;
 
 // -------------------------------------------------------------------------
 //     Json
@@ -152,7 +156,7 @@ TEST( Json, ParsingPasses )
 // TEST( Json, Speed )
 // {
 //     std::string inputfile = "/home/lucas/Projects/data/for_testing/jplace/sample_0_all_big.jplace";
-//     utils::InputStream is( utils::make_unique< utils::FileInputSource >( inputfile ));
+//     utils::InputStream is( genesis::utils::core::make_unique< utils::FileInputSource >( inputfile ));
 //
 //     auto reader = JsonReader();
 //     auto json = reader.parse_value( is );

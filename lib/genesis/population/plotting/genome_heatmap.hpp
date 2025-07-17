@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -112,9 +112,9 @@ public:
         return *this;
     }
 
-    void text_template( utils::SvgText const& tt );
-    utils::SvgText& text_template();
-    utils::SvgText const& text_template() const;
+    void text_template( genesis::utils::formats::SvgText const& tt );
+    genesis::utils::formats::SvgText& text_template();
+    genesis::utils::formats::SvgText const& text_template() const;
 
     // -------------------------------------------------------------------------
     //     Drawing
@@ -122,15 +122,15 @@ public:
 
     void add(
         std::string const& label,
-        utils::Matrix<utils::Color> const& heatmap,
-        utils::SvgGroup x_axis = utils::SvgGroup{},
-        utils::SvgGroup y_axis = utils::SvgGroup{},
-        std::pair<utils::SvgGradientLinear, utils::SvgGroup> color_bar = std::pair<utils::SvgGradientLinear, utils::SvgGroup>{}
+        genesis::utils::containers::Matrix<genesis::utils::color::Color> const& heatmap,
+        genesis::utils::formats::SvgGroup x_axis = genesis::utils::formats::SvgGroup{},
+        genesis::utils::formats::SvgGroup y_axis = genesis::utils::formats::SvgGroup{},
+        std::pair<genesis::utils::formats::SvgGradientLinear, genesis::utils::formats::SvgGroup> color_bar = std::pair<genesis::utils::formats::SvgGradientLinear, genesis::utils::formats::SvgGroup>{}
     );
 
-    void write( std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
 
-    utils::SvgDocument const& document() const
+    genesis::utils::formats::SvgDocument const& document() const
     {
         return document_;
     }
@@ -145,9 +145,9 @@ private:
     double v_scaling_ = 1.0;
 
     double current_y_ = 0.0;
-    utils::SvgDocument document_;
+    genesis::utils::formats::SvgDocument document_;
 
-    utils::SvgText text_template_ = utils::SvgText();
+    genesis::utils::formats::SvgText text_template_ = genesis::utils::formats::SvgText();
     TextPosition text_position_ = TextPosition::kTop;
 
 };

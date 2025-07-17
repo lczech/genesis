@@ -37,6 +37,9 @@
 #include <vector>
 
 using namespace genesis::utils;
+using namespace genesis::utils::core;
+using namespace genesis::utils::io;
+using namespace genesis::utils::formats;
 
 // -------------------------------------------------------------------------
 //     CSV Reader

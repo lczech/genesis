@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Pearson Correlation Coefficient
@@ -291,6 +292,7 @@ inline std::vector<double> fisher_transformation( std::vector<double> const& cor
     return res;
 }
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

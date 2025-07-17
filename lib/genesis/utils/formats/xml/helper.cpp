@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Xml Helper Functions
@@ -44,12 +45,13 @@ namespace utils {
  */
 std::string xml_escape(   std::string const& txt )
 {
+    using namespace genesis::utils::text;
     std::string res;
-    res = utils::replace_all( txt, "<",  "&lt;"   );
-    res = utils::replace_all( res, ">",  "&gt;"   );
-    res = utils::replace_all( res, "&",  "&amp;"  );
-    res = utils::replace_all( res, "'",  "&apos;" );
-    res = utils::replace_all( res, "\"", "&quot;" );
+    res = replace_all( txt, "<",  "&lt;"   );
+    res = replace_all( res, ">",  "&gt;"   );
+    res = replace_all( res, "&",  "&amp;"  );
+    res = replace_all( res, "'",  "&apos;" );
+    res = replace_all( res, "\"", "&quot;" );
     return res;
 }
 
@@ -58,12 +60,13 @@ std::string xml_escape(   std::string const& txt )
  */
 std::string xml_deescape( std::string const& txt )
 {
+    using namespace genesis::utils::text;
     std::string res;
-    res = utils::replace_all( txt, "&lt;",   "<"  );
-    res = utils::replace_all( res, "&gt;",   ">"  );
-    res = utils::replace_all( res, "&amp;",  "&"  );
-    res = utils::replace_all( res, "&apos;", "'"  );
-    res = utils::replace_all( res, "&quot;", "\"" );
+    res = replace_all( txt, "&lt;",   "<"  );
+    res = replace_all( res, "&gt;",   ">"  );
+    res = replace_all( res, "&amp;",  "&"  );
+    res = replace_all( res, "&apos;", "'"  );
+    res = replace_all( res, "&quot;", "\"" );
     return res;
 }
 
@@ -72,5 +75,6 @@ std::string xml_comment( std::string const& content )
     return "<!-- " + content + " -->";
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

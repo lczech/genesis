@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 
 namespace genesis {
 namespace utils {
+namespace math {
 
 // =================================================================================================
 //     Norms
@@ -449,7 +450,10 @@ inline double maximum_distance(
  * @see manhattan_distance_matrix(), euclidean_distance_matrix(), and maximum_distance_matrix()
  * for specialized versions of this function with a fixed @p p for more expressive code.
  */
-Matrix<double> p_norm_distance_matrix( Matrix<double> const& data, double p = 2.0 );
+genesis::utils::containers::Matrix<double> p_norm_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data,
+    double p = 2.0
+    );
 
 /**
  * @brief Calculate the pairwise manhatten distance matrix between the rows of a given matrix.
@@ -457,7 +461,9 @@ Matrix<double> p_norm_distance_matrix( Matrix<double> const& data, double p = 2.
  * See p_norm_distance_matrix() for details. This function simply uses a fixed `p == 1.0` for
  * more expressive code.
  */
-Matrix<double> manhattan_distance_matrix( Matrix<double> const& data );
+genesis::utils::containers::Matrix<double> manhattan_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+);
 
 /**
  * @brief Calculate the pairwise euclidean distance matrix between the rows of a given matrix.
@@ -465,7 +471,9 @@ Matrix<double> manhattan_distance_matrix( Matrix<double> const& data );
  * See p_norm_distance_matrix() for details. This function simply uses a fixed `p == 2.0` for
  * more expressive code.
  */
-Matrix<double> euclidean_distance_matrix( Matrix<double> const& data );
+genesis::utils::containers::Matrix<double> euclidean_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+);
 
 /**
  * @brief Calculate the pairwise maximum distance matrix between the rows of a given matrix.
@@ -474,8 +482,11 @@ Matrix<double> euclidean_distance_matrix( Matrix<double> const& data );
  * \c p == std::numeric_limits<double>::infinity()
  * more expressive code.
  */
-Matrix<double> maximum_distance_matrix( Matrix<double> const& data );
+genesis::utils::containers::Matrix<double> maximum_distance_matrix(
+    genesis::utils::containers::Matrix<double> const& data
+);
 
+} // namespace math
 } // namespace utils
 } // namespace genesis
 

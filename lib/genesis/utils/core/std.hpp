@@ -41,6 +41,7 @@
 
 namespace genesis {
 namespace utils {
+namespace core {
 
 // =================================================================================================
 //     C++ Standard
@@ -353,6 +354,7 @@ inline constexpr std::size_t hash_combine( std::size_t seed, T const& value )
     return combine_hashes( seed, std::hash<T>()( value ));
 }
 
+} // namespace core
 } // namespace utils
 } // namespace genesis
 

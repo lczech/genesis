@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 namespace genesis {
 namespace utils {
+namespace formats {
 
 // =================================================================================================
 //     Svg Document
@@ -69,6 +70,8 @@ SvgBox SvgDocument::bounding_box() const
  */
 void SvgDocument::write( std::ostream& out ) const
 {
+    using namespace genesis::utils::text;
+
     // Get a box around all elements, and use it to measure doc dimensions and shifting.
     auto bbox = bounding_box();
     double doc_width  = margin.left + bbox.width()  + margin.right;
@@ -97,8 +100,9 @@ void SvgDocument::write( std::ostream& out ) const
         "Created with genesis " + genesis_version() + " (" + genesis_url() + ") " +
         "on " + current_date() + " at " + current_time()
     ) << "\n";
-    if( Options::get().command_line_string() != "" ) {
-        out << svg_comment( "Program invocation: " + Options::get().command_line_string() ) << "\n";
+    auto const& opts = genesis::utils::core::Options::get();
+    if( opts.command_line_string() != "" ) {
+        out << svg_comment( "Program invocation: " + opts.command_line_string() ) << "\n";
     }
 
     // Gradients and other definitions. Need to come before the content.
@@ -148,7 +152,7 @@ void SvgDocument::write( std::ostream& out ) const
     out << "</svg>\n";
 }
 
-void SvgDocument::write( std::shared_ptr<utils::BaseOutputTarget> target ) const
+void SvgDocument::write( std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
 {
     auto& os = target->ostream();
     write( os );
@@ -216,5 +220,6 @@ std::string SvgDocument::overflow_to_string( SvgDocument::Overflow value )
     }
 }
 
+} // namespace formats
 } // namespace utils
 } // namespace genesis

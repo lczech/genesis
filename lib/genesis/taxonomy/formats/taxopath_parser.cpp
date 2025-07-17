@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ Taxopath TaxopathParser::parse( std::string const& taxopath ) const
     std::vector< std::string > elements;
 
     // Split the given string, while keeping empty parts.
-    elements = utils::split( taxopath, delimiters_, false );
+    elements = genesis::utils::text::split( taxopath, delimiters_, false );
 
     // If there are no elements, the string was empty. Nothing to do.
     if( elements.size() == 0 ) {
@@ -61,7 +61,7 @@ Taxopath TaxopathParser::parse( std::string const& taxopath ) const
     // Remove white spaces.
     if( trim_whitespaces_ ) {
         for( auto& r : elements ) {
-            r = utils::trim( r );
+            r = genesis::utils::text::trim( r );
         }
     }
 

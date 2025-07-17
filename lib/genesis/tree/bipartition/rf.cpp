@@ -112,7 +112,7 @@ void rf_get_bitvectors_template(
     std::unordered_map<std::string, size_t> const& names,
     BitvectorProcessor const& process_bitvector
 ) {
-    using utils::Bitvector;
+    using genesis::utils::bit::Bitvector;
 
     // Prepare intermediate structure for each edge of the tree,
     // which keeps track of all Bitvectors of the edges.
@@ -216,11 +216,11 @@ void rf_get_bitvectors_template(
     }
 }
 
-std::vector<utils::Bitvector> rf_get_bitvectors(
+std::vector<genesis::utils::bit::Bitvector> rf_get_bitvectors(
     Tree const& tree,
     std::unordered_map<std::string, size_t> const& names
 ) {
-    using utils::Bitvector;
+    using genesis::utils::bit::Bitvector;
 
     // Prepare result.
     std::vector<Bitvector> result;
@@ -238,13 +238,13 @@ std::vector<utils::Bitvector> rf_get_bitvectors(
 //     Getting Occurrences of Splits in Trees
 // =================================================================================================
 
-std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences( TreeSet const& trees )
+std::unordered_map<genesis::utils::bit::Bitvector, genesis::utils::bit::Bitvector> rf_get_occurrences( TreeSet const& trees )
 {
-    using utils::Bitvector;
+    using genesis::utils::bit::Bitvector;
 
     // Map from bitvectors of splits to bitvectors of occurences:
     // which bitvector (keys of the map) occurs in which tree (values associated with each key).
-    auto result = std::unordered_map<utils::Bitvector, utils::Bitvector>();
+    auto result = std::unordered_map<genesis::utils::bit::Bitvector, genesis::utils::bit::Bitvector>();
 
     // Edge case.
     if( trees.empty() ) {
@@ -253,7 +253,7 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences( TreeS
 
     // Get a unique ID for each taxon name.
     auto const names = rf_taxon_name_map( trees[0] );
-    utils::parallel_for( 0, trees.size(), [&]( size_t i ) {
+    genesis::utils::threading::parallel_for( 0, trees.size(), [&]( size_t i ) {
         // Get all bitvectors of the tree and add their occurrences to the map.
         // This way, we do not need to actually store them, but can process them on the fly.
         // Saves mem and should be faster as well.
@@ -274,15 +274,15 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences( TreeS
     return result;
 }
 
-std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
+std::unordered_map<genesis::utils::bit::Bitvector, genesis::utils::bit::Bitvector> rf_get_occurrences(
     Tree const& lhs,
     TreeSet const& rhs
 ) {
-    using utils::Bitvector;
+    using genesis::utils::bit::Bitvector;
 
     // Map from bitvectors of splits to bitvectors of occurences:
     // which bitvector (keys of the map) occurs in which tree (values assiciated with each key).
-    auto result = std::unordered_map<utils::Bitvector, utils::Bitvector>();
+    auto result = std::unordered_map<genesis::utils::bit::Bitvector, genesis::utils::bit::Bitvector>();
 
     // Edge case.
     if( rhs.empty() ) {
@@ -301,14 +301,14 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
     });
 
     // Process the rhs trees, and add their split bitvectors.
-    utils::parallel_for( 0, rhs.size(), [&]( size_t i )
+    genesis::utils::threading::parallel_for( 0, rhs.size(), [&]( size_t i )
     {
         rf_get_bitvectors_template( rhs[i], names, [&]( Bitvector const& bitvec )
         {
             GENESIS_THREAD_CRITICAL_SECTION(GENESIS_BIPARTITION_OCCURRENCES)
             // We start indexing 1 off, for the lhs tree.
             if( result.count( bitvec ) == 0 ) {
-                result[bitvec] = utils::Bitvector( 1 + rhs.size() );
+                result[bitvec] = genesis::utils::bit::Bitvector( 1 + rhs.size() );
             }
             result[bitvec].set( 1 + i );
         });
@@ -317,15 +317,15 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
     return result;
 }
 
-std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
+std::unordered_map<genesis::utils::bit::Bitvector, genesis::utils::bit::Bitvector> rf_get_occurrences(
     Tree const& lhs,
     Tree const& rhs
 ) {
-    using utils::Bitvector;
+    using genesis::utils::bit::Bitvector;
 
     // Map from bitvectors of splits to bitvectors of occurences:
     // which bitvector (keys of the map) occurs in which tree (values assiciated with each key).
-    auto result = std::unordered_map<utils::Bitvector, utils::Bitvector>();
+    auto result = std::unordered_map<genesis::utils::bit::Bitvector, genesis::utils::bit::Bitvector>();
 
     // Get a unique ID for each taxon name.
     auto const names = rf_taxon_name_map( lhs );
@@ -342,7 +342,7 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
     // existing splits in the map.
     rf_get_bitvectors_template( rhs, names, [&]( Bitvector const& bitvec ){
         if( result.count( bitvec ) == 0 ) {
-            result[bitvec] = utils::Bitvector( 2 );
+            result[bitvec] = genesis::utils::bit::Bitvector( 2 );
         }
         result[bitvec].set( 1 );
     });
@@ -354,9 +354,9 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
 //     Absolute RF Distance Functions
 // =================================================================================================
 
-utils::Matrix<size_t> rf_distance_absolute( TreeSet const& trees )
+genesis::utils::containers::Matrix<size_t> rf_distance_absolute( TreeSet const& trees )
 {
-    using utils::Matrix;
+    using genesis::utils::containers::Matrix;
 
     auto result = Matrix<size_t>( trees.size(), trees.size(), 0 );
     auto const hash_occs = rf_get_occurrences( trees );
@@ -455,10 +455,10 @@ size_t rf_distance_absolute( Tree const& lhs, Tree const& rhs )
 //     Relative RF Distance Functions
 // =================================================================================================
 
-utils::Matrix<double> rf_distance_relative( TreeSet const& trees )
+genesis::utils::containers::Matrix<double> rf_distance_relative( TreeSet const& trees )
 {
     // Prepare result.
-    auto result = utils::Matrix<double>( trees.size(), trees.size() );
+    auto result = genesis::utils::containers::Matrix<double>( trees.size(), trees.size() );
     if( trees.size() == 0 ) {
         return result;
     }

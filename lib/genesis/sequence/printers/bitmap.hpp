@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,17 +44,21 @@
 
 namespace genesis {
 namespace utils {
+namespace containers {
 
     template<typename T>
     class Matrix;
 
+} // namespace containers
 } // namespace utils
+} // namespace genesis
 
+namespace genesis {
 namespace sequence {
 
     class Sequence;
-
     class SequenceSet;
+
 } // namespace sequence
 } // namespace genesis
 
@@ -69,7 +73,7 @@ namespace sequence {
  * @brief Print the sites of a SequenceSet as pixels in a bitmap.
  *
  * By default, no colors are set, thus, the image will be completely black. You have to set the
- * @link color_map( std::map<char, utils::Color> const& ) color_map()@endlink first, for
+ * @link color_map( std::map<char, genesis::utils::color::Color> const& ) color_map()@endlink first, for
  * example using the colors defined in nucleic_acid_colors() or amino_acid_colors().
  */
 class PrinterBitmap
@@ -93,7 +97,7 @@ public:
     //     Print
     // -------------------------------------------------------------------------
 
-    void write( SequenceSet const& set, std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( SequenceSet const& set, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -108,14 +112,14 @@ public:
      * If the `colors` map does not contain a key for one of the chars in the sequence, the char is
      * printed in black.
      */
-    PrinterBitmap& color_map( std::map<char, utils::Color> const& value );
+    PrinterBitmap& color_map( std::map<char, genesis::utils::color::Color> const& value );
 
     /**
      * @brief Get the currently set list of Color%s for each Sequence character.
      *
-     * See @link color_map( std::map<char, utils::Color> const& ) the setter@endlink for details.
+     * See @link color_map( std::map<char, genesis::utils::color::Color> const& ) the setter@endlink for details.
      */
-    std::map<char, utils::Color> const& color_map() const;
+    std::map<char, genesis::utils::color::Color> const& color_map() const;
 
     PrinterBitmap& pixel_height_per_char( size_t value );
 
@@ -131,7 +135,7 @@ public:
 
 private:
 
-    utils::Matrix<utils::Color> make_image_( SequenceSet const& set ) const;
+    genesis::utils::containers::Matrix<genesis::utils::color::Color> make_image_( SequenceSet const& set ) const;
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -139,7 +143,7 @@ private:
 
 private:
 
-    std::map<char, utils::Color> color_map_;
+    std::map<char, genesis::utils::color::Color> color_map_;
 
     size_t pixel_height_ = 1;
     size_t pixel_width_  = 1;

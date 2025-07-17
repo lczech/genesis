@@ -342,8 +342,8 @@ std::string grouped_or_partitioned_taxonomy_report( Taxonomy const& tax )
                 // The input to this function shall come from grouped_taxonomy_trunk(),
                 // which creates pseudo-groups with this name prefix. Check this.
                 if(
-                    ! utils::starts_with( taxon.name(), "group_" ) &&
-                    ! utils::starts_with( taxon.name(), "partition_" )
+                    ! genesis::utils::text::starts_with( taxon.name(), "group_" ) &&
+                    ! genesis::utils::text::starts_with( taxon.name(), "partition_" )
                 ) {
                     throw std::invalid_argument( "Taxonomy is not the trunk" );
                 }
@@ -386,24 +386,26 @@ std::string grouped_or_partitioned_taxonomy_report( Taxonomy const& tax )
     size_t const grouped_sum_seq_lengths = std::accumulate(
         sum_seq_lengths.begin(), sum_seq_lengths.end(), static_cast<size_t>(0)
     );
-    auto const arithmetic_mean_ns = utils::arithmetic_mean(
+    auto const arithmetic_mean_ns = genesis::utils::math::arithmetic_mean(
         num_sequences.begin(), num_sequences.end()
     );
-    auto const arithmetic_mean_sl = utils::arithmetic_mean(
+    auto const arithmetic_mean_sl = genesis::utils::math::arithmetic_mean(
         sum_seq_lengths.begin(), sum_seq_lengths.end()
     );
-    auto const quartiles_ns = utils::quartiles(
+    auto const quartiles_ns = genesis::utils::math::quartiles(
         num_sequences.begin(), num_sequences.end()
     );
-    auto const quartiles_sl = utils::quartiles(
+    auto const quartiles_sl = genesis::utils::math::quartiles(
         sum_seq_lengths.begin(), sum_seq_lengths.end()
     );
+
+    using namespace genesis::utils::text;
     std::stringstream ss;
     ss << num_groups << " groups/partitions:\n\n";
-    utils::Table summary;
+    Table summary;
     summary.add_column( "stat" );
-    summary.add_column( "num_sequences",   utils::Table::Column::Justification::kRight );
-    summary.add_column( "sum_seq_lengths", utils::Table::Column::Justification::kRight );
+    summary.add_column( "num_sequences",   Table::Column::Justification::kRight );
+    summary.add_column( "sum_seq_lengths", Table::Column::Justification::kRight );
     summary << "sum" << grouped_num_sequences << grouped_sum_seq_lengths;
     summary << "avg" << arithmetic_mean_ns << arithmetic_mean_sl;
     summary << "q0"  << quartiles_ns.q0 << quartiles_sl.q0;
@@ -411,11 +413,11 @@ std::string grouped_or_partitioned_taxonomy_report( Taxonomy const& tax )
     summary << "q2"  << quartiles_ns.q2 << quartiles_sl.q2;
     summary << "q3"  << quartiles_ns.q3 << quartiles_sl.q3;
     summary << "q4"  << quartiles_ns.q4 << quartiles_sl.q4;
-    ss << summary.to_string( utils::simple_grid() );
+    ss << summary.to_string( simple_grid() );
     ss << "\n" << num_ungrouped_taxa << " ungrouped taxa:\n\n";
     summary.clear_content();
     summary << "sum" << ungrouped_num_sequences << ungrouped_sum_seq_lengths;
-    ss << summary.to_string( utils::simple_grid() );
+    ss << summary.to_string( simple_grid() );
     ss << "\n";
     return ss.str();
 }
@@ -430,9 +432,9 @@ std::string grouped_or_partitioned_taxonomy_report( Taxonomy const& tax )
 
 void fill_json_array_with_taxonomy_groups_or_partitions_(
     Taxonomy const& tax,
-    utils::JsonDocument::ArrayType& array
+    genesis::utils::formats::JsonDocument::ArrayType& array
 ) {
-    using utils::JsonDocument;
+    using genesis::utils::formats::JsonDocument;
 
     // Iterate the children, adding their data to the groups they were assigned to.
     for( auto const& child : tax ) {
@@ -496,11 +498,11 @@ void fill_json_array_with_taxonomy_groups_or_partitions_(
 
 void write_taxonomy_grouping_or_partitioning_to_json(
     Taxonomy const& tax,
-    std::shared_ptr<utils::BaseOutputTarget> target
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
 ) {
-    auto doc = utils::JsonDocument::array();
+    auto doc = genesis::utils::formats::JsonDocument::array();
     fill_json_array_with_taxonomy_groups_or_partitions_( tax, doc.get_array() );
-    utils::JsonWriter().write( doc, target );
+    genesis::utils::formats::JsonWriter().write( doc, target );
 }
 
 // --------------------------------------------------------------------------
@@ -508,10 +510,10 @@ void write_taxonomy_grouping_or_partitioning_to_json(
 // --------------------------------------------------------------------------
 
 std::vector<TaxonomyGroupPartitionData> read_taxonomy_grouping_or_partitioning_from_json(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
 ) {
     std::vector<TaxonomyGroupPartitionData> result;
-    auto doc = utils::JsonReader().read( source );
+    auto doc = genesis::utils::formats::JsonReader().read( source );
     auto& arr = doc.get_array();
     result.reserve( arr.size() );
     for( auto& child : arr ) {
@@ -542,11 +544,11 @@ std::vector<TaxonomyGroupPartitionData> read_taxonomy_grouping_or_partitioning_f
 
 void write_kmer_taxonomy_to_json(
     Taxonomy const& tax,
-    std::shared_ptr<utils::BaseOutputTarget> target,
+    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
     bool with_group_or_partition_data,
     bool only_trunk
 ) {
-    using utils::JsonDocument;
+    using genesis::utils::formats::JsonDocument;
 
     auto json_writer = TaxonomyJsonWriter();
     json_writer.taxon_to_json = [with_group_or_partition_data](
@@ -624,10 +626,10 @@ void write_kmer_taxonomy_to_json(
 // --------------------------------------------------------------------------
 
 Taxonomy read_kmer_taxonomy_from_json(
-    std::shared_ptr<utils::BaseInputSource> source
+    std::shared_ptr<genesis::utils::io::BaseInputSource> source
 ) {
     auto json_reader = TaxonomyJsonReader();
-    json_reader.json_to_taxon = []( utils::JsonDocument::ObjectType const& obj, Taxon& tax )
+    json_reader.json_to_taxon = []( genesis::utils::formats::JsonDocument::ObjectType const& obj, Taxon& tax )
     {
         tax.reset_data( KmerTaxonData::create() );
         auto& data = tax.data<KmerTaxonData>();

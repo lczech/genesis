@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -166,7 +166,7 @@ std::string PrinterCompact::print( Tree const& tree )
         bool wrote_edge = false;
         if( edge.has_data() ) {
             if( !is_root( node )) {
-                result += utils::to_string_nice( edge.data<CommonEdgeData>().branch_length );
+                result += genesis::utils::text::to_string_nice( edge.data<CommonEdgeData>().branch_length );
                 wrote_edge = true;
             }
         }

@@ -50,6 +50,7 @@
 
 namespace genesis {
 namespace utils {
+namespace text {
 
 // =================================================================================================
 //     Compare and Find
@@ -977,6 +978,7 @@ std::string join( C const& container, std::string const& delimiter = ", " )
     return s.str();
 }
 
+} // namespace text
 } // namespace utils
 } // namespace genesis
 

@@ -83,6 +83,7 @@
 
 namespace genesis {
 namespace utils {
+namespace threading {
 
 // =================================================================================================
 //     Parallel Block
@@ -137,7 +138,7 @@ namespace utils {
 template<
     typename Function,
     typename T1, typename T2, typename T = typename std::common_type<T1, T2>::type,
-    typename Return = typename genesis_invoke_result<Function, T, T>::type
+    typename Return = typename genesis::utils::core::genesis_invoke_result<Function, T, T>::type
     // typename R = typename std::result_of<typename std::decay<F>::type(T, T)>::type
 >
 MultiFuture<Return> parallel_block_async(
@@ -147,7 +148,7 @@ MultiFuture<Return> parallel_block_async(
 ) {
     // If no thread pool was provided, we use the global one.
     if( !thread_pool ) {
-        thread_pool = Options::get().global_thread_pool();
+        thread_pool = genesis::utils::core::Options::get().global_thread_pool();
     }
 
     // Get the total range and number of tasks.
@@ -239,8 +240,8 @@ void parallel_block_sync(
 ) {
     // See if we have a thread pool provided; if not, we want to use the global thread pool instead,
     // but if that is also not available, we just run everything in a simple loop instead.
-    if( !thread_pool && Options::get().has_global_thread_pool() ) {
-        thread_pool = Options::get().global_thread_pool();
+    if( !thread_pool && genesis::utils::core::Options::get().has_global_thread_pool() ) {
+        thread_pool = genesis::utils::core::Options::get().global_thread_pool();
     }
 
     // If there is still no thread pool, run locally. Otherwise, use the async version.
@@ -445,8 +446,8 @@ void parallel_for_throttled(
     }
 
     // If no thread pool was provided, we use the global one.
-    if( !thread_pool && Options::get().has_global_thread_pool() ) {
-        thread_pool = Options::get().global_thread_pool();
+    if( !thread_pool && genesis::utils::core::Options::get().has_global_thread_pool() ) {
+        thread_pool = genesis::utils::core::Options::get().global_thread_pool();
     }
 
     // With no concurrency, we simply run a sequential loop. That makes the below logic
@@ -625,8 +626,9 @@ private:
 // Macro to define a tag and create a ThreadCriticalSection instance
 #define GENESIS_THREAD_CRITICAL_SECTION(TagName) \
     struct TagName {}; \
-    ::genesis::utils::ThreadCriticalSection<TagName> genesis_critical_section_##TagName;
+    ::genesis::utils::threading::ThreadCriticalSection<TagName> genesis_critical_section_##TagName;
 
+} // namespace threading
 } // namespace utils
 } // namespace genesis
 

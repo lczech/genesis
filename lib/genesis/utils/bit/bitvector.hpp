@@ -43,6 +43,7 @@
 
 namespace genesis {
 namespace utils {
+namespace bit {
 
 // =================================================================================================
 //     Bitvector
@@ -443,6 +444,7 @@ public:
     std::vector<IntType> data_;
 };
 
+} // namespace bit
 } // namespace utils
 } // namespace genesis
 

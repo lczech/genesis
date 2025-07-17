@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,9 +70,9 @@ double RectangularLayout::height() const
 //     Virtual Functions
 // =================================================================================================
 
-utils::SvgDocument RectangularLayout::to_svg_document_() const
+genesis::utils::formats::SvgDocument RectangularLayout::to_svg_document_() const
 {
-    using namespace utils;
+    using namespace genesis::utils::formats;
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_lines;
@@ -117,8 +117,8 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             // Get line strokes
             auto spreading_stroke = edge_data.spreading_stroke;
             auto distance_stroke = edge_data.distance_stroke;
-            // spreading_stroke.line_cap = utils::SvgStroke::LineCap::kSquare;
-            // distance_stroke.line_cap = utils::SvgStroke::LineCap::kButt;
+            // spreading_stroke.line_cap = genesis::utils::formats::SvgStroke::LineCap::kSquare;
+            // distance_stroke.line_cap = genesis::utils::formats::SvgStroke::LineCap::kButt;
 
             // Calculate linear distance
             auto const dist_start_x = prnt_data.distance * width;

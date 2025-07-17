@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,21 +86,21 @@ struct PhyloFactorSingleColors
      *
      * Default is black.
      */
-    utils::Color factor_edge = utils::Color( 0.0, 0.0, 0.0 );
+    genesis::utils::color::Color factor_edge = genesis::utils::color::Color( 0.0, 0.0, 0.0 );
 
     /**
      * @brief Color for the edges towards the root that have been used in this phylo factor.
      *
      * Default is purple.
      */
-    utils::Color primary_edges = utils::Color( 0.529411765, 0.439215686, 0.670588235 );
+    genesis::utils::color::Color primary_edges = genesis::utils::color::Color( 0.529411765, 0.439215686, 0.670588235 );
 
     /**
      * @brief Color for the edges away from the root that have been used in this phylo factor.
      *
      * Default is green.
      */
-    utils::Color secondary_edges = utils::Color( 0.352941176, 0.682352941, 0.380392157 );
+    genesis::utils::color::Color secondary_edges = genesis::utils::color::Color( 0.352941176, 0.682352941, 0.380392157 );
 
     /**
      * @brief Color for the edges that have been factored out before (earlier factors in the greedy
@@ -108,14 +108,14 @@ struct PhyloFactorSingleColors
      *
      * Default is black.
      */
-    utils::Color previous_factors = utils::Color( 0.0, 0.0, 0.0 );
+    genesis::utils::color::Color previous_factors = genesis::utils::color::Color( 0.0, 0.0, 0.0 );
 
     /**
      * @brief Color for the edges that have not been used in this phylo factor.
      *
      * Defaut is a light gray.
      */
-    utils::Color neutral_edges = utils::Color( 0.8, 0.8, 0.8 );
+    genesis::utils::color::Color neutral_edges = genesis::utils::color::Color( 0.8, 0.8, 0.8 );
 };
 
 /**
@@ -133,7 +133,7 @@ struct PhyloFactorSingleColors
  *
  * The resulting colors can be used for visualizing a tree.
  */
-std::vector<utils::Color> phylo_factor_single_factor_colors(
+std::vector<genesis::utils::color::Color> phylo_factor_single_factor_colors(
     Tree const& tree,
     std::vector<PhyloFactor> const& factors,
     size_t factor_index,
@@ -158,7 +158,7 @@ struct PhyloFactorCladeColors
      *
      * Default is black.
      */
-    utils::Color factor_edges = utils::Color( 0.0, 0.0, 0.0 );
+    genesis::utils::color::Color factor_edges = genesis::utils::color::Color( 0.0, 0.0, 0.0 );
 
     /**
      * @brief Color for the edges towards the root of the first phylo factor.
@@ -168,7 +168,7 @@ struct PhyloFactorCladeColors
      * the root) splits of each factor, this color can be considered the color for the
      * "remaining" part of the tree.
      */
-    utils::Color base_edges = utils::Color( 0.8, 0.8, 0.8 );
+    genesis::utils::color::Color base_edges = genesis::utils::color::Color( 0.8, 0.8, 0.8 );
 
     /**
      * @brief Colors for the sets of edges away from the root that have been split by the
@@ -176,7 +176,7 @@ struct PhyloFactorCladeColors
      *
      * That is, each factor gets a color of this list.
      */
-    std::vector<utils::Color> clade_colors = utils::color_list_set1();
+    std::vector<genesis::utils::color::Color> clade_colors = genesis::utils::color::color_list_set1();
 };
 
 /**
@@ -196,7 +196,7 @@ struct PhyloFactorCladeColors
  * are not overwritten. Thus, the first factor leaves its primary part uncolorized,
  * for which the @link PhyloFactorCladeColors::base_edges base_color@endlink is used.
  */
-std::vector<utils::Color> phylo_factor_clade_colors(
+std::vector<genesis::utils::color::Color> phylo_factor_clade_colors(
     Tree const& tree,
     std::vector<PhyloFactor> const& factors,
     size_t num_factors = 0,

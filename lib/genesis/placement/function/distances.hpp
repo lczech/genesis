@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ namespace placement {
 double pquery_distance(
     PqueryPlain const&           pquery_a,
     PqueryPlain const&           pquery_b,
-    utils::Matrix<double> const& node_distances,
+    genesis::utils::containers::Matrix<double> const& node_distances,
     bool                         with_pendant_length = false
 );
 
@@ -142,7 +142,7 @@ double pquery_distance(
 double pquery_distance(
     Pquery const&                pquery_a,
     Pquery const&                pquery_b,
-    utils::Matrix<double> const& node_distances,
+    genesis::utils::containers::Matrix<double> const& node_distances,
     bool                         with_pendant_length = false
 );
 
@@ -155,7 +155,7 @@ double pquery_distance(
 double placement_distance(
     PqueryPlacement const&       place_a,
     PqueryPlacement const&       place_b,
-    utils::Matrix<double> const& node_distances
+    genesis::utils::containers::Matrix<double> const& node_distances
 );
 
 /**
@@ -168,7 +168,7 @@ double placement_distance(
 double pquery_path_length_distance(
     Pquery const&                pquery_a,
     Pquery const&                pquery_b,
-    utils::Matrix<size_t> const& node_path_lengths
+    genesis::utils::containers::Matrix<size_t> const& node_path_lengths
 );
 
 /**
@@ -183,7 +183,7 @@ double pquery_path_length_distance(
 size_t placement_path_length_distance(
     PqueryPlacement const&       place_a,
     PqueryPlacement const&       place_b,
-    utils::Matrix<size_t> const& node_path_lengths
+    genesis::utils::containers::Matrix<size_t> const& node_path_lengths
 );
 
 // =================================================================================================
@@ -200,7 +200,7 @@ size_t placement_path_length_distance(
 double pquery_distance(
     Pquery const&                pquery,
     tree::TreeNode const&        node,
-    utils::Matrix<double> const& node_distances
+    genesis::utils::containers::Matrix<double> const& node_distances
 );
 
 /**
@@ -212,7 +212,7 @@ double pquery_distance(
 double placement_distance(
     PqueryPlacement const&       placement,
     tree::TreeNode const&        node,
-    utils::Matrix<double> const& node_distances
+    genesis::utils::containers::Matrix<double> const& node_distances
 );
 
 // /**
@@ -225,7 +225,7 @@ double placement_distance(
 // double pquery_path_length_distance(
 //     Pquery const&                pquery,
 //     tree::TreeNode const&        node,
-//     utils::Matrix<size_t> const& node_path_lengths
+//     genesis::utils::containers::Matrix<size_t> const& node_path_lengths
 // );
 //
 // /**
@@ -236,7 +236,7 @@ double placement_distance(
 // size_t placement_path_length_distance(
 //     PqueryPlacement const&       placement,
 //     tree::TreeNode const&        node,
-//     utils::Matrix<size_t> const& node_path_lengths
+//     genesis::utils::containers::Matrix<size_t> const& node_path_lengths
 // );
 
 /**
@@ -249,7 +249,7 @@ double placement_distance(
 double pquery_path_length_distance(
     Pquery const&                pquery,
     tree::TreeEdge const&        edge,
-    utils::Matrix<size_t> const& edge_path_lengths
+    genesis::utils::containers::Matrix<size_t> const& edge_path_lengths
 );
 
 /**
@@ -261,7 +261,7 @@ double pquery_path_length_distance(
 size_t placement_path_length_distance(
     PqueryPlacement const&       placement,
     tree::TreeEdge const&        edge,
-    utils::Matrix<size_t> const& edge_path_lengths
+    genesis::utils::containers::Matrix<size_t> const& edge_path_lengths
 );
 
 } // namespace placement
