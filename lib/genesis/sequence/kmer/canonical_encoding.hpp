@@ -54,7 +54,6 @@
 #include <cctype>
 #include <cmath>
 #include <climits>
-#include <cstdbool>
 #include <cstdint>
 #include <limits>
 #include <stdexcept>

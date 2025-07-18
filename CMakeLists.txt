@@ -266,7 +266,7 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 # Get the C++ version to use.
 # Call the function to determine the C++ standard version (either auto-detected or user-specified).
 # This sets `CMAKE_CXX_STANDARD` to the value to be used for compilation.
-include(DetectCppVersion)
+include(DetectCppStandard)
 detect_and_set_cpp_standard()
 
 # ================================================================================================
