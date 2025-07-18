@@ -309,10 +309,11 @@ jobs:
           #   compiler: llvm-10
           # - os: macos-15
           #   compiler: llvm-11
-          - os: macos-15
-            compiler: llvm-12
-          - os: macos-15
-            compiler: llvm-13
+          # Setup does not install make ?!
+          # - os: macos-15
+          #   compiler: llvm-12
+          # - os: macos-15
+          #   compiler: llvm-13
           - os: macos-15
             compiler: llvm-14
           - os: macos-15
@@ -466,7 +467,7 @@ jobs:
         #  - previously, we used an htslib version that required autoconf 2.69.
         #    we switched now, but keep this here for reference if needed later
         run: |
-          xcode-select --install
+          # xcode-select --install
           brew install autoconf automake libdeflate libomp libtool pkg-config
           if [[ ${{ matrix.os }} != macos-14 ]] && [[ ${{ matrix.os }} != macos-15 ]] && [[ ${{ matrix.os }} != macos-latest ]] ; then
               echo "Installing debuggers"
