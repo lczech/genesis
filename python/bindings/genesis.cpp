@@ -18,6 +18,15 @@ void bind_genesis_utils_core_version(std::function< pybind11::module &(std::stri
 void bind_genesis_utils_io_base_input_source(std::function< pybind11::module &(std::string const &namespace_) > &M);
 void bind_genesis_utils_io_file_input_source(std::function< pybind11::module &(std::string const &namespace_) > &M);
 void bind_genesis_utils_io_gzip_stream(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_char(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_base64(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_string(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_string_1(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_string_2(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_string_3(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_convert(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_style(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_text_table(std::function< pybind11::module &(std::string const &namespace_) > &M);
 
 
 PYBIND11_MODULE(genesis, root_module) {
@@ -46,6 +55,7 @@ PYBIND11_MODULE(genesis, root_module) {
 		{"genesis", "utils"},
 		{"genesis::utils", "core"},
 		{"genesis::utils", "io"},
+		{"genesis::utils", "text"},
 	};
 	for(auto &p : sub_modules ) modules[ p.first.empty() ? p.second :  p.first+"::"+p.second ] = modules[p.first].def_submodule( mangle_namespace_name(p.second).c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() );
 
@@ -60,5 +70,14 @@ PYBIND11_MODULE(genesis, root_module) {
 	bind_genesis_utils_io_base_input_source(M);
 	bind_genesis_utils_io_file_input_source(M);
 	bind_genesis_utils_io_gzip_stream(M);
+	bind_genesis_utils_text_char(M);
+	bind_genesis_utils_text_base64(M);
+	bind_genesis_utils_text_string(M);
+	bind_genesis_utils_text_string_1(M);
+	bind_genesis_utils_text_string_2(M);
+	bind_genesis_utils_text_string_3(M);
+	bind_genesis_utils_text_convert(M);
+	bind_genesis_utils_text_style(M);
+	bind_genesis_utils_text_table(M);
 
 }

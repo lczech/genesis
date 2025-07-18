@@ -26,9 +26,9 @@ import pathlib
 import io
 
 from genesis.genesis import utils
-# from genesis import genesis
+import test_config
 
-class TestGenesisUtilsCoreIoInputSource(unittest.TestCase):
+class TestGenesisUtilsIoInputSource(unittest.TestCase):
     def setUp(self):
         # Create a temp file with known content
         self.content = "Hello, world!\nThis is a test.\n"
@@ -68,6 +68,15 @@ class TestGenesisUtilsCoreIoInputSource(unittest.TestCase):
         src = utils.io.from_file(buf)
         result = utils.io.read_input_source(src)
         self.assertEqual(result, self.content)
+
+class TestGenesisUtilsIoInputGzip(unittest.TestCase):
+    def test_file_decompress(self):
+        raw_file = os.path.join(test_config.test_data_dir, "sequence/dna_10.fasta")
+        zip_file = os.path.join(test_config.test_data_dir, "sequence/dna_10.fasta.gz")
+
+        raw_data = utils.core.file_read( raw_file )
+        zip_data = utils.io.read_input_source( utils.io.from_file( zip_file ))
+        self.assertEqual(raw_data, zip_data)
 
 if __name__ == '__main__':
     unittest.main()

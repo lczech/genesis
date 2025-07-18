@@ -554,11 +554,11 @@
 #include <genesis/utils/io/input_buffer.hpp>
 #include <genesis/utils/io/input_reader.hpp>
 #include <genesis/utils/io/input_source.hpp>
-// #include <genesis/utils/io/input_stream.hpp>
+#include <genesis/utils/io/input_stream.hpp>
 // #include <genesis/utils/io/output_stream.hpp>
 // #include <genesis/utils/io/output_target.hpp>
-// #include <genesis/utils/io/parser.hpp>
-// #include <genesis/utils/io/scanner.hpp>
+#include <genesis/utils/io/parser.hpp>
+#include <genesis/utils/io/scanner.hpp>
 // #include <genesis/utils/io/serializer.hpp>
 #include <genesis/utils/io/stream_input_source.hpp>
 // #include <genesis/utils/io/stream_output_target.hpp>
@@ -607,13 +607,13 @@
 //   text
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/text/base64.hpp>
-// #include <genesis/utils/text/char.hpp>
-// #include <genesis/utils/text/convert.hpp>
-// #include <genesis/utils/text/light_string.hpp>
-// #include <genesis/utils/text/string.hpp>
-// #include <genesis/utils/text/style.hpp>
-// #include <genesis/utils/text/table.hpp>
+#include <genesis/utils/text/base64.hpp>
+#include <genesis/utils/text/char.hpp>
+#include <genesis/utils/text/convert.hpp>
+#include <genesis/utils/text/light_string.hpp>
+#include <genesis/utils/text/string.hpp>
+#include <genesis/utils/text/style.hpp>
+#include <genesis/utils/text/table.hpp>
 
 // ---------------------------------------------------------------------
 //   threading
