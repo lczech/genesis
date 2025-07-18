@@ -83,4 +83,27 @@ void genesis_binder_utils_io_input_source(py::module &m)
     "helper functions for other types of input sources.\n\n"
     "C++: genesis::utils::io::from_file(const std::string &) --> class std::shared_ptr<class genesis::utils::io::BaseInputSource>"
     );
+
+    m.def("from_string",
+    [](py::object src) -> std::shared_ptr<genesis::utils::io::BaseInputSource>
+    {
+        // We need this custom binding, as the string conversion creates a temporary string
+        // from the py object, and so our StringInputSource cannot point to it.
+        // We might want to change this in the future by having an overload of from_string
+        // in cpp that takes a string by value instead?!
+        if (py::isinstance<py::str>(src)) {
+            return genesis::utils::io::from_string(src.cast<std::string>());
+        }
+        throw std::invalid_argument(
+            "from_string(): expected str"
+        );
+    },
+    py::return_value_policy::reference,
+    "Obtain an input source for reading from a `std::string`.\n\n"
+    "The input source returned from this function can be used in the reader classes, e.g.,\n"
+    "placement::JplaceReader or sequence::FastaReader.\n\n \n See from_file(), from_files(), "
+    "from_strings(), and from_stream() for similar\n helper functions for other types of input "
+    "sources.\n\nC++: genesis::utils::io::from_string(const std::string &) --> class "
+    "std::shared_ptr<class genesis::utils::io::BaseInputSource>"
+    );
 }

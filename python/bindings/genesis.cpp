@@ -27,6 +27,10 @@ void bind_genesis_utils_text_string_3(std::function< pybind11::module &(std::str
 void bind_genesis_utils_text_convert(std::function< pybind11::module &(std::string const &namespace_) > &M);
 void bind_genesis_utils_text_style(std::function< pybind11::module &(std::string const &namespace_) > &M);
 void bind_genesis_utils_text_table(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_tools_date_time(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_tools_hash_sha1(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_tools_hash_sha256(std::function< pybind11::module &(std::string const &namespace_) > &M);
+void bind_genesis_utils_tools_tickmarks(std::function< pybind11::module &(std::string const &namespace_) > &M);
 
 
 PYBIND11_MODULE(genesis, root_module) {
@@ -79,5 +83,9 @@ PYBIND11_MODULE(genesis, root_module) {
 	bind_genesis_utils_text_convert(M);
 	bind_genesis_utils_text_style(M);
 	bind_genesis_utils_text_table(M);
+	bind_genesis_utils_tools_date_time(M);
+	bind_genesis_utils_tools_hash_sha1(M);
+	bind_genesis_utils_tools_hash_sha256(M);
+	bind_genesis_utils_tools_tickmarks(M);
 
 }

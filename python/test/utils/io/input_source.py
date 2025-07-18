@@ -69,6 +69,16 @@ class TestGenesisUtilsIoInputSource(unittest.TestCase):
         result = utils.io.read_input_source(src)
         self.assertEqual(result, self.content)
 
+    def test_from_string_var(self):
+        string = utils.io.from_string(self.content)
+        result = utils.io.read_input_source(string)
+        self.assertEqual(result, self.content)
+
+    def test_from_string_move(self):
+        string = utils.io.from_string(str(self.content))
+        result = utils.io.read_input_source(string)
+        self.assertEqual(result, self.content)
+
 class TestGenesisUtilsIoInputGzip(unittest.TestCase):
     def test_file_decompress(self):
         raw_file = os.path.join(test_config.test_data_dir, "sequence/dna_10.fasta")

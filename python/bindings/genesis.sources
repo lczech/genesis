@@ -17,3 +17,7 @@ genesis/utils/text/string_3.cpp
 genesis/utils/text/convert.cpp
 genesis/utils/text/style.cpp
 genesis/utils/text/table.cpp
+genesis/utils/tools/date_time.cpp
+genesis/utils/tools/hash/sha1.cpp
+genesis/utils/tools/hash/sha256.cpp
+genesis/utils/tools/tickmarks.cpp

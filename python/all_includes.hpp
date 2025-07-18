@@ -632,13 +632,13 @@
 //   tools
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/tools/char_lookup.hpp>
-// #include <genesis/utils/tools/date_time.hpp>
-// #include <genesis/utils/tools/geodesy/functions.hpp>
-// #include <genesis/utils/tools/geodesy/geo_coordinate.hpp>
-// #include <genesis/utils/tools/hash/functions.hpp>
-// #include <genesis/utils/tools/hash/md5.hpp>
-// #include <genesis/utils/tools/hash/sha1.hpp>
-// #include <genesis/utils/tools/hash/sha256.hpp>
-// #include <genesis/utils/tools/tickmarks.hpp>
-// #include <genesis/utils/tools/timer.hpp>
+#include <genesis/utils/tools/char_lookup.hpp>
+#include <genesis/utils/tools/date_time.hpp>
+#include <genesis/utils/tools/geodesy/functions.hpp>
+#include <genesis/utils/tools/geodesy/geo_coordinate.hpp>
+#include <genesis/utils/tools/hash/functions.hpp>
+#include <genesis/utils/tools/hash/md5.hpp>
+#include <genesis/utils/tools/hash/sha1.hpp>
+#include <genesis/utils/tools/hash/sha256.hpp>
+#include <genesis/utils/tools/tickmarks.hpp>
+#include <genesis/utils/tools/timer.hpp>
