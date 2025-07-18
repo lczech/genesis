@@ -72,8 +72,8 @@ namespace core {
 #if defined(__cplusplus)
     #define GENESIS_CPP_STD __cplusplus
 #else
-    // __cplusplus not defined, use C++11 by default
-    #define GENESIS_CPP_STD GENESIS_CPP_STD_11
+    // __cplusplus not defined, use C++17 by default
+    #define GENESIS_CPP_STD GENESIS_CPP_STD_17
 #endif
 
 // For MSVC (Microsoft Visual C++)
@@ -204,6 +204,9 @@ struct genesis_invoke_result
         // C++17 or later
         using type = typename std::invoke_result<F, Args...>::type;
     #else
+        // For simplicity, we just fail the whole build here.
+        static_assert(false, "C++ < 17 no longer supported. Please upgrade your compiler.");
+
         // C++11 and C++14. Tricky to get right.
 
         // First attempt, simply forwarding.
