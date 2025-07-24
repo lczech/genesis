@@ -1,3 +1,5 @@
+#pragma once
+
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2023-2025 Giannis Reppas and Lucas Czech
@@ -21,10 +23,18 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-// We use this header as input to Binder, to pull in additonal headers
-// that instantiate templates as needed. This could be part of the all_includes
-// header as well, but keeping it separate seems a bit cleaner.
-// For even more order and modularity, we here simply pull in per-namespace
-// headers, so that we can keep the scope of each of them relatively small.
+#include <genesis/utils/math/compensated_sum.hpp>
 
-#include <genesis/utils/math/compensated_sum_bind.hpp>
+namespace genesis {
+namespace utils {
+namespace math {
+
+// Explicit instantiations, because we do not have them anywhere in genesis.
+
+template class CompensatedSum<KahanSummation>;
+template class CompensatedSum<NeumaierSummation>;
+template class CompensatedSum<KleinSummation>;
+
+} // namespace math
+} // namespace utils
+} // namespace genesis

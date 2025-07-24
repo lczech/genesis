@@ -55,7 +55,6 @@ namespace math {
 //     Pearson Correlation Coefficient
 // =================================================================================================
 
-
 /**
  * @brief Calculate the Pearson Correlation Coefficient between two ranges of `double`.
  *

@@ -95,10 +95,7 @@ public:
         : ignore_nonfinite_(ignore_nonfinite)
         , ddof_(ddof)
     {
-        while( first != last ) {
-            push( *first );
-            ++first;
-        }
+        push( first, last );
     }
 
     /**
@@ -111,6 +108,16 @@ public:
         for( auto const e : list ) {
             push( e );
         }
+    }
+
+    /**
+     * @brief Compute Moments, over a list of doubles.
+     */
+    Moments( std::vector<double> const& values, size_t ddof = 0, bool ignore_nonfinite = true  )
+        : ignore_nonfinite_(ignore_nonfinite)
+        , ddof_(ddof)
+    {
+        push( values );
     }
 
     ~Moments() = default;
@@ -157,6 +164,22 @@ public:
         }
         if( !std::isfinite( max_ ) || val > max_ ) {
             max_ = val;
+        }
+    }
+
+    void push( std::vector<double> const& values )
+    {
+        for( auto const& v : values ) {
+            push(v);
+        }
+    }
+
+    template<class It>
+    void push( It first, It last )
+    {
+        while( first != last ) {
+            push( *first );
+            ++first;
         }
     }
 

@@ -1,6 +1,6 @@
 genesis.cpp
+genesis/utils/core/algorithm.cpp
 genesis/utils/core/fs.cpp
-genesis/utils/core/fs_1.cpp
 genesis/utils/core/info.cpp
 genesis/utils/core/info_1.cpp
 genesis/utils/core/options.cpp
@@ -9,6 +9,12 @@ genesis/utils/io/base_input_source.cpp
 genesis/utils/io/file_input_source.cpp
 genesis/utils/io/gzip_stream.cpp
 genesis/utils/text/char.cpp
+genesis/utils/math/binomial.cpp
+genesis/utils/math/compensated_sum.cpp
+genesis/utils/math/correlation.cpp
+genesis/utils/math/random.cpp
+genesis/utils/math/statistics.cpp
+genesis/utils/math/statistics_1.cpp
 genesis/utils/text/base64.cpp
 genesis/utils/text/string.cpp
 genesis/utils/text/string_1.cpp
@@ -21,3 +27,4 @@ genesis/utils/tools/date_time.cpp
 genesis/utils/tools/hash/sha1.cpp
 genesis/utils/tools/hash/sha256.cpp
 genesis/utils/tools/tickmarks.cpp
+genesis/utils/math/compensated_sum_bind.cpp

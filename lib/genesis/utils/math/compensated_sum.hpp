@@ -162,9 +162,10 @@ public:
     /**
      * @brief Add a @p value to the sum.
      */
-    inline void operator += ( double value )
+    inline CompensatedSum& operator += ( double value )
     {
         add( value );
+        return *this;
     }
 
     /**
@@ -172,9 +173,10 @@ public:
      *
      * This is identical to addting the negative of the @p value.
      */
-    inline void operator -= ( double value )
+    inline CompensatedSum& operator -= ( double value )
     {
         add( -value );
+        return *this;
     }
 
     /**

@@ -574,12 +574,12 @@
 //   math
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/math/binomial.hpp>
-// #include <genesis/utils/math/common.hpp>
-// #include <genesis/utils/math/compensated_sum.hpp>
-// #include <genesis/utils/math/correlation.hpp>
+#include <genesis/utils/math/binomial.hpp>
+#include <genesis/utils/math/common.hpp>
+#include <genesis/utils/math/compensated_sum.hpp>
+#include <genesis/utils/math/correlation.hpp>
 // #include <genesis/utils/math/distance.hpp>
-// #include <genesis/utils/math/distribution.hpp>
+#include <genesis/utils/math/distribution.hpp>
 // #include <genesis/utils/math/euclidean_kmeans.hpp>
 // #include <genesis/utils/math/hac.hpp>
 // #include <genesis/utils/math/hac/functions.hpp>
@@ -593,11 +593,11 @@
 // #include <genesis/utils/math/kmeans.hpp>
 // #include <genesis/utils/math/matrix.hpp>
 // #include <genesis/utils/math/mds.hpp>
-// #include <genesis/utils/math/moments.hpp>
+#include <genesis/utils/math/moments.hpp>
 // #include <genesis/utils/math/pca.hpp>
-// #include <genesis/utils/math/random.hpp>
+#include <genesis/utils/math/random.hpp>
 // #include <genesis/utils/math/range_minimum_query.hpp>
-// #include <genesis/utils/math/ranking.hpp>
+#include <genesis/utils/math/ranking.hpp>
 // #include <genesis/utils/math/regression/dataframe.hpp>
 // #include <genesis/utils/math/regression/factor.hpp>
 // #include <genesis/utils/math/regression/family.hpp>
@@ -605,7 +605,7 @@
 // #include <genesis/utils/math/regression/helper.hpp>
 // #include <genesis/utils/math/regression/link.hpp>
 // #include <genesis/utils/math/regression/slr.hpp>
-// #include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/math/statistics.hpp>
 
 // ---------------------------------------------------------------------
 //   text
