@@ -1,5 +1,5 @@
-#include <custom/utils/io/extra_bindings.hpp>
 #include <genesis/utils/io/base_input_source.hpp>
+#include <genesis/utils/io/input_source_bind.hpp>
 #include <iterator>
 #include <memory>
 #include <sstream> // __str__
@@ -21,7 +21,7 @@
 void bind_genesis_utils_io_base_input_source(std::function< pybind11::module &(std::string const &namespace_) > &M)
 {
 
-	genesis_binder_utils_io_input_source(M("genesis::utils::io"));
+	genesis_utils_io_input_source_bind(M("genesis::utils::io"));
 	{ // genesis::utils::io::BaseInputSource file:genesis/utils/io/base_input_source.hpp line:51
 		pybind11::class_<genesis::utils::io::BaseInputSource, std::shared_ptr<genesis::utils::io::BaseInputSource>> cl(M("genesis::utils::io"), "BaseInputSource", "Abstract base class for reading byte data from input sources.\n\n It offers to read() a certain amount of bytes into a char buffer.");
 		// function-signature: class genesis::utils::io::BaseInputSource & genesis::utils::io::BaseInputSource::operator=(const class genesis::utils::io::BaseInputSource &)(const class genesis::utils::io::BaseInputSource &) file:genesis/utils/io/base_input_source.hpp line:64

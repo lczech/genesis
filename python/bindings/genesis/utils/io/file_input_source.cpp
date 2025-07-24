@@ -1,11 +1,11 @@
 #include <cstdio>
-#include <custom/utils/io/extra_bindings.hpp>
 #include <genesis/utils/io/base_input_source.hpp>
 #include <genesis/utils/io/file_input_source.hpp>
 #include <genesis/utils/io/functions.hpp>
 #include <genesis/utils/io/gzip.hpp>
 #include <genesis/utils/io/gzip_input_source.hpp>
 #include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/input_source_bind.hpp>
 #include <genesis/utils/io/string_input_source.hpp>
 #include <iterator>
 #include <memory>

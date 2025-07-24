@@ -50,11 +50,13 @@ pybind_source     = './external/pybind11'
 
 # Other include directories. Those might depend on the submodule setup,
 # and hence is a bit brittle, but let's keep it for now.
+# Currently, this includes headers that are copied over
+# to the build directory by the main CMake file.
 other_includes = ['./build/generated/include']
 
 # Paths to genesis code
 genesis_source   = './lib'
-genesis_includes = ['./python', './lib']
+genesis_includes = ['./python/custom', './python', './lib']
 
 # Do we want to generate the all_includes.hpp file?
 # We have deactivated this for now, as it does not seem to play nice with binder,
@@ -81,9 +83,11 @@ python_module_name = 'genesis'
 namespace_to_bind = '"genesis"'
 
 # Files needed for binder
-all_includes_file = './python/all_includes.hpp'
-config_file       = './python/binder.cfg'
-bindings_dir      = './python/bindings'
+bindings_dir         = './python/bindings'
+config_file          = './python/binder.cfg'
+all_includes_file    = './python/genesis_headers.hpp'
+custom_code_dir      = './python/custom'
+extra_includes_files = [ './python/custom/template_instances_bind.hpp' ]
 
 # Settings for binder
 c_plus_plus_version = '17'
@@ -272,7 +276,7 @@ def compare_all_includes():
             print('\033[91m' + f'#include <{m}>' + '\033[0m')
 
 # ------------------------------------------------------------------------------
-#   Make Bindings
+#   Sanity checks
 # ------------------------------------------------------------------------------
 
 def write_binder_version(output_path: str) -> None:
@@ -289,6 +293,30 @@ def write_binder_version(output_path: str) -> None:
         version_str = f"Error running 'binder --version': {e}"
     pathlib.Path(output_path).write_text(version_str + "\n", encoding="utf-8")
 
+def check_bind_suffix(directory: str) -> None:
+    """
+    Recursively search for .cpp and .hpp files in the given directory.
+    For each file found, checks if its base name ends with '_bind'.
+    Prints a warning in red for each file that does not.
+    """
+    # ANSI escape codes for red text and reset
+    RED = '\033[31m'
+    RESET = '\033[0m'
+
+    for root, _, files in os.walk(directory):
+        for filename in files:
+            # consider only C++ source and header files
+            if filename.lower().endswith(('.cpp', '.hpp')):
+                name, ext = os.path.splitext(filename)
+                if not name.endswith('_bind'):
+                    filepath = os.path.join(root, filename)
+                    # entire warning in red
+                    print(f"{RED}WARNING: File '{filepath}' does not end with '_bind'{ext}{RESET}")
+
+# ------------------------------------------------------------------------------
+#   Make Bindings
+# ------------------------------------------------------------------------------
+
 def make_bindings_code(target_dir):
     # Build the binder command
     command = [f'{binder_executable}']
@@ -298,6 +326,7 @@ def make_bindings_code(target_dir):
     command += ['--prefix', f'{target_dir}']
     command += ['--bind', f'{namespace_to_bind}']
     command += ['--config', f'{config_file}']
+    # command += ['--bind-class-template-specialization']
 
     # Conditional extra arguments
     if use_pybind_stl:
@@ -312,7 +341,9 @@ def make_bindings_code(target_dir):
         command += ['--trace', '-v']
 
     # Final binder args, and Clang args
-    command += [f'{all_includes_file}']
+    command += [os.path.join( target_dir, "all_includes.hpp" )]
+    # command += [f'{all_includes_file}']
+    # command += [f'{template_instances_file}']
     command += ['--']
     command += [f'-std=c++{c_plus_plus_version}']
     command += ['-DNDEBUG']
@@ -336,14 +367,32 @@ def make_bindings_code(target_dir):
     subprocess.check_call(command)
 
 def generate_bindings():
+    # Check that all custom files adhere to the convention of having `_bind` suffix,
+    # in order to avoid name clashes and wrong includes during compilation
+    check_bind_suffix(custom_code_dir)
+
     # Some prep, version, dirs, etc.
     # Binder does not create the directory for us...
 
-    # Make the bindings code, in a fresh new temp directory.
+    # Create a fresh new temp directory for the bindings.
     temp_dir = pathlib.Path(bindings_dir).parent / (pathlib.Path(bindings_dir).name + "_tmp")
     os.makedirs(temp_dir, exist_ok=True)
+
+    # Create a comprehensive all includes header.
+    with open( os.path.join( temp_dir, "all_includes.hpp" ), 'w') as outfile:
+        with open(all_includes_file) as infile:
+            outfile.write(infile.read())
+        for fname in extra_includes_files:
+            with open(fname) as infile:
+                outfile.write(infile.read())
+
+    # Make the bindings code.
     make_bindings_code( temp_dir )
     write_binder_version( os.path.join( temp_dir, "binder_version.txt" ))
+
+    # Remove the generated all includes file again.
+    # Don't want it to occur in our generated output.
+    os.remove(os.path.join( temp_dir, "all_includes.hpp" ))
 
     # Now sync the generated files to our actual target dir,
     # making sure to not touch time stamps of files that have not changed.

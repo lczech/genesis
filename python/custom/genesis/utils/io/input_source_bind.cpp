@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2023-2025 Giannis Reppas and Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,8 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-#include <custom/utils/io/extra_bindings.hpp>
+// Custom file in the python/custom dir
+#include <genesis/utils/io/input_source_bind.hpp>
 
 #include <sstream>
 #include <string>
@@ -36,7 +37,7 @@
 
 namespace py  = pybind11;
 
-void genesis_binder_utils_io_input_source(py::module &m)
+void genesis_utils_io_input_source_bind(py::module &m)
 {
     m.def("from_file",
     [](py::object src) -> std::shared_ptr<genesis::utils::io::BaseInputSource>

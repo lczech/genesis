@@ -93,7 +93,7 @@ ELSE()
     file (GLOB_RECURSE genesis_python_custom_sources   ${PROJECT_SOURCE_DIR}/python/custom/*.cpp)
 ENDIF()
 
-include_directories(${PROJECT_SOURCE_DIR}/python)
+include_directories(${PROJECT_SOURCE_DIR}/python/custom)
 include_directories(${PROJECT_SOURCE_DIR}/lib)
 
 # include_directories(binder/source)

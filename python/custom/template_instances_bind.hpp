@@ -1,8 +1,6 @@
-#pragma once
-
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2023-2025 Giannis Reppas and Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,6 +21,8 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-#include <pybind11/pybind11.h>
-
-void genesis_binder_utils_io_input_source(pybind11::module &m);
+// We use this header as input to Binder, to pull in additonal headers
+// that instantiate templates as needed. This could be part of the all_includes
+// header as well, but keeping it separate seems a bit cleaner.
+// For even more order and modularity, we here simply pull in per-namespace
+// headers, so that we can keep the scope of each of them relatively small.
