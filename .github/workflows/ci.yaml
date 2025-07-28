@@ -455,12 +455,6 @@ jobs:
               sudo apt-get install libtinfo5
           fi
 
-          # for clang on Ubuntu 22.04: pull in libc++
-          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" =~ ^llvm- ]]; then
-              sudo apt-get install -y libc++-dev libc++abi-dev
-          fi
-
-
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
         # The commands below were try and error with the CI...
@@ -531,7 +525,15 @@ jobs:
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
-          cmake -S . -B ./build ${GENESIS_CPP_STANDARD} ${GENESIS_USE_HTSLIB} ${GENESIS_USE_OPENMP}
+          # For Ubuntu‑22.04 + clang-18/19/20: avoid deprecation errors due the lib std
+          # being outdated in that combination. Not our problem to fix.
+          CMAKE_DEPREC_FLAGS=""
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" =~ ^llvm-1[89]|llvm-20$ ]]; then
+            # do not treat deprecated-declarations as errors
+            CMAKE_DEPREC_FLAGS="-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations"
+          fi
+
+          cmake -S . -B ./build ${GENESIS_CPP_STANDARD} ${GENESIS_USE_HTSLIB} ${GENESIS_USE_OPENMP} ${CMAKE_DEPREC_FLAGS}
 
       # - name: MacOS CMake debug
       #   if: always() && runner.os == 'macos'
