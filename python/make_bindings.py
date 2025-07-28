@@ -93,7 +93,8 @@ extra_includes_files = [ './python/custom/template_instances_bind.hpp' ]
 c_plus_plus_version = '17'
 use_pybind_stl  = True
 single_file     = False
-binder_debug    = False
+binder_trace    = False
+binder_verbose  = True
 binder_annotate_includes  = False
 binder_annotate_functions = True
 
@@ -279,6 +280,27 @@ def compare_all_includes():
 #   Sanity checks
 # ------------------------------------------------------------------------------
 
+def get_binder_commit() -> str:
+    try:
+        if not os.path.exists(binder_executable) or not os.path.islink(binder_executable):
+            return ''
+
+        target_path = os.path.realpath(binder_executable)
+        target_dir = os.path.dirname(target_path)
+
+        result = subprocess.run(
+            ['git', 'rev-parse', 'HEAD'],
+            cwd=target_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=True
+        )
+        return result.stdout.strip()
+    except:
+        return ''
+
+
 def write_binder_version(output_path: str) -> None:
     # Capture the output of `binder --version`
     try:
@@ -288,10 +310,13 @@ def write_binder_version(output_path: str) -> None:
             text=True,
             check=True
         )
-        version_str = result.stdout.strip()
+        version_str = result.stdout.strip() + "\n"
     except subprocess.CalledProcessError as e:
-        version_str = f"Error running 'binder --version': {e}"
-    pathlib.Path(output_path).write_text(version_str + "\n", encoding="utf-8")
+        version_str = f"Error running 'binder --version': {e}\n"
+    binder_commit = get_binder_commit()
+    if binder_commit:
+        version_str += f"binder commit: {binder_commit}\n"
+    pathlib.Path(output_path).write_text(version_str, encoding="utf-8")
 
 def check_bind_suffix(directory: str) -> None:
     """
@@ -337,13 +362,17 @@ def make_bindings_code(target_dir):
         command += ['--annotate-includes']
     if binder_annotate_functions:
         command += ['--annotate-functions']
-    if binder_debug:
-        command += ['--trace', '-v']
+    if binder_trace:
+        command += ['--trace']
+    if binder_verbose:
+        command += ['-v']
 
     # Final binder args, and Clang args
     command += [os.path.join( target_dir, "all_includes.hpp" )]
     # command += [f'{all_includes_file}']
     # command += [f'{template_instances_file}']
+
+    # Clang options
     command += ['--']
     command += [f'-std=c++{c_plus_plus_version}']
     command += ['-DNDEBUG']
@@ -365,6 +394,26 @@ def make_bindings_code(target_dir):
     # Execute binder!
     print('Binder command:', ' '.join(command))
     subprocess.check_call(command)
+
+def run_clang_format(directory: str) -> None:
+    clang = shutil.which('clang-format')
+    if clang is None:
+        raise EnvironmentError("clang-format not found; please install")
+    for root, _, files in os.walk(directory):
+        for fname in files:
+            if not fname.lower().endswith('.cpp'):
+                continue
+            path = os.path.join(root, fname)
+            result = subprocess.run(
+                [clang, '-i', path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"clang-format failed on {path}:\n{result.stderr.strip()}"
+                )
 
 def generate_bindings():
     # Check that all custom files adhere to the convention of having `_bind` suffix,
@@ -388,6 +437,7 @@ def generate_bindings():
 
     # Make the bindings code.
     make_bindings_code( temp_dir )
+    run_clang_format( temp_dir )
     write_binder_version( os.path.join( temp_dir, "binder_version.txt" ))
 
     # Remove the generated all includes file again.
