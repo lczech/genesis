@@ -455,6 +455,12 @@ jobs:
               sudo apt-get install libtinfo5
           fi
 
+          # for clang on Ubuntu 22.04: pull in libc++
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" =~ ^llvm- ]]; then
+              sudo apt-get install -y libc++-dev libc++abi-dev
+          fi
+
+
       - name: Install Dependencies - MacOS
         if: runner.os == 'macos'
         # The commands below were try and error with the CI...
@@ -497,6 +503,7 @@ jobs:
           GENESIS_CPP_STANDARD=""
           GENESIS_USE_HTSLIB=""
           GENESIS_USE_OPENMP=""
+          CMAKE_STDLIB_FLAGS=""
 
           # Check for release build, deactivating the debug env
           if [[ "${{ matrix.build_type }}" == "RELEASE" ]]; then
@@ -525,7 +532,12 @@ jobs:
             sudo xcode-select --switch /Library/Developer/CommandLineTools
           fi
 
-          cmake -S . -B ./build ${GENESIS_CPP_STANDARD} ${GENESIS_USE_HTSLIB} ${GENESIS_USE_OPENMP}
+          # For Ubuntu‑22.04 + clang-18/19/20: use libc++ to avoid deprecation errors
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" =~ ^llvm-1[89]|llvm-20$ ]]; then
+              CMAKE_STDLIB_FLAGS="-DCMAKE_CXX_FLAGS=-stdlib=libc++ -DCMAKE_C_FLAGS=-stdlib=libc++"
+          fi
+
+          cmake -S . -B ./build ${GENESIS_CPP_STANDARD} ${GENESIS_USE_HTSLIB} ${GENESIS_USE_OPENMP} ${CMAKE_STDLIB_FLAGS}
 
       # - name: MacOS CMake debug
       #   if: always() && runner.os == 'macos'
