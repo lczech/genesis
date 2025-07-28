@@ -9,10 +9,10 @@
 
 using ModuleGetter = std::function< pybind11::module&( std::string const& ) >;
 
-void bind_genesis_utils_core_algorithm(
+void bind_genesis_utils_core_fs(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_core_fs(
+void bind_genesis_utils_core_fs_1(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_core_info(
@@ -143,8 +143,8 @@ PYBIND11_MODULE( genesis, root_module )
 
     // pybind11::class_<std::shared_ptr<void>>(M(""), "_encapsulated_data_");
 
-    bind_genesis_utils_core_algorithm( M );
     bind_genesis_utils_core_fs( M );
+    bind_genesis_utils_core_fs_1( M );
     bind_genesis_utils_core_info( M );
     bind_genesis_utils_core_info_1( M );
     bind_genesis_utils_core_options( M );
