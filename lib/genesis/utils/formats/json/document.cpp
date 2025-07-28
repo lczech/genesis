@@ -71,6 +71,7 @@
 
 #include <algorithm>
 #include <array>
+#include <initializer_list>
 
 namespace genesis {
 namespace utils {

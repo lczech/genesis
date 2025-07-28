@@ -35,6 +35,7 @@
 #include <genesis/utils/containers/matrix/row.hpp>
 
 #include <cassert>
+#include <initializer_list>
 #include <stdexcept>
 #include <string>
 #include <vector>

@@ -34,6 +34,7 @@
 
 #include <array>
 #include <cassert>
+#include <initializer_list>
 #include <functional>
 #include <string>
 #include <stdexcept>

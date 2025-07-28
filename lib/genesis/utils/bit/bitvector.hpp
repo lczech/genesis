@@ -35,6 +35,7 @@
 #include <cassert>
 #include <climits>
 #include <cstdint>
+#include <initializer_list>
 #include <iterator>
 #include <limits>
 #include <stdexcept>
