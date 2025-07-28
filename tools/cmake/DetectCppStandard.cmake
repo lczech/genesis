@@ -27,7 +27,7 @@
 # the highest standard of C++ that the compiler is capable of.
 # This is meant as an automatic way to compile with the latest features if possible.
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.14)
 message (STATUS "Detecting C++ Standard")
 
 # List of C++ standards and corresponding flags for testing, starting from the highest,
@@ -113,6 +113,8 @@ function(detect_and_set_cpp_standard)
         # yet for all C++ versions that we are testing above. So we go the manual route...
         # set(CMAKE_CXX_STANDARD ${HIGHEST_SUPPORTED_CXX_VERSION} PARENT_SCOPE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${HIGHEST_SUPPORTED_CXX_VERSION}" PARENT_SCOPE)
+        set(CMAKE_CXX_STANDARD ${HIGHEST_SUPPORTED_CXX_VERSION})
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
         SET(GENESIS_CPP_STANDARD ${HIGHEST_SUPPORTED_CXX_VERSION})
     else()
         # Check if the provided version is valid and supported
@@ -123,6 +125,8 @@ function(detect_and_set_cpp_standard)
             if (GENESIS_CPP_STANDARD STREQUAL version)
                 message(STATUS "Using user-specified C++ standard: C++${GENESIS_CPP_STANDARD}")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${GENESIS_CPP_STANDARD}" PARENT_SCOPE)
+                set(CMAKE_CXX_STANDARD ${HIGHEST_SUPPORTED_CXX_VERSION})
+                set(CMAKE_CXX_STANDARD_REQUIRED ON)
                 set(version_valid ON)
                 break() # Exit the loop once a valid version is found
             endif()

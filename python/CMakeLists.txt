@@ -58,7 +58,6 @@ endif()
 include_directories("${PYBIND11_SOURCE}/include")
 
 # Make the pybind module available
-cmake_minimum_required(VERSION 3.5)
 add_subdirectory("${PYBIND11_SOURCE}" "{CMAKE_CURRENT_BINARY_DIR}/pybind11")
 
 # User output for debugging etc
