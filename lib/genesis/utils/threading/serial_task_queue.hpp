@@ -42,6 +42,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <tuple>
 #include <utility>
 
 namespace genesis {
@@ -158,7 +159,12 @@ public:
 
         // Create a shared pointer to a packaged task wrapping the function and its arguments.
         auto task = std::make_shared<std::packaged_task<result_type()>>(
-            std::bind( std::forward<F>(f), std::forward<Args>(args)... )
+            [
+                f = std::forward<F>(f),
+                args = std::make_tuple(std::forward<Args>(args)...)
+            ]() mutable -> result_type {
+                return std::apply( f, std::move( args ));
+            }
         );
 
         // Retrieve the future from the task.
@@ -185,11 +191,15 @@ public:
     template<typename F, typename... Args>
     inline void enqueue_detached( F&& f, Args&&... args )
     {
-        // Bind the function and its arguments to create a callable object.
-        auto bound_task = std::bind( std::forward<F>(f), std::forward<Args>(args)... );
-
-        // Enqueue the callable object as a WrappedTask.
-        enqueue_( WrappedTask{ [bound_task](){ bound_task(); } } );
+        // Enqueue the callable object as a WrappedTask with direct lambda capture.
+        enqueue_( WrappedTask{
+            [
+                f = std::forward<F>(f),
+                args = std::make_tuple(std::forward<Args>(args)...)
+            ]() mutable {
+                std::apply( f, std::move( args ));
+            }
+        });
     }
 
     // -------------------------------------------------------------

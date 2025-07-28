@@ -45,6 +45,7 @@
 #include <queue>
 #include <stdexcept>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -501,14 +502,11 @@ public:
         // All this wrapping should be completely transparent to the compiler, and removed.
         // The task captures the package including the promise that is needed for the future.
         WrappedTask wrapped_task;
-        std::function<result_type()> task_function = std::bind(
-            std::forward<F>(f), std::forward<Args>(args)...
-        );
         wrapped_task.function = make_wrapped_task_with_promise_(
-            task_promise, std::move( task_function )
+            task_promise, std::forward<F>(f), std::forward<Args>(args)...
         );
 
-        // We first incrementi the unfinished counter, and only decrementing it once the task has
+        // We first increment the unfinished counter, and only decrementing it once the task has
         // been fully processed. Thus, the counter always tells us if there is still work going on.
         ++unfinished_tasks_;
         task_queue_.enqueue( std::move( wrapped_task ));
@@ -538,9 +536,11 @@ public:
         // All this wrapping should be completely transparent to the compiler, and removed.
         // The task captures the package including the promise that is needed for the future.
         WrappedTask wrapped_task;
-        auto task_function = std::bind( std::forward<F>(f), std::forward<Args>(args)... );
-        wrapped_task.function = [task_function, this]()
-        {
+        wrapped_task.function = [
+            this,
+            f    = std::forward<F>(f),
+            args = std::make_tuple(std::forward<Args>(args)...)
+        ](){
             // Run the actual work task here. Once done, we can signal this to the unfinished list.
             // We need to catch any exceptions thrown in the task here, as otherwise,
             // the unfinished counter would not be decremented properly, thus breaking invariants.
@@ -550,7 +550,7 @@ public:
             // it must have come from the task, so we then know that the unfiished counter was not
             // yet decremented.
             try {
-                task_function();
+                std::apply( f, std::move( args ));
                 assert( this->unfinished_tasks_.load() > 0 );
                 --(this->unfinished_tasks_);
             } catch (...) {
@@ -705,27 +705,42 @@ private:
         }
     }
 
-    template<typename T>
+    template<typename T, typename F, typename... Args>
     inline std::function<void()> make_wrapped_task_with_promise_(
         std::shared_ptr<std::promise<T>>& task_promise,
-        std::function<T()>&& task_function
+        F&& f, Args&&... args
     ) {
         // We capture a reference to `this` in the below lambda, which could be dangerous
         // if the threads survive the lifetime of the pool, but given that the pool destructor
         // waits for all of them to finish, this should never be able to happen.
-        return [this, task_promise, task_function]() mutable
-        {
+        return [
+            this,
+            task_promise,
+            f    = std::forward<F>(f),
+            args = std::make_tuple(std::forward<Args>(args)...)
+        ]() mutable {
             // Run the work task, and set the value of the associated promise.
-            // We need to delegate this here, as the std::promise::set_value() function
-            // differs for void and non-void return types. That is unfortunate.
+            // We need two variants of this here, as the std::promise::set_value() function
+            // differs for void and non-void return types.
             // Also, as either the task function or setting the value of the promise can throw
             // an exception, but in between we need to decrement the unfiished tasks counter,
             // we need a way to figure out if we already did the decrement in case of an error.
             bool decremented_unfinished_tasks = false;
             try {
-                run_task_and_fulfill_promise_<T>(
-                    task_promise, task_function, decremented_unfinished_tasks
-                );
+                // Inline the task execution and promise fulfillment
+                if constexpr ( std::is_void_v<T> ) {
+                    std::apply( f, std::move( args ));
+                    assert( unfinished_tasks_.load() > 0 );
+                    --unfinished_tasks_;
+                    decremented_unfinished_tasks = true;
+                    task_promise->set_value();
+                } else {
+                    T result = std::apply( f, std::move( args ));
+                    assert( unfinished_tasks_.load() > 0 );
+                    --unfinished_tasks_;
+                    decremented_unfinished_tasks = true;
+                    task_promise->set_value( std::move( result ));
+                }
             } catch (...) {
                 if( !decremented_unfinished_tasks ) {
                     --unfinished_tasks_;
@@ -735,39 +750,6 @@ private:
             }
             assert( decremented_unfinished_tasks );
         };
-    }
-
-    template<typename T>
-    typename std::enable_if<!std::is_void<T>::value>::type
-    inline run_task_and_fulfill_promise_(
-        std::shared_ptr<std::promise<T>>& task_promise,
-        std::function<T()>& task_function,
-        bool& decremented_unfinished_tasks
-    ) {
-        // Run the actual work task here. Once done, we can signal this to the unfinished list.
-        // This bit is the only reason why the whole wrapping exists: We need to first decrement
-        // the unfinished tasks count, before setting the promise value, as otherwise, outside
-        // threads might deduce that there are more pending tasks, when in fact we are already done.
-        auto result = task_function();
-        assert( unfinished_tasks_.load() > 0 );
-        --unfinished_tasks_;
-        decremented_unfinished_tasks = true;
-        task_promise->set_value( std::move( result ));
-    }
-
-    template<typename T>
-    typename std::enable_if<std::is_void<T>::value>::type
-    inline run_task_and_fulfill_promise_(
-        std::shared_ptr<std::promise<T>>& task_promise,
-        std::function<void()>& task_function,
-        bool& decremented_unfinished_tasks
-    ) {
-        // Same as above, but for void functions, i.e., without setting a value for the promise.
-        task_function();
-        assert( unfinished_tasks_.load() > 0 );
-        --unfinished_tasks_;
-        decremented_unfinished_tasks = true;
-        task_promise->set_value();
     }
 
     // -------------------------------------------------------------
