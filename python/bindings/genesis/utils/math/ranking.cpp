@@ -1,9 +1,8 @@
 #include <genesis/utils/math/correlation.hpp>
 #include <genesis/utils/math/distribution.hpp>
-#include <genesis/utils/math/moments.hpp>
+#include <genesis/utils/math/ranking.hpp>
 #include <iterator>
 #include <memory>
-#include <sstream> // __str__
 #include <vector>
 
 #include <functional>
@@ -18,10 +17,85 @@ PYBIND11_DECLARE_HOLDER_TYPE( T, T*, false )
 PYBIND11_MAKE_OPAQUE( std::shared_ptr<void> )
 #endif
 
-void bind_genesis_utils_math_correlation(
+void bind_genesis_utils_math_ranking(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 )
 {
+    // genesis::utils::math::ranking_standard(const class std::vector<double> &)
+    // file:genesis/utils/math/ranking.hpp line:94 function-signature: class std::vector<unsigned
+    // long> genesis::utils::math::ranking_standard(const class std::vector<double> &)(const class
+    // std::vector<double> &) file:genesis/utils/math/ranking.hpp line:94
+    M( "genesis::utils::math" )
+        .def(
+            "ranking_standard",
+            ( class std::vector<unsigned long>( * )( const class std::vector<double>& ) ) &
+                genesis::utils::math::ranking_standard,
+            "RandomAccessIterator first, RandomAccessIterator last )\n\nC++: "
+            "genesis::utils::math::ranking_standard(const class std::vector<double> &) --> class "
+            "std::vector<unsigned long>",
+            pybind11::arg( "vec" )
+        );
+
+    // genesis::utils::math::ranking_modified(const class std::vector<double> &)
+    // file:genesis/utils/math/ranking.hpp line:152 function-signature: class std::vector<unsigned
+    // long> genesis::utils::math::ranking_modified(const class std::vector<double> &)(const class
+    // std::vector<double> &) file:genesis/utils/math/ranking.hpp line:152
+    M( "genesis::utils::math" )
+        .def(
+            "ranking_modified",
+            ( class std::vector<unsigned long>( * )( const class std::vector<double>& ) ) &
+                genesis::utils::math::ranking_modified,
+            "RandomAccessIterator first, RandomAccessIterator last )\n\nC++: "
+            "genesis::utils::math::ranking_modified(const class std::vector<double> &) --> class "
+            "std::vector<unsigned long>",
+            pybind11::arg( "vec" )
+        );
+
+    // genesis::utils::math::ranking_dense(const class std::vector<double> &)
+    // file:genesis/utils/math/ranking.hpp line:202 function-signature: class std::vector<unsigned
+    // long> genesis::utils::math::ranking_dense(const class std::vector<double> &)(const class
+    // std::vector<double> &) file:genesis/utils/math/ranking.hpp line:202
+    M( "genesis::utils::math" )
+        .def(
+            "ranking_dense",
+            ( class std::vector<unsigned long>( * )( const class std::vector<double>& ) ) &
+                genesis::utils::math::ranking_dense,
+            "RandomAccessIterator first, RandomAccessIterator last )\n\nC++: "
+            "genesis::utils::math::ranking_dense(const class std::vector<double> &) --> class "
+            "std::vector<unsigned long>",
+            pybind11::arg( "vec" )
+        );
+
+    // genesis::utils::math::ranking_ordinal(const class std::vector<double> &)
+    // file:genesis/utils/math/ranking.hpp line:243 function-signature: class std::vector<unsigned
+    // long> genesis::utils::math::ranking_ordinal(const class std::vector<double> &)(const class
+    // std::vector<double> &) file:genesis/utils/math/ranking.hpp line:243
+    M( "genesis::utils::math" )
+        .def(
+            "ranking_ordinal",
+            ( class std::vector<unsigned long>( * )( const class std::vector<double>& ) ) &
+                genesis::utils::math::ranking_ordinal,
+            "RandomAccessIterator first, RandomAccessIterator last )\n\nC++: "
+            "genesis::utils::math::ranking_ordinal(const class std::vector<double> &) --> class "
+            "std::vector<unsigned long>",
+            pybind11::arg( "vec" )
+        );
+
+    // genesis::utils::math::ranking_fractional(const class std::vector<double> &)
+    // file:genesis/utils/math/ranking.hpp line:322 function-signature: class std::vector<double>
+    // genesis::utils::math::ranking_fractional(const class std::vector<double> &)(const class
+    // std::vector<double> &) file:genesis/utils/math/ranking.hpp line:322
+    M( "genesis::utils::math" )
+        .def(
+            "ranking_fractional",
+            ( class std::vector<double>( * )( const class std::vector<double>& ) ) &
+                genesis::utils::math::ranking_fractional,
+            "RandomAccessIterator first, RandomAccessIterator last )\n\nC++: "
+            "genesis::utils::math::ranking_fractional(const class std::vector<double> &) --> class "
+            "std::vector<double>",
+            pybind11::arg( "vec" )
+        );
+
     // genesis::utils::math::pearson_correlation_coefficient(const class std::vector<double> &,
     // const class std::vector<double> &) file:genesis/utils/math/correlation.hpp line:123
     // function-signature: double genesis::utils::math::pearson_correlation_coefficient(const class
@@ -39,43 +113,6 @@ void bind_genesis_utils_math_correlation(
             "&, const class std::vector<double> &) --> double",
             pybind11::arg( "vec_a" ),
             pybind11::arg( "vec_b" )
-        );
-
-    // genesis::utils::math::spearmans_rank_correlation_coefficient(class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >)
-    // file:genesis/utils/math/correlation.hpp line:145 function-signature: double
-    // genesis::utils::math::spearmans_rank_correlation_coefficient<__gnu_cxx::__normal_iterator<const
-    // double *, std::vector<double> >,__gnu_cxx::__normal_iterator<const double *,
-    // std::vector<double> >>(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >)(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >) file:genesis/utils/math/correlation.hpp line:145
-    M( "genesis::utils::math" )
-        .def(
-            "spearmans_rank_correlation_coefficient",
-            (
-                double ( * )( class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > )
-            ) &
-                genesis::utils::math::spearmans_rank_correlation_coefficient<
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >,
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >>,
-            "C++: genesis::utils::math::spearmans_rank_correlation_coefficient(class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >) --> double",
-            pybind11::arg( "first_a" ),
-            pybind11::arg( "last_a" ),
-            pybind11::arg( "first_b" ),
-            pybind11::arg( "last_b" )
         );
 
     // genesis::utils::math::spearmans_rank_correlation_coefficient(const class std::vector<double>
@@ -327,173 +364,4 @@ void bind_genesis_utils_math_correlation(
             pybind11::arg( "p" ),
             pybind11::arg( "n" )
         );
-
-    { // genesis::utils::math::Moments file:genesis/utils/math/moments.hpp line:60
-        pybind11::
-            class_<genesis::utils::math::Moments, std::shared_ptr<genesis::utils::math::Moments>>
-                cl( M( "genesis::utils::math" ),
-                    "Moments",
-                    "Compute running mean and variance for an input.\n\n The class allows to keep "
-                    "a running mean and variance for some input, without\n having to know the "
-                    "number of elements beforehand, and in a single pass.\n\n For convenience, it "
-                    "also keeps track of the total count of elements added, their sum,\n and their "
-                    "minimum and maximum.\n\n This class is modelled after Knuth's algorithm in "
-                    "TAOCP vol 2, 3rd edition, page 232.\n See also "
-                    "https://www.johndcook.com/blog/standard_deviation/\n and "
-                    "https://stackoverflow.com/q/2341340" );
-        // function-signature: genesis::utils::math::Moments::Moments(unsigned long, bool)(unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:82
-        cl.def( pybind11::init( []() { return new genesis::utils::math::Moments(); } ), "doc" );
-        // function-signature: genesis::utils::math::Moments::Moments(unsigned long, bool)(unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:82
-        cl.def(
-            pybind11::init( []( unsigned long const& a0 ) {
-                return new genesis::utils::math::Moments( a0 );
-            } ),
-            "doc",
-            pybind11::arg( "ddof" )
-        );
-        // function-signature: genesis::utils::math::Moments::Moments(unsigned long, bool)(unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:82
-        cl.def(
-            pybind11::init<unsigned long, bool>(),
-            pybind11::arg( "ddof" ),
-            pybind11::arg( "ignore_nonfinite" )
-        );
-
-        // function-signature: genesis::utils::math::Moments::Moments(const class
-        // std::vector<double> &, unsigned long, bool)(const class std::vector<double> &, unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:116
-        cl.def(
-            pybind11::init( []( const class std::vector<double>& a0 ) {
-                return new genesis::utils::math::Moments( a0 );
-            } ),
-            "doc",
-            pybind11::arg( "values" )
-        );
-        // function-signature: genesis::utils::math::Moments::Moments(const class
-        // std::vector<double> &, unsigned long, bool)(const class std::vector<double> &, unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:116
-        cl.def(
-            pybind11::init( []( const class std::vector<double>& a0, unsigned long const& a1 ) {
-                return new genesis::utils::math::Moments( a0, a1 );
-            } ),
-            "doc",
-            pybind11::arg( "values" ),
-            pybind11::arg( "ddof" )
-        );
-        // function-signature: genesis::utils::math::Moments::Moments(const class
-        // std::vector<double> &, unsigned long, bool)(const class std::vector<double> &, unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:116
-        cl.def(
-            pybind11::init<const class std::vector<double>&, unsigned long, bool>(),
-            pybind11::arg( "values" ),
-            pybind11::arg( "ddof" ),
-            pybind11::arg( "ignore_nonfinite" )
-        );
-
-        // function-signature: genesis::utils::math::Moments::Moments(const class
-        // genesis::utils::math::Moments &)(const class genesis::utils::math::Moments &)
-        // file:genesis/utils/math/moments.hpp line:125
-        cl.def( pybind11::init( []( genesis::utils::math::Moments const& o ) {
-            return new genesis::utils::math::Moments( o );
-        } ) );
-        // function-signature: class genesis::utils::math::Moments &
-        // genesis::utils::math::Moments::operator=(const class genesis::utils::math::Moments
-        // &)(const class genesis::utils::math::Moments &) file:genesis/utils/math/moments.hpp
-        // line:128
-        cl.def(
-            "assign",
-            ( class genesis::utils::math::Moments &
-              (genesis::utils::math::Moments::*)(const class genesis::utils::math::Moments&)) &
-                genesis::utils::math::Moments::operator=,
-            "C++: genesis::utils::math::Moments::operator=(const class "
-            "genesis::utils::math::Moments &) --> class genesis::utils::math::Moments &",
-            pybind11::return_value_policy::automatic,
-            pybind11::arg( "" )
-        );
-        // function-signature: void genesis::utils::math::Moments::push(double)(double)
-        // file:genesis/utils/math/moments.hpp line:135
-        cl.def(
-            "push",
-            ( void( genesis::utils::math::Moments::* )( double ) ) &
-                genesis::utils::math::Moments::push,
-            "C++: genesis::utils::math::Moments::push(double) --> void",
-            pybind11::arg( "val" )
-        );
-        // function-signature: void genesis::utils::math::Moments::push(const class
-        // std::vector<double> &)(const class std::vector<double> &)
-        // file:genesis/utils/math/moments.hpp line:170
-        cl.def(
-            "push",
-            ( void( genesis::utils::math::Moments::* )( const class std::vector<double>& ) ) &
-                genesis::utils::math::Moments::push,
-            "C++: genesis::utils::math::Moments::push(const class std::vector<double> &) --> void",
-            pybind11::arg( "values" )
-        );
-        // function-signature: unsigned long genesis::utils::math::Moments::count() const()
-        // file:genesis/utils/math/moments.hpp line:186
-        cl.def(
-            "count",
-            ( unsigned long ( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::count,
-            "C++: genesis::utils::math::Moments::count() const --> unsigned long"
-        );
-        // function-signature: double genesis::utils::math::Moments::mean() const()
-        // file:genesis/utils/math/moments.hpp line:191
-        cl.def(
-            "mean",
-            ( double( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::mean,
-            "C++: genesis::utils::math::Moments::mean() const --> double"
-        );
-        // function-signature: double genesis::utils::math::Moments::variance() const()
-        // file:genesis/utils/math/moments.hpp line:196
-        cl.def(
-            "variance",
-            ( double( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::variance,
-            "C++: genesis::utils::math::Moments::variance() const --> double"
-        );
-        // function-signature: double genesis::utils::math::Moments::stddev() const()
-        // file:genesis/utils/math/moments.hpp line:201
-        cl.def(
-            "stddev",
-            ( double( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::stddev,
-            "C++: genesis::utils::math::Moments::stddev() const --> double"
-        );
-        // function-signature: double genesis::utils::math::Moments::standard_deviation() const()
-        // file:genesis/utils/math/moments.hpp line:206
-        cl.def(
-            "standard_deviation",
-            ( double( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::standard_deviation,
-            "C++: genesis::utils::math::Moments::standard_deviation() const --> double"
-        );
-        // function-signature: double genesis::utils::math::Moments::sum() const()
-        // file:genesis/utils/math/moments.hpp line:211
-        cl.def(
-            "sum",
-            ( double( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::sum,
-            "C++: genesis::utils::math::Moments::sum() const --> double"
-        );
-        // function-signature: double genesis::utils::math::Moments::min() const()
-        // file:genesis/utils/math/moments.hpp line:216
-        cl.def(
-            "min",
-            ( double( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::min,
-            "C++: genesis::utils::math::Moments::min() const --> double"
-        );
-        // function-signature: double genesis::utils::math::Moments::max() const()
-        // file:genesis/utils/math/moments.hpp line:221
-        cl.def(
-            "max",
-            ( double( genesis::utils::math::Moments::* )() const ) &
-                genesis::utils::math::Moments::max,
-            "C++: genesis::utils::math::Moments::max() const --> double"
-        );
-    }
 }

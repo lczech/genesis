@@ -42,19 +42,13 @@ void bind_genesis_utils_text_char(
 void bind_genesis_utils_math_binomial(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_math_compensated_sum(
+void bind_genesis_utils_math_ranking(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_math_correlation(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_math_random(
+void bind_genesis_utils_math_moments(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_math_statistics(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_math_statistics_1(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_text_base64(
@@ -154,11 +148,9 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_io_gzip_stream( M );
     bind_genesis_utils_text_char( M );
     bind_genesis_utils_math_binomial( M );
-    bind_genesis_utils_math_compensated_sum( M );
-    bind_genesis_utils_math_correlation( M );
-    bind_genesis_utils_math_random( M );
+    bind_genesis_utils_math_ranking( M );
+    bind_genesis_utils_math_moments( M );
     bind_genesis_utils_math_statistics( M );
-    bind_genesis_utils_math_statistics_1( M );
     bind_genesis_utils_text_base64( M );
     bind_genesis_utils_text_string( M );
     bind_genesis_utils_text_string_1( M );

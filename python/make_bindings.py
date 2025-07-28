@@ -28,7 +28,7 @@ import pathlib
 import re
 import shutil
 import subprocess
-from typing import List, Set, Union
+from typing import List, Set, Union, Dict
 # from distutils.sysconfig import get_python_inc
 
 # Change to the genesis main directory, so that this script can be called from anywhere.
@@ -36,9 +36,9 @@ from typing import List, Set, Union
 os.chdir(pathlib.Path(__file__).parent.parent.absolute())
 print("In", os.getcwd())
 
-# ------------------------------------------------------------------------------
+# ================================================================================================
 #   Settings
-# ------------------------------------------------------------------------------
+# ================================================================================================
 
 # For ease of development, and to avoid hard-coded paths,
 # we assume binder to be symlinked from the python directory as `binder`.
@@ -98,9 +98,26 @@ binder_verbose  = True
 binder_annotate_includes  = False
 binder_annotate_functions = True
 
-# ------------------------------------------------------------------------------
+# Settings for our custom warnings, to make sure that our implementation
+# catches all our known edge cases and issues.
+
+# List of terms that Binder generates but that cause trouble:
+#  - `__gnu_cxx` seems to be generated for function templates that take iterators,
+#    and other similar cases, where the Clang backend of Binder fully resolves a type,
+#    but does not take into account that the type is implementation-specific.
+#    We usually want to deactivate these functions.
+file_warn_terms = ["__gnu_cxx"]
+
+# List of terms of the Binder output itself that we want to see in the output
+# of this script. Everything else is filtered, to not get irrelevant prints.
+#  - `return_value_policy`: We want our custom reporting for when a defaulted policy
+#    is used for a function, so that we can manually assign it the correct one.
+binder_output_filter = ["return_value_policy"]
+use_binder_output_filter = True
+
+# ================================================================================================
 #   Sync Directories
-# ------------------------------------------------------------------------------
+# ================================================================================================
 
 def sync_dirs(src: str, dst: str) -> None:
     """
@@ -161,9 +178,9 @@ def sync_dirs(src: str, dst: str) -> None:
             dst=os.path.join(dst, subdir)
         )
 
-# ------------------------------------------------------------------------------
+# ================================================================================================
 #   Collect Headers
-# ------------------------------------------------------------------------------
+# ================================================================================================
 
 def find_included_headers(file: str, include_pattern):
     collected: Set[str] = set()
@@ -276,9 +293,9 @@ def compare_all_includes():
         for m in missing:
             print('\033[91m' + f'#include <{m}>' + '\033[0m')
 
-# ------------------------------------------------------------------------------
+# ================================================================================================
 #   Sanity checks
-# ------------------------------------------------------------------------------
+# ================================================================================================
 
 def get_binder_commit() -> str:
     try:
@@ -338,9 +355,81 @@ def check_bind_suffix(directory: str) -> None:
                     # entire warning in red
                     print(f"{RED}WARNING: File '{filepath}' does not end with '_bind'{ext}{RESET}")
 
-# ------------------------------------------------------------------------------
+# ================================================================================================
+#   Code Checks
+# ================================================================================================
+
+def print_warning(message: str) -> None:
+    # ANSI escape codes for yellow text and reset
+    YELLOW = '\033[33m'
+    RESET  = '\033[0m'
+    print(f"{YELLOW}{message}{RESET}")
+
+def find_file_warn_terms_usage(directory: str, terms: List[str]) -> Dict[str, List[str]]:
+    """
+    Recursively search for .cpp files under `directory`, and for each term in `terms`,
+    print the list of files containing that term.
+    """
+
+    # initialize matches dict
+    matches: Dict[str, List[str]] = {term: [] for term in terms}
+
+    # walk directory
+    for root, _, files in os.walk(directory):
+        for fname in files:
+            if not fname.lower().endswith('.cpp'):
+                continue
+            path = os.path.join(root, fname)
+            try:
+                with open(path, 'r', errors='ignore') as f:
+                    content = f.read()
+            except OSError:
+                # skip unreadable files
+                continue
+
+            # check each term
+            for term in terms:
+                if term in content:
+                    matches[term].append(path)
+
+    # print results
+    for term in terms:
+        if not matches[term]:
+            continue
+        print_warning(f"Files containing '{term}':")
+        for p in matches[term]:
+            print(f"  {p}")
+
+    return matches
+
+# ================================================================================================
 #   Make Bindings
-# ------------------------------------------------------------------------------
+# ================================================================================================
+
+def check_call_filtered(command: List[str], terms: List[str]) -> None:
+    """
+    Run the given command, but only print those stdout/stderr lines
+    that contain any of the substrings in `terms`.
+    """
+    # start the process, merging stderr into stdout, and capturing the pipe
+    proc = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,            # direct text mode (universal_newlines=True)
+        bufsize=1             # line‑buffered
+    )
+
+    # iterate over each line as it comes out
+    assert proc.stdout is not None
+    for line in proc.stdout:
+        if any(term in line for term in terms):
+            print(line, end='')
+
+    # wait and raise on error
+    ret = proc.wait()
+    if ret:
+        raise subprocess.CalledProcessError(ret, command)
 
 def make_bindings_code(target_dir):
     # Build the binder command
@@ -393,7 +482,10 @@ def make_bindings_code(target_dir):
 
     # Execute binder!
     print('Binder command:', ' '.join(command))
-    subprocess.check_call(command)
+    if use_binder_output_filter:
+        check_call_filtered(command, binder_output_filter)
+    else:
+        subprocess.check_call(command)
 
 def run_clang_format(directory: str) -> None:
     clang = shutil.which('clang-format')
@@ -426,6 +518,7 @@ def generate_bindings():
     # Create a fresh new temp directory for the bindings.
     temp_dir = pathlib.Path(bindings_dir).parent / (pathlib.Path(bindings_dir).name + "_tmp")
     os.makedirs(temp_dir, exist_ok=True)
+    write_binder_version( os.path.join( temp_dir, "binder_version.txt" ))
 
     # Create a comprehensive all includes header.
     with open( os.path.join( temp_dir, "all_includes.hpp" ), 'w') as outfile:
@@ -438,7 +531,7 @@ def generate_bindings():
     # Make the bindings code.
     make_bindings_code( temp_dir )
     run_clang_format( temp_dir )
-    write_binder_version( os.path.join( temp_dir, "binder_version.txt" ))
+    find_file_warn_terms_usage( temp_dir, file_warn_terms )
 
     # Remove the generated all includes file again.
     # Don't want it to occur in our generated output.
@@ -451,9 +544,9 @@ def generate_bindings():
     sync_dirs( temp_dir, bindings_dir )
     shutil.rmtree(temp_dir, ignore_errors=True)
 
-# ------------------------------------------------------------------------------
+# ================================================================================================
 #   Main
-# ------------------------------------------------------------------------------
+# ================================================================================================
 
 def main():
     if make_all_includes_file:

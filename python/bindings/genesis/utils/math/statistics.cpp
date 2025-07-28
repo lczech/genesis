@@ -42,29 +42,6 @@ void bind_genesis_utils_math_statistics(
             pybind11::arg( "weights" )
         );
 
-    // genesis::utils::math::geometric_mean(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >) file:genesis/utils/math/statistics.hpp line:638 function-signature:
-    // double genesis::utils::math::geometric_mean<__gnu_cxx::__normal_iterator<const double *,
-    // std::vector<double> >>(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >)(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >) file:genesis/utils/math/statistics.hpp line:638
-    M( "genesis::utils::math" )
-        .def(
-            "geometric_mean",
-            ( double ( * )( class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > )
-            ) &
-                genesis::utils::math::geometric_mean<
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >>,
-            "C++: genesis::utils::math::geometric_mean(class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >) --> double",
-            pybind11::arg( "first" ),
-            pybind11::arg( "last" )
-        );
-
     // genesis::utils::math::geometric_mean(const class std::vector<double> &)
     // file:genesis/utils/math/statistics.hpp line:677 function-signature: double
     // genesis::utils::math::geometric_mean(const class std::vector<double> &)(const class
@@ -80,40 +57,6 @@ void bind_genesis_utils_math_statistics(
             "harmonic_mean() for a function that calculates the harmonic mean.\n\nC++: "
             "genesis::utils::math::geometric_mean(const class std::vector<double> &) --> double",
             pybind11::arg( "vec" )
-        );
-
-    // genesis::utils::math::weighted_geometric_mean(class __gnu_cxx::__normal_iterator<const double
-    // *, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >) file:genesis/utils/math/statistics.hpp line:713 function-signature:
-    // double genesis::utils::math::weighted_geometric_mean<__gnu_cxx::__normal_iterator<const
-    // double *, std::vector<double> >>(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >)(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >) file:genesis/utils/math/statistics.hpp line:713
-    M( "genesis::utils::math" )
-        .def(
-            "weighted_geometric_mean",
-            (
-                double ( * )( class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > )
-            ) &
-                genesis::utils::math::weighted_geometric_mean<
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >>,
-            "C++: genesis::utils::math::weighted_geometric_mean(class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >) --> double",
-            pybind11::arg( "first_value" ),
-            pybind11::arg( "last_value" ),
-            pybind11::arg( "first_weight" ),
-            pybind11::arg( "last_weight" )
         );
 
     // genesis::utils::math::weighted_geometric_mean(const class std::vector<double> &, const class
@@ -153,47 +96,6 @@ void bind_genesis_utils_math_statistics(
 
     ;
 
-    // genesis::utils::math::harmonic_mean(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, enum genesis::utils::math::HarmonicMeanZeroPolicy)
-    // file:genesis/utils/math/statistics.hpp line:839 function-signature: double
-    // genesis::utils::math::harmonic_mean<__gnu_cxx::__normal_iterator<const double *,
-    // std::vector<double> >>(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, enum genesis::utils::math::HarmonicMeanZeroPolicy)(class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, enum
-    // genesis::utils::math::HarmonicMeanZeroPolicy) file:genesis/utils/math/statistics.hpp line:839
-    M( "genesis::utils::math" )
-        .def(
-            "harmonic_mean",
-            []( class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > const&
-                    a0,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > const&
-                    a1 ) -> double { return genesis::utils::math::harmonic_mean( a0, a1 ); },
-            "",
-            pybind11::arg( "first" ),
-            pybind11::arg( "last" )
-        );
-    M( "genesis::utils::math" )
-        .def(
-            "harmonic_mean",
-            ( double ( * )(
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >,
-                enum genesis::utils::math::HarmonicMeanZeroPolicy
-            ) ) &
-                genesis::utils::math::harmonic_mean<
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >>,
-            "C++: genesis::utils::math::harmonic_mean(class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >, enum "
-            "genesis::utils::math::HarmonicMeanZeroPolicy) --> double",
-            pybind11::arg( "first" ),
-            pybind11::arg( "last" ),
-            pybind11::arg( "zero_policy" )
-        );
-
     // genesis::utils::math::harmonic_mean(const class std::vector<double> &, enum
     // genesis::utils::math::HarmonicMeanZeroPolicy) file:genesis/utils/math/statistics.hpp line:913
     // function-signature: double genesis::utils::math::harmonic_mean(const class
@@ -223,67 +125,6 @@ void bind_genesis_utils_math_statistics(
             "genesis::utils::math::harmonic_mean(const class std::vector<double> &, enum "
             "genesis::utils::math::HarmonicMeanZeroPolicy) --> double",
             pybind11::arg( "vec" ),
-            pybind11::arg( "zero_policy" )
-        );
-
-    // genesis::utils::math::weighted_harmonic_mean(class __gnu_cxx::__normal_iterator<const double
-    // *, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, enum genesis::utils::math::HarmonicMeanZeroPolicy)
-    // file:genesis/utils/math/statistics.hpp line:948 function-signature: double
-    // genesis::utils::math::weighted_harmonic_mean<__gnu_cxx::__normal_iterator<const double *,
-    // std::vector<double> >>(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, enum genesis::utils::math::HarmonicMeanZeroPolicy)(class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, enum
-    // genesis::utils::math::HarmonicMeanZeroPolicy) file:genesis/utils/math/statistics.hpp line:948
-    M( "genesis::utils::math" )
-        .def(
-            "weighted_harmonic_mean",
-            []( class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > const&
-                    a0,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > const&
-                    a1,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > const&
-                    a2,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > const&
-                    a3 ) -> double {
-                return genesis::utils::math::weighted_harmonic_mean( a0, a1, a2, a3 );
-            },
-            "",
-            pybind11::arg( "first_value" ),
-            pybind11::arg( "last_value" ),
-            pybind11::arg( "first_weight" ),
-            pybind11::arg( "last_weight" )
-        );
-    M( "genesis::utils::math" )
-        .def(
-            "weighted_harmonic_mean",
-            ( double ( * )(
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >,
-                class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >,
-                enum genesis::utils::math::HarmonicMeanZeroPolicy
-            ) ) &
-                genesis::utils::math::weighted_harmonic_mean<
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >>,
-            "C++: genesis::utils::math::weighted_harmonic_mean(class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, enum "
-            "genesis::utils::math::HarmonicMeanZeroPolicy) --> double",
-            pybind11::arg( "first_value" ),
-            pybind11::arg( "last_value" ),
-            pybind11::arg( "first_weight" ),
-            pybind11::arg( "last_weight" ),
             pybind11::arg( "zero_policy" )
         );
 
@@ -344,6 +185,62 @@ void bind_genesis_utils_math_statistics(
             "https://en.wikipedia.org/wiki/Coefficient_of_variation for details.\n\nC++: "
             "genesis::utils::math::coefficient_of_variation(const struct "
             "genesis::utils::math::MeanStddevPair &) --> double",
+            pybind11::arg( "ms" )
+        );
+
+    // genesis::utils::math::coefficient_of_variation(const class std::vector<struct
+    // genesis::utils::math::MeanStddevPair> &) file:genesis/utils/math/statistics.hpp line:1201
+    // function-signature: class std::vector<double>
+    // genesis::utils::math::coefficient_of_variation(const class std::vector<struct
+    // genesis::utils::math::MeanStddevPair> &)(const class std::vector<struct
+    // genesis::utils::math::MeanStddevPair> &) file:genesis/utils/math/statistics.hpp line:1201
+    M( "genesis::utils::math" )
+        .def(
+            "coefficient_of_variation",
+            ( class std::vector<double>( * )( const class std::vector<
+                                              struct genesis::utils::math::MeanStddevPair>& ) ) &
+                genesis::utils::math::coefficient_of_variation,
+            "MeanStddevPair const& ms )\n\nC++: "
+            "genesis::utils::math::coefficient_of_variation(const class std::vector<struct "
+            "genesis::utils::math::MeanStddevPair> &) --> class std::vector<double>",
+            pybind11::arg( "ms" )
+        );
+
+    // genesis::utils::math::index_of_dispersion(const struct genesis::utils::math::MeanStddevPair
+    // &) file:genesis/utils/math/statistics.hpp line:1219 function-signature: double
+    // genesis::utils::math::index_of_dispersion(const struct genesis::utils::math::MeanStddevPair
+    // &)(const struct genesis::utils::math::MeanStddevPair &)
+    // file:genesis/utils/math/statistics.hpp line:1219
+    M( "genesis::utils::math" )
+        .def(
+            "index_of_dispersion",
+            ( double ( * )( const struct genesis::utils::math::MeanStddevPair& ) ) &
+                genesis::utils::math::index_of_dispersion,
+            "Calculate the index of dispersion.\n\n The index of dispersion, also known as the "
+            "dispersion index, coefficient of dispersion,\n relative variance, variance-to-mean "
+            "ratio (VMR) or Fano factor, is defined as the ratio of the\n variance to the mean. "
+            "Variance is the square of the standard deviation.\n See mean_stddev() to calculate "
+            "those values.\n See https://en.wikipedia.org/wiki/Index_of_dispersion for "
+            "details.\n\nC++: genesis::utils::math::index_of_dispersion(const struct "
+            "genesis::utils::math::MeanStddevPair &) --> double",
+            pybind11::arg( "ms" )
+        );
+
+    // genesis::utils::math::index_of_dispersion(const class std::vector<struct
+    // genesis::utils::math::MeanStddevPair> &) file:genesis/utils/math/statistics.hpp line:1227
+    // function-signature: class std::vector<double> genesis::utils::math::index_of_dispersion(const
+    // class std::vector<struct genesis::utils::math::MeanStddevPair> &)(const class
+    // std::vector<struct genesis::utils::math::MeanStddevPair> &)
+    // file:genesis/utils/math/statistics.hpp line:1227
+    M( "genesis::utils::math" )
+        .def(
+            "index_of_dispersion",
+            ( class std::vector<double>( * )( const class std::vector<
+                                              struct genesis::utils::math::MeanStddevPair>& ) ) &
+                genesis::utils::math::index_of_dispersion,
+            "MeanStddevPair const& ms )\n\nC++: genesis::utils::math::index_of_dispersion(const "
+            "class std::vector<struct genesis::utils::math::MeanStddevPair> &) --> class "
+            "std::vector<double>",
             pybind11::arg( "ms" )
         );
 }

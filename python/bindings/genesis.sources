@@ -10,11 +10,9 @@ genesis/utils/io/file_input_source.cpp
 genesis/utils/io/gzip_stream.cpp
 genesis/utils/text/char.cpp
 genesis/utils/math/binomial.cpp
-genesis/utils/math/compensated_sum.cpp
-genesis/utils/math/correlation.cpp
-genesis/utils/math/random.cpp
+genesis/utils/math/ranking.cpp
+genesis/utils/math/moments.cpp
 genesis/utils/math/statistics.cpp
-genesis/utils/math/statistics_1.cpp
 genesis/utils/text/base64.cpp
 genesis/utils/text/string.cpp
 genesis/utils/text/string_1.cpp

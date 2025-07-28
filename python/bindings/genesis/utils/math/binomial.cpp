@@ -1,10 +1,7 @@
-#include <functional>
 #include <genesis/utils/math/binomial.hpp>
 #include <genesis/utils/math/common.hpp>
-#include <iterator>
-#include <memory>
-#include <utility>
-#include <vector>
+#include <genesis/utils/math/compensated_sum.hpp>
+#include <sstream> // __str__
 
 #include <functional>
 #include <pybind11/pybind11.h>
@@ -264,83 +261,105 @@ void bind_genesis_utils_math_binomial(
             pybind11::arg( "x" )
         );
 
-    // genesis::utils::math::finite_pairs(class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >) file:genesis/utils/math/common.hpp line:253 function-signature: struct
-    // std::pair<class std::vector<double>, class std::vector<double> >
-    // genesis::utils::math::finite_pairs<__gnu_cxx::__normal_iterator<const double *,
-    // std::vector<double> >,__gnu_cxx::__normal_iterator<const double *, std::vector<double>
-    // >>(class __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >)(class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >)
-    // file:genesis/utils/math/common.hpp line:253
-    M( "genesis::utils::math" )
-        .def(
-            "finite_pairs",
-            ( struct std::pair<
-                class std::vector<double>,
-                class std::
-                    vector<double> >( * )( class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> > )
-            ) &
-                genesis::utils::math::finite_pairs<
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >,
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >>,
-            "C++: genesis::utils::math::finite_pairs(class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const "
-            "double *, class std::vector<double> >) --> struct std::pair<class "
-            "std::vector<double>, class std::vector<double> >",
-            pybind11::arg( "first_a" ),
-            pybind11::arg( "last_a" ),
-            pybind11::arg( "first_b" ),
-            pybind11::arg( "last_b" )
+    { // genesis::utils::math::KahanSummation file:genesis/utils/math/compensated_sum.hpp line:55
+        pybind11::class_<
+            genesis::utils::math::KahanSummation,
+            std::shared_ptr<genesis::utils::math::KahanSummation>>
+            cl( M( "genesis::utils::math" ),
+                "KahanSummation",
+                "Tag for tag dispatching the algorithm in CompensatedSum. See there for details." );
+        // function-signature: genesis::utils::math::KahanSummation::KahanSummation(const struct
+        // genesis::utils::math::KahanSummation &)(const struct genesis::utils::math::KahanSummation
+        // &) file:genesis/utils/math/compensated_sum.hpp line:55
+        cl.def( pybind11::init( []( genesis::utils::math::KahanSummation const& o ) {
+            return new genesis::utils::math::KahanSummation( o );
+        } ) );
+        // function-signature: genesis::utils::math::KahanSummation::KahanSummation()()
+        // file:genesis/utils/math/compensated_sum.hpp line:55
+        cl.def( pybind11::init( []() { return new genesis::utils::math::KahanSummation(); } ) );
+        // function-signature: struct genesis::utils::math::KahanSummation &
+        // genesis::utils::math::KahanSummation::operator=(const struct
+        // genesis::utils::math::KahanSummation &)(const struct genesis::utils::math::KahanSummation
+        // &) file:genesis/utils/math/compensated_sum.hpp line:55
+        cl.def(
+            "assign",
+            ( struct genesis::utils::math::KahanSummation &
+              (genesis::utils::math::KahanSummation::*)(const struct genesis::utils::math::
+                                                            KahanSummation&)) &
+                genesis::utils::math::KahanSummation::operator=,
+            "C++: genesis::utils::math::KahanSummation::operator=(const struct "
+            "genesis::utils::math::KahanSummation &) --> struct "
+            "genesis::utils::math::KahanSummation &",
+            pybind11::return_value_policy::automatic,
+            pybind11::arg( "" )
         );
-
-    // genesis::utils::math::for_each_finite_pair(class __gnu_cxx::__normal_iterator<const double *,
-    // class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class std::function<void (double, double)>)
-    // file:genesis/utils/math/common.hpp line:287 function-signature: void
-    // genesis::utils::math::for_each_finite_pair<__gnu_cxx::__normal_iterator<const double *,
-    // std::vector<double> >,__gnu_cxx::__normal_iterator<const double *, std::vector<double>
-    // >>(class __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // __gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class
-    // std::function<void (double, double)>)(class __gnu_cxx::__normal_iterator<const double *,
-    // class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class __gnu_cxx::__normal_iterator<const double *, class
-    // std::vector<double> >, class std::function<void (double, double)>)
-    // file:genesis/utils/math/common.hpp line:287
-    M( "genesis::utils::math" )
-        .def(
-            "for_each_finite_pair",
-            (
-                void ( * )( class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class __gnu_cxx::__normal_iterator<const double*, class std::vector<double> >, class std::function<void( double, double )> )
-            ) &
-                genesis::utils::math::for_each_finite_pair<
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >,
-                    __gnu_cxx::__normal_iterator<const double*, std::vector<double> >>,
-            "C++: genesis::utils::math::for_each_finite_pair(class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "__gnu_cxx::__normal_iterator<const double *, class std::vector<double> >, class "
-            "std::function<void (double, double)>) --> void",
-            pybind11::arg( "first_a" ),
-            pybind11::arg( "last_a" ),
-            pybind11::arg( "first_b" ),
-            pybind11::arg( "last_b" ),
-            pybind11::arg( "execute" )
+    }
+    { // genesis::utils::math::NeumaierSummation file:genesis/utils/math/compensated_sum.hpp line:60
+        pybind11::class_<
+            genesis::utils::math::NeumaierSummation,
+            std::shared_ptr<genesis::utils::math::NeumaierSummation>>
+            cl( M( "genesis::utils::math" ),
+                "NeumaierSummation",
+                "Tag for tag dispatching the algorithm in CompensatedSum. See there for details." );
+        // function-signature: genesis::utils::math::NeumaierSummation::NeumaierSummation(const
+        // struct genesis::utils::math::NeumaierSummation &)(const struct
+        // genesis::utils::math::NeumaierSummation &) file:genesis/utils/math/compensated_sum.hpp
+        // line:60
+        cl.def( pybind11::init( []( genesis::utils::math::NeumaierSummation const& o ) {
+            return new genesis::utils::math::NeumaierSummation( o );
+        } ) );
+        // function-signature: genesis::utils::math::NeumaierSummation::NeumaierSummation()()
+        // file:genesis/utils/math/compensated_sum.hpp line:60
+        cl.def( pybind11::init( []() { return new genesis::utils::math::NeumaierSummation(); } ) );
+        // function-signature: struct genesis::utils::math::NeumaierSummation &
+        // genesis::utils::math::NeumaierSummation::operator=(const struct
+        // genesis::utils::math::NeumaierSummation &)(const struct
+        // genesis::utils::math::NeumaierSummation &) file:genesis/utils/math/compensated_sum.hpp
+        // line:60
+        cl.def(
+            "assign",
+            ( struct genesis::utils::math::NeumaierSummation &
+              (genesis::utils::math::NeumaierSummation::*)(const struct genesis::utils::math::
+                                                               NeumaierSummation&)) &
+                genesis::utils::math::NeumaierSummation::operator=,
+            "C++: genesis::utils::math::NeumaierSummation::operator=(const struct "
+            "genesis::utils::math::NeumaierSummation &) --> struct "
+            "genesis::utils::math::NeumaierSummation &",
+            pybind11::return_value_policy::automatic,
+            pybind11::arg( "" )
         );
+    }
+    { // genesis::utils::math::KleinSummation file:genesis/utils/math/compensated_sum.hpp line:65
+        pybind11::class_<
+            genesis::utils::math::KleinSummation,
+            std::shared_ptr<genesis::utils::math::KleinSummation>>
+            cl( M( "genesis::utils::math" ),
+                "KleinSummation",
+                "Tag for tag dispatching the algorithm in CompensatedSum. See there for details." );
+        // function-signature: genesis::utils::math::KleinSummation::KleinSummation()()
+        // file:genesis/utils/math/compensated_sum.hpp line:65
+        cl.def( pybind11::init( []() { return new genesis::utils::math::KleinSummation(); } ) );
+        // function-signature: genesis::utils::math::KleinSummation::KleinSummation(const struct
+        // genesis::utils::math::KleinSummation &)(const struct genesis::utils::math::KleinSummation
+        // &) file:genesis/utils/math/compensated_sum.hpp line:65
+        cl.def( pybind11::init( []( genesis::utils::math::KleinSummation const& o ) {
+            return new genesis::utils::math::KleinSummation( o );
+        } ) );
+        // function-signature: struct genesis::utils::math::KleinSummation &
+        // genesis::utils::math::KleinSummation::operator=(const struct
+        // genesis::utils::math::KleinSummation &)(const struct genesis::utils::math::KleinSummation
+        // &) file:genesis/utils/math/compensated_sum.hpp line:65
+        cl.def(
+            "assign",
+            ( struct genesis::utils::math::KleinSummation &
+              (genesis::utils::math::KleinSummation::*)(const struct genesis::utils::math::
+                                                            KleinSummation&)) &
+                genesis::utils::math::KleinSummation::operator=,
+            "C++: genesis::utils::math::KleinSummation::operator=(const struct "
+            "genesis::utils::math::KleinSummation &) --> struct "
+            "genesis::utils::math::KleinSummation &",
+            pybind11::return_value_policy::automatic,
+            pybind11::arg( "" )
+        );
+    }
 }
