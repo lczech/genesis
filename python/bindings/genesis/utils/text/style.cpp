@@ -110,7 +110,7 @@ void bind_genesis_utils_text_style(
                 genesis::utils::text::Style::operator=,
             "C++: genesis::utils::text::Style::operator=(const class genesis::utils::text::Style "
             "&) --> class genesis::utils::text::Style &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: void genesis::utils::text::Style::swap(class
@@ -130,7 +130,7 @@ void bind_genesis_utils_text_style(
             ( class genesis::utils::text::Style & (genesis::utils::text::Style::*)() ) &
                 genesis::utils::text::Style::reset,
             "C++: genesis::utils::text::Style::reset() --> class genesis::utils::text::Style &",
-            pybind11::return_value_policy::automatic
+            pybind11::return_value_policy::reference_internal
         );
         // function-signature: bool genesis::utils::text::Style::enabled() const()
         // file:genesis/utils/text/style.hpp line:148
@@ -149,7 +149,7 @@ void bind_genesis_utils_text_style(
                 genesis::utils::text::Style::enabled,
             "C++: genesis::utils::text::Style::enabled(bool) --> class genesis::utils::text::Style "
             "&",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: bool genesis::utils::text::Style::bold() const()
@@ -166,7 +166,7 @@ void bind_genesis_utils_text_style(
             ( class genesis::utils::text::Style & (genesis::utils::text::Style::*)(bool)) &
                 genesis::utils::text::Style::bold,
             "C++: genesis::utils::text::Style::bold(bool) --> class genesis::utils::text::Style &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: std::string genesis::utils::text::Style::foreground_color() const()
@@ -187,7 +187,7 @@ void bind_genesis_utils_text_style(
                 genesis::utils::text::Style::foreground_color,
             "C++: genesis::utils::text::Style::foreground_color(const std::string &) --> class "
             "genesis::utils::text::Style &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "color" )
         );
         // function-signature: std::string genesis::utils::text::Style::background_color() const()
@@ -208,7 +208,7 @@ void bind_genesis_utils_text_style(
                 genesis::utils::text::Style::background_color,
             "C++: genesis::utils::text::Style::background_color(const std::string &) --> class "
             "genesis::utils::text::Style &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "color" )
         );
         // function-signature: std::string genesis::utils::text::Style::operator()(const std::string
@@ -327,7 +327,7 @@ void bind_genesis_utils_text_style(
                 genesis::utils::text::Table::operator=,
             "C++: genesis::utils::text::Table::operator=(const class genesis::utils::text::Table "
             "&) --> class genesis::utils::text::Table &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: unsigned long genesis::utils::text::Table::length() const()
@@ -364,14 +364,14 @@ void bind_genesis_utils_text_style(
                 return o.add_column();
             },
             "",
-            pybind11::return_value_policy::automatic
+            pybind11::return_value_policy::reference_internal
         );
         cl.def(
             "add_column",
             []( genesis::utils::text::Table& o, std::string const& a0
             ) -> genesis::utils::text::Table::Column& { return o.add_column( a0 ); },
             "",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "label" )
         );
         cl.def(
@@ -383,7 +383,7 @@ void bind_genesis_utils_text_style(
             "C++: genesis::utils::text::Table::add_column(std::string, enum "
             "genesis::utils::text::Table::Column::Justification) --> class "
             "genesis::utils::text::Table::Column &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "label" ),
             pybind11::arg( "justify" )
         );
@@ -396,7 +396,7 @@ void bind_genesis_utils_text_style(
             ) & genesis::utils::text::Table::operator<<,
             "C++: genesis::utils::text::Table::operator<<(std::string) --> class "
             "genesis::utils::text::Table &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::text::Table &
@@ -408,7 +408,7 @@ void bind_genesis_utils_text_style(
             ) & genesis::utils::text::Table::append,
             "C++: genesis::utils::text::Table::append(std::string) --> class "
             "genesis::utils::text::Table &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::text::Table &
@@ -423,7 +423,7 @@ void bind_genesis_utils_text_style(
                 genesis::utils::text::Table::append,
             "C++: genesis::utils::text::Table::append(const class genesis::utils::text::Style &, "
             "std::string) --> class genesis::utils::text::Table &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "style" ),
             pybind11::arg( "value" )
         );
@@ -435,7 +435,7 @@ void bind_genesis_utils_text_style(
                 genesis::utils::text::Table::line_break,
             "C++: genesis::utils::text::Table::line_break() --> class genesis::utils::text::Table "
             "&",
-            pybind11::return_value_policy::automatic
+            pybind11::return_value_policy::reference_internal
         );
         // function-signature: std::string genesis::utils::text::Table::to_string() const()
         // file:genesis/utils/text/table.hpp line:241
@@ -526,7 +526,7 @@ void bind_genesis_utils_text_style(
                 "C++: genesis::utils::text::Table::Column::operator=(const class "
                 "genesis::utils::text::Table::Column &) --> class "
                 "genesis::utils::text::Table::Column &",
-                pybind11::return_value_policy::automatic,
+                pybind11::return_value_policy::reference_internal,
                 pybind11::arg( "" )
             );
             // function-signature: void

@@ -13,26 +13,31 @@ The infrastructure for the bindings was originally created by [Ioannis Reppas](h
 
 ## Set up binder
 
-As of the writing of this (July 2025), binder is a bit tricky to set up, and none of the documented [install instructions](https://cppbinder.readthedocs.io/en/latest/install.html) have worked for us on Ubuntu 24 LTS. The following has however worked:
+As of the writing of this (July 2025), binder is a bit tricky to set up, and none of the documented [install instructions](https://cppbinder.readthedocs.io/en/latest/install.html) have worked for us on Ubuntu 24 LTS.
 
-  - Download binder master. We use commit [46ec0e8](https://github.com/RosettaCommons/binder/commit/46ec0e88137d368eeedafecfa123004f8ad028d1), which is after release [v1.4.2](https://github.com/RosettaCommons/binder/releases/tag/v1.4.2) and contains a commit that allows us to use LLVM 14. Hopefully, at some later point, there will be a release version with this as well.
+Furthermore, we switched to [our own fork of Binder](https://github.com/lczech/binder), which currently contains extensions that are not yet available in the main repository. The respective PRs might be merged at some point, but until further notice, we use our fork here.
+
+Setup:
+
+  - Get our [Binder fork](https://github.com/lczech/binder) and check out the `dev` branch.
   - Install the Python dev libraries: `sudo apt install python3-dev`
-  - In `binder/build.py`, update `_pybind11_version_` to a more recent commit. We are using [a2e59f0](https://github.com/RosettaCommons/pybind11/commit/a2e59f0e7065404b44dfe92a28aca47ba1378dc4).
   - Build binder: `python3 ./build.py -j 8 --llvm-version 14.0.5`
+<!--
+  - Download binder master. We use commit [46ec0e8](https://github.com/RosettaCommons/binder/commit/46ec0e88137d368eeedafecfa123004f8ad028d1), which is after release [v1.4.2](https://github.com/RosettaCommons/binder/releases/tag/v1.4.2) and contains a commit that allows us to use LLVM 14. Hopefully, at some later point, there will be a release version with this as well.
+  - In `binder/build.py`, update `_pybind11_version_` to a more recent commit. We are using [a2e59f0](https://github.com/RosettaCommons/pybind11/commit/a2e59f0e7065404b44dfe92a28aca47ba1378dc4).
+-->
 
 This build command will tell you where the binder executable is.
-We created a symlink in `binder/bin/` for it, just to make it easier to find it later.
 
 <!--
-also need to include python headers in binder/examples/example_struct/make_bindings_via_bash.sh
- -->
-
+We created a symlink in `binder/bin/` for it, just to make it easier to find it later.
+-->
 
 ## Generating the bindings
 
-With binder in place, we can generate our bindings. The easiest way is to add (another) symlink to the `binder` executable into this `python` directory here:
+With binder in place, we can generate our bindings. The easiest way is to add a symlink to the `binder` executable into this `python` directory here:
 
-    ln -s /path/to/binder/bin/binder /path/to/genesis/python/binder
+    ln -s /path/to/binder/.../binder /path/to/genesis/python/binder
 
 Then, the `make_bindings.py` script can be called, which executes binder and writes out all files.
 The script automatically generates the `bindings` directory; the files in that directory should hence not be edited or changed manually, as they will be overwritten when the script is called.
@@ -40,4 +45,4 @@ The script automatically generates the `bindings` directory; the files in that d
 
 ## Compiling the module
 
-Once the bindings files are generated, the compilation is taken care of by CMake.
+Once the bindings files are generated, the compilation is taken care of by CMake. This is the normal use case for end-users.

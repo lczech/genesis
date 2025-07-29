@@ -58,7 +58,7 @@ void bind_genesis_utils_tools_hash_sha1(
                 genesis::utils::SHA1::operator=,
             "C++: genesis::utils::SHA1::operator=(const class genesis::utils::SHA1 &) --> class "
             "genesis::utils::SHA1 &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: std::string genesis::utils::SHA1::read_hex(class

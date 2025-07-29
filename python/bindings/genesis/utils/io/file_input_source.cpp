@@ -64,7 +64,7 @@ void bind_genesis_utils_io_file_input_source(
             "C++: genesis::utils::io::FileInputSource::operator=(const class "
             "genesis::utils::io::FileInputSource &) --> class genesis::utils::io::FileInputSource "
             "&",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
     }
@@ -170,7 +170,7 @@ void bind_genesis_utils_io_file_input_source(
             "C++: genesis::utils::io::StringInputSource::operator=(const class "
             "genesis::utils::io::StringInputSource &) --> class "
             "genesis::utils::io::StringInputSource &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
     }

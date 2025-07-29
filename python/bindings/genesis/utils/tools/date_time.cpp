@@ -82,7 +82,7 @@ void bind_genesis_utils_tools_date_time(
                 genesis::utils::GeoCoordinate::operator=,
             "C++: genesis::utils::GeoCoordinate::operator=(const class "
             "genesis::utils::GeoCoordinate &) --> class genesis::utils::GeoCoordinate &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: double genesis::utils::GeoCoordinate::latitude() const()
@@ -113,7 +113,7 @@ void bind_genesis_utils_tools_date_time(
             "Latitude, in range `[ -90.0, 90.0 ]`.\n\nC++: "
             "genesis::utils::GeoCoordinate::latitude(double) --> class "
             "genesis::utils::GeoCoordinate &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::GeoCoordinate &
@@ -126,7 +126,7 @@ void bind_genesis_utils_tools_date_time(
             "Longitude, in range `[ -180.0, 180.0 ]`.\n\nC++: "
             "genesis::utils::GeoCoordinate::longitude(double) --> class "
             "genesis::utils::GeoCoordinate &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
 
@@ -321,7 +321,7 @@ void bind_genesis_utils_tools_date_time(
                 genesis::utils::MD5::operator=,
             "C++: genesis::utils::MD5::operator=(const class genesis::utils::MD5 &) --> class "
             "genesis::utils::MD5 &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: std::string genesis::utils::MD5::read_hex(class std::shared_ptr<class

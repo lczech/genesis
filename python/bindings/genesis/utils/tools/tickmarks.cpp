@@ -51,7 +51,7 @@ void bind_genesis_utils_tools_tickmarks(
                 genesis::utils::Tickmarks::operator=,
             "C++: genesis::utils::Tickmarks::operator=(const struct genesis::utils::Tickmarks &) "
             "--> struct genesis::utils::Tickmarks &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: double genesis::utils::Tickmarks::step_size(double, unsigned
@@ -185,7 +185,7 @@ void bind_genesis_utils_tools_tickmarks(
                 genesis::utils::Timer::operator=,
             "C++: genesis::utils::Timer::operator=(const struct genesis::utils::Timer &) --> "
             "struct genesis::utils::Timer &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: void genesis::utils::Timer::start()()

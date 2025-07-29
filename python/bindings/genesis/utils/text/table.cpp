@@ -94,7 +94,7 @@ void bind_genesis_utils_text_table(
                 "C++: genesis::utils::text::TableLayout::Line::operator=(const struct "
                 "genesis::utils::text::TableLayout::Line &) --> struct "
                 "genesis::utils::text::TableLayout::Line &",
-                pybind11::return_value_policy::automatic,
+                pybind11::return_value_policy::reference_internal,
                 pybind11::arg( "" )
             );
         }

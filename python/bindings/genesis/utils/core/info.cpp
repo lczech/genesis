@@ -65,7 +65,7 @@ void bind_genesis_utils_core_info(
                 genesis::utils::core::InfoCompiler::operator=,
             "C++: genesis::utils::core::InfoCompiler::operator=(const struct "
             "genesis::utils::core::InfoCompiler &) --> struct genesis::utils::core::InfoCompiler &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
     }
@@ -80,7 +80,7 @@ void bind_genesis_utils_core_info(
             "Return information about compiler settings and flags.\n\nC++: "
             "genesis::utils::core::info_get_compiler() --> const struct "
             "genesis::utils::core::InfoCompiler &",
-            pybind11::return_value_policy::automatic
+            pybind11::return_value_policy::copy
         );
 
     // genesis::utils::core::info_preprocessor_definitions() file:genesis/utils/core/info.hpp
@@ -97,7 +97,7 @@ void bind_genesis_utils_core_info(
             "important macros that we internally have use for as well.\n\nC++: "
             "genesis::utils::core::info_preprocessor_definitions() --> const class "
             "std::unordered_map<std::string, std::string > &",
-            pybind11::return_value_policy::automatic
+            pybind11::return_value_policy::copy
         );
 
     // genesis::utils::core::info_print_compiler() file:genesis/utils/core/info.hpp line:147
@@ -208,7 +208,7 @@ void bind_genesis_utils_core_info(
                 genesis::utils::core::InfoHardware::operator=,
             "C++: genesis::utils::core::InfoHardware::operator=(const struct "
             "genesis::utils::core::InfoHardware &) --> struct genesis::utils::core::InfoHardware &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
     }
@@ -223,7 +223,7 @@ void bind_genesis_utils_core_info(
             "Return information about hardware features.\n\nC++: "
             "genesis::utils::core::info_get_hardware() --> const struct "
             "genesis::utils::core::InfoHardware &",
-            pybind11::return_value_policy::automatic
+            pybind11::return_value_policy::copy
         );
 
     // genesis::utils::core::info_print_hardware(bool) file:genesis/utils/core/info.hpp line:259

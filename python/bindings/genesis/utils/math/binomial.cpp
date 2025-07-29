@@ -261,7 +261,7 @@ void bind_genesis_utils_math_binomial(
             pybind11::arg( "x" )
         );
 
-    { // genesis::utils::math::KahanSummation file:genesis/utils/math/compensated_sum.hpp line:55
+    { // genesis::utils::math::KahanSummation file:genesis/utils/math/compensated_sum.hpp line:56
         pybind11::class_<
             genesis::utils::math::KahanSummation,
             std::shared_ptr<genesis::utils::math::KahanSummation>>
@@ -270,17 +270,17 @@ void bind_genesis_utils_math_binomial(
                 "Tag for tag dispatching the algorithm in CompensatedSum. See there for details." );
         // function-signature: genesis::utils::math::KahanSummation::KahanSummation(const struct
         // genesis::utils::math::KahanSummation &)(const struct genesis::utils::math::KahanSummation
-        // &) file:genesis/utils/math/compensated_sum.hpp line:55
+        // &) file:genesis/utils/math/compensated_sum.hpp line:56
         cl.def( pybind11::init( []( genesis::utils::math::KahanSummation const& o ) {
             return new genesis::utils::math::KahanSummation( o );
         } ) );
         // function-signature: genesis::utils::math::KahanSummation::KahanSummation()()
-        // file:genesis/utils/math/compensated_sum.hpp line:55
+        // file:genesis/utils/math/compensated_sum.hpp line:56
         cl.def( pybind11::init( []() { return new genesis::utils::math::KahanSummation(); } ) );
         // function-signature: struct genesis::utils::math::KahanSummation &
         // genesis::utils::math::KahanSummation::operator=(const struct
         // genesis::utils::math::KahanSummation &)(const struct genesis::utils::math::KahanSummation
-        // &) file:genesis/utils/math/compensated_sum.hpp line:55
+        // &) file:genesis/utils/math/compensated_sum.hpp line:56
         cl.def(
             "assign",
             ( struct genesis::utils::math::KahanSummation &
@@ -290,11 +290,11 @@ void bind_genesis_utils_math_binomial(
             "C++: genesis::utils::math::KahanSummation::operator=(const struct "
             "genesis::utils::math::KahanSummation &) --> struct "
             "genesis::utils::math::KahanSummation &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
     }
-    { // genesis::utils::math::NeumaierSummation file:genesis/utils/math/compensated_sum.hpp line:60
+    { // genesis::utils::math::NeumaierSummation file:genesis/utils/math/compensated_sum.hpp line:61
         pybind11::class_<
             genesis::utils::math::NeumaierSummation,
             std::shared_ptr<genesis::utils::math::NeumaierSummation>>
@@ -304,18 +304,18 @@ void bind_genesis_utils_math_binomial(
         // function-signature: genesis::utils::math::NeumaierSummation::NeumaierSummation(const
         // struct genesis::utils::math::NeumaierSummation &)(const struct
         // genesis::utils::math::NeumaierSummation &) file:genesis/utils/math/compensated_sum.hpp
-        // line:60
+        // line:61
         cl.def( pybind11::init( []( genesis::utils::math::NeumaierSummation const& o ) {
             return new genesis::utils::math::NeumaierSummation( o );
         } ) );
         // function-signature: genesis::utils::math::NeumaierSummation::NeumaierSummation()()
-        // file:genesis/utils/math/compensated_sum.hpp line:60
+        // file:genesis/utils/math/compensated_sum.hpp line:61
         cl.def( pybind11::init( []() { return new genesis::utils::math::NeumaierSummation(); } ) );
         // function-signature: struct genesis::utils::math::NeumaierSummation &
         // genesis::utils::math::NeumaierSummation::operator=(const struct
         // genesis::utils::math::NeumaierSummation &)(const struct
         // genesis::utils::math::NeumaierSummation &) file:genesis/utils/math/compensated_sum.hpp
-        // line:60
+        // line:61
         cl.def(
             "assign",
             ( struct genesis::utils::math::NeumaierSummation &
@@ -325,11 +325,11 @@ void bind_genesis_utils_math_binomial(
             "C++: genesis::utils::math::NeumaierSummation::operator=(const struct "
             "genesis::utils::math::NeumaierSummation &) --> struct "
             "genesis::utils::math::NeumaierSummation &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
     }
-    { // genesis::utils::math::KleinSummation file:genesis/utils/math/compensated_sum.hpp line:65
+    { // genesis::utils::math::KleinSummation file:genesis/utils/math/compensated_sum.hpp line:66
         pybind11::class_<
             genesis::utils::math::KleinSummation,
             std::shared_ptr<genesis::utils::math::KleinSummation>>
@@ -337,18 +337,18 @@ void bind_genesis_utils_math_binomial(
                 "KleinSummation",
                 "Tag for tag dispatching the algorithm in CompensatedSum. See there for details." );
         // function-signature: genesis::utils::math::KleinSummation::KleinSummation()()
-        // file:genesis/utils/math/compensated_sum.hpp line:65
+        // file:genesis/utils/math/compensated_sum.hpp line:66
         cl.def( pybind11::init( []() { return new genesis::utils::math::KleinSummation(); } ) );
         // function-signature: genesis::utils::math::KleinSummation::KleinSummation(const struct
         // genesis::utils::math::KleinSummation &)(const struct genesis::utils::math::KleinSummation
-        // &) file:genesis/utils/math/compensated_sum.hpp line:65
+        // &) file:genesis/utils/math/compensated_sum.hpp line:66
         cl.def( pybind11::init( []( genesis::utils::math::KleinSummation const& o ) {
             return new genesis::utils::math::KleinSummation( o );
         } ) );
         // function-signature: struct genesis::utils::math::KleinSummation &
         // genesis::utils::math::KleinSummation::operator=(const struct
         // genesis::utils::math::KleinSummation &)(const struct genesis::utils::math::KleinSummation
-        // &) file:genesis/utils/math/compensated_sum.hpp line:65
+        // &) file:genesis/utils/math/compensated_sum.hpp line:66
         cl.def(
             "assign",
             ( struct genesis::utils::math::KleinSummation &
@@ -358,7 +358,7 @@ void bind_genesis_utils_math_binomial(
             "C++: genesis::utils::math::KleinSummation::operator=(const struct "
             "genesis::utils::math::KleinSummation &) --> struct "
             "genesis::utils::math::KleinSummation &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
     }

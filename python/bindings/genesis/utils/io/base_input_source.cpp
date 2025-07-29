@@ -44,7 +44,7 @@ void bind_genesis_utils_io_base_input_source(
             "C++: genesis::utils::io::BaseInputSource::operator=(const class "
             "genesis::utils::io::BaseInputSource &) --> class genesis::utils::io::BaseInputSource "
             "&",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: std::string genesis::utils::io::BaseInputSource::source_name()

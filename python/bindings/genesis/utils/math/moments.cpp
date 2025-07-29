@@ -22,7 +22,7 @@ void bind_genesis_utils_math_moments(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 )
 {
-    { // genesis::utils::math::Moments file:genesis/utils/math/moments.hpp line:60
+    { // genesis::utils::math::Moments file:genesis/utils/math/moments.hpp line:61
         pybind11::
             class_<genesis::utils::math::Moments, std::shared_ptr<genesis::utils::math::Moments>>
                 cl( M( "genesis::utils::math" ),
@@ -36,10 +36,10 @@ void bind_genesis_utils_math_moments(
                     "https://www.johndcook.com/blog/standard_deviation/\n and "
                     "https://stackoverflow.com/q/2341340" );
         // function-signature: genesis::utils::math::Moments::Moments(unsigned long, bool)(unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:82
+        // long, bool) file:genesis/utils/math/moments.hpp line:83
         cl.def( pybind11::init( []() { return new genesis::utils::math::Moments(); } ), "doc" );
         // function-signature: genesis::utils::math::Moments::Moments(unsigned long, bool)(unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:82
+        // long, bool) file:genesis/utils/math/moments.hpp line:83
         cl.def(
             pybind11::init( []( unsigned long const& a0 ) {
                 return new genesis::utils::math::Moments( a0 );
@@ -48,7 +48,7 @@ void bind_genesis_utils_math_moments(
             pybind11::arg( "ddof" )
         );
         // function-signature: genesis::utils::math::Moments::Moments(unsigned long, bool)(unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:82
+        // long, bool) file:genesis/utils/math/moments.hpp line:83
         cl.def(
             pybind11::init<unsigned long, bool>(),
             pybind11::arg( "ddof" ),
@@ -57,7 +57,7 @@ void bind_genesis_utils_math_moments(
 
         // function-signature: genesis::utils::math::Moments::Moments(const class
         // std::vector<double> &, unsigned long, bool)(const class std::vector<double> &, unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:116
+        // long, bool) file:genesis/utils/math/moments.hpp line:117
         cl.def(
             pybind11::init( []( const class std::vector<double>& a0 ) {
                 return new genesis::utils::math::Moments( a0 );
@@ -67,7 +67,7 @@ void bind_genesis_utils_math_moments(
         );
         // function-signature: genesis::utils::math::Moments::Moments(const class
         // std::vector<double> &, unsigned long, bool)(const class std::vector<double> &, unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:116
+        // long, bool) file:genesis/utils/math/moments.hpp line:117
         cl.def(
             pybind11::init( []( const class std::vector<double>& a0, unsigned long const& a1 ) {
                 return new genesis::utils::math::Moments( a0, a1 );
@@ -78,7 +78,7 @@ void bind_genesis_utils_math_moments(
         );
         // function-signature: genesis::utils::math::Moments::Moments(const class
         // std::vector<double> &, unsigned long, bool)(const class std::vector<double> &, unsigned
-        // long, bool) file:genesis/utils/math/moments.hpp line:116
+        // long, bool) file:genesis/utils/math/moments.hpp line:117
         cl.def(
             pybind11::init<const class std::vector<double>&, unsigned long, bool>(),
             pybind11::arg( "values" ),
@@ -88,14 +88,14 @@ void bind_genesis_utils_math_moments(
 
         // function-signature: genesis::utils::math::Moments::Moments(const class
         // genesis::utils::math::Moments &)(const class genesis::utils::math::Moments &)
-        // file:genesis/utils/math/moments.hpp line:125
+        // file:genesis/utils/math/moments.hpp line:126
         cl.def( pybind11::init( []( genesis::utils::math::Moments const& o ) {
             return new genesis::utils::math::Moments( o );
         } ) );
         // function-signature: class genesis::utils::math::Moments &
         // genesis::utils::math::Moments::operator=(const class genesis::utils::math::Moments
         // &)(const class genesis::utils::math::Moments &) file:genesis/utils/math/moments.hpp
-        // line:128
+        // line:129
         cl.def(
             "assign",
             ( class genesis::utils::math::Moments &
@@ -103,11 +103,11 @@ void bind_genesis_utils_math_moments(
                 genesis::utils::math::Moments::operator=,
             "C++: genesis::utils::math::Moments::operator=(const class "
             "genesis::utils::math::Moments &) --> class genesis::utils::math::Moments &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: void genesis::utils::math::Moments::push(double)(double)
-        // file:genesis/utils/math/moments.hpp line:135
+        // file:genesis/utils/math/moments.hpp line:136
         cl.def(
             "push",
             ( void( genesis::utils::math::Moments::* )( double ) ) &
@@ -117,7 +117,7 @@ void bind_genesis_utils_math_moments(
         );
         // function-signature: void genesis::utils::math::Moments::push(const class
         // std::vector<double> &)(const class std::vector<double> &)
-        // file:genesis/utils/math/moments.hpp line:170
+        // file:genesis/utils/math/moments.hpp line:171
         cl.def(
             "push",
             ( void( genesis::utils::math::Moments::* )( const class std::vector<double>& ) ) &
@@ -126,7 +126,7 @@ void bind_genesis_utils_math_moments(
             pybind11::arg( "values" )
         );
         // function-signature: unsigned long genesis::utils::math::Moments::count() const()
-        // file:genesis/utils/math/moments.hpp line:186
+        // file:genesis/utils/math/moments.hpp line:187
         cl.def(
             "count",
             ( unsigned long ( genesis::utils::math::Moments::* )() const ) &
@@ -134,7 +134,7 @@ void bind_genesis_utils_math_moments(
             "C++: genesis::utils::math::Moments::count() const --> unsigned long"
         );
         // function-signature: double genesis::utils::math::Moments::mean() const()
-        // file:genesis/utils/math/moments.hpp line:191
+        // file:genesis/utils/math/moments.hpp line:192
         cl.def(
             "mean",
             ( double( genesis::utils::math::Moments::* )() const ) &
@@ -142,7 +142,7 @@ void bind_genesis_utils_math_moments(
             "C++: genesis::utils::math::Moments::mean() const --> double"
         );
         // function-signature: double genesis::utils::math::Moments::variance() const()
-        // file:genesis/utils/math/moments.hpp line:196
+        // file:genesis/utils/math/moments.hpp line:197
         cl.def(
             "variance",
             ( double( genesis::utils::math::Moments::* )() const ) &
@@ -150,7 +150,7 @@ void bind_genesis_utils_math_moments(
             "C++: genesis::utils::math::Moments::variance() const --> double"
         );
         // function-signature: double genesis::utils::math::Moments::stddev() const()
-        // file:genesis/utils/math/moments.hpp line:201
+        // file:genesis/utils/math/moments.hpp line:202
         cl.def(
             "stddev",
             ( double( genesis::utils::math::Moments::* )() const ) &
@@ -158,7 +158,7 @@ void bind_genesis_utils_math_moments(
             "C++: genesis::utils::math::Moments::stddev() const --> double"
         );
         // function-signature: double genesis::utils::math::Moments::standard_deviation() const()
-        // file:genesis/utils/math/moments.hpp line:206
+        // file:genesis/utils/math/moments.hpp line:207
         cl.def(
             "standard_deviation",
             ( double( genesis::utils::math::Moments::* )() const ) &
@@ -166,7 +166,7 @@ void bind_genesis_utils_math_moments(
             "C++: genesis::utils::math::Moments::standard_deviation() const --> double"
         );
         // function-signature: double genesis::utils::math::Moments::sum() const()
-        // file:genesis/utils/math/moments.hpp line:211
+        // file:genesis/utils/math/moments.hpp line:212
         cl.def(
             "sum",
             ( double( genesis::utils::math::Moments::* )() const ) &
@@ -174,7 +174,7 @@ void bind_genesis_utils_math_moments(
             "C++: genesis::utils::math::Moments::sum() const --> double"
         );
         // function-signature: double genesis::utils::math::Moments::min() const()
-        // file:genesis/utils/math/moments.hpp line:216
+        // file:genesis/utils/math/moments.hpp line:217
         cl.def(
             "min",
             ( double( genesis::utils::math::Moments::* )() const ) &
@@ -182,7 +182,7 @@ void bind_genesis_utils_math_moments(
             "C++: genesis::utils::math::Moments::min() const --> double"
         );
         // function-signature: double genesis::utils::math::Moments::max() const()
-        // file:genesis/utils/math/moments.hpp line:221
+        // file:genesis/utils/math/moments.hpp line:222
         cl.def(
             "max",
             ( double( genesis::utils::math::Moments::* )() const ) &

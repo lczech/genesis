@@ -29,13 +29,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
                 "" );
         // function-signature:
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::CompensatedSum()()
-        // file:genesis/utils/math/compensated_sum.hpp line:116
+        // file:genesis/utils/math/compensated_sum.hpp line:117
         cl.def( pybind11::init( []() {
             return new genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>();
         } ) );
         // function-signature:
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::CompensatedSum(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:121
+        // file:genesis/utils/math/compensated_sum.hpp line:122
         cl.def( pybind11::init<double>(), pybind11::arg( "value" ) );
 
         // function-signature:
@@ -43,7 +43,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         // class genesis::utils::math::CompensatedSum<struct genesis::utils::math::KahanSummation>
         // &)(const class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KahanSummation> &) file:genesis/utils/math/compensated_sum.hpp
-        // line:152
+        // line:153
         cl.def( pybind11::init( []( genesis::utils::math::CompensatedSum<
                                     genesis::utils::math::KahanSummation> const& o ) {
             return new genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>( o
@@ -55,7 +55,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         // class genesis::utils::math::CompensatedSum<struct genesis::utils::math::KahanSummation>
         // &)(const class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KahanSummation> &) file:genesis/utils/math/compensated_sum.hpp
-        // line:155
+        // line:156
         cl.def(
             "assign",
             ( class genesis::utils::math::CompensatedSum<
@@ -72,13 +72,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "const class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KahanSummation> &) --> class "
             "genesis::utils::math::CompensatedSum<struct genesis::utils::math::KahanSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KahanSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::operator+=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:165
+        // file:genesis/utils/math/compensated_sum.hpp line:166
         cl.def(
             "__iadd__",
             ( class genesis::utils::math::CompensatedSum<
@@ -91,13 +91,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::operator+="
             "(double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KahanSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KahanSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::operator-=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:176
+        // file:genesis/utils/math/compensated_sum.hpp line:177
         cl.def(
             "__isub__",
             ( class genesis::utils::math::CompensatedSum<
@@ -111,13 +111,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::operator-="
             "(double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KahanSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KahanSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::operator=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:188
+        // file:genesis/utils/math/compensated_sum.hpp line:189
         cl.def(
             "assign",
             ( class genesis::utils::math::CompensatedSum<
@@ -131,12 +131,12 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::operator=("
             "double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KahanSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: void
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::add(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:211
+        // file:genesis/utils/math/compensated_sum.hpp line:212
         cl.def(
             "add",
             ( void( genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::* )(
@@ -150,7 +150,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         );
         // function-signature: void
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::reset()()
-        // file:genesis/utils/math/compensated_sum.hpp line:216
+        // file:genesis/utils/math/compensated_sum.hpp line:217
         cl.def(
             "reset",
             ( void( genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::* )(
@@ -162,7 +162,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         );
         // function-signature: double
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::get() const()
-        // file:genesis/utils/math/compensated_sum.hpp line:224
+        // file:genesis/utils/math/compensated_sum.hpp line:225
         cl.def(
             "get",
             ( double( genesis::utils::math::CompensatedSum<
@@ -184,14 +184,14 @@ void bind_genesis_utils_math_compensated_sum_bind(
                 "" );
         // function-signature:
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::CompensatedSum()()
-        // file:genesis/utils/math/compensated_sum.hpp line:116
+        // file:genesis/utils/math/compensated_sum.hpp line:117
         cl.def( pybind11::init( []() {
             return new genesis::utils::math::CompensatedSum<
                 genesis::utils::math::NeumaierSummation>();
         } ) );
         // function-signature:
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::CompensatedSum(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:121
+        // file:genesis/utils/math/compensated_sum.hpp line:122
         cl.def( pybind11::init<double>(), pybind11::arg( "value" ) );
 
         // function-signature:
@@ -199,7 +199,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         // class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::NeumaierSummation> &)(const class
         // genesis::utils::math::CompensatedSum<struct genesis::utils::math::NeumaierSummation> &)
-        // file:genesis/utils/math/compensated_sum.hpp line:152
+        // file:genesis/utils/math/compensated_sum.hpp line:153
         cl.def( pybind11::init( []( genesis::utils::math::CompensatedSum<
                                     genesis::utils::math::NeumaierSummation> const& o ) {
             return new genesis::utils::math::CompensatedSum<
@@ -211,7 +211,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         // class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::NeumaierSummation> &)(const class
         // genesis::utils::math::CompensatedSum<struct genesis::utils::math::NeumaierSummation> &)
-        // file:genesis/utils/math/compensated_sum.hpp line:155
+        // file:genesis/utils/math/compensated_sum.hpp line:156
         cl.def(
             "assign",
             ( class genesis::utils::math::CompensatedSum<
@@ -229,13 +229,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::NeumaierSummation> &) --> class "
             "genesis::utils::math::CompensatedSum<struct genesis::utils::math::NeumaierSummation> "
             "&",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::NeumaierSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::operator+=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:165
+        // file:genesis/utils/math/compensated_sum.hpp line:166
         cl.def(
             "__iadd__",
             ( class genesis::utils::math::CompensatedSum<
@@ -248,13 +248,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::"
             "operator+=(double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::NeumaierSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::NeumaierSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::operator-=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:176
+        // file:genesis/utils/math/compensated_sum.hpp line:177
         cl.def(
             "__isub__",
             ( class genesis::utils::math::CompensatedSum<
@@ -268,13 +268,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::"
             "operator-=(double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::NeumaierSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::NeumaierSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::operator=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:188
+        // file:genesis/utils/math/compensated_sum.hpp line:189
         cl.def(
             "assign",
             ( class genesis::utils::math::CompensatedSum<
@@ -288,12 +288,12 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::"
             "operator=(double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::NeumaierSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: void
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::add(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:211
+        // file:genesis/utils/math/compensated_sum.hpp line:212
         cl.def(
             "add",
             ( void( genesis::utils::math::CompensatedSum<
@@ -306,7 +306,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         );
         // function-signature: void
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::reset()()
-        // file:genesis/utils/math/compensated_sum.hpp line:216
+        // file:genesis/utils/math/compensated_sum.hpp line:217
         cl.def(
             "reset",
             ( void( genesis::utils::math::CompensatedSum<
@@ -319,7 +319,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         );
         // function-signature: double
         // genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::get()
-        // const() file:genesis/utils/math/compensated_sum.hpp line:224
+        // const() file:genesis/utils/math/compensated_sum.hpp line:225
         cl.def(
             "get",
             ( double( genesis::utils::math::CompensatedSum<
@@ -341,13 +341,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
                 "" );
         // function-signature:
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::CompensatedSum()()
-        // file:genesis/utils/math/compensated_sum.hpp line:116
+        // file:genesis/utils/math/compensated_sum.hpp line:117
         cl.def( pybind11::init( []() {
             return new genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>();
         } ) );
         // function-signature:
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::CompensatedSum(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:121
+        // file:genesis/utils/math/compensated_sum.hpp line:122
         cl.def( pybind11::init<double>(), pybind11::arg( "value" ) );
 
         // function-signature:
@@ -355,7 +355,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         // class genesis::utils::math::CompensatedSum<struct genesis::utils::math::KleinSummation>
         // &)(const class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KleinSummation> &) file:genesis/utils/math/compensated_sum.hpp
-        // line:152
+        // line:153
         cl.def( pybind11::init( []( genesis::utils::math::CompensatedSum<
                                     genesis::utils::math::KleinSummation> const& o ) {
             return new genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>( o
@@ -367,7 +367,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         // class genesis::utils::math::CompensatedSum<struct genesis::utils::math::KleinSummation>
         // &)(const class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KleinSummation> &) file:genesis/utils/math/compensated_sum.hpp
-        // line:155
+        // line:156
         cl.def(
             "assign",
             ( class genesis::utils::math::CompensatedSum<
@@ -384,13 +384,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "const class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KleinSummation> &) --> class "
             "genesis::utils::math::CompensatedSum<struct genesis::utils::math::KleinSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KleinSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::operator+=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:165
+        // file:genesis/utils/math/compensated_sum.hpp line:166
         cl.def(
             "__iadd__",
             ( class genesis::utils::math::CompensatedSum<
@@ -403,13 +403,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::operator+="
             "(double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KleinSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KleinSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::operator-=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:176
+        // file:genesis/utils/math/compensated_sum.hpp line:177
         cl.def(
             "__isub__",
             ( class genesis::utils::math::CompensatedSum<
@@ -423,13 +423,13 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::operator-="
             "(double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KleinSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: class genesis::utils::math::CompensatedSum<struct
         // genesis::utils::math::KleinSummation> &
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::operator=(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:188
+        // file:genesis/utils/math/compensated_sum.hpp line:189
         cl.def(
             "assign",
             ( class genesis::utils::math::CompensatedSum<
@@ -443,12 +443,12 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::operator=("
             "double) --> class genesis::utils::math::CompensatedSum<struct "
             "genesis::utils::math::KleinSummation> &",
-            pybind11::return_value_policy::automatic,
+            pybind11::return_value_policy::reference_internal,
             pybind11::arg( "value" )
         );
         // function-signature: void
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::add(double)(double)
-        // file:genesis/utils/math/compensated_sum.hpp line:211
+        // file:genesis/utils/math/compensated_sum.hpp line:212
         cl.def(
             "add",
             ( void( genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::* )(
@@ -462,7 +462,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         );
         // function-signature: void
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::reset()()
-        // file:genesis/utils/math/compensated_sum.hpp line:216
+        // file:genesis/utils/math/compensated_sum.hpp line:217
         cl.def(
             "reset",
             ( void( genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::* )(
@@ -474,7 +474,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
         );
         // function-signature: double
         // genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::get() const()
-        // file:genesis/utils/math/compensated_sum.hpp line:224
+        // file:genesis/utils/math/compensated_sum.hpp line:225
         cl.def(
             "get",
             ( double( genesis::utils::math::CompensatedSum<
