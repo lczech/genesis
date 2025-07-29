@@ -34,7 +34,7 @@ class TestGenesisUtilsMathCompensatedSum(unittest.TestCase):
             s += 0.1
             # s.add(0.1)
         self.assertEqual( s.get(), 10.0 )
-        # self.assertEqual( float(s), 10.0 )
+        self.assertEqual( float(s), 10.0 )
 
     def test_neumaier_sum(self):
         s = utils.math.CompensatedSum_genesis_utils_math_NeumaierSummation_t()
@@ -42,7 +42,7 @@ class TestGenesisUtilsMathCompensatedSum(unittest.TestCase):
             s += 0.1
             # s.add(0.1)
         self.assertEqual( s.get(), 10.0 )
-        # self.assertEqual( float(s), 10.0 )
+        self.assertEqual( float(s), 10.0 )
 
     def test_klein_sum(self):
         s = utils.math.CompensatedSum_genesis_utils_math_KleinSummation_t()
@@ -50,7 +50,7 @@ class TestGenesisUtilsMathCompensatedSum(unittest.TestCase):
             s += 0.1
             # s.add(0.1)
         self.assertEqual( s.get(), 10.0 )
-        # self.assertEqual( float(s), 10.0 )
+        self.assertEqual( float(s), 10.0 )
 
 if __name__ == '__main__':
     unittest.main()

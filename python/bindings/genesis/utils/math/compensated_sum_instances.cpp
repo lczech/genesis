@@ -1,5 +1,6 @@
 #include <genesis/utils/math/compensated_sum.hpp>
-#include <genesis/utils/math/compensated_sum_bind.hpp>
+#include <genesis/utils/math/compensated_sum_add_ons.hpp>
+#include <genesis/utils/math/compensated_sum_instances.hpp>
 #include <sstream> // __str__
 
 #include <functional>
@@ -14,11 +15,11 @@ PYBIND11_DECLARE_HOLDER_TYPE( T, T*, false )
 PYBIND11_MAKE_OPAQUE( std::shared_ptr<void> )
 #endif
 
-void bind_genesis_utils_math_compensated_sum_bind(
+void bind_genesis_utils_math_compensated_sum_instances(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 )
 {
-    { // genesis::utils::math::CompensatedSum file:genesis/utils/math/compensated_sum_bind.hpp
+    { // genesis::utils::math::CompensatedSum file:genesis/utils/math/compensated_sum_instances.hpp
       // line:34
         pybind11::class_<
             genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>,
@@ -172,8 +173,10 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KahanSummation>::get() "
             "const --> double"
         );
+
+        genesis_utils_math_compensated_sum_add_ons( cl );
     }
-    { // genesis::utils::math::CompensatedSum file:genesis/utils/math/compensated_sum_bind.hpp
+    { // genesis::utils::math::CompensatedSum file:genesis/utils/math/compensated_sum_instances.hpp
       // line:35
         pybind11::class_<
             genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>,
@@ -329,8 +332,10 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::NeumaierSummation>::get() "
             "const --> double"
         );
+
+        genesis_utils_math_compensated_sum_add_ons( cl );
     }
-    { // genesis::utils::math::CompensatedSum file:genesis/utils/math/compensated_sum_bind.hpp
+    { // genesis::utils::math::CompensatedSum file:genesis/utils/math/compensated_sum_instances.hpp
       // line:36
         pybind11::class_<
             genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>,
@@ -484,5 +489,7 @@ void bind_genesis_utils_math_compensated_sum_bind(
             "genesis::utils::math::CompensatedSum<genesis::utils::math::KleinSummation>::get() "
             "const --> double"
         );
+
+        genesis_utils_math_compensated_sum_add_ons( cl );
     }
 }

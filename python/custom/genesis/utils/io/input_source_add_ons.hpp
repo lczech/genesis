@@ -25,4 +25,4 @@
 
 #include <pybind11/pybind11.h>
 
-void genesis_utils_io_input_source_bind(pybind11::module &m);
+void genesis_utils_io_input_source_add_ons(pybind11::module &m);

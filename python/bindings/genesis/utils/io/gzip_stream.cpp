@@ -1,5 +1,5 @@
 #include <genesis/utils/io/gzip_stream.hpp>
-#include <genesis/utils/io/input_source_bind.hpp>
+#include <genesis/utils/io/input_source_add_ons.hpp>
 
 #include <functional>
 #include <pybind11/pybind11.h>

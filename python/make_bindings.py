@@ -87,7 +87,7 @@ bindings_dir         = './python/bindings'
 config_file          = './python/binder.cfg'
 all_includes_file    = './python/genesis_headers.hpp'
 custom_code_dir      = './python/custom'
-extra_includes_files = [ './python/custom/template_instances_bind.hpp' ]
+extra_includes_files = [ './python/custom/template_instances.hpp' ]
 
 # Settings for binder
 c_plus_plus_version = '17'
@@ -114,6 +114,11 @@ file_warn_terms = ["__gnu_cxx"]
 #    is used for a function, so that we can manually assign it the correct one.
 binder_output_filter = ["return_value_policy"]
 use_binder_output_filter = True
+
+# File suffixes in the `python/custom` dir that we enforce, as the directory structure
+# there follows the main genesis structure, and we use those suffixes to ensure
+# that we do not have any name clashes (or at least make them unlikely).
+allowed_custom_suffixes = ["_add_ons", "_instances"]
 
 # ================================================================================================
 #   Sync Directories
@@ -335,7 +340,7 @@ def write_binder_version(output_path: str) -> None:
         version_str += f"binder commit: {binder_commit}\n"
     pathlib.Path(output_path).write_text(version_str, encoding="utf-8")
 
-def check_bind_suffix(directory: str) -> None:
+def check_bind_suffix(directory: str, allowed_suffixes: List[str]) -> None:
     """
     Recursively search for .cpp and .hpp files in the given directory.
     For each file found, checks if its base name ends with '_bind'.
@@ -350,10 +355,13 @@ def check_bind_suffix(directory: str) -> None:
             # consider only C++ source and header files
             if filename.lower().endswith(('.cpp', '.hpp')):
                 name, ext = os.path.splitext(filename)
-                if not name.endswith('_bind'):
+                # check against all allowed suffixes
+                if not any(name.endswith(suffix) for suffix in allowed_suffixes):
                     filepath = os.path.join(root, filename)
-                    # entire warning in red
-                    print(f"{RED}WARNING: File '{filepath}' does not end with '_bind'{ext}{RESET}")
+                    print(
+                        f"{RED}WARNING: File '{filepath}' does not end with "
+                        f"one of {allowed_suffixes}{RESET}"
+                    )
 
 # ================================================================================================
 #   Code Checks
@@ -420,16 +428,19 @@ def check_call_filtered(command: List[str], terms: List[str]) -> None:
         bufsize=1             # line‑buffered
     )
 
-    # iterate over each line as it comes out
-    assert proc.stdout is not None
-    for line in proc.stdout:
-        if any(term in line for term in terms):
-            print(line, end='')
+    # capture all output
+    stdout, _ = proc.communicate()
+    lines = stdout.splitlines(keepends=True)
 
-    # wait and raise on error
-    ret = proc.wait()
-    if ret:
-        raise subprocess.CalledProcessError(ret, command)
+    if proc.returncode == 0:
+        # on success, only print matching lines
+        for line in lines:
+            if any(term in line for term in terms):
+                print(line, end='')
+    else:
+        # on error, dump everything, then raise
+        print(stdout, end='')
+        raise subprocess.CalledProcessError(proc.returncode, command, output=stdout)
 
 def make_bindings_code(target_dir):
     # Build the binder command
@@ -510,7 +521,7 @@ def run_clang_format(directory: str) -> None:
 def generate_bindings():
     # Check that all custom files adhere to the convention of having `_bind` suffix,
     # in order to avoid name clashes and wrong includes during compilation
-    check_bind_suffix(custom_code_dir)
+    check_bind_suffix(custom_code_dir, allowed_custom_suffixes)
 
     # Some prep, version, dirs, etc.
     # Binder does not create the directory for us...

@@ -25,4 +25,4 @@ genesis/utils/tools/date_time.cpp
 genesis/utils/tools/hash/sha1.cpp
 genesis/utils/tools/hash/sha256.cpp
 genesis/utils/tools/tickmarks.cpp
-genesis/utils/math/compensated_sum_bind.cpp
+genesis/utils/math/compensated_sum_instances.cpp

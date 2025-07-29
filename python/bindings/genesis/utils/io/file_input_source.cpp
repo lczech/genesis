@@ -5,7 +5,7 @@
 #include <genesis/utils/io/gzip.hpp>
 #include <genesis/utils/io/gzip_input_source.hpp>
 #include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_source_bind.hpp>
+#include <genesis/utils/io/input_source_add_ons.hpp>
 #include <genesis/utils/io/string_input_source.hpp>
 #include <iterator>
 #include <memory>

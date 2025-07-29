@@ -87,7 +87,7 @@ void bind_genesis_utils_tools_hash_sha256(
 void bind_genesis_utils_tools_tickmarks(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_math_compensated_sum_bind(
+void bind_genesis_utils_math_compensated_sum_instances(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 
@@ -163,5 +163,5 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_tools_hash_sha1( M );
     bind_genesis_utils_tools_hash_sha256( M );
     bind_genesis_utils_tools_tickmarks( M );
-    bind_genesis_utils_math_compensated_sum_bind( M );
+    bind_genesis_utils_math_compensated_sum_instances( M );
 }

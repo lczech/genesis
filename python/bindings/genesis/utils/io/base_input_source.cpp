@@ -1,5 +1,5 @@
 #include <genesis/utils/io/base_input_source.hpp>
-#include <genesis/utils/io/input_source_bind.hpp>
+#include <genesis/utils/io/input_source_add_ons.hpp>
 #include <iterator>
 #include <memory>
 #include <sstream> // __str__
@@ -22,7 +22,7 @@ void bind_genesis_utils_io_base_input_source(
 )
 {
 
-    genesis_utils_io_input_source_bind( M( "genesis::utils::io" ) );
+    genesis_utils_io_input_source_add_ons( M( "genesis::utils::io" ) );
     { // genesis::utils::io::BaseInputSource file:genesis/utils/io/base_input_source.hpp line:51
         pybind11::class_<
             genesis::utils::io::BaseInputSource,

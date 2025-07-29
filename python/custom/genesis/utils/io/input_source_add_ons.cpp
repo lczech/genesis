@@ -22,7 +22,7 @@
 */
 
 // Custom file in the python/custom dir
-#include <genesis/utils/io/input_source_bind.hpp>
+#include <genesis/utils/io/input_source_add_ons.hpp>
 
 #include <sstream>
 #include <string>
@@ -37,7 +37,7 @@
 
 namespace py  = pybind11;
 
-void genesis_utils_io_input_source_bind(py::module &m)
+void genesis_utils_io_input_source_add_ons(py::module &m)
 {
     m.def("from_file",
     [](py::object src) -> std::shared_ptr<genesis::utils::io::BaseInputSource>

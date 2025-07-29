@@ -1,3 +1,5 @@
+#pragma once
+
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2023-2025 Giannis Reppas and Lucas Czech
@@ -21,10 +23,17 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-// We use this header as input to Binder, to pull in additonal headers
-// that instantiate templates as needed. This could be part of the all_includes
-// header as well, but keeping it separate seems a bit cleaner.
-// For even more order and modularity, we here simply pull in per-namespace
-// headers, so that we can keep the scope of each of them relatively small.
+#include <pybind11/pybind11.h>
+#include <genesis/utils/math/compensated_sum.hpp>
 
-#include <genesis/utils/math/compensated_sum_bind.hpp>
+template <typename T>
+void genesis_utils_math_compensated_sum_add_ons( pybind11::class_<T, std::shared_ptr<T>> &cl )
+{
+    cl.def(
+        "__float__",
+        [](T const &self) {
+            return static_cast<double>(self);
+        },
+        "Convert the compensated sum to a Python float via operator float()"
+    );
+}
