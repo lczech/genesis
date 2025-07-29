@@ -74,7 +74,7 @@ jobs:
         #     exclude
         # -------------------------------------------------------
 
-        exclude:
+        # exclude:
 
           # Currently (as of 2024-12), the latest llvm used here is clang 18,
           # which has several bugs concerning deprecated functions, see
@@ -83,8 +83,8 @@ jobs:
           # which only seem to occur when the environment also has a gcc std lib
           # present. That is mostly a setup issue here in the CI, so we do not
           # solve this for now, and just deactivate that test case completely.
-          - os: ubuntu-latest
-            compiler: llvm
+          # - os: ubuntu-latest
+          #   compiler: llvm
 
         # -------------------------------------------------------
         #     include
@@ -528,7 +528,7 @@ jobs:
           # For Ubuntu‑22.04 + clang-18/19/20: avoid deprecation errors due the lib std
           # being outdated in that combination. Not our problem to fix.
           CMAKE_DEPREC_FLAGS=""
-          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" =~ ^llvm-1[89]|llvm-20$ ]]; then
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04" ]] && [[ "${{ matrix.compiler }}" =~ ^llvm-18|llvm-19|llvm-20$ ]]; then
             # do not treat deprecated-declarations as errors
             CMAKE_DEPREC_FLAGS="-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations"
           fi
@@ -553,7 +553,7 @@ jobs:
 
       - name: Build
         run: |
-          # Weird workarounds. On some CI builds, this is needed somehow for LLVM under Ubuntu.
+          # Weird workarounds. On some CI builds, this is needed somehow for LLVM under MacOS.
           if [[ "${RUNNER_OS}" != "macOS" ]] && [[ ! -f /usr/bin/gmake ]]; then
             sudo ln -s /usr/bin/make /usr/bin/gmake
           fi
