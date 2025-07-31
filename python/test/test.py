@@ -21,6 +21,7 @@
 # University of Copenhagen, Globe Institute, Section for GeoGenetics
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
+import argparse
 import os
 import sys
 import re
@@ -110,6 +111,12 @@ class SimpleNameResult(unittest.TextTestResult):
 # ================================================================================================
 
 def main():
+    # Get command line args
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='Use standard verbose unittest output')
+    args, _ = parser.parse_known_args()
+
     # Determine this script's absolute path and project root
     # script is at .../python/test/test.py → parents[0]=test, [1]=python, [2]=project root
     script_path = Path(__file__).resolve()
@@ -165,12 +172,16 @@ def main():
                 suite.addTests(loader.loadTestsFromTestCase(obj))
 
     # Run test suite with our nice result printing
-    # runner = unittest.TextTestRunner(verbosity=2)
-    runner = unittest.TextTestRunner(
-        # verbosity=2,
-        # resultclass=SimpleNameResult
-        resultclass=TableTestResult
-    )
+    if args.verbose:
+        # standard unittest runner with verbosity=2
+        runner = unittest.TextTestRunner(verbosity=2)
+    else:
+        # the custom table printer for more niceness
+        runner = unittest.TextTestRunner(
+            verbosity=0,
+            resultclass=TableTestResult
+        )
+
     result = runner.run(suite)
 
     # Exit with appropriate status

@@ -570,7 +570,7 @@ jobs:
       #     Test
       # -------------------------------------------------------
 
-      - name: Test
+      - name: Test - GTest
         id: test
         if: >
           success() &&
@@ -579,7 +579,7 @@ jobs:
         run: |
           ./bin/test/genesis_tests
 
-      - name: Test - gdb
+      - name: Test - GTest gdb
         # If the regular test run failed, we repeat with gdb, to backtrace the stack.
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
@@ -592,19 +592,32 @@ jobs:
               gdb -ex "set confirm off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args ./bin/test/genesis_tests
           fi
 
-      - name: Test - valgrind
+      - name: Test - GTest valgrind
         # If the regular test run failed, we repeat with valgrind, to find seg fauls and mem issues.
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
         run: |
           valgrind ./bin/test/genesis_tests
 
-      - name: Test Python Module
+      - name: Test - Python
         id: pytest
         if: >
           success() &&
           runner.os != 'windows'
         run: |
           ./python/test/test.py
+
+      - name: Test - Python gdb
+        # If the regular Python test run failed, we repeat with gdb, to backtrace the stack.
+        if: ${{ failure() && steps.pytest.conclusion == 'failure' }}
+        run: |
+          # We are not using the `./test/run.sh gdb` here, to make it easier for MacOS.
+          # gdb on Mac needs to be code signed for executing without admin rights...
+          # See https://sourceware.org/gdb/wiki/PermissionsDarwin for the details.
+          if [[ ${{ matrix.os }} == macos* ]] ; then
+              lldb --batch -o "run" -o "thread backtrace all" -o "quit" -- python3 ./python/test/test.py --verbose
+          else
+              gdb -batch -ex "set confirm off" -ex "set debuginfod enabled off" -iex "set pagination off" -ex "run" -ex "thread apply all bt" -ex "quit" --args python3 ./python/test/test.py --verbose
+          fi
 
       # -------------------------------------------------------
       #     Logs
