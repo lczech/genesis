@@ -82,6 +82,22 @@ std::vector<std::string> read_input_source_lines(
     return result;
 }
 
+// =================================================================================================
+//     Write Output Target
+// =================================================================================================
+
+void write_output_target(
+    std::string const& content,
+    std::shared_ptr<BaseOutputTarget> target
+) {
+    if( target == nullptr ) {
+        throw std::invalid_argument(
+            "Invalid Output Target (nullptr) provided for write_output_target()"
+        );
+    }
+    (*target) << content;
+}
+
 } // namespace io
 } // namespace utils
 } // namespace genesis

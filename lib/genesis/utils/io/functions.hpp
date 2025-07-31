@@ -32,6 +32,7 @@
  */
 
 #include <genesis/utils/io/input_source.hpp>
+#include <genesis/utils/io/output_target.hpp>
 
 #include <string>
 #include <vector>
@@ -40,9 +41,9 @@ namespace genesis {
 namespace utils {
 namespace io {
 
-// =================================================================================================
+// ---------------------------------------------------------------------
 //     Read Input Source
-// =================================================================================================
+// ---------------------------------------------------------------------
 
 /**
  * @brief Return the contents of an input @p source as a string.
@@ -50,7 +51,9 @@ namespace io {
  * This simply reads all characters from the @p source into a `std::string`. It is similar to
  * file_read(), but takes the more general BaseInputSource as input.
  */
-std::string read_input_source( std::shared_ptr<BaseInputSource> source );
+std::string read_input_source(
+    std::shared_ptr<BaseInputSource> source
+);
 
 /**
  * @brief Return the contents of an input @p source as a string, split into individual lines.
@@ -58,7 +61,23 @@ std::string read_input_source( std::shared_ptr<BaseInputSource> source );
  * This simply reads all lines from the @p source into a `std::string`. It is similar to
  * file_read_lines(), but takes the more general BaseInputSource as input.
  */
-std::vector<std::string> read_input_source_lines( std::shared_ptr<BaseInputSource> source );
+std::vector<std::string> read_input_source_lines(
+    std::shared_ptr<BaseInputSource> source
+);
+
+// ---------------------------------------------------------------------
+//     Write Output Target
+// ---------------------------------------------------------------------
+
+/**
+ * @brief Write the contents of a string to an output @p target.
+ *
+ * This is similar to file_write(), but takes the more general BaseOutputTarget as output.
+ */
+void write_output_target(
+    std::string const& content,
+    std::shared_ptr<BaseOutputTarget> target
+);
 
 } // namespace io
 } // namespace utils

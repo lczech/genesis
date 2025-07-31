@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/io/functions.hpp"
 #include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/core/fs.hpp"
 
@@ -66,4 +67,12 @@ TEST( OutputTarget, WriteCompressed )
     EXPECT_EQ( data, read );
 
     ASSERT_EQ (0, std::remove( outfile.c_str() ));
+}
+
+TEST( OutputTarget, WriteOutputTarget )
+{
+    std::string const content = "Hello, world!\nThis is a test.\n";
+    std::string target;
+    write_output_target( content, to_string( target ));
+    EXPECT_EQ( target, content );
 }
