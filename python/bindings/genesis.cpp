@@ -33,7 +33,10 @@ void bind_genesis_utils_io_base_input_source(
 void bind_genesis_utils_io_file_input_source(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_io_gzip_stream(
+void bind_genesis_utils_io_file_output_target(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_io_output_target(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_text_char(
@@ -145,7 +148,8 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_core_version( M );
     bind_genesis_utils_io_base_input_source( M );
     bind_genesis_utils_io_file_input_source( M );
-    bind_genesis_utils_io_gzip_stream( M );
+    bind_genesis_utils_io_file_output_target( M );
+    bind_genesis_utils_io_output_target( M );
     bind_genesis_utils_text_char( M );
     bind_genesis_utils_math_binomial( M );
     bind_genesis_utils_math_ranking( M );

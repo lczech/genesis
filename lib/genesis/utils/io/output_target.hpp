@@ -249,6 +249,16 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
 // ---------------------------------------------------------------------
 
 /**
+ * @brief Obtain an output target for writing that captures the resulting string.
+ *
+ * The output target returned from this function can be used in the writer classes, e.g.,
+ * placement::JplaceWriter or sequence::FastaWriter.
+ */
+inline std::shared_ptr<BaseOutputTarget> to_string() {
+    return std::make_shared< StringOutputTarget >();
+}
+
+/**
  * @brief Obtain an output target for writing to a string.
  *
  * The output target returned from this function can be used in the writer classes, e.g.,

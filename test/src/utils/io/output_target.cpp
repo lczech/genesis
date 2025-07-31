@@ -71,8 +71,19 @@ TEST( OutputTarget, WriteCompressed )
 
 TEST( OutputTarget, WriteOutputTarget )
 {
-    std::string const content = "Hello, world!\nThis is a test.\n";
-    std::string target;
-    write_output_target( content, to_string( target ));
-    EXPECT_EQ( target, content );
+    // Test with target specifed in constructor.
+    {
+        std::string const content = "Hello, world!\nThis is a test.\n";
+        std::string target;
+        write_output_target( content, to_string( target ));
+        EXPECT_EQ( target, content );
+    }
+
+    // Test with no target, get() it afterwards instead.
+    {
+        std::string const content = "Hello, world!\nThis is a test.\n";
+        auto target = to_string();
+        write_output_target( content, target );
+        EXPECT_EQ( static_cast<StringOutputTarget*>(target.get())->get(), content );
+    }
 }

@@ -7,7 +7,8 @@ genesis/utils/core/options.cpp
 genesis/utils/core/version.cpp
 genesis/utils/io/base_input_source.cpp
 genesis/utils/io/file_input_source.cpp
-genesis/utils/io/gzip_stream.cpp
+genesis/utils/io/file_output_target.cpp
+genesis/utils/io/output_target.cpp
 genesis/utils/text/char.cpp
 genesis/utils/math/binomial.cpp
 genesis/utils/math/ranking.cpp

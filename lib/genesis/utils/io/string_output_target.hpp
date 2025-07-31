@@ -47,10 +47,24 @@ namespace io {
 /**
  * @brief Output target for writing data to a string.
  *
- * The string that is written to is kept by reference in this class. Hence, it has to stay
- * alive for the duration of the data writing process where this class is used.
+ * The target string to write to can be specified when constructing this class. In that case,
+ * it has to stay alive for the duration of the data writing process where this class is used.
  * Internally, the data is buffered in a stringstream, and only written to the string
  * on destruction of this class.
+ *
+ *     std::string target;
+ *     write_output_target( content, to_string( target ));
+ *     // use target
+ *
+ * Alternatively, when no target string is specified upon construction, the written results can
+ * be obtained later via the get() method. We use the io::to_string() method here, which returns
+ * a `std::shared_ptr` to the base class BaseOutputTarget, so usage is a bit tricky:
+ *
+ *     auto target = to_string();
+ *     write_output_target( content, target );
+ *     // use static_cast<StringOutputTarget*>( target.get() )->get()
+ *
+ * See BaseOutputTarget for more information on the functionality.
  */
 class StringOutputTarget final : public BaseOutputTarget
 {
@@ -59,6 +73,12 @@ public:
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
+
+    /**
+     * @brief Construct the output target to a string that is modified.
+     */
+    explicit StringOutputTarget()
+    {}
 
     /**
      * @brief Construct the output target to a string that is modified.
@@ -75,7 +95,22 @@ public:
 
     ~StringOutputTarget() override
     {
-        *target_ = stream_.str();
+        // Only write to the target if it was given.
+        if( target_ ) {
+            *target_ = stream_.str();
+        }
+    }
+
+    // -------------------------------------------------------------
+    //     Public Interface
+    // -------------------------------------------------------------
+
+    /**
+     * @brief Get the string result.
+     */
+    std::string get() const
+    {
+        return stream_.str();
     }
 
     // -------------------------------------------------------------
@@ -112,7 +147,7 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
-    std::string* target_;
+    std::string* target_ = nullptr;
     std::ostringstream stream_;
 };
 

@@ -545,30 +545,30 @@
 // ---------------------------------------------------------------------
 
 #include <genesis/utils/io/base_input_source.hpp>
-// #include <genesis/utils/io/base_output_target.hpp>
+#include <genesis/utils/io/base_output_target.hpp>
 // #include <genesis/utils/io/deserializer.hpp>
 #include <genesis/utils/io/file_input_source.hpp>
-// #include <genesis/utils/io/file_output_target.hpp>
+#include <genesis/utils/io/file_output_target.hpp>
 #include <genesis/utils/io/functions.hpp>
 #include <genesis/utils/io/gzip.hpp>
-// #include <genesis/utils/io/gzip_block_ostream.hpp>
+#include <genesis/utils/io/gzip_block_ostream.hpp>
 #include <genesis/utils/io/gzip_input_source.hpp>
-// #include <genesis/utils/io/gzip_output_target.hpp>
+#include <genesis/utils/io/gzip_output_target.hpp>
 #include <genesis/utils/io/gzip_stream.hpp>
 #include <genesis/utils/io/input_buffer.hpp>
 #include <genesis/utils/io/input_reader.hpp>
 #include <genesis/utils/io/input_source.hpp>
 #include <genesis/utils/io/input_stream.hpp>
-// #include <genesis/utils/io/output_stream.hpp>
-// #include <genesis/utils/io/output_target.hpp>
+#include <genesis/utils/io/output_stream.hpp>
+#include <genesis/utils/io/output_target.hpp>
 #include <genesis/utils/io/parser.hpp>
 #include <genesis/utils/io/scanner.hpp>
 // #include <genesis/utils/io/serializer.hpp>
 #include <genesis/utils/io/stream_input_source.hpp>
-// #include <genesis/utils/io/stream_output_target.hpp>
+#include <genesis/utils/io/stream_output_target.hpp>
 #include <genesis/utils/io/strict_fstream.hpp>
 #include <genesis/utils/io/string_input_source.hpp>
-// #include <genesis/utils/io/string_output_target.hpp>
+#include <genesis/utils/io/string_output_target.hpp>
 
 // ---------------------------------------------------------------------
 //   math
