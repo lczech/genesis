@@ -107,12 +107,15 @@ private:
     {
         // Lazy loading. Needed in case we want to write in parallel to many files - having all
         // open when creating the output targets might overflow the file pointers.
-        if( !stream_ || !stream_->good() ) {
+        if( !stream_ ) {
             // Although we are in utils namespace here already, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
             stream_ = genesis::utils::core::make_unique<GzipOStream>(
                 output_target_->ostream(), compression_level_
             );
+            if( !stream_ ) {
+                throw std::runtime_error("Failed to create GzipOStream");
+            }
         }
         assert( stream_ );
         assert( stream_->good() );
@@ -145,7 +148,9 @@ private:
 
     void flush_() override
     {
-        stream_->flush();
+        // Use the function that initializes the stream if needed,
+        // as it could otherwise be nullptr if no writing happened yet.
+        out_stream_().flush();
         output_target_->flush();
     }
 
@@ -158,7 +163,7 @@ private:
     std::shared_ptr<BaseOutputTarget> output_target_;
 
     GzipCompressionLevel compression_level_;
-    std::unique_ptr<GzipOStream> stream_;
+    std::unique_ptr<GzipOStream> stream_ = nullptr;
 
 };
 
