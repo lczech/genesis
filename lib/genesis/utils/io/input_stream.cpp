@@ -656,18 +656,20 @@ void InputStream::jump_unchecked( size_t n )
 
 void InputStream::init_( std::shared_ptr<BaseInputSource> input_source )
 {
-    // Set to empty defaults if there is no input.
+    // Check if we have a valid input at all.
     if( input_source == nullptr ) {
-        source_name_ = "invalid source";
+        throw std::invalid_argument(
+            "Invalid Input Source (nullptr) provided for Input Stream"
+        );
 
-        buffer_   = nullptr;
-        data_pos_ = 0;
-        data_end_ = 0;
-
-        current_ = '\0';
-        line_    = 0;
-        column_  = 0;
-        return;
+        // source_name_ = "invalid source";
+        // buffer_   = nullptr;
+        // data_pos_ = 0;
+        // data_end_ = 0;
+        // current_ = '\0';
+        // line_    = 0;
+        // column_  = 0;
+        // return;
     }
 
     // We use three buffer blocks: The first two for the current block/line.

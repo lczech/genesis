@@ -78,7 +78,13 @@ public:
     )
         : output_target_( output_target )
         , compression_level_( compression_level )
-    {}
+    {
+        if( output_target == nullptr ) {
+            throw std::invalid_argument(
+                "Cannot use an empty output target for a gzip output."
+            );
+        }
+    }
 
     GzipOutputTarget( GzipOutputTarget const& ) = delete;
     GzipOutputTarget( GzipOutputTarget&& )      = default;
@@ -135,6 +141,12 @@ private:
     std::string target_string_() const override
     {
         return output_target_->target_name();
+    }
+
+    void flush_() override
+    {
+        stream_->flush();
+        output_target_->flush();
     }
 
     // -------------------------------------------------------------
@@ -199,6 +211,11 @@ public:
         , compression_level_( compression_level )
         , thread_pool_( thread_pool )
     {
+        if( output_target == nullptr ) {
+            throw std::invalid_argument(
+                "Cannot use an empty output target for a gzip block output."
+            );
+        }
         if( compression_level_ == GzipCompressionLevel::kNoCompression ) {
             throw std::invalid_argument(
                 "Cannot use compression level kNoCompression with a gzip block output."
@@ -228,7 +245,7 @@ private:
         // Lazy loading. Needed in case we want to write in parallel to many files - having all
         // open when creating the output targets might overflow the file pointers.
         if( !stream_ || !stream_->good() ) {
-            // Although we are in untils namespace here, we specify the namespace full,
+            // Although we are in utils namespace here, we specify the namespace full,
             // in order to avoid ambiguous overload when compiled with C++17.
             stream_ = genesis::utils::core::make_unique<GzipBlockOStream>(
                 output_target_->ostream(), block_size_, compression_level_, thread_pool_
@@ -256,6 +273,12 @@ private:
     std::string target_string_() const override
     {
         return output_target_->target_name();
+    }
+
+    void flush_() override
+    {
+        stream_->flush();
+        output_target_->flush();
     }
 
     // -------------------------------------------------------------

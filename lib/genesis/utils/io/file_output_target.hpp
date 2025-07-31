@@ -63,8 +63,18 @@ public:
      * @brief Construct the output target from a file with the given file name.
      */
     explicit FileOutputTarget(
+        std::string const& file_name
+    )
+        : file_name_( file_name )
+        , mode_( std::ios_base::out | std::ios_base::binary )
+    {}
+
+    /**
+     * @brief Construct the output target from a file with the given file name and an openmode.
+     */
+    explicit FileOutputTarget(
         std::string const& file_name,
-        std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary
+        std::ios_base::openmode mode
     )
         : file_name_( file_name )
         , mode_( mode )

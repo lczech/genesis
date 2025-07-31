@@ -285,15 +285,17 @@ private:
      */
     void init_( std::shared_ptr<BaseInputSource> input_source )
     {
-        // Set to empty defaults if there is no input.
+        // Check if we have a valid input at all.
         if( input_source == nullptr ) {
-            source_name_ = "invalid source";
+            throw std::invalid_argument(
+                "Invalid Input Source (nullptr) provided for Input Buffer"
+            );
 
-            buffer_   = nullptr;
-            data_pos_ = 0;
-            data_end_ = 0;
-
-            return;
+            // source_name_ = "invalid source";
+            // buffer_   = nullptr;
+            // data_pos_ = 0;
+            // data_end_ = 0;
+            // return;
         }
         // We use three buffer blocks:
         // The first two for the current blocks, and the third for the async reading.

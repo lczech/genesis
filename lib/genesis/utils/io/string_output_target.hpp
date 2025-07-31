@@ -64,18 +64,18 @@ public:
      * @brief Construct the output target to a string that is modified.
      */
     explicit StringOutputTarget( std::string& target )
-        : target_( target )
+        : target_( &target )
     {}
 
     StringOutputTarget( StringOutputTarget const& ) = delete;
-    StringOutputTarget( StringOutputTarget&& )      = delete;
+    StringOutputTarget( StringOutputTarget&& )      = default;
 
     StringOutputTarget& operator= ( StringOutputTarget const& ) = delete;
-    StringOutputTarget& operator= ( StringOutputTarget&& )      = delete;
+    StringOutputTarget& operator= ( StringOutputTarget&& )      = default;
 
     ~StringOutputTarget() override
     {
-        target_ = stream_.str();
+        *target_ = stream_.str();
     }
 
     // -------------------------------------------------------------
@@ -112,7 +112,7 @@ private:
     //     Member Variables
     // -------------------------------------------------------------
 
-    std::string& target_;
+    std::string* target_;
     std::ostringstream stream_;
 };
 

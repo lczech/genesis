@@ -58,10 +58,10 @@ public:
 
     BaseInputSource() = default;
 
-    BaseInputSource( BaseInputSource const& ) = default;
+    BaseInputSource( BaseInputSource const& ) = delete;
     BaseInputSource( BaseInputSource&& )      = default;
 
-    BaseInputSource& operator= ( BaseInputSource const& ) = default;
+    BaseInputSource& operator= ( BaseInputSource const& ) = delete;
     BaseInputSource& operator= ( BaseInputSource&& )      = default;
 
     virtual ~BaseInputSource()

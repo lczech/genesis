@@ -69,10 +69,10 @@ public:
         : source_( &in )
     {}
 
-    StreamInputSource( StreamInputSource const& ) = default;
+    StreamInputSource( StreamInputSource const& ) = delete;
     StreamInputSource( StreamInputSource&& )      = default;
 
-    StreamInputSource& operator= ( StreamInputSource const& ) = default;
+    StreamInputSource& operator= ( StreamInputSource const& ) = delete;
     StreamInputSource& operator= ( StreamInputSource&& )      = default;
 
     ~StreamInputSource() override

@@ -92,10 +92,10 @@ public:
         std::setvbuf( file_, nullptr, _IONBF, 0 );
     }
 
-    FileInputSource( FileInputSource const& ) = default;
+    FileInputSource( FileInputSource const& ) = delete;
     FileInputSource( FileInputSource&& )      = default;
 
-    FileInputSource& operator= ( FileInputSource const& ) = default;
+    FileInputSource& operator= ( FileInputSource const& ) = delete;
     FileInputSource& operator= ( FileInputSource&& )      = default;
 
     ~FileInputSource() override

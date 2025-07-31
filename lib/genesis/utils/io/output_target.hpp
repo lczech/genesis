@@ -55,6 +55,10 @@ namespace io {
 //     Output Target Convenience Functions
 // =================================================================================================
 
+// ---------------------------------------------------------------------
+//   to_file
+// ---------------------------------------------------------------------
+
 /**
  * @brief Obtain an output target for writing to a file.
  *
@@ -117,9 +121,41 @@ inline std::shared_ptr<BaseOutputTarget> to_file(
  */
 inline std::shared_ptr<BaseOutputTarget> to_file(
     std::string const& file_name,
-    std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary
+    std::ios_base::openmode mode
 ) {
     return std::make_shared< FileOutputTarget >( file_name, mode );
+}
+
+/**
+ * @brief Obtain an output target for writing to a file, using a specific output mode.
+ *
+ * The output target returned from this function can be used in the writer classes, e.g.,
+ * placement::JplaceWriter or sequence::FastaWriter.
+ */
+inline std::shared_ptr<BaseOutputTarget> to_file(
+    std::string const& file_name
+) {
+    std::ios_base::openmode const mode = std::ios_base::out | std::ios_base::binary;
+    return std::make_shared< FileOutputTarget >( file_name, mode );
+}
+
+// ---------------------------------------------------------------------
+//   to_gzip_file
+// ---------------------------------------------------------------------
+
+/**
+ * @brief Obtain an output target for writing to a gzip-compressed file.
+ *
+ * The output target returned from this function can be used in the writer classes, e.g.,
+ * placement::JplaceWriter or sequence::FastaWriter.
+ *
+ * @see to_file(), this is a wrapper that automatically sets GzipCompressionLevel::kDefaultCompression
+ */
+inline std::shared_ptr<BaseOutputTarget> to_gzip_file(
+    std::string const& file_name,
+    GzipCompressionLevel compression_level
+) {
+    return to_file( file_name, compression_level );
 }
 
 /**
@@ -136,6 +172,10 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_file(
     return to_file( file_name, GzipCompressionLevel::kDefaultCompression );
 }
 
+// ---------------------------------------------------------------------
+//   to_gzip_block_file
+// ---------------------------------------------------------------------
+
 /**
  * @brief Obtain an output target for writing gzip block compressed data to a file.
  *
@@ -151,9 +191,9 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_file(
  */
 inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
     std::string const& file_name,
-    std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
+    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool,
     GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
-    std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr,
+    std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
     bool auto_adjust_filename = true
 ) {
     if( compression_level == GzipCompressionLevel::kNoCompression ) {
@@ -179,6 +219,36 @@ inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
 }
 
 /**
+ * @brief Obtain an output target for writing gzip block compressed data to a file.
+ *
+ * This output target uses multithreaded gzip compression by block-compressing chunks of data.
+ * See GzipBlockOStream for an explanation and more details on this technique and the parameters
+ * offered here.
+ *
+ * For general details on using this output target for writing data, see to_file().
+ * This overload uses the global thread pool for the compression of blocks.
+ * See genesis::utils::core::Options for details.
+ *
+ * @see GzipBlockOStream
+ * @see GzipBlockOutputTarget
+ * @see to_file()
+ */
+inline std::shared_ptr<BaseOutputTarget> to_gzip_block_file(
+    std::string const& file_name,
+    GzipCompressionLevel compression_level = GzipCompressionLevel::kDefaultCompression,
+    std::size_t block_size = GzipBlockOStream::GZIP_DEFAULT_BLOCK_SIZE,
+    bool auto_adjust_filename = true
+) {
+    return to_gzip_block_file(
+        file_name, nullptr, compression_level, block_size, auto_adjust_filename
+    );
+}
+
+// ---------------------------------------------------------------------
+//   to_string
+// ---------------------------------------------------------------------
+
+/**
  * @brief Obtain an output target for writing to a string.
  *
  * The output target returned from this function can be used in the writer classes, e.g.,
@@ -189,6 +259,10 @@ inline std::shared_ptr<BaseOutputTarget> to_string(
 ) {
     return std::make_shared< StringOutputTarget >( target_string );
 }
+
+// ---------------------------------------------------------------------
+//   to_stream
+// ---------------------------------------------------------------------
 
 /**
  * @brief Obtain an output target for writing to a stream.
@@ -214,13 +288,18 @@ inline std::shared_ptr<BaseOutputTarget> to_stream(
     return std::make_shared< StreamOutputTarget >( target_stream );
 }
 
+// ---------------------------------------------------------------------
+//   to_std
+// ---------------------------------------------------------------------
+
 /**
  * @brief Obtain an output target for writing to standard output (i.e., stdout or cout).
  *
  * The output target returned from this function can be used in the writer classes, e.g.,
  * placement::JplaceWriter or sequence::FastaWriter.
  */
-inline std::shared_ptr<BaseOutputTarget> to_stdout() {
+inline std::shared_ptr<BaseOutputTarget> to_stdout()
+{
     return std::make_shared< StreamOutputTarget >( std::cout );
 }
 
@@ -230,7 +309,8 @@ inline std::shared_ptr<BaseOutputTarget> to_stdout() {
  * The output target returned from this function can be used in the writer classes, e.g.,
  * placement::JplaceWriter or sequence::FastaWriter.
  */
-inline std::shared_ptr<BaseOutputTarget> to_stderr() {
+inline std::shared_ptr<BaseOutputTarget> to_stderr()
+{
     return std::make_shared< StreamOutputTarget >( std::cerr );
 }
 

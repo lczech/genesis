@@ -67,10 +67,10 @@ public:
 
     BaseOutputTarget() = default;
 
-    BaseOutputTarget( BaseOutputTarget const& ) = default;
+    BaseOutputTarget( BaseOutputTarget const& ) = delete;
     BaseOutputTarget( BaseOutputTarget&& )      = default;
 
-    BaseOutputTarget& operator= ( BaseOutputTarget const& ) = default;
+    BaseOutputTarget& operator= ( BaseOutputTarget const& ) = delete;
     BaseOutputTarget& operator= ( BaseOutputTarget&& )      = default;
 
     virtual ~BaseOutputTarget()
@@ -112,12 +112,17 @@ public:
      * @brief Flush output stream buffer.
      *
      * Internally, the different output target derived classes use some variant of `std::ostream`
-     * to do the writing. Hence, the target might need flushing in cases where we want to synchronize
-     * it while writing, before closing the stream.
+     * to do the writing. Hence, the target might need flushing in cases where we want
+     * to synchronize it while writing, before closing the stream.
      */
-    std::ostream& flush()
+    void flush()
     {
-        return out_stream_().flush();
+        // First call the overloaded internal flush, so that targets have the chance to implement
+        // some internal logic for flushing their data to the out_stream_ buffer, before we then
+        // flush that buffer itself here.
+        flush_();
+        out_stream_().flush();
+        // return out_stream_().flush();
     }
 
     /**
@@ -154,6 +159,7 @@ private:
     virtual std::ostream& out_stream_() = 0;
     virtual std::string target_name_() const = 0;
     virtual std::string target_string_() const = 0;
+    virtual void flush_() {};
 
 };
 

@@ -65,10 +65,10 @@ public:
         : target_( &target )
     {}
 
-    StreamOutputTarget( StreamOutputTarget const& ) = default;
+    StreamOutputTarget( StreamOutputTarget const& ) = delete;
     StreamOutputTarget( StreamOutputTarget&& )      = default;
 
-    StreamOutputTarget& operator= ( StreamOutputTarget const& ) = default;
+    StreamOutputTarget& operator= ( StreamOutputTarget const& ) = delete;
     StreamOutputTarget& operator= ( StreamOutputTarget&& )      = default;
 
     ~StreamOutputTarget() override = default;

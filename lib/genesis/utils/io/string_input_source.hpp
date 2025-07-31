@@ -106,10 +106,10 @@ public:
         , rest_size_( sv.size() )
     {}
 
-    StringInputSource( StringInputSource const& ) = default;
+    StringInputSource( StringInputSource const& ) = delete;
     StringInputSource( StringInputSource&& )      = default;
 
-    StringInputSource& operator= ( StringInputSource const& ) = default;
+    StringInputSource& operator= ( StringInputSource const& ) = delete;
     StringInputSource& operator= ( StringInputSource&& )      = default;
 
     ~StringInputSource() override
