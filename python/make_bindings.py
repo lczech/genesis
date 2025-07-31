@@ -87,7 +87,10 @@ bindings_dir         = './python/bindings'
 config_file          = './python/binder.cfg'
 all_includes_file    = './python/genesis_headers.hpp'
 custom_code_dir      = './python/custom'
-extra_includes_files = [ './python/custom/template_instances.hpp' ]
+extra_includes_files = [
+    './python/custom/template_instances.hpp',
+    './python/custom/custom_wrappers.hpp'
+]
 
 # Settings for binder
 c_plus_plus_version = '17'
@@ -118,7 +121,7 @@ use_binder_output_filter = True
 # File suffixes in the `python/custom` dir that we enforce, as the directory structure
 # there follows the main genesis structure, and we use those suffixes to ensure
 # that we do not have any name clashes (or at least make them unlikely).
-allowed_custom_suffixes = ["_add_ons", "_instances"]
+allowed_custom_suffixes = ["_add_ons", "_instances", "_wrappers"]
 
 # ================================================================================================
 #   Sync Directories
@@ -343,7 +346,7 @@ def write_binder_version(output_path: str) -> None:
 def check_bind_suffix(directory: str, allowed_suffixes: List[str]) -> None:
     """
     Recursively search for .cpp and .hpp files in the given directory.
-    For each file found, checks if its base name ends with '_bind'.
+    For each file found, checks if its base name ends with an allowed suffix.
     Prints a warning in red for each file that does not.
     """
     # ANSI escape codes for red text and reset
@@ -519,7 +522,7 @@ def run_clang_format(directory: str) -> None:
                 )
 
 def generate_bindings():
-    # Check that all custom files adhere to the convention of having `_bind` suffix,
+    # Check that all custom files adhere to the convention of having predefined suffixes,
     # in order to avoid name clashes and wrong includes during compilation
     check_bind_suffix(custom_code_dir, allowed_custom_suffixes)
 

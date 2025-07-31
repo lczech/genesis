@@ -22,10 +22,8 @@
 */
 
 // We use this header as input to Binder, to pull in additonal headers
-// that instantiate templates as needed.
+// that wrap other code as needed for the binding to work nicely.
 // The headers here could be part of the all_includes header as well,
 // but keeping it separate seems a bit cleaner.
 // For even more order and modularity, we here simply pull in per-namespace
 // headers, so that we can keep the scope of each of them relatively small.
-
-#include <genesis/utils/math/compensated_sum_instances.hpp>
