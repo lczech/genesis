@@ -34,6 +34,7 @@
 #include <genesis/utils/io/input_stream.hpp>
 
 #include <cassert>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 
@@ -45,20 +46,22 @@ namespace io {
 //     Read Input Source
 // =================================================================================================
 
-std::string read_input_source( std::shared_ptr<BaseInputSource> source )
-{
+std::string read_input_source(
+    std::shared_ptr<BaseInputSource> source
+) {
     std::string result;
 
     // We buffer into a char array, and copy from there.
     // Can surely be optimized, but good enough for now.
-    // We use the same block lenght for the buffer here
+    // We use the same block length for the buffer here
     // as the underlying input buffer, hopefully for speed.
+    // Use heap allocation, as this is a large buffer.
     auto ib = InputBuffer( source );
-    char cb[InputBuffer::BlockLength];
+    std::unique_ptr<char[]> cb(new char[InputBuffer::BlockLength]);
     while( true ) {
         // Read a block and append it to the result.
-        auto cnt = ib.read( cb, InputBuffer::BlockLength );
-        result.append( cb, cnt );
+        auto cnt = ib.read( cb.get(), InputBuffer::BlockLength );
+        result.append( cb.get(), cnt );
 
         // If we did not get a full block, the input is done.
         if( cnt != InputBuffer::BlockLength ) {
@@ -68,8 +71,9 @@ std::string read_input_source( std::shared_ptr<BaseInputSource> source )
     return result;
 }
 
-std::vector<std::string> read_input_source_lines( std::shared_ptr<BaseInputSource> source )
-{
+std::vector<std::string> read_input_source_lines(
+    std::shared_ptr<BaseInputSource> source
+) {
     std::vector<std::string> result;
     genesis::utils::io::InputStream it( source );
     while( it ) {

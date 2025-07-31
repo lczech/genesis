@@ -542,7 +542,8 @@ TEST( InputSource, Read )
         len += -2 + static_cast<int>(permuted_congruential_generator( 0, 4 ));
         // LOG_DBG << "test with len " << len;
         ASSERT_GT( len, 0 );
-        ASSERT_LE( len, 4 * InputBuffer::BlockLength + 2 );
+        ASSERT_GE( len, InputBuffer::BlockLength / 4 - 2 );
+        ASSERT_LE( len, InputBuffer::BlockLength * 4 + 2 );
 
         // Make a string, and read it again.
         auto const text = std::string( len, 'x' );
