@@ -35,7 +35,7 @@
 #include "genesis/population/function/genome_region.hpp"
 #include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
+#include "genesis/utils/bit/bitvector/operator.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;

@@ -31,8 +31,8 @@
 #include <genesis/placement/function/manipulation.hpp>
 
 #include <genesis/tree/function/manipulation.hpp>
-#include <genesis/tree/function/operators.hpp>
-#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/function/function.hpp>
 
 #include <genesis/placement/sample.hpp>
 #include <genesis/placement/placement_tree.hpp>

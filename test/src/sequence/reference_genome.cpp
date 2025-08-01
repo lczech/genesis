@@ -31,7 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/reference_genome.hpp"
-#include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/format/fasta_reader.hpp"
 
 #include <string>
 

@@ -30,7 +30,7 @@
 
 #include <genesis/utils/color/list_misc.hpp>
 
-#include <genesis/utils/color/functions.hpp>
+#include <genesis/utils/color/function.hpp>
 #include <genesis/utils/color/map.hpp>
 #include <genesis/utils/text/string.hpp>
 

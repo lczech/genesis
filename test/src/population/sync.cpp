@@ -32,7 +32,7 @@
 
 #include "genesis/population/format/sync_input_stream.hpp"
 #include "genesis/population/format/sync_reader.hpp"
-#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/function.hpp"
 #include "genesis/population/variant.hpp"
 
 using namespace genesis::population;

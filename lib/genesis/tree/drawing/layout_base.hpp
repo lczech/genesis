@@ -32,7 +32,7 @@
  */
 
 #include <genesis/tree/drawing/layout_tree.hpp>
-#include <genesis/utils/formats/svg/svg.hpp>
+#include <genesis/utils/format/svg/svg.hpp>
 
 #include <string>
 #include <vector>

@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include <genesis/utils/containers/range.hpp>
+#include <genesis/utils/container/range.hpp>
 #include <genesis/utils/bit/twobit_vector.hpp>
-#include <genesis/utils/bit/twobit_vector/functions.hpp>
+#include <genesis/utils/bit/twobit_vector/function.hpp>
 
 #include <cassert>
 #include <iterator>

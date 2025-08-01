@@ -33,10 +33,10 @@
 #include <string>
 #include <utility>
 
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"

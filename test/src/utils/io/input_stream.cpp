@@ -31,7 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/functions.hpp"
+#include "genesis/utils/io/function.hpp"
 #include "genesis/utils/io/input_buffer.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/io/parser.hpp"

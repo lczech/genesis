@@ -31,7 +31,7 @@
 #include <genesis/tree/printer/compact.hpp>
 
 #include <genesis/tree/common_tree/tree.hpp>
-#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/function.hpp>
 #include <genesis/tree/iterator/preorder.hpp>
 #include <genesis/tree/tree.hpp>
 #include <genesis/utils/text/string.hpp>

@@ -31,7 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/formats/svg/svg.hpp"
+#include "genesis/utils/format/svg/svg.hpp"
 #include "genesis/utils/math/euclidean_kmeans.hpp"
 #include "genesis/utils/math/kmeans.hpp"
 

@@ -32,7 +32,7 @@
  */
 
 #include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/container/matrix.hpp>
 #include <genesis/utils/math/common.hpp>
 #include <genesis/utils/math/ranking.hpp>
 

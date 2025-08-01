@@ -32,8 +32,8 @@
  */
 
 #include <genesis/tree/tree.hpp>
-#include <genesis/tree/function/functions.hpp>
-#include <genesis/utils/containers/range.hpp>
+#include <genesis/tree/function/function.hpp>
+#include <genesis/utils/container/range.hpp>
 
 #include <cassert>
 #include <iterator>

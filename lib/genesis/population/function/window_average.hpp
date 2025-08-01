@@ -41,8 +41,8 @@
 #include <genesis/population/window/base_window.hpp>
 #include <genesis/population/window/window_view.hpp>
 #include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/functions.hpp>
-#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bitvector/function.hpp>
+#include <genesis/utils/bit/bitvector/operator.hpp>
 
 #include <cassert>
 #include <limits>

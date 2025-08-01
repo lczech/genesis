@@ -32,8 +32,8 @@
 
 #include <string>
 
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
+#include "genesis/placement/function/function.hpp"
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/sample.hpp"
 

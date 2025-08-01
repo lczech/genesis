@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include <genesis/utils/containers/dataframe.hpp>
+#include <genesis/utils/container/dataframe.hpp>
 
 #include <algorithm>
 #include <cassert>

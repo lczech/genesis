@@ -35,7 +35,7 @@
 #include <genesis/population/function/genome_locus.hpp>
 #include <genesis/population/genome_locus.hpp>
 #include <genesis/population/variant.hpp>
-#include <genesis/sequence/functions/dict.hpp>
+#include <genesis/sequence/function/dict.hpp>
 #include <genesis/sequence/sequence_dict.hpp>
 
 #include <functional>

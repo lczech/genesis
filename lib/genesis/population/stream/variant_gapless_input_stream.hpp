@@ -31,7 +31,7 @@
  * @ingroup population
  */
 
-#include <genesis/population/function/functions.hpp>
+#include <genesis/population/function/function.hpp>
 #include <genesis/population/function/genome_locus.hpp>
 #include <genesis/population/genome_locus.hpp>
 #include <genesis/population/genome_locus_set.hpp>

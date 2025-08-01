@@ -35,7 +35,7 @@
 #include <genesis/utils/color/norm_linear.hpp>
 #include <genesis/utils/color/norm_logarithmic.hpp>
 
-#include <genesis/utils/formats/bmp/writer.hpp>
+#include <genesis/utils/format/bmp/writer.hpp>
 #include <genesis/utils/core/logging.hpp>
 
 #include <algorithm>

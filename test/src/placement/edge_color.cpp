@@ -32,19 +32,19 @@
 
 #include <string>
 
-#include "genesis/placement/formats/edge_color.hpp"
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/placement/formats/newick_writer.hpp"
-#include "genesis/tree/formats/phyloxml/writer.hpp"
+#include "genesis/placement/format/edge_color.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
+#include "genesis/placement/format/newick_writer.hpp"
+#include "genesis/tree/format/phyloxml/writer.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/phyloxml_writer.hpp"
-#include "genesis/tree/formats/newick/color_writer_plugin.hpp"
-#include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
-#include "genesis/utils/formats/nexus/document.hpp"
-#include "genesis/utils/formats/nexus/taxa.hpp"
-#include "genesis/utils/formats/nexus/trees.hpp"
-#include "genesis/utils/formats/nexus/writer.hpp"
+#include "genesis/tree/format/newick/color_writer_plugin.hpp"
+#include "genesis/tree/format/phyloxml/color_writer_plugin.hpp"
+#include "genesis/utils/format/nexus/document.hpp"
+#include "genesis/utils/format/nexus/taxa.hpp"
+#include "genesis/utils/format/nexus/trees.hpp"
+#include "genesis/utils/format/nexus/writer.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

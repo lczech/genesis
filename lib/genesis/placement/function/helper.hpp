@@ -33,7 +33,7 @@
 
 #include <genesis/placement/sample.hpp>
 #include <genesis/placement/sample_set.hpp>
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/container/matrix.hpp>
 
 #include <unordered_map>
 #include <vector>

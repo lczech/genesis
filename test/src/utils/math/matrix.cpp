@@ -33,9 +33,9 @@
 #include <sstream>
 #include <vector>
 
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/container/matrix.hpp"
+#include "genesis/utils/container/matrix/operator.hpp"
+#include "genesis/utils/format/csv/reader.hpp"
 #include "genesis/utils/math/matrix.hpp"
 
 using namespace genesis;

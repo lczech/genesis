@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/taxonomy/functions/ranks.hpp"
+#include "genesis/taxonomy/function/ranks.hpp"
 
 #include <stdexcept>
 

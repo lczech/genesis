@@ -32,8 +32,8 @@
  */
 
 #include <genesis/population/filter/sample_counts_filter.hpp>
-#include <genesis/population/function/diversity_pool_functions.hpp>
-#include <genesis/population/function/functions.hpp>
+#include <genesis/population/function/diversity_pool_function.hpp>
+#include <genesis/population/function/function.hpp>
 #include <genesis/population/variant.hpp>
 #include <genesis/utils/math/compensated_sum.hpp>
 

@@ -33,8 +33,8 @@
 #include "genesis/taxonomy/accession_lookup.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
+#include "genesis/taxonomy/format/taxonomy_reader.hpp"
+#include "genesis/taxonomy/function/taxonomy.hpp"
 
 using namespace genesis;
 using namespace genesis::taxonomy;

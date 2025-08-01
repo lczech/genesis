@@ -33,7 +33,7 @@
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree_set.hpp>
 
-#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/operator.hpp>
 
 #include <stdexcept>
 #include <vector>

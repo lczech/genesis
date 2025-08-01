@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/format/csv/reader.hpp"
 #include "genesis/utils/math/pca.hpp"
 
 #include <string>

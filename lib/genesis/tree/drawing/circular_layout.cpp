@@ -30,8 +30,8 @@
 
 #include <genesis/tree/drawing/circular_layout.hpp>
 
-#include <genesis/tree/function/operators.hpp>
-#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/function/function.hpp>
 
 #include <genesis/utils/math/common.hpp>
 

@@ -1,6 +1,6 @@
 #include <genesis/utils/math/moments.hpp>
 #include <genesis/utils/math/random.hpp>
-#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/math/statistic.hpp>
 #include <iterator>
 #include <memory>
 #include <sstream> // __str__
@@ -299,17 +299,17 @@ void bind_genesis_utils_math_moments(
             pybind11::arg( "n" )
         );
 
-    { // genesis::utils::math::MinMaxPair file:genesis/utils/math/statistics.hpp line:109
+    { // genesis::utils::math::MinMaxPair file:genesis/utils/math/statistic.hpp line:109
         pybind11::class_<
             genesis::utils::math::MinMaxPair<double>,
             std::shared_ptr<genesis::utils::math::MinMaxPair<double>>>
             cl( M( "genesis::utils::math" ), "MinMaxPair_double_t", "" );
         // function-signature: genesis::utils::math::MinMaxPair<double>::MinMaxPair()()
-        // file:genesis/utils/math/statistics.hpp line:109
+        // file:genesis/utils/math/statistic.hpp line:109
         cl.def( pybind11::init( []() { return new genesis::utils::math::MinMaxPair<double>(); } ) );
         // function-signature: genesis::utils::math::MinMaxPair<double>::MinMaxPair(const struct
         // genesis::utils::math::MinMaxPair<double> &)(const struct
-        // genesis::utils::math::MinMaxPair<double> &) file:genesis/utils/math/statistics.hpp
+        // genesis::utils::math::MinMaxPair<double> &) file:genesis/utils/math/statistic.hpp
         // line:109
         cl.def( pybind11::init( []( genesis::utils::math::MinMaxPair<double> const& o ) {
             return new genesis::utils::math::MinMaxPair<double>( o );
@@ -317,7 +317,7 @@ void bind_genesis_utils_math_moments(
         cl.def_readwrite( "min", &genesis::utils::math::MinMaxPair<double>::min );
         cl.def_readwrite( "max", &genesis::utils::math::MinMaxPair<double>::max );
     }
-    { // genesis::utils::math::MeanStddevPair file:genesis/utils/math/statistics.hpp line:121
+    { // genesis::utils::math::MeanStddevPair file:genesis/utils/math/statistic.hpp line:121
         pybind11::class_<
             genesis::utils::math::MeanStddevPair,
             std::shared_ptr<genesis::utils::math::MeanStddevPair>>
@@ -326,11 +326,11 @@ void bind_genesis_utils_math_moments(
                 "Store a mean and a standard deviation value.\n\n This notation is simply more "
                 "readable than the std default of using a `pair<T, T>` for such\n types." );
         // function-signature: genesis::utils::math::MeanStddevPair::MeanStddevPair()()
-        // file:genesis/utils/math/statistics.hpp line:121
+        // file:genesis/utils/math/statistic.hpp line:121
         cl.def( pybind11::init( []() { return new genesis::utils::math::MeanStddevPair(); } ) );
         // function-signature: genesis::utils::math::MeanStddevPair::MeanStddevPair(const struct
         // genesis::utils::math::MeanStddevPair &)(const struct genesis::utils::math::MeanStddevPair
-        // &) file:genesis/utils/math/statistics.hpp line:121
+        // &) file:genesis/utils/math/statistic.hpp line:121
         cl.def( pybind11::init( []( genesis::utils::math::MeanStddevPair const& o ) {
             return new genesis::utils::math::MeanStddevPair( o );
         } ) );
@@ -338,10 +338,10 @@ void bind_genesis_utils_math_moments(
         cl.def_readwrite( "stddev", &genesis::utils::math::MeanStddevPair::stddev );
     }
     // genesis::utils::math::mean_stddev(const class std::vector<double> &, double)
-    // file:genesis/utils/math/statistics.hpp line:477 function-signature: struct
+    // file:genesis/utils/math/statistic.hpp line:477 function-signature: struct
     // genesis::utils::math::MeanStddevPair genesis::utils::math::mean_stddev(const class
     // std::vector<double> &, double)(const class std::vector<double> &, double)
-    // file:genesis/utils/math/statistics.hpp line:477
+    // file:genesis/utils/math/statistic.hpp line:477
     M( "genesis::utils::math" )
         .def(
             "mean_stddev",
@@ -369,9 +369,9 @@ void bind_genesis_utils_math_moments(
         );
 
     // genesis::utils::math::arithmetic_mean(const class std::vector<double> &)
-    // file:genesis/utils/math/statistics.hpp line:537 function-signature: double
+    // file:genesis/utils/math/statistic.hpp line:537 function-signature: double
     // genesis::utils::math::arithmetic_mean(const class std::vector<double> &)(const class
-    // std::vector<double> &) file:genesis/utils/math/statistics.hpp line:537
+    // std::vector<double> &) file:genesis/utils/math/statistic.hpp line:537
     M( "genesis::utils::math" )
         .def(
             "arithmetic_mean",

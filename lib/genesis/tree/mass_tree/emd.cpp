@@ -30,16 +30,16 @@
 
 #include <genesis/tree/mass_tree/emd.hpp>
 
-#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/iterator/postorder.hpp>
 #include <genesis/tree/mass_tree/tree.hpp>
 #include <genesis/tree/tree.hpp>
 
 #include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/containers/matrix.hpp>
-#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/container/matrix.hpp>
+#include <genesis/utils/container/matrix/operator.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>

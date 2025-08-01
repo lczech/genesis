@@ -1,5 +1,5 @@
 #include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bitvector/operator.hpp>
 #include <genesis/utils/bit/bitvector_add_ons.hpp>
 #include <genesis/utils/bit/twobit_vector_add_ons.hpp>
 #include <ios>

@@ -32,7 +32,7 @@
  */
 
 #include <genesis/tree/tree.hpp>
-#include <genesis/utils/containers/range.hpp>
+#include <genesis/utils/container/range.hpp>
 
 #include <iterator>
 #include <type_traits>

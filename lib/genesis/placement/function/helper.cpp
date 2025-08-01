@@ -30,10 +30,10 @@
 
 #include <genesis/placement/function/helper.hpp>
 
-#include <genesis/placement/function/functions.hpp>
-#include <genesis/placement/function/masses.hpp>
+#include <genesis/placement/function/function.hpp>
+#include <genesis/placement/function/mass.hpp>
 #include <genesis/placement/pquery/plain.hpp>
-#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/iterator/postorder.hpp>
 #include <genesis/utils/core/logging.hpp>
 

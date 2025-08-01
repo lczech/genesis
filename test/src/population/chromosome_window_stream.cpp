@@ -33,14 +33,14 @@
 #include "genesis/population/format/simple_pileup_input_stream.hpp"
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
-#include "genesis/population/window/functions.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
+#include "genesis/population/window/function.hpp"
 #include "genesis/population/window/chromosome_window_stream.hpp"
 #include "genesis/population/window/genome_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
+#include "genesis/utils/container/generic_input_stream.hpp"
 
 using namespace genesis::population;
 using namespace genesis::utils;

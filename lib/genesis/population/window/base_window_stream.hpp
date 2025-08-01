@@ -32,7 +32,7 @@
  */
 
 #include <genesis/population/window/window.hpp>
-#include <genesis/utils/containers/range.hpp>
+#include <genesis/utils/container/range.hpp>
 #include <genesis/utils/core/std.hpp>
 
 #include <cassert>

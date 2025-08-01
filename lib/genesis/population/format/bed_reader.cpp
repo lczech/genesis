@@ -33,7 +33,7 @@
 #include <genesis/utils/io/parser.hpp>
 #include <genesis/utils/io/scanner.hpp>
 #include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bitvector/operator.hpp>
 #include <genesis/utils/text/char.hpp>
 #include <genesis/utils/text/string.hpp>
 

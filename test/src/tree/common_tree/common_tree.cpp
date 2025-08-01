@@ -32,16 +32,16 @@
 
 #include <string>
 
-#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/distance.hpp"
 #include "genesis/tree/common_tree/edge_color.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/function/function.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/functions.hpp"
+#include "genesis/utils/color/function.hpp"
 
 #include <algorithm>
 

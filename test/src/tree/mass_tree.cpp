@@ -30,17 +30,17 @@
 
 #include "src/common.hpp"
 
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/placement/function/operators.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
+#include "genesis/placement/function/operator.hpp"
 #include "genesis/placement/sample.hpp"
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/mass_tree/balances.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
+#include "genesis/tree/function/operator.hpp"
+#include "genesis/tree/mass_tree/balance.hpp"
+#include "genesis/tree/mass_tree/function.hpp"
 #include "genesis/tree/mass_tree/phylo_ilr.hpp"
 
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/container/matrix/operator.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/text/string.hpp"
 

@@ -35,7 +35,7 @@
 // TODO used for conversion - ensure typesafety!
 #include <genesis/tree/common_tree/tree.hpp>
 
-#include <genesis/tree/function/distances.hpp>
+#include <genesis/tree/function/distance.hpp>
 
 #include <genesis/utils/core/algorithm.hpp>
 #include <genesis/utils/text/style.hpp>

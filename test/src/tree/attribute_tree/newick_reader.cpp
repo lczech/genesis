@@ -33,8 +33,8 @@
 #include "genesis/tree/attribute_tree/tree.hpp"
 #include "genesis/tree/attribute_tree/indexed_newick_reader.hpp"
 #include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/function/function.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include <algorithm>

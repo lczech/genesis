@@ -30,8 +30,8 @@
 
 #include <genesis/tree/drawing/rectangular_layout.hpp>
 
-#include <genesis/tree/function/functions.hpp>
-#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/operator.hpp>
 
 #include <algorithm>
 #include <cassert>

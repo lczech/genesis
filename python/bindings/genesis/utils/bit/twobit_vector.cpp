@@ -1,5 +1,5 @@
 #include <genesis/utils/bit/twobit_vector.hpp>
-#include <genesis/utils/bit/twobit_vector/functions.hpp>
+#include <genesis/utils/bit/twobit_vector/function.hpp>
 #include <genesis/utils/bit/twobit_vector_add_ons.hpp>
 #include <iterator>
 #include <memory>
@@ -234,10 +234,10 @@ void bind_genesis_utils_bit_twobit_vector(
         genesis_utils_bit_twobit_vector_add_ons( cl );
     }
     // genesis::utils::bit::translate_from_nucleic_acid(char)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:51 function-signature: enum
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:51 function-signature: enum
     // genesis::utils::bit::TwobitVector::ValueType
     // genesis::utils::bit::translate_from_nucleic_acid(char)(char)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:51
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:51
     M( "genesis::utils::bit" )
         .def(
             "translate_from_nucleic_acid",
@@ -252,11 +252,11 @@ void bind_genesis_utils_bit_twobit_vector(
 
     // genesis::utils::bit::translate_to_nucleic_acid(enum
     // genesis::utils::bit::TwobitVector::ValueType)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:58 function-signature: char
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:58 function-signature: char
     // genesis::utils::bit::translate_to_nucleic_acid(enum
     // genesis::utils::bit::TwobitVector::ValueType)(enum
     // genesis::utils::bit::TwobitVector::ValueType)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:58
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:58
     M( "genesis::utils::bit" )
         .def(
             "translate_to_nucleic_acid",
@@ -270,9 +270,9 @@ void bind_genesis_utils_bit_twobit_vector(
         );
 
     // genesis::utils::bit::from_nucleic_acids(const std::string &)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:63 function-signature: class
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:63 function-signature: class
     // genesis::utils::bit::TwobitVector genesis::utils::bit::from_nucleic_acids(const std::string
-    // &)(const std::string &) file:genesis/utils/bit/twobit_vector/functions.hpp line:63
+    // &)(const std::string &) file:genesis/utils/bit/twobit_vector/function.hpp line:63
     M( "genesis::utils::bit" )
         .def(
             "from_nucleic_acids",
@@ -285,9 +285,9 @@ void bind_genesis_utils_bit_twobit_vector(
         );
 
     // genesis::utils::bit::to_nucleic_acids(const class genesis::utils::bit::TwobitVector &)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:68 function-signature: std::string
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:68 function-signature: std::string
     // genesis::utils::bit::to_nucleic_acids(const class genesis::utils::bit::TwobitVector &)(const
-    // class genesis::utils::bit::TwobitVector &) file:genesis/utils/bit/twobit_vector/functions.hpp
+    // class genesis::utils::bit::TwobitVector &) file:genesis/utils/bit/twobit_vector/function.hpp
     // line:68
     M( "genesis::utils::bit" )
         .def(
@@ -301,9 +301,9 @@ void bind_genesis_utils_bit_twobit_vector(
         );
 
     // genesis::utils::bit::bitstring(const class genesis::utils::bit::TwobitVector &)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:76 function-signature: std::string
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:76 function-signature: std::string
     // genesis::utils::bit::bitstring(const class genesis::utils::bit::TwobitVector &)(const class
-    // genesis::utils::bit::TwobitVector &) file:genesis/utils/bit/twobit_vector/functions.hpp
+    // genesis::utils::bit::TwobitVector &) file:genesis/utils/bit/twobit_vector/function.hpp
     // line:76
     M( "genesis::utils::bit" )
         .def(
@@ -318,9 +318,9 @@ void bind_genesis_utils_bit_twobit_vector(
         );
 
     // genesis::utils::bit::bitstring(const unsigned long &)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:84 function-signature: std::string
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:84 function-signature: std::string
     // genesis::utils::bit::bitstring(const unsigned long &)(const unsigned long &)
-    // file:genesis/utils/bit/twobit_vector/functions.hpp line:84
+    // file:genesis/utils/bit/twobit_vector/function.hpp line:84
     M( "genesis::utils::bit" )
         .def(
             "bitstring",

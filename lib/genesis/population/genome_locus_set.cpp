@@ -30,8 +30,8 @@
 
 #include <genesis/population/genome_locus_set.hpp>
 
-#include <genesis/utils/bit/bitvector/functions.hpp>
-#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bitvector/function.hpp>
+#include <genesis/utils/bit/bitvector/operator.hpp>
 
 #include <cassert>
 #include <stdexcept>

@@ -32,7 +32,7 @@
  */
 
 #include <genesis/population/function/fst_pool_calculator.hpp>
-#include <genesis/population/function/functions.hpp>
+#include <genesis/population/function/function.hpp>
 #include <genesis/utils/core/std.hpp>
 #include <genesis/utils/math/common.hpp>
 #include <genesis/utils/math/compensated_sum.hpp>

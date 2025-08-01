@@ -31,14 +31,14 @@
 #include "src/common.hpp"
 
 #include "genesis/population/sample_counts.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/stream/variant_parallel_input_stream.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
 #include "genesis/population/filter/variant_filter_positional.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/function.hpp"
 #include "genesis/population/function/variant_input_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 

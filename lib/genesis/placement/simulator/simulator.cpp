@@ -30,7 +30,7 @@
 
 #include <genesis/placement/simulator/simulator.hpp>
 
-#include <genesis/placement/function/functions.hpp>
+#include <genesis/placement/function/function.hpp>
 
 #include <cassert>
 

@@ -30,10 +30,10 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/containers/dataframe.hpp"
-#include "genesis/utils/containers/dataframe/reader.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/container/dataframe.hpp"
+#include "genesis/utils/container/dataframe/reader.hpp"
+#include "genesis/utils/container/matrix.hpp"
+#include "genesis/utils/container/matrix/operator.hpp"
 #include "genesis/utils/math/regression/dataframe.hpp"
 #include "genesis/utils/math/regression/factor.hpp"
 #include "genesis/utils/math/regression/glm.hpp"

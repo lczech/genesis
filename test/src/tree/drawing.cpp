@@ -34,13 +34,13 @@
 #include "genesis/tree/drawing/heat_tree.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/drawing/rectangular_layout.hpp"
-#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/function.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/formats/svg/svg.hpp"
+#include "genesis/utils/format/svg/svg.hpp"
 #include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/names.hpp"
+#include "genesis/utils/color/name.hpp"
 #include "genesis/utils/color/norm_linear.hpp"
 
 using namespace genesis;

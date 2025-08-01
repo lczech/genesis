@@ -30,13 +30,13 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/formats/fasta_reader.hpp"
-#include "genesis/sequence/formats/fasta_writer.hpp"
-#include "genesis/sequence/formats/fastx_input_stream.hpp"
-#include "genesis/sequence/formats/fastx_input_view_stream.hpp"
-#include "genesis/sequence/formats/fastx_output_stream.hpp"
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/functions/functions.hpp"
+#include "genesis/sequence/format/fasta_reader.hpp"
+#include "genesis/sequence/format/fasta_writer.hpp"
+#include "genesis/sequence/format/fastx_input_stream.hpp"
+#include "genesis/sequence/format/fastx_input_view_stream.hpp"
+#include "genesis/sequence/format/fastx_output_stream.hpp"
+#include "genesis/sequence/function/code.hpp"
+#include "genesis/sequence/function/function.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
 #include "genesis/utils/core/fs.hpp"

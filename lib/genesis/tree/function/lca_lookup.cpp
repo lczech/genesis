@@ -32,7 +32,7 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree/node.hpp>
-#include <genesis/tree/function/distances.hpp>
+#include <genesis/tree/function/distance.hpp>
 #include <genesis/tree/iterator/eulertour.hpp>
 
 #include <algorithm>

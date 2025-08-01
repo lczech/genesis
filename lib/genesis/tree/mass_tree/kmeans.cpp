@@ -30,13 +30,13 @@
 
 #include <genesis/tree/mass_tree/kmeans.hpp>
 
-#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/mass_tree/emd.hpp>
-#include <genesis/tree/mass_tree/functions.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
 #include <genesis/tree/mass_tree/tree.hpp>
 #include <genesis/utils/math/common.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_function.hpp>
 #include <genesis/utils/core/options.hpp>
 
 #include <cassert>

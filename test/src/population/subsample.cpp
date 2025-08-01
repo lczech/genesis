@@ -33,7 +33,7 @@
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/function/subsample.hpp"
-#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/function.hpp"
 #include "genesis/utils/math/random.hpp"
 
 using namespace genesis::population;

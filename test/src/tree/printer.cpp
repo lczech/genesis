@@ -33,7 +33,7 @@
 #include <string>
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/printer/compact.hpp"
 #include "genesis/tree/printer/detailed.hpp"
 #include "genesis/tree/printer/table.hpp"

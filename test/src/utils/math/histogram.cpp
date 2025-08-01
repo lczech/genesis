@@ -32,8 +32,8 @@
 
 #include "genesis/utils/math/histogram.hpp"
 #include "genesis/utils/math/histogram/accumulator.hpp"
-#include "genesis/utils/math/histogram/distances.hpp"
-#include "genesis/utils/math/histogram/stats.hpp"
+#include "genesis/utils/math/histogram/distance.hpp"
+#include "genesis/utils/math/histogram/statistic.hpp"
 
 using namespace genesis;
 using namespace genesis::utils;

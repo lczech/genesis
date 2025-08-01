@@ -31,11 +31,11 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/functions.hpp"
+#include "genesis/utils/color/function.hpp"
 #include "genesis/utils/color/list_diverging.hpp"
 #include "genesis/utils/color/list_qualitative.hpp"
 #include "genesis/utils/color/list_sequential.hpp"
-#include "genesis/utils/color/names.hpp"
+#include "genesis/utils/color/name.hpp"
 #include "genesis/utils/color/map.hpp"
 #include "genesis/utils/color/normalization.hpp"
 #include "genesis/utils/color/norm_diverging.hpp"

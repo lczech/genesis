@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
-#include <genesis/utils/containers/dataframe.hpp>
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/container/dataframe.hpp>
+#include <genesis/utils/container/matrix.hpp>
 
 #include <string>
 #include <vector>

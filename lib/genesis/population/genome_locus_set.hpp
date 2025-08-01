@@ -44,7 +44,7 @@
 #include <genesis/population/genome_region_list.hpp>
 #include <genesis/sequence/sequence_dict.hpp>
 #include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/function.hpp>
 
 namespace genesis {
 namespace population {

@@ -30,7 +30,7 @@
 
 #include <genesis/population/plotting/genome_heatmap.hpp>
 
-#include <genesis/utils/formats/bmp/writer.hpp>
+#include <genesis/utils/format/bmp/writer.hpp>
 
 #include <cassert>
 

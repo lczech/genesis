@@ -30,7 +30,7 @@
 
 #include <genesis/population/format/simple_pileup_common.hpp>
 
-#include <genesis/population/function/functions.hpp>
+#include <genesis/population/function/function.hpp>
 #include <genesis/population/format/simple_pileup_input_stream.hpp>
 
 #include <cassert>

@@ -30,11 +30,11 @@
 
 #include "src/common.hpp"
 
-#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
-#include "genesis/taxonomy/formats/taxopath_generator.hpp"
-#include "genesis/taxonomy/formats/taxopath_parser.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/functions/taxopath.hpp"
+#include "genesis/taxonomy/format/taxonomy_reader.hpp"
+#include "genesis/taxonomy/format/taxopath_generator.hpp"
+#include "genesis/taxonomy/format/taxopath_parser.hpp"
+#include "genesis/taxonomy/function/taxonomy.hpp"
+#include "genesis/taxonomy/function/taxopath.hpp"
 #include "genesis/taxonomy/iterator/levelorder.hpp"
 #include "genesis/taxonomy/iterator/postorder.hpp"
 #include "genesis/taxonomy/iterator/preorder.hpp"

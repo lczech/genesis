@@ -33,7 +33,7 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree_set.hpp>
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/container/matrix.hpp>
 #include <genesis/utils/bit/bitvector.hpp>
 
 #include <string>

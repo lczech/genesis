@@ -30,13 +30,13 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/functions/functions.hpp"
-#include "genesis/sequence/printers/bitmap.hpp"
-#include "genesis/sequence/printers/simple.hpp"
+#include "genesis/sequence/function/code.hpp"
+#include "genesis/sequence/function/function.hpp"
+#include "genesis/sequence/printer/bitmap.hpp"
+#include "genesis/sequence/printer/simple.hpp"
 #include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/formats/fasta_reader.hpp"
-#include "genesis/sequence/formats/phylip_reader.hpp"
+#include "genesis/sequence/format/fasta_reader.hpp"
+#include "genesis/sequence/format/phylip_reader.hpp"
 
 #include <string>
 

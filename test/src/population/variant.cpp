@@ -33,7 +33,7 @@
 #include "src/common.hpp"
 
 #include "genesis/population/variant.hpp"
-#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/function.hpp"
 #include "genesis/population/format/vcf_common.hpp"
 #include "genesis/population/format/vcf_header.hpp"
 #include "genesis/population/format/vcf_record.hpp"

@@ -40,7 +40,7 @@
 #include <genesis/utils/color/normalization.hpp>
 #include <genesis/utils/core/std.hpp>
 #include <genesis/utils/math/matrix.hpp>
-#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/math/statistic.hpp>
 
 namespace genesis {
 namespace utils {

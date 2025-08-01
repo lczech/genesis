@@ -32,7 +32,7 @@
  */
 
 #include <genesis/placement/placement_tree.hpp>
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/container/matrix.hpp>
 
 #include <vector>
 

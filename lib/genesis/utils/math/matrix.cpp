@@ -31,9 +31,9 @@
 #include <genesis/utils/math/matrix.hpp>
 
 #include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/math/statistic.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>

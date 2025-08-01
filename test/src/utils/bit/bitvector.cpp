@@ -34,11 +34,11 @@
 #include "genesis/utils/io/serializer.hpp"
 #include "genesis/utils/bit/bit.hpp"
 #include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
+#include "genesis/utils/bit/bitvector/function.hpp"
+#include "genesis/utils/bit/bitvector/operator.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/timer.hpp"
+#include "genesis/utils/tool/timer.hpp"
 
 #include <algorithm>
 #include <cstdlib>

@@ -30,8 +30,8 @@
 
 #include <genesis/population/function/genome_locus_set.hpp>
 
-#include <genesis/sequence/formats/fastx_input_stream.hpp>
-#include <genesis/sequence/formats/fasta_reader.hpp>
+#include <genesis/sequence/format/fastx_input_stream.hpp>
+#include <genesis/sequence/format/fasta_reader.hpp>
 #include <genesis/sequence/sequence.hpp>
 #include <genesis/utils/bit/bitvector.hpp>
 #include <genesis/utils/text/char.hpp>

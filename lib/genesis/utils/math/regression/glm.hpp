@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/container/matrix.hpp>
 #include <genesis/utils/math/regression/family.hpp>
 #include <genesis/utils/math/regression/link.hpp>
 

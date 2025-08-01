@@ -31,7 +31,7 @@
 #include <genesis/utils/math/euclidean_kmeans.hpp>
 
 #include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cmath>

@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/io/functions.hpp"
+#include "genesis/utils/io/function.hpp"
 #include "genesis/utils/io/output_target.hpp"
 #include "genesis/utils/core/fs.hpp"
 

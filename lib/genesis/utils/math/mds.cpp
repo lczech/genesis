@@ -38,7 +38,7 @@
 
 #include <genesis/utils/math/mds.hpp>
 
-#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/container/matrix/operator.hpp>
 #include <genesis/utils/core/algorithm.hpp>
 #include <genesis/utils/core/options.hpp>
 #include <genesis/utils/math/common.hpp>

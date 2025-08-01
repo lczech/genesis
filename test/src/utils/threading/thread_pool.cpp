@@ -38,11 +38,11 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/container/matrix.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include "genesis/utils/threading/thread_function.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/random.hpp"
 

@@ -31,9 +31,9 @@
 #include "src/common.hpp"
 
 #include "genesis/population/format/frequency_table_input_stream.hpp"
-#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/function.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
 
 #include <cmath>
 #include <limits>

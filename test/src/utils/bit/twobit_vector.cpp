@@ -37,7 +37,7 @@
 #include <vector>
 
 #include "genesis/utils/bit/twobit_vector.hpp"
-#include "genesis/utils/bit/twobit_vector/functions.hpp"
+#include "genesis/utils/bit/twobit_vector/function.hpp"
 #include "genesis/utils/bit/twobit_vector/iterator_deletions.hpp"
 #include "genesis/utils/bit/twobit_vector/iterator_insertions.hpp"
 #include "genesis/utils/bit/twobit_vector/iterator_substitutions.hpp"

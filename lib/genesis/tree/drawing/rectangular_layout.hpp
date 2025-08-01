@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include <genesis/utils/formats/svg/svg.hpp>
+#include <genesis/utils/format/svg/svg.hpp>
 #include <genesis/tree/drawing/layout_base.hpp>
 
 #include <string>

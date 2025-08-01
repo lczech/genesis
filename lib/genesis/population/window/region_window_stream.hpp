@@ -38,7 +38,7 @@
 #include <genesis/population/window/window_view_stream.hpp>
 #include <genesis/population/window/window_view.hpp>
 #include <genesis/population/window/window.hpp>
-#include <genesis/utils/containers/range.hpp>
+#include <genesis/utils/container/range.hpp>
 
 #include <cassert>
 #include <deque>

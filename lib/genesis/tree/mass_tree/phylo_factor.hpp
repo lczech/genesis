@@ -31,8 +31,8 @@
  * @ingroup tree
  */
 
-#include <genesis/tree/mass_tree/balances.hpp>
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/tree/mass_tree/balance.hpp>
+#include <genesis/utils/container/matrix.hpp>
 
 #include <functional>
 #include <unordered_set>

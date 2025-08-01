@@ -30,10 +30,10 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/formats/fai_input_stream.hpp"
-#include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/format/fai_input_stream.hpp"
+#include "genesis/sequence/format/fasta_reader.hpp"
 #include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/sequence/functions/dict.hpp"
+#include "genesis/sequence/function/dict.hpp"
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/std.hpp"

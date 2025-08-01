@@ -32,7 +32,7 @@
  */
 
 #include <genesis/population/variant.hpp>
-#include <genesis/sequence/functions/quality.hpp>
+#include <genesis/sequence/function/quality.hpp>
 #include <genesis/utils/io/input_source.hpp>
 #include <genesis/utils/io/input_stream.hpp>
 

@@ -34,7 +34,7 @@
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree/subtree.hpp>
 #include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/function.hpp>
 
 #include <stdexcept>
 

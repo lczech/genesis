@@ -35,14 +35,14 @@
 #include "genesis/placement/function/manipulation.hpp"
 
 #include "genesis/placement/sample.hpp"
-#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
 #include "genesis/placement/function/helper.hpp"
 
 #include "genesis/tree/function/manipulation.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"

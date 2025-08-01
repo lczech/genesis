@@ -29,8 +29,8 @@
 #include <pybind11/pybind11.h>
 
 #include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/functions.hpp>
-#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bitvector/function.hpp>
+#include <genesis/utils/bit/bitvector/operator.hpp>
 
 namespace py  = pybind11;
 

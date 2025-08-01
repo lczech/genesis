@@ -30,8 +30,8 @@
 
 #include <genesis/tree/function/manipulation.hpp>
 
-#include <genesis/tree/function/functions.hpp>
-#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/iterator/node_links.hpp>
 #include <genesis/tree/iterator/preorder.hpp>
 #include <genesis/tree/tree.hpp>

@@ -31,13 +31,13 @@
 #include <genesis/tree/bipartition/rf.hpp>
 
 #include <genesis/tree/common_tree/tree.hpp>
-#include <genesis/tree/function/functions.hpp>
+#include <genesis/tree/function/function.hpp>
 #include <genesis/tree/iterator/postorder.hpp>
 #include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/bit/bitvector/functions.hpp>
-#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bitvector/function.hpp>
+#include <genesis/utils/bit/bitvector/operator.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_function.hpp>
 
 #include <cstdint>
 #include <algorithm>

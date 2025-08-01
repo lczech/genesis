@@ -32,7 +32,7 @@
  */
 
 #include <genesis/sequence/kmer/kmer.hpp>
-#include <genesis/utils/containers/range.hpp>
+#include <genesis/utils/container/range.hpp>
 
 #include <array>
 #include <cassert>

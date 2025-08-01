@@ -30,11 +30,11 @@
 
 #include <genesis/tree/drawing/layout_base.hpp>
 
-#include <genesis/tree/common_tree/distances.hpp>
+#include <genesis/tree/common_tree/distance.hpp>
 #include <genesis/tree/common_tree/tree.hpp>
-#include <genesis/tree/function/distances.hpp>
-#include <genesis/tree/function/functions.hpp>
-#include <genesis/tree/function/operators.hpp>
+#include <genesis/tree/function/distance.hpp>
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/iterator/eulertour.hpp>
 #include <genesis/tree/iterator/preorder.hpp>
 #include <genesis/tree/iterator/postorder.hpp>

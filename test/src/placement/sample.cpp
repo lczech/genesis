@@ -32,13 +32,13 @@
 
 #include <memory>
 
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/placement/formats/newick_reader.hpp"
-#include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
+#include "genesis/placement/format/newick_reader.hpp"
+#include "genesis/placement/function/function.hpp"
 #include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/operators.hpp"
+#include "genesis/placement/function/operator.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

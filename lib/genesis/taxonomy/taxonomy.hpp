@@ -40,7 +40,7 @@
 #include <vector>
 
 #include <genesis/utils/core/std.hpp>
-#include <genesis/utils/containers/deref_iterator.hpp>
+#include <genesis/utils/container/deref_iterator.hpp>
 
 namespace genesis {
 namespace taxonomy {

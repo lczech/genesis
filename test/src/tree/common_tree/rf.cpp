@@ -33,12 +33,12 @@
 #include <string>
 
 #include "genesis/tree/bipartition/rf.hpp"
-#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/distance.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/function.hpp"
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/container/matrix/operator.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;

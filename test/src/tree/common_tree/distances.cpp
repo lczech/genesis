@@ -32,15 +32,15 @@
 
 #include <string>
 
-#include "genesis/tree/common_tree/distances.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/distance.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/function/distance.hpp"
+#include "genesis/tree/function/function.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/container/matrix.hpp"
+#include "genesis/utils/container/matrix/operator.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;

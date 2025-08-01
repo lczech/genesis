@@ -37,7 +37,7 @@
 #include <genesis/population/stream/variant_input_stream.hpp>
 #include <genesis/population/variant.hpp>
 #include <genesis/sequence/sequence_dict.hpp>
-#include <genesis/utils/containers/optional.hpp>
+#include <genesis/utils/container/optional.hpp>
 
 #include <cassert>
 #include <functional>

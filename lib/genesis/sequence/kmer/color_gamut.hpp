@@ -31,14 +31,14 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/containers/matrix.hpp>
+#include <genesis/utils/container/matrix.hpp>
 #include <genesis/utils/core/std.hpp>
 #include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/functions.hpp>
-#include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bitvector/function.hpp>
+#include <genesis/utils/bit/bitvector/operator.hpp>
 #include <genesis/utils/math/hac.hpp>
 #include <genesis/utils/threading/concurrent_vector_guard.hpp>
-#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_function.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
 
 // This whole class is only available from C++17 onwards,

@@ -32,20 +32,20 @@
 
 #include <memory>
 
-#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
 #include "genesis/placement/function/epca.hpp"
-#include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/function/function.hpp"
 #include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/masses.hpp"
-#include "genesis/placement/function/measures.hpp"
+#include "genesis/placement/function/mass.hpp"
+#include "genesis/placement/function/measure.hpp"
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
 
-#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/function.hpp"
 #include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/formats/csv/reader.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/format/csv/reader.hpp"
+#include "genesis/utils/container/matrix.hpp"
+#include "genesis/utils/container/matrix/operator.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/text/string.hpp"
 

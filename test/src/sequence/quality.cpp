@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/functions/quality.hpp"
+#include "genesis/sequence/function/quality.hpp"
 #include "genesis/utils/math/random.hpp"
 
 #include <numeric>

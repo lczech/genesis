@@ -30,9 +30,9 @@
 
 #include <genesis/utils/math/regression/dataframe.hpp>
 
-#include <genesis/utils/containers/dataframe/operators.hpp>
+#include <genesis/utils/container/dataframe/operator.hpp>
 #include <genesis/utils/math/regression/factor.hpp>
-#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/math/statistic.hpp>
 #include <genesis/utils/text/convert.hpp>
 #include <genesis/utils/text/string.hpp>
 

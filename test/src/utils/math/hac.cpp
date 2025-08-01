@@ -32,13 +32,13 @@
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/printer/compact.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/utils/container/matrix.hpp"
+#include "genesis/utils/container/matrix/operator.hpp"
 #include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
+#include "genesis/utils/bit/bitvector/operator.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/hac.hpp"
-#include "genesis/utils/math/hac/functions.hpp"
+#include "genesis/utils/math/hac/function.hpp"
 #include "genesis/utils/math/hac/linkage.hpp"
 #include "genesis/utils/text/string.hpp"
 

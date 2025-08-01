@@ -30,9 +30,9 @@
 
 #include <genesis/utils/math/distance.hpp>
 
-#include <genesis/utils/containers/matrix/operators.hpp>
+#include <genesis/utils/container/matrix/operator.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_functions.hpp>
+#include <genesis/utils/threading/thread_function.hpp>
 
 #include <cassert>
 

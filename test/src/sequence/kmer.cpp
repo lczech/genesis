@@ -37,7 +37,7 @@
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/math/random.hpp"
-#include "genesis/utils/tools/timer.hpp"
+#include "genesis/utils/tool/timer.hpp"
 
 #include <algorithm>
 #include <cstdint>

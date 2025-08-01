@@ -33,15 +33,15 @@
 #include <genesis/population/plotting/genome_heatmap.hpp>
 #include <genesis/utils/color/heat_map.hpp>
 #include <genesis/utils/color/normalization.hpp>
-#include <genesis/utils/containers/matrix/reader.hpp>
-#include <genesis/utils/containers/matrix/writer.hpp>
+#include <genesis/utils/container/matrix/reader.hpp>
+#include <genesis/utils/container/matrix/writer.hpp>
 #include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/formats/bmp/writer.hpp>
-#include <genesis/utils/formats/json/document.hpp>
-#include <genesis/utils/formats/json/reader.hpp>
-#include <genesis/utils/formats/json/writer.hpp>
-#include <genesis/utils/formats/svg/svg.hpp>
-#include <genesis/utils/math/statistics.hpp>
+#include <genesis/utils/format/bmp/writer.hpp>
+#include <genesis/utils/format/json/document.hpp>
+#include <genesis/utils/format/json/reader.hpp>
+#include <genesis/utils/format/json/writer.hpp>
+#include <genesis/utils/format/svg/svg.hpp>
+#include <genesis/utils/math/statistic.hpp>
 #include <genesis/utils/text/string.hpp>
 
 #include <cassert>
