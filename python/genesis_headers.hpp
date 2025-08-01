@@ -444,21 +444,21 @@
 //   color
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/color/color.hpp>
-// #include <genesis/utils/color/functions.hpp>
+#include <genesis/utils/color/color.hpp>
+#include <genesis/utils/color/functions.hpp>
 // #include <genesis/utils/color/heat_map.hpp>
-// #include <genesis/utils/color/helpers.hpp>
-// #include <genesis/utils/color/list_diverging.hpp>
-// #include <genesis/utils/color/list_misc.hpp>
-// #include <genesis/utils/color/list_qualitative.hpp>
-// #include <genesis/utils/color/list_sequential.hpp>
-// #include <genesis/utils/color/map.hpp>
-// #include <genesis/utils/color/names.hpp>
-// #include <genesis/utils/color/norm_boundary.hpp>
-// #include <genesis/utils/color/norm_diverging.hpp>
-// #include <genesis/utils/color/norm_linear.hpp>
-// #include <genesis/utils/color/norm_logarithmic.hpp>
-// #include <genesis/utils/color/normalization.hpp>
+#include <genesis/utils/color/helpers.hpp>
+#include <genesis/utils/color/list_diverging.hpp>
+#include <genesis/utils/color/list_misc.hpp>
+#include <genesis/utils/color/list_qualitative.hpp>
+#include <genesis/utils/color/list_sequential.hpp>
+#include <genesis/utils/color/map.hpp>
+#include <genesis/utils/color/names.hpp>
+#include <genesis/utils/color/norm_boundary.hpp>
+#include <genesis/utils/color/norm_diverging.hpp>
+#include <genesis/utils/color/norm_linear.hpp>
+#include <genesis/utils/color/norm_logarithmic.hpp>
+#include <genesis/utils/color/normalization.hpp>
 
 // ---------------------------------------------------------------------
 //   containers

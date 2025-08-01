@@ -51,6 +51,24 @@ void bind_genesis_utils_bit_twobit_vector(
 void bind_genesis_utils_bit_twobit_vector_iterator_deletions(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
+void bind_genesis_utils_color_color(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_functions(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_helpers(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_list_misc(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_list_sequential(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_names(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
 void bind_genesis_utils_text_char(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
@@ -64,6 +82,18 @@ void bind_genesis_utils_text_string_2(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_text_string_3(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_normalization(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_tools_tickmarks(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_norm_boundary(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_color_norm_logarithmic(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_tools_date_time(
@@ -108,7 +138,7 @@ void bind_genesis_utils_tools_hash_sha1(
 void bind_genesis_utils_tools_hash_sha256(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_tools_tickmarks(
+void bind_genesis_utils_tools_timer(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_math_compensated_sum_instances(
@@ -148,6 +178,7 @@ PYBIND11_MODULE( genesis, root_module )
         { "", "genesis" },
         { "genesis", "utils" },
         { "genesis::utils", "bit" },
+        { "genesis::utils", "color" },
         { "genesis::utils", "core" },
         { "genesis::utils", "io" },
         { "genesis::utils", "math" },
@@ -176,11 +207,21 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_bit_bitvector_operators( M );
     bind_genesis_utils_bit_twobit_vector( M );
     bind_genesis_utils_bit_twobit_vector_iterator_deletions( M );
+    bind_genesis_utils_color_color( M );
+    bind_genesis_utils_color_functions( M );
+    bind_genesis_utils_color_helpers( M );
+    bind_genesis_utils_color_list_misc( M );
+    bind_genesis_utils_color_list_sequential( M );
+    bind_genesis_utils_color_names( M );
     bind_genesis_utils_text_char( M );
     bind_genesis_utils_text_string( M );
     bind_genesis_utils_text_string_1( M );
     bind_genesis_utils_text_string_2( M );
     bind_genesis_utils_text_string_3( M );
+    bind_genesis_utils_color_normalization( M );
+    bind_genesis_utils_tools_tickmarks( M );
+    bind_genesis_utils_color_norm_boundary( M );
+    bind_genesis_utils_color_norm_logarithmic( M );
     bind_genesis_utils_tools_date_time( M );
     bind_genesis_utils_core_version( M );
     bind_genesis_utils_io_functions( M );
@@ -195,6 +236,6 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_tools_geodesy_geo_coordinate( M );
     bind_genesis_utils_tools_hash_sha1( M );
     bind_genesis_utils_tools_hash_sha256( M );
-    bind_genesis_utils_tools_tickmarks( M );
+    bind_genesis_utils_tools_timer( M );
     bind_genesis_utils_math_compensated_sum_instances( M );
 }
