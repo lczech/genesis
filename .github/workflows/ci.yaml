@@ -217,10 +217,11 @@ jobs:
           #   compiler: llvm-10
           # - os: macos-13
           #   compiler: llvm-11
-          - os: macos-13
-            compiler: llvm-12
-          - os: macos-13
-            compiler: llvm-13
+          # No longer fully supported versions
+          # - os: macos-13
+          #   compiler: llvm-12
+          # - os: macos-13
+          #   compiler: llvm-13
           - os: macos-13
             compiler: llvm-14
           - os: macos-13
@@ -375,32 +376,36 @@ jobs:
           #     no htslib
           # -------------------------------
 
-          - os: ubuntu-latest
-            compiler: gcc
-            htslib: OFF
-          - os: ubuntu-latest
-            compiler: llvm
-            htslib: OFF
-          - os: macos-latest
-            compiler: gcc
-            htslib: OFF
-          - os: macos-latest
-            compiler: llvm
-            htslib: OFF
-          - os: macos-latest
-            compiler: apple
-            htslib: OFF
+          # We have htslib as a submodule now.
+          # No longer needed to test without.
+          # Kept here for reference just in case.
+          # - os: ubuntu-latest
+          #   compiler: gcc
+          #   htslib: OFF
+          # - os: ubuntu-latest
+          #   compiler: llvm
+          #   htslib: OFF
+          # - os: macos-latest
+          #   compiler: gcc
+          #   htslib: OFF
+          # - os: macos-latest
+          #   compiler: llvm
+          #   htslib: OFF
+          # - os: macos-latest
+          #   compiler: apple
+          #   htslib: OFF
 
           # -------------------------------
           #     AppleClang
           # -------------------------------
 
-          - os: macos-13
-            compiler: apple
-          - os: macos-14
-            compiler: apple
-          - os: macos-15
-            compiler: apple
+          # Redundant to the below apple-clang
+          # - os: macos-13
+          #   compiler: apple
+          # - os: macos-14
+          #   compiler: apple
+          # - os: macos-15
+          #   compiler: apple
           - os: macos-13
             compiler: apple-clang
           - os: macos-14
