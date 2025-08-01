@@ -224,7 +224,8 @@ public:
     /**
      * @brief Return the value of a single bit, without boundary check.
      */
-    inline bool operator [] ( size_t index ) const {
+    inline bool operator [] ( size_t index ) const
+    {
         assert( index / IntSize < data_.size() );
         assert( index % IntSize < BIT_MASKS.size() );
         return static_cast<bool> (data_[index / IntSize] & BIT_MASKS[index % IntSize]);

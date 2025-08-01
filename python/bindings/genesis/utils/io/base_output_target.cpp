@@ -1,6 +1,6 @@
-#include <genesis/utils/io/base_input_source.hpp>
 #include <genesis/utils/io/base_output_target.hpp>
-#include <genesis/utils/io/functions.hpp>
+#include <genesis/utils/io/base_output_target_add_ons.hpp>
+#include <genesis/utils/io/file_output_target.hpp>
 #include <genesis/utils/io/gzip_output_target.hpp>
 #include <genesis/utils/io/gzip_stream.hpp>
 #include <genesis/utils/io/input_source_add_ons.hpp>
@@ -8,12 +8,13 @@
 #include <genesis/utils/io/output_target_add_ons.hpp>
 #include <genesis/utils/io/string_output_target.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
+#include <ios>
 #include <iterator>
 #include <memory>
 #include <ostream>
 #include <sstream> // __str__
+#include <streambuf>
 #include <string>
-#include <vector>
 
 #include <functional>
 #include <pybind11/pybind11.h>
@@ -27,10 +28,138 @@ PYBIND11_DECLARE_HOLDER_TYPE( T, T*, false )
 PYBIND11_MAKE_OPAQUE( std::shared_ptr<void> )
 #endif
 
-void bind_genesis_utils_io_gzip_output_target(
+void bind_genesis_utils_io_base_output_target(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 )
 {
+    { // genesis::utils::io::BaseOutputTarget file:genesis/utils/io/base_output_target.hpp line:60
+        pybind11::class_<
+            genesis::utils::io::BaseOutputTarget,
+            std::shared_ptr<genesis::utils::io::BaseOutputTarget>>
+            cl( M( "genesis::utils::io" ),
+                "BaseOutputTarget",
+                "Abstract base class for writing data to an output target.\n\n The class is an "
+                "interface that allows writing to different targets, and adds a layer of "
+                "abstraction\n around using simple `std::ostream` functionality. In particular, we "
+                "want to add some checks,\n naming of the streams, etc. Internally however, the "
+                "derived classes of this base class use\n `std::ostream`, and make it "
+                "accessible.\n\n \n FileOutputTarget, GzipOutputTarget, StreamOutputTarget, "
+                "StringOutputTarget for our derived\n output target classes.\n \n\n to_file(), "
+                "to_gzip_block_file(), to_stream(), to_string() for helper functions to create\n "
+                "these classes, to add some syntactic sugar and make it easy to use." );
+        // function-signature: void genesis::utils::io::BaseOutputTarget::flush()()
+        // file:genesis/utils/io/base_output_target.hpp line:118
+        cl.def(
+            "flush",
+            ( void( genesis::utils::io::BaseOutputTarget::* )() ) &
+                genesis::utils::io::BaseOutputTarget::flush,
+            "Flush output stream buffer.\n\n Internally, the different output target derived "
+            "classes use some variant of `std::ostream`\n to do the writing. Hence, the target "
+            "might need flushing in cases where we want\n to synchronize it while writing, before "
+            "closing the stream.\n\nC++: genesis::utils::io::BaseOutputTarget::flush() --> void"
+        );
+        // function-signature: std::string genesis::utils::io::BaseOutputTarget::target_name()
+        // const() file:genesis/utils/io/base_output_target.hpp line:134
+        cl.def(
+            "target_name",
+            ( std::string( genesis::utils::io::BaseOutputTarget::* )() const ) &
+                genesis::utils::io::BaseOutputTarget::target_name,
+            "Get a name of the output target. This is intended for user output.\n\n This will for "
+            "example return something like \"output file (/path/to/file.txt)\", so that\n users "
+            "know what type of output stream it is, and where it streams to.\n\nC++: "
+            "genesis::utils::io::BaseOutputTarget::target_name() const --> std::string"
+        );
+        // function-signature: std::string genesis::utils::io::BaseOutputTarget::target_string()
+        // const() file:genesis/utils/io/base_output_target.hpp line:146
+        cl.def(
+            "target_string",
+            ( std::string( genesis::utils::io::BaseOutputTarget::* )() const ) &
+                genesis::utils::io::BaseOutputTarget::target_string,
+            "Get a string representing the output target.\n\n This is intended for the writer "
+            "classes, which for example might want to examine the output\n file name. Hence, this "
+            "function is meant to return just the file path (for a file target).\n\nC++: "
+            "genesis::utils::io::BaseOutputTarget::target_string() const --> std::string"
+        );
+
+        genesis_utils_io_base_output_target_add_ons( cl );
+    }
+    { // genesis::utils::io::FileOutputTarget file:genesis/utils/io/file_output_target.hpp line:54
+        pybind11::class_<
+            genesis::utils::io::FileOutputTarget,
+            std::shared_ptr<genesis::utils::io::FileOutputTarget>,
+            genesis::utils::io::BaseOutputTarget>
+            cl( M( "genesis::utils::io" ),
+                "FileOutputTarget",
+                "Output target for writing data to a file.\n\n The output file name is provided "
+                "via the constructor." );
+        // function-signature: genesis::utils::io::FileOutputTarget::FileOutputTarget(const
+        // std::string &)(const std::string &) file:genesis/utils/io/file_output_target.hpp line:65
+        cl.def( pybind11::init<const std::string&>(), pybind11::arg( "file_name" ) );
+    }
+    // genesis::utils::io::GzipCompressionLevel file:genesis/utils/io/gzip_stream.hpp line:100
+    pybind11::enum_<genesis::utils::io::GzipCompressionLevel>(
+        M( "genesis::utils::io" ),
+        "GzipCompressionLevel",
+        "List of possible compression levels used for GzipOStream.\n\n The compression levels are "
+        "handed over to zlib for compression, which currently allows all values\n between 1 (best "
+        "speed) and 9 (best compression), with the special case 0 (no compression), as\n well as "
+        "-1 for the default compression. Currently, the zlib default compression level "
+        "corresponds\n to level 6, as this is a good compromise between speed and compression\n "
+        "(it forms the \"elbow\" of the curve), hence we also use this as our default level.\n\n "
+        "The enum only lists those four special levels. However, we use a fixed enum here (with "
+        "the\n underlying type `int`), meaning that all values in between 1 and 9 are also allowed "
+        "to be used.\n Values outside of the range [-1, 9] will lead to an exception being thrown "
+        "when used in GzipOStream.\n\n \n GzipOStream\n \n\n GzipOFStream"
+    )
+        .value(
+            "kDefaultCompression", genesis::utils::io::GzipCompressionLevel::kDefaultCompression
+        )
+        .value( "kNoCompression", genesis::utils::io::GzipCompressionLevel::kNoCompression )
+        .value( "kBestSpeed", genesis::utils::io::GzipCompressionLevel::kBestSpeed )
+        .value( "kBestCompression", genesis::utils::io::GzipCompressionLevel::kBestCompression );
+
+    ;
+
+    { // genesis::utils::io::GzipOutputTarget file:genesis/utils/io/gzip_output_target.hpp line:62
+        pybind11::class_<
+            genesis::utils::io::GzipOutputTarget,
+            std::shared_ptr<genesis::utils::io::GzipOutputTarget>,
+            genesis::utils::io::BaseOutputTarget>
+            cl( M( "genesis::utils::io" ),
+                "GzipOutputTarget",
+                "Output target for writing byte data to a gzip/zlib-compressed target.\n\n This "
+                "output target is a wrapper that takes some other output target\n "
+                "(FileOutputTarget, StringOutputTarget, StreamOutputTarget, etc),\n and compresses "
+                "using the gzip format on the fly while writing to that other target.\n\n The "
+                "class can be moved, but not copied, because of the internal state that is kept "
+                "for\n compression, and which would mess up the output if copied." );
+        // function-signature: genesis::utils::io::GzipOutputTarget::GzipOutputTarget(class
+        // std::shared_ptr<class genesis::utils::io::BaseOutputTarget>, enum
+        // genesis::utils::io::GzipCompressionLevel)(class std::shared_ptr<class
+        // genesis::utils::io::BaseOutputTarget>, enum genesis::utils::io::GzipCompressionLevel)
+        // file:genesis/utils/io/gzip_output_target.hpp line:75
+        cl.def(
+            pybind11::init(
+                []( class std::shared_ptr<class genesis::utils::io::BaseOutputTarget> const& a0 ) {
+                    return new genesis::utils::io::GzipOutputTarget( a0 );
+                }
+            ),
+            "doc",
+            pybind11::arg( "output_target" )
+        );
+        // function-signature: genesis::utils::io::GzipOutputTarget::GzipOutputTarget(class
+        // std::shared_ptr<class genesis::utils::io::BaseOutputTarget>, enum
+        // genesis::utils::io::GzipCompressionLevel)(class std::shared_ptr<class
+        // genesis::utils::io::BaseOutputTarget>, enum genesis::utils::io::GzipCompressionLevel)
+        // file:genesis/utils/io/gzip_output_target.hpp line:75
+        cl.def(
+            pybind11::init<
+                class std::shared_ptr<class genesis::utils::io::BaseOutputTarget>,
+                enum genesis::utils::io::GzipCompressionLevel>(),
+            pybind11::arg( "output_target" ),
+            pybind11::arg( "compression_level" )
+        );
+    }
     { // genesis::utils::io::GzipBlockOutputTarget file:genesis/utils/io/gzip_output_target.hpp
       // line:193
         pybind11::class_<
@@ -229,61 +358,5 @@ void bind_genesis_utils_io_gzip_output_target(
             "placement::JplaceWriter or sequence::FastaWriter.\n\nC++: "
             "genesis::utils::io::to_stderr() --> class std::shared_ptr<class "
             "genesis::utils::io::BaseOutputTarget>"
-        );
-
-    // genesis::utils::io::read_input_source(class std::shared_ptr<class
-    // genesis::utils::io::BaseInputSource>) file:genesis/utils/io/functions.hpp line:54
-    // function-signature: std::string genesis::utils::io::read_input_source(class
-    // std::shared_ptr<class genesis::utils::io::BaseInputSource>)(class std::shared_ptr<class
-    // genesis::utils::io::BaseInputSource>) file:genesis/utils/io/functions.hpp line:54
-    M( "genesis::utils::io" )
-        .def(
-            "read_input_source",
-            ( std::string( * )( class std::shared_ptr<class genesis::utils::io::BaseInputSource> )
-            ) & genesis::utils::io::read_input_source,
-            "Return the contents of an input  as a string.\n\n This simply reads all characters "
-            "from the  into a `std::string`. It is similar to\n file_read(), but takes the more "
-            "general BaseInputSource as input.\n\nC++: genesis::utils::io::read_input_source(class "
-            "std::shared_ptr<class genesis::utils::io::BaseInputSource>) --> std::string",
-            pybind11::arg( "source" )
-        );
-
-    // genesis::utils::io::read_input_source_lines(class std::shared_ptr<class
-    // genesis::utils::io::BaseInputSource>) file:genesis/utils/io/functions.hpp line:64
-    // function-signature: class std::vector<std::string >
-    // genesis::utils::io::read_input_source_lines(class std::shared_ptr<class
-    // genesis::utils::io::BaseInputSource>)(class std::shared_ptr<class
-    // genesis::utils::io::BaseInputSource>) file:genesis/utils/io/functions.hpp line:64
-    M( "genesis::utils::io" )
-        .def(
-            "read_input_source_lines",
-            ( class std::vector<std::string >( * )( class std::shared_ptr<
-                                                    class genesis::utils::io::BaseInputSource> ) ) &
-                genesis::utils::io::read_input_source_lines,
-            "Return the contents of an input  as a string, split into individual lines.\n\n This "
-            "simply reads all lines from the  into a `std::string`. It is similar to\n "
-            "file_read_lines(), but takes the more general BaseInputSource as input.\n\nC++: "
-            "genesis::utils::io::read_input_source_lines(class std::shared_ptr<class "
-            "genesis::utils::io::BaseInputSource>) --> class std::vector<std::string >",
-            pybind11::arg( "source" )
-        );
-
-    // genesis::utils::io::write_output_target(const std::string &, class std::shared_ptr<class
-    // genesis::utils::io::BaseOutputTarget>) file:genesis/utils/io/functions.hpp line:77
-    // function-signature: void genesis::utils::io::write_output_target(const std::string &, class
-    // std::shared_ptr<class genesis::utils::io::BaseOutputTarget>)(const std::string &, class
-    // std::shared_ptr<class genesis::utils::io::BaseOutputTarget>)
-    // file:genesis/utils/io/functions.hpp line:77
-    M( "genesis::utils::io" )
-        .def(
-            "write_output_target",
-            ( void ( * )( const std::string&, class std::shared_ptr<class genesis::utils::io::BaseOutputTarget> )
-            ) & genesis::utils::io::write_output_target,
-            "Write the contents of a string to an output \n\n This is similar to file_write(), but "
-            "takes the more general BaseOutputTarget as output.\n\nC++: "
-            "genesis::utils::io::write_output_target(const std::string &, class "
-            "std::shared_ptr<class genesis::utils::io::BaseOutputTarget>) --> void",
-            pybind11::arg( "content" ),
-            pybind11::arg( "target" )
         );
 }

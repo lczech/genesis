@@ -9,19 +9,40 @@
 
 using ModuleGetter = std::function< pybind11::module&( std::string const& ) >;
 
-void bind_genesis_utils_core_fs(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_core_fs_1(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
 void bind_genesis_utils_core_info(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_core_info_1(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
+void bind_genesis_utils_bit_bitvector(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_bit_bitvector_functions(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_bit_bitvector_functions_1(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
 void bind_genesis_utils_core_options(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_core_fs(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_io_base_input_source(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_io_file_input_source(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_io_gzip(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_io_base_output_target(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_bit_bitvector_operators(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_text_char(
@@ -45,10 +66,7 @@ void bind_genesis_utils_tools_date_time(
 void bind_genesis_utils_core_version(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_io_base_input_source(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_io_gzip_output_target(
+void bind_genesis_utils_io_functions(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_math_binomial(
@@ -123,6 +141,7 @@ PYBIND11_MODULE( genesis, root_module )
     std::vector< std::pair<std::string, std::string> > sub_modules{
         { "", "genesis" },
         { "genesis", "utils" },
+        { "genesis::utils", "bit" },
         { "genesis::utils", "core" },
         { "genesis::utils", "io" },
         { "genesis::utils", "math" },
@@ -137,11 +156,18 @@ PYBIND11_MODULE( genesis, root_module )
 
     // pybind11::class_<std::shared_ptr<void>>(M(""), "_encapsulated_data_");
 
-    bind_genesis_utils_core_fs( M );
-    bind_genesis_utils_core_fs_1( M );
     bind_genesis_utils_core_info( M );
     bind_genesis_utils_core_info_1( M );
+    bind_genesis_utils_bit_bitvector( M );
+    bind_genesis_utils_bit_bitvector_functions( M );
+    bind_genesis_utils_bit_bitvector_functions_1( M );
     bind_genesis_utils_core_options( M );
+    bind_genesis_utils_core_fs( M );
+    bind_genesis_utils_io_base_input_source( M );
+    bind_genesis_utils_io_file_input_source( M );
+    bind_genesis_utils_io_gzip( M );
+    bind_genesis_utils_io_base_output_target( M );
+    bind_genesis_utils_bit_bitvector_operators( M );
     bind_genesis_utils_text_char( M );
     bind_genesis_utils_text_string( M );
     bind_genesis_utils_text_string_1( M );
@@ -149,8 +175,7 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_text_string_3( M );
     bind_genesis_utils_tools_date_time( M );
     bind_genesis_utils_core_version( M );
-    bind_genesis_utils_io_base_input_source( M );
-    bind_genesis_utils_io_gzip_output_target( M );
+    bind_genesis_utils_io_functions( M );
     bind_genesis_utils_math_binomial( M );
     bind_genesis_utils_math_ranking( M );
     bind_genesis_utils_math_moments( M );

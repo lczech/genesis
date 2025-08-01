@@ -1,3 +1,4 @@
+#include <genesis/utils/core/fs.hpp>
 #include <genesis/utils/core/options.hpp>
 #include <genesis/utils/threading/thread_pool.hpp>
 #include <iterator>
@@ -222,4 +223,157 @@ void bind_genesis_utils_core_options(
             pybind11::arg( "value" )
         );
     }
+    // genesis::utils::core::path_exists(const std::string &) file:genesis/utils/core/fs.hpp line:49
+    // function-signature: bool genesis::utils::core::path_exists(const std::string &)(const
+    // std::string &) file:genesis/utils/core/fs.hpp line:49
+    M( "genesis::utils::core" )
+        .def(
+            "path_exists",
+            ( bool ( * )( const std::string& ) ) & genesis::utils::core::path_exists,
+            "Return whether a path exists, i.e., is a file or directory.\n\nC++: "
+            "genesis::utils::core::path_exists(const std::string &) --> bool",
+            pybind11::arg( "path" )
+        );
+
+    // genesis::utils::core::is_file(const std::string &) file:genesis/utils/core/fs.hpp line:58
+    // function-signature: bool genesis::utils::core::is_file(const std::string &)(const std::string
+    // &) file:genesis/utils/core/fs.hpp line:58
+    M( "genesis::utils::core" )
+        .def(
+            "is_file",
+            ( bool ( * )( const std::string& ) ) & genesis::utils::core::is_file,
+            "Return true iff the provided path is a (readable) file.\n\n Internally, this function "
+            "simply returns the value of file_is_readable(), meaning that we also\n check that the "
+            "file can actually be read. That is semantically a bit different from just stating\n "
+            "that it is a file... But file system stuff in C++ pre-17 is hard, and this works for "
+            "now.\n\nC++: genesis::utils::core::is_file(const std::string &) --> bool",
+            pybind11::arg( "path" )
+        );
+
+    // genesis::utils::core::file_exists(const std::string &) file:genesis/utils/core/fs.hpp line:65
+    // function-signature: bool genesis::utils::core::file_exists(const std::string &)(const
+    // std::string &) file:genesis/utils/core/fs.hpp line:65
+    M( "genesis::utils::core" )
+        .def(
+            "file_exists",
+            ( bool ( * )( const std::string& ) ) & genesis::utils::core::file_exists,
+            "Return true iff the file exists (and is in fact a file, and not, e.g., a "
+            "directory).\n\n  std::string const& )\n\nC++: genesis::utils::core::file_exists(const "
+            "std::string &) --> bool",
+            pybind11::arg( "filename" )
+        );
+
+    // genesis::utils::core::file_is_readable(const std::string &) file:genesis/utils/core/fs.hpp
+    // line:76 function-signature: bool genesis::utils::core::file_is_readable(const std::string
+    // &)(const std::string &) file:genesis/utils/core/fs.hpp line:76
+    M( "genesis::utils::core" )
+        .def(
+            "file_is_readable",
+            ( bool ( * )( const std::string& ) ) & genesis::utils::core::file_is_readable,
+            "Return whether a file is readable.\n\n For this, the file has to exist, and be "
+            "accessible.\n Another potential error is that too many files are opened already.\n\n "
+            "See file_is_readable( std::string const&, std::string& ) for a version of the "
+            "function that also\n allows to retrieve the error message in cases where the result "
+            "is `false`.\n\nC++: genesis::utils::core::file_is_readable(const std::string &) --> "
+            "bool",
+            pybind11::arg( "filename" )
+        );
+
+    // genesis::utils::core::file_is_readable(const std::string &, std::string &)
+    // file:genesis/utils/core/fs.hpp line:84 function-signature: bool
+    // genesis::utils::core::file_is_readable(const std::string &, std::string &)(const std::string
+    // &, std::string &) file:genesis/utils/core/fs.hpp line:84
+    M( "genesis::utils::core" )
+        .def(
+            "file_is_readable",
+            ( bool ( * )( const std::string&, std::string& ) ) &
+                genesis::utils::core::file_is_readable,
+            "Return whether a file is readable, and potentially store the error message.\n\n For "
+            "this, the file has to exist, and be accessible.\n Another potential error is that too "
+            "many files are opened already.\n\nC++: genesis::utils::core::file_is_readable(const "
+            "std::string &, std::string &) --> bool",
+            pybind11::arg( "filename" ),
+            pybind11::arg( "err_str" )
+        );
+
+    // genesis::utils::core::file_read(const std::string &, bool) file:genesis/utils/core/fs.hpp
+    // line:94 function-signature: std::string genesis::utils::core::file_read(const std::string &,
+    // bool)(const std::string &, bool) file:genesis/utils/core/fs.hpp line:94
+    M( "genesis::utils::core" )
+        .def(
+            "file_read",
+            []( const std::string& a0 ) -> std::string {
+                return genesis::utils::core::file_read( a0 );
+            },
+            "",
+            pybind11::arg( "filename" )
+        );
+    M( "genesis::utils::core" )
+        .def(
+            "file_read",
+            ( std::string( * )( const std::string&, bool ) ) & genesis::utils::core::file_read,
+            "Return the contents of a file as a string.\n\n If the parameter  is `true` (default), "
+            "it is first determined whether the\n file is gzip compressed, and if so, the file is "
+            "decompressed when reading.\n\n If the file is not readable, the function throws "
+            "`std::runtime_error`.\n\nC++: genesis::utils::core::file_read(const std::string &, "
+            "bool) --> std::string",
+            pybind11::arg( "filename" ),
+            pybind11::arg( "detect_compression" )
+        );
+
+    // genesis::utils::core::file_read_lines(const std::string &, bool)
+    // file:genesis/utils/core/fs.hpp line:107 function-signature: class std::vector<std::string >
+    // genesis::utils::core::file_read_lines(const std::string &, bool)(const std::string &, bool)
+    // file:genesis/utils/core/fs.hpp line:107
+    M( "genesis::utils::core" )
+        .def(
+            "file_read_lines",
+            []( const std::string& a0 ) -> std::vector<std::string > {
+                return genesis::utils::core::file_read_lines( a0 );
+            },
+            "",
+            pybind11::arg( "filename" )
+        );
+    M( "genesis::utils::core" )
+        .def(
+            "file_read_lines",
+            ( class std::vector<std::string >( * )( const std::string&, bool ) ) &
+                genesis::utils::core::file_read_lines,
+            "Return the contents of a file as a vector of strings, one entry for each line.\n\n If "
+            "the parameter  is `true` (default), it is first determined whether the\n file is gzip "
+            "compressed, and if so, the file is decompressed when reading.\n\n If the file is not "
+            "readable, the function throws `std::runtime_error`.\n\nC++: "
+            "genesis::utils::core::file_read_lines(const std::string &, bool) --> class "
+            "std::vector<std::string >",
+            pybind11::arg( "filename" ),
+            pybind11::arg( "detect_compression" )
+        );
+
+    // genesis::utils::core::file_write(const std::string &, const std::string &, bool)
+    // file:genesis/utils/core/fs.hpp line:120 function-signature: void
+    // genesis::utils::core::file_write(const std::string &, const std::string &, bool)(const
+    // std::string &, const std::string &, bool) file:genesis/utils/core/fs.hpp line:120
+    M( "genesis::utils::core" )
+        .def(
+            "file_write",
+            []( const std::string& a0, const std::string& a1 ) -> void {
+                return genesis::utils::core::file_write( a0, a1 );
+            },
+            "",
+            pybind11::arg( "content" ),
+            pybind11::arg( "filename" )
+        );
+    M( "genesis::utils::core" )
+        .def(
+            "file_write",
+            ( void ( * )( const std::string&, const std::string&, bool ) ) &
+                genesis::utils::core::file_write,
+            "Write the content of a string to a file.\n\n If the file cannot be written to, the "
+            "function throws an exception. Also, by default, if the file\n already exists, an "
+            "exception is thrown.\n See \n\n\n\n\nC++: genesis::utils::core::file_write(const "
+            "std::string &, const std::string &, bool) --> void",
+            pybind11::arg( "content" ),
+            pybind11::arg( "filename" ),
+            pybind11::arg( "create_dirs" )
+        );
 }

@@ -430,10 +430,10 @@
 //   bit
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/bit/bit.hpp>
-// #include <genesis/utils/bit/bitvector.hpp>
-// #include <genesis/utils/bit/bitvector/functions.hpp>
-// #include <genesis/utils/bit/bitvector/operators.hpp>
+#include <genesis/utils/bit/bit.hpp>
+#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/utils/bit/bitvector/functions.hpp>
+#include <genesis/utils/bit/bitvector/operators.hpp>
 // #include <genesis/utils/bit/twobit_vector.hpp>
 // #include <genesis/utils/bit/twobit_vector/functions.hpp>
 // #include <genesis/utils/bit/twobit_vector/iterator_deletions.hpp>
