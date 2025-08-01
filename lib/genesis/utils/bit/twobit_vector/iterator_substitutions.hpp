@@ -46,6 +46,17 @@ namespace bit {
 //     Iterator Substitutions
 // =================================================================================================
 
+/**
+ * @brief Take a TwobitVector sequence and iterate over all possible single-position substitutions
+ * of its characters.
+ *
+ * In each step, this iterator yields a TwobitVector with a single substitution compared to the
+ * original, iterating through all positions in the sequence, and all three possible substitutions
+ * at that position.
+ *
+ * Use iterate_substitutions() to obtain instances of this class that can be used in a range-based
+ * for loop for convenience.
+ */
 class IteratorSubstitutions
 {
 
@@ -113,12 +124,12 @@ public:
         //
         // The table shows that this works for all four possible values.
         //
-        //            | 00 01 10 11
+        //            | 00 01 10 11   <-- initial value
         //     ---------------------
-        //     0 | 01 | 01 00 11 10
-        //     1 | 11 | 10 11 00 01
-        //     2 | 01 | 11 10 01 00
-        //     3 | 11 | 00 01 10 11
+        //     0 | 01 | 01 00 11 10   <-- at first iteration
+        //     1 | 11 | 10 11 00 01   <-- at second iteration
+        //     2 | 01 | 11 10 01 00   <-- at third iteration
+        //     3 | 11 | 00 01 10 11   <-- at last iteration, restoring original value
 
         // Helper function that cycles the value at a position.
         auto cycle = [&] ( size_t pos, size_t& cnt ) {
@@ -237,6 +248,11 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
+/**
+ * @brief Range to loop over the substitutions in a TwobitVector.
+ *
+ * See IteratorSubstitutions for details.
+ */
 inline genesis::utils::containers::Range< IteratorSubstitutions > iterate_substitutions( TwobitVector const& vector )
 {
     return {

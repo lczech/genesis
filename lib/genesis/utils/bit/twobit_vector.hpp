@@ -39,6 +39,15 @@ namespace genesis {
 namespace utils {
 namespace bit {
 
+/**
+ * @brief Represent a nucleotide sequence (of `ACGT` characters) as a vector of two-bit entries.
+ *
+ * This is a memory-efficient representation of an arbitrary length nucleotide sequence, using
+ * the usual conversion `A == 00`, `C == 01`, `G == 10`, and `T == 11`.
+ * Use from_nucleic_acids() and to_nucleic_acids() to convert from and to a string.
+ * See also IteratorSubstitutions, IteratorInsertions, and IteratorDeletions for iterators that
+ * yield all single position differences ("neighborhood" or "mirovariants") of a given sequence.
+ */
 class TwobitVector
 {
 public:
@@ -65,9 +74,24 @@ public:
      * convert internally.
      */
     enum class ValueType : WordType {
+        /**
+         * @brief Adenine (00)
+         */
         A = 0,
+
+        /**
+         * @brief Cytosine (01)
+         */
         C = 1,
+
+        /**
+         * @brief Guanine (10)
+         */
         G = 2,
+
+        /**
+         * @brief Thymine (11)
+         */
         T = 3
     };
 
@@ -84,6 +108,10 @@ public:
     // -------------------------------------------------------------------------
 
     TwobitVector() = default;
+
+    /**
+     * @brief Constructor that initializes the vector with `size` many zero values.
+     */
     TwobitVector( size_t size );
 
     ~TwobitVector() = default;
@@ -98,16 +126,51 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
+
+    /**
+     * @brief Return the size of the vector, that is, how many values (of type ValueType)
+     * it currently holds.
+     */
     size_t size() const;
+
+    /**
+     * @brief Return the number of words (of type WordType) that are used to store the values
+     * in the vector.
+     */
     size_t data_size() const;
 
+    /**
+     * @brief Get the value at an @p index in the vector.
+     */
     ValueType get( size_t index ) const;
 
+    /**
+     * @brief Get the value at an @p index in the vector.
+     */
     ValueType operator [] ( size_t index ) const;
 
+    /**
+     * @brief Return a single word of the vector.
+     *
+     * This is useful for external functions that want to directly work on the underlying bit
+     * representation.
+     */
     WordType const& data_at( size_t index ) const;
+
+    /**
+     * @brief Return a single word of the vector.
+     *
+     * This is useful for external functions that want to directly work on the underlying bit
+     * representation.
+     */
     WordType&       data_at( size_t index );
 
+    /**
+     * @brief Calculate a hash value of the vector, based on its size() and the xor of
+     * all its words.
+     *
+     * This is a simple function, but might just be enough for using it in a hashmap.
+     */
     WordType hash() const;
 
     // -------------------------------------------------------------------------
@@ -117,17 +180,40 @@ public:
     bool operator == ( TwobitVector const& other ) const;
     bool operator != ( TwobitVector const& other ) const;
 
+    /**
+     * @brief Validation function that checks some basic invariants.
+     *
+     * This is mainly useful in testing. The function checks whether the vector is correctly
+     * sized and contains zero padding at its end.
+     */
     bool validate() const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Set a value at a position in the vector.
+     */
     void set( size_t index, ValueType value );
 
+    /**
+     * @brief Insert a value at a position.
+     *
+     * The size() is increased by one.
+     */
     void insert_at( size_t index, ValueType value );
+
+    /**
+     * @brief Remove the value at a position.
+     *
+     * The size() is decreased by one.
+     */
     void remove_at( size_t index );
 
+    /**
+     * @brief Clear the vector, so that it contains no data.
+     */
     void clear();
 
     // -------------------------------------------------------------------------
@@ -136,10 +222,46 @@ public:
 
 private:
 
+    /**
+     * @brief Internal constant that holds an all-zero word.
+     */
     static const WordType all_0_;
+
+    /**
+     * @brief Internal constant that holds an all-one word.
+     */
     static const WordType all_1_;
 
+    /**
+     * @brief Internal bitmask that has two bits set to one for each value position in the word.
+     *
+     * The values are
+     *
+     *     bit_mask_[0]  == 00 00 ... 00 11
+     *     bit_mask_[1]  == 00 00 ... 11 00
+     *     ...
+     *     bit_mask_[31] == 11 00 ... 00 00
+     *
+     * This is useful for setting or unsetting single values in a word.
+     */
     static const WordType bit_mask_[  kValuesPerWord ];
+
+    /**
+     * @brief Internal mask that holds as many consecutive all-one values as the position in the
+     * array tells.
+     *
+     * The element at position `i` in this mask contains `i` many all-one values, starting from
+     * the right. (An all-one value for two bit values is 11.)
+     *
+     *     ones_mask_[0]  == 00 00 ... 00 00
+     *     ones_mask_[1]  == 00 00 ... 00 11
+     *     ones_mask_[2]  == 00 00 ... 11 11
+     *     ...
+     *     ones_mask_[31] == 00 11 ... 11 11
+     *
+     * This mask is used for extracting remainders of words (all values left or right of a
+     * certain position).
+     */
     static const WordType ones_mask_[ kValuesPerWord ];
 
     size_t                size_ = 0;

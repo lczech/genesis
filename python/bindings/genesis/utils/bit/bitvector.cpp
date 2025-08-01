@@ -1,6 +1,7 @@
 #include <genesis/utils/bit/bitvector.hpp>
 #include <genesis/utils/bit/bitvector/operators.hpp>
 #include <genesis/utils/bit/bitvector_add_ons.hpp>
+#include <genesis/utils/bit/twobit_vector_add_ons.hpp>
 #include <ios>
 #include <iterator>
 #include <locale>
@@ -27,6 +28,8 @@ void bind_genesis_utils_bit_bitvector(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 )
 {
+
+    genesis_utils_bit_twobit_vector_functions_add_ons( M( "genesis::utils::bit" ) );
     { // genesis::utils::bit::Bitvector file:genesis/utils/bit/bitvector.hpp line:67
         pybind11::
             class_<genesis::utils::bit::Bitvector, std::shared_ptr<genesis::utils::bit::Bitvector>>
@@ -104,7 +107,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "index" )
         );
         // function-signature: bool genesis::utils::bit::Bitvector::get(unsigned long)
-        // const(unsigned long) file:genesis/utils/bit/bitvector.hpp line:236
+        // const(unsigned long) file:genesis/utils/bit/bitvector.hpp line:237
         cl.def(
             "get",
             ( bool( genesis::utils::bit::Bitvector::* )( unsigned long ) const ) &
@@ -114,7 +117,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "index" )
         );
         // function-signature: void genesis::utils::bit::Bitvector::set(unsigned long)(unsigned
-        // long) file:genesis/utils/bit/bitvector.hpp line:253
+        // long) file:genesis/utils/bit/bitvector.hpp line:254
         cl.def(
             "set",
             ( void( genesis::utils::bit::Bitvector::* )( unsigned long ) ) &
@@ -124,7 +127,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "index" )
         );
         // function-signature: void genesis::utils::bit::Bitvector::set(unsigned long,
-        // bool)(unsigned long, bool) file:genesis/utils/bit/bitvector.hpp line:270
+        // bool)(unsigned long, bool) file:genesis/utils/bit/bitvector.hpp line:271
         cl.def(
             "set",
             ( void( genesis::utils::bit::Bitvector::* )( unsigned long, bool ) ) &
@@ -135,7 +138,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "value" )
         );
         // function-signature: void genesis::utils::bit::Bitvector::unset(unsigned long)(unsigned
-        // long) file:genesis/utils/bit/bitvector.hpp line:282
+        // long) file:genesis/utils/bit/bitvector.hpp line:283
         cl.def(
             "unset",
             ( void( genesis::utils::bit::Bitvector::* )( unsigned long ) ) &
@@ -146,7 +149,7 @@ void bind_genesis_utils_bit_bitvector(
         );
         // function-signature: void genesis::utils::bit::Bitvector::set_range(unsigned long,
         // unsigned long, bool)(unsigned long, unsigned long, bool)
-        // file:genesis/utils/bit/bitvector.hpp line:311
+        // file:genesis/utils/bit/bitvector.hpp line:312
         cl.def(
             "set_range",
             []( genesis::utils::bit::Bitvector& o, unsigned long const& a0, unsigned long const& a1
@@ -172,7 +175,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "value" )
         );
         // function-signature: void genesis::utils::bit::Bitvector::set_all(bool)(bool)
-        // file:genesis/utils/bit/bitvector.hpp line:316
+        // file:genesis/utils/bit/bitvector.hpp line:317
         cl.def(
             "set_all",
             ( void( genesis::utils::bit::Bitvector::* )( bool ) ) &
@@ -182,7 +185,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "value" )
         );
         // function-signature: void genesis::utils::bit::Bitvector::flip(unsigned long)(unsigned
-        // long) file:genesis/utils/bit/bitvector.hpp line:321
+        // long) file:genesis/utils/bit/bitvector.hpp line:322
         cl.def(
             "flip",
             ( void( genesis::utils::bit::Bitvector::* )( unsigned long ) ) &
@@ -192,7 +195,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "index" )
         );
         // function-signature: void genesis::utils::bit::Bitvector::toggle(unsigned long)(unsigned
-        // long) file:genesis/utils/bit/bitvector.hpp line:338
+        // long) file:genesis/utils/bit/bitvector.hpp line:339
         cl.def(
             "toggle",
             ( void( genesis::utils::bit::Bitvector::* )( unsigned long ) ) &
@@ -202,7 +205,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::arg( "index" )
         );
         // function-signature: void genesis::utils::bit::Bitvector::negate()()
-        // file:genesis/utils/bit/bitvector.hpp line:346
+        // file:genesis/utils/bit/bitvector.hpp line:347
         cl.def(
             "negate",
             ( void( genesis::utils::bit::Bitvector::* )() ) &
@@ -211,7 +214,7 @@ void bind_genesis_utils_bit_bitvector(
             "--> void"
         );
         // function-signature: void genesis::utils::bit::Bitvector::invert()()
-        // file:genesis/utils/bit/bitvector.hpp line:351
+        // file:genesis/utils/bit/bitvector.hpp line:352
         cl.def(
             "invert",
             ( void( genesis::utils::bit::Bitvector::* )() ) &
@@ -220,7 +223,7 @@ void bind_genesis_utils_bit_bitvector(
             "--> void"
         );
         // function-signature: bool genesis::utils::bit::Bitvector::empty() const()
-        // file:genesis/utils/bit/bitvector.hpp line:364
+        // file:genesis/utils/bit/bitvector.hpp line:365
         cl.def(
             "empty",
             ( bool( genesis::utils::bit::Bitvector::* )() const ) &
@@ -231,7 +234,7 @@ void bind_genesis_utils_bit_bitvector(
             "(`true`).\n\nC++: genesis::utils::bit::Bitvector::empty() const --> bool"
         );
         // function-signature: unsigned long genesis::utils::bit::Bitvector::size() const()
-        // file:genesis/utils/bit/bitvector.hpp line:372
+        // file:genesis/utils/bit/bitvector.hpp line:373
         cl.def(
             "size",
             ( unsigned long ( genesis::utils::bit::Bitvector::* )() const ) &
@@ -240,7 +243,7 @@ void bind_genesis_utils_bit_bitvector(
             "genesis::utils::bit::Bitvector::size() const --> unsigned long"
         );
         // function-signature: class std::vector<unsigned long> &
-        // genesis::utils::bit::Bitvector::data()() file:genesis/utils/bit/bitvector.hpp line:402
+        // genesis::utils::bit::Bitvector::data()() file:genesis/utils/bit/bitvector.hpp line:403
         cl.def(
             "data",
             ( class std::vector<unsigned long> & (genesis::utils::bit::Bitvector::*)() ) &
@@ -260,7 +263,7 @@ void bind_genesis_utils_bit_bitvector(
             pybind11::return_value_policy::reference_internal
         );
         // function-signature: void genesis::utils::bit::Bitvector::unset_padding_bits()()
-        // file:genesis/utils/bit/bitvector.hpp line:418
+        // file:genesis/utils/bit/bitvector.hpp line:419
         cl.def(
             "unset_padding_bits",
             ( void( genesis::utils::bit::Bitvector::* )() ) &
@@ -275,7 +278,7 @@ void bind_genesis_utils_bit_bitvector(
             "genesis::utils::bit::Bitvector::unset_padding_bits() --> void"
         );
         // function-signature: unsigned long genesis::utils::bit::Bitvector::get_padding_mask()
-        // const() file:genesis/utils/bit/bitvector.hpp line:427
+        // const() file:genesis/utils/bit/bitvector.hpp line:428
         cl.def(
             "get_padding_mask",
             ( unsigned long ( genesis::utils::bit::Bitvector::* )() const ) &
@@ -288,7 +291,7 @@ void bind_genesis_utils_bit_bitvector(
         );
         // function-signature: unsigned long
         // genesis::utils::bit::Bitvector::get_vector_size(unsigned long)(unsigned long)
-        // file:genesis/utils/bit/bitvector.hpp line:434
+        // file:genesis/utils/bit/bitvector.hpp line:435
         cl.def_static(
             "get_vector_size",
             ( unsigned long ( * )( unsigned long ) ) &
@@ -302,7 +305,7 @@ void bind_genesis_utils_bit_bitvector(
         // function-signature: class genesis::utils::bit::Bitvector &
         // genesis::utils::bit::Bitvector::operator&=(const class genesis::utils::bit::Bitvector
         // &)(const class genesis::utils::bit::Bitvector &) file:genesis/utils/bit/bitvector.hpp
-        // line:443
+        // line:444
         cl.def(
             "__iand__",
             ( class genesis::utils::bit::Bitvector &
@@ -316,7 +319,7 @@ void bind_genesis_utils_bit_bitvector(
         // function-signature: class genesis::utils::bit::Bitvector &
         // genesis::utils::bit::Bitvector::operator|=(const class genesis::utils::bit::Bitvector
         // &)(const class genesis::utils::bit::Bitvector &) file:genesis/utils/bit/bitvector.hpp
-        // line:444
+        // line:445
         cl.def(
             "__ior__",
             ( class genesis::utils::bit::Bitvector &
@@ -330,7 +333,7 @@ void bind_genesis_utils_bit_bitvector(
         // function-signature: class genesis::utils::bit::Bitvector &
         // genesis::utils::bit::Bitvector::operator^=(const class genesis::utils::bit::Bitvector
         // &)(const class genesis::utils::bit::Bitvector &) file:genesis/utils/bit/bitvector.hpp
-        // line:445
+        // line:446
         cl.def(
             "__ixor__",
             ( class genesis::utils::bit::Bitvector &
@@ -343,7 +346,7 @@ void bind_genesis_utils_bit_bitvector(
         );
         // function-signature: class genesis::utils::bit::Bitvector
         // genesis::utils::bit::Bitvector::operator~() const() file:genesis/utils/bit/bitvector.hpp
-        // line:446
+        // line:447
         cl.def(
             "__invert__",
             ( class genesis::utils::bit::Bitvector( genesis::utils::bit::Bitvector::* )() const ) &
@@ -353,7 +356,7 @@ void bind_genesis_utils_bit_bitvector(
         );
         // function-signature: bool genesis::utils::bit::Bitvector::operator==(const class
         // genesis::utils::bit::Bitvector &) const(const class genesis::utils::bit::Bitvector &)
-        // file:genesis/utils/bit/bitvector.hpp line:452
+        // file:genesis/utils/bit/bitvector.hpp line:453
         cl.def(
             "__eq__",
             ( bool( genesis::utils::bit::Bitvector::* )( const class genesis::utils::bit::
@@ -365,7 +368,7 @@ void bind_genesis_utils_bit_bitvector(
         );
         // function-signature: bool genesis::utils::bit::Bitvector::operator!=(const class
         // genesis::utils::bit::Bitvector &) const(const class genesis::utils::bit::Bitvector &)
-        // file:genesis/utils/bit/bitvector.hpp line:453
+        // file:genesis/utils/bit/bitvector.hpp line:454
         cl.def(
             "__ne__",
             ( bool( genesis::utils::bit::Bitvector::* )( const class genesis::utils::bit::

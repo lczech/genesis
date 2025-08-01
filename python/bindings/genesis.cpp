@@ -45,6 +45,12 @@ void bind_genesis_utils_io_base_output_target(
 void bind_genesis_utils_bit_bitvector_operators(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
+void bind_genesis_utils_bit_twobit_vector(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_bit_twobit_vector_iterator_deletions(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
 void bind_genesis_utils_text_char(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
@@ -168,6 +174,8 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_io_gzip( M );
     bind_genesis_utils_io_base_output_target( M );
     bind_genesis_utils_bit_bitvector_operators( M );
+    bind_genesis_utils_bit_twobit_vector( M );
+    bind_genesis_utils_bit_twobit_vector_iterator_deletions( M );
     bind_genesis_utils_text_char( M );
     bind_genesis_utils_text_string( M );
     bind_genesis_utils_text_string_1( M );

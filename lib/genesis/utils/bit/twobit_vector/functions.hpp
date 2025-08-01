@@ -43,13 +43,44 @@ namespace bit {
 //     Strings
 // =================================================================================================
 
+/**
+ * @brief Translate a char into TwobitVector::ValueType.
+ *
+ * Valid chars are `A`, `C`, `G`, `T`, and their lower case variants.
+ */
 TwobitVector::ValueType translate_from_nucleic_acid( char site );
-char                    translate_to_nucleic_acid( TwobitVector::ValueType value );
 
+/**
+ * @brief Translate a TwobitVector::ValueType into its char representation.
+ *
+ * This gives one of the values `A`, `C`, `G` and `T`.
+ */
+char translate_to_nucleic_acid( TwobitVector::ValueType value );
+
+/**
+ * @brief Turn a string of nucleic acids into a TwobitVector.
+ */
 TwobitVector from_nucleic_acids( std::string const& sequence );
+
+/**
+ * @brief Turn a TwobitVector into its string representation of nucleic acids.
+ */
 std::string to_nucleic_acids( TwobitVector const& vec );
 
+/**
+ * @brief Return a string with a bit-representation of a TwobitVector.
+ *
+ * It returns the words of the vector with bits in the order of the underlying integer type.
+ * This is mainly useful for debugging and testing.
+ */
 std::string bitstring( TwobitVector const& vec );
+
+/**
+ * @brief Return a string with a bit-representation of a TwobitVector::WordType.
+ *
+ * It returns the word with bits in the order of the underlying integer type.
+ * This is mainly useful for debugging and testing.
+ */
 std::string bitstring( TwobitVector::WordType const& vec );
 
 } // namespace bit

@@ -47,7 +47,14 @@ namespace bit {
 // =================================================================================================
 
 /**
- * @brief Take a TwobitVector sequence and iterate over all possible deletions of its values.
+ * @brief Take a TwobitVector sequence and iterate over all possible single-position deletions
+ * of its characters.
+ *
+ * In each step, this iterator yields a TwobitVector with a single deletion compared to the
+ * original, iterating through all positions in the sequence.
+ *
+ * Use iterate_deletions() to obtain instances of this class that can be used in a range-based
+ * for loop for convenience.
  */
 class IteratorDeletions
 {
@@ -218,6 +225,11 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
+/**
+ * @brief Range to loop over the deletions in a TwobitVector.
+ *
+ * See IteratorDeletions for details.
+ */
 inline genesis::utils::containers::Range< IteratorDeletions > iterate_deletions( TwobitVector const& vector )
 {
     return {

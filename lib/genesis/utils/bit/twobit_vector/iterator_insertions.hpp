@@ -46,6 +46,33 @@ namespace bit {
 //     Iterator Insertions
 // =================================================================================================
 
+
+/**
+ * @brief Take a TwobitVector sequence and iterate over all possible single-position insertions
+ * into the sequence.
+ *
+ * In each step, this iterator yields a TwobitVector with a single insertion compared to the
+ * original, iterating through all positions in the sequence, and through all four possible
+ * insertions at that position.
+ *
+ * Example:
+ *
+ *     Original:
+ *     CAT
+ *
+ *     Iterations:
+ *     ACAT, CCAT, GCAT, TCAT,  // insert in front
+ *     CAAT, CCAT, CGAT, CTAT,  // insert after first character
+ *     CAAT, CACT, CAGT, CATT,  // insert after second character
+ *     CATA, CATC, CATG, CATT   // insert after third character
+ *
+ * Note that this does not filter out duplicates that can occur due to repeated characters in the
+ * sequence. If this needs to be avoided, either a downstream filter (such as a hashmap) needs to
+ * be used, or the algorithm used here needs to be adapted.
+ *
+ * Use iterate_insertions() to obtain instances of this class that can be used in a range-based
+ * for loop for convenience.
+ */
 class IteratorInsertions
 {
 
@@ -247,6 +274,11 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
+/**
+ * @brief Range to loop over the insertions in a TwobitVector.
+ *
+ * See IteratorInsertions for details.
+ */
 inline genesis::utils::containers::Range< IteratorInsertions > iterate_insertions( TwobitVector const& vector )
 {
     return {

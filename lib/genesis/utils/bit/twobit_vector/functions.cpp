@@ -42,11 +42,6 @@ namespace bit {
 //     Strings
 // =================================================================================================
 
-/**
- * @brief Translate a char into TwobitVector::ValueType.
- *
- * Valid chars are `A`, `C`, `G`, `T`, and their lower case variants.
- */
 TwobitVector::ValueType translate_from_nucleic_acid( char site )
 {
     switch( site ) {
@@ -71,11 +66,6 @@ TwobitVector::ValueType translate_from_nucleic_acid( char site )
     }
 }
 
-/**
- * @brief Translate a TwobitVector::ValueType into its char representation.
- *
- * This gives one of the values `A`, `C`, `G` and `T`.
- */
 char translate_to_nucleic_acid( TwobitVector::ValueType value )
 {
     switch( value ) {
@@ -88,9 +78,6 @@ char translate_to_nucleic_acid( TwobitVector::ValueType value )
     }
 }
 
-/**
- * @brief Turn a string of nucleic acids into a TwobitVector.
- */
 TwobitVector from_nucleic_acids( std::string const& sequence )
 {
     // We set each value individually.
@@ -102,9 +89,6 @@ TwobitVector from_nucleic_acids( std::string const& sequence )
     return result;
 }
 
-/**
- * @brief Turn a TwobitVector into its string representation of nucleic acids.
- */
 std::string to_nucleic_acids( TwobitVector const& vec )
 {
     std::string result;
@@ -116,12 +100,6 @@ std::string to_nucleic_acids( TwobitVector const& vec )
     return result;
 }
 
-/**
- * @brief Return a string with a bit-representation of a TwobitVector.
- *
- * It returns the words of the vector with bits in the order of the underlying integer type.
- * This is mainly useful for debugging and testing.
- */
 std::string bitstring( TwobitVector const& vec )
 {
     // Put each word on a new line.
@@ -132,12 +110,6 @@ std::string bitstring( TwobitVector const& vec )
     return res;
 }
 
-/**
- * @brief Return a string with a bit-representation of a TwobitVector::WordType.
- *
- * It returns the word with bits in the order of the underlying integer type.
- * This is mainly useful for debugging and testing.
- */
 std::string bitstring( TwobitVector::WordType const& vec )
 {
     // This is an ugly quick hack function. Would be nicer to use bitmasks, but they are hidden
