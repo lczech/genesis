@@ -42,13 +42,27 @@
 #include <string>
 #include <vector>
 
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
 namespace genesis {
 namespace utils {
-namespace bit {
+namespace io {
+
+class Deserializer;
+
+} // namespace io
+} // namespace utils
+} // namespace genesis
 
 // =================================================================================================
 //     Bitvector
 // =================================================================================================
+
+namespace genesis {
+namespace utils {
+namespace bit {
 
 class Bitvector
 {
@@ -377,8 +391,9 @@ public:
      * This is meant to allow external functions such as serialization/deserialization to access
      * the underlying data. It is hence important that any function uses this data with care,
      * and does not break the assumptions and invariants expected in the bitvector. In particular,
-     * the size of the data returned here needs to match the number of bits of the bitvector,
-     * plus the needed padding to get to a full word size, and any padding bits shall be 0.
+     * the size of the used data returned here needs to match the number of bits of the bitvector
+     * via the size() function, plus the needed padding to get to a full word size, and any padding
+     * bits shall be 0.
      *
      * We do not allow for resizing an existing instance. Similarly, we hence recommend to not
      * change the size of the data from the outside, and always call unset_padding_bits() should
@@ -437,9 +452,16 @@ public:
     bool operator == (const Bitvector &other) const;
     bool operator != (const Bitvector &other) const;
 
+    friend genesis::utils::io::Deserializer& operator>>(
+        genesis::utils::io::Deserializer& deserializer,
+        Bitvector& bv
+    );
+
     // ---------------------------------------------------------
     //     Data Members
     // ---------------------------------------------------------
+
+private:
 
     size_t size_ = 0;
     std::vector<IntType> data_;
