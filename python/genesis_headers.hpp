@@ -501,7 +501,7 @@
 #include <genesis/utils/core/info.hpp>
 #include <genesis/utils/core/logging.hpp>
 #include <genesis/utils/core/options.hpp>
-// #include <genesis/utils/core/resource_logger.hpp>
+#include <genesis/utils/core/resource_logger.hpp>
 #include <genesis/utils/core/std.hpp>
 #include <genesis/utils/core/version.hpp>
 
@@ -546,7 +546,7 @@
 
 #include <genesis/utils/io/base_input_source.hpp>
 #include <genesis/utils/io/base_output_target.hpp>
-// #include <genesis/utils/io/deserializer.hpp>
+#include <genesis/utils/io/deserializer.hpp>
 #include <genesis/utils/io/file_input_source.hpp>
 #include <genesis/utils/io/file_output_target.hpp>
 #include <genesis/utils/io/functions.hpp>
@@ -563,7 +563,7 @@
 #include <genesis/utils/io/output_target.hpp>
 #include <genesis/utils/io/parser.hpp>
 #include <genesis/utils/io/scanner.hpp>
-// #include <genesis/utils/io/serializer.hpp>
+#include <genesis/utils/io/serializer.hpp>
 #include <genesis/utils/io/stream_input_source.hpp>
 #include <genesis/utils/io/stream_output_target.hpp>
 #include <genesis/utils/io/strict_fstream.hpp>

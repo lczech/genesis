@@ -24,22 +24,31 @@ void bind_genesis_utils_core_info_1(
 void bind_genesis_utils_core_options(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
+void bind_genesis_utils_text_char(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_text_string(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_text_string_1(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_text_string_2(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_text_string_3(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
+void bind_genesis_utils_tools_date_time(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
 void bind_genesis_utils_core_version(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_io_base_input_source(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_io_file_input_source(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_io_file_output_target(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_io_output_target(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_text_char(
+void bind_genesis_utils_io_gzip_output_target(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_math_binomial(
@@ -57,18 +66,6 @@ void bind_genesis_utils_math_statistics(
 void bind_genesis_utils_text_base64(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_text_string(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_text_string_1(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_text_string_2(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
-void bind_genesis_utils_text_string_3(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
 void bind_genesis_utils_text_convert(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
@@ -78,7 +75,7 @@ void bind_genesis_utils_text_style(
 void bind_genesis_utils_text_table(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_utils_tools_date_time(
+void bind_genesis_utils_tools_geodesy_geo_coordinate(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
 void bind_genesis_utils_tools_hash_sha1(
@@ -145,25 +142,24 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_utils_core_info( M );
     bind_genesis_utils_core_info_1( M );
     bind_genesis_utils_core_options( M );
+    bind_genesis_utils_text_char( M );
+    bind_genesis_utils_text_string( M );
+    bind_genesis_utils_text_string_1( M );
+    bind_genesis_utils_text_string_2( M );
+    bind_genesis_utils_text_string_3( M );
+    bind_genesis_utils_tools_date_time( M );
     bind_genesis_utils_core_version( M );
     bind_genesis_utils_io_base_input_source( M );
-    bind_genesis_utils_io_file_input_source( M );
-    bind_genesis_utils_io_file_output_target( M );
-    bind_genesis_utils_io_output_target( M );
-    bind_genesis_utils_text_char( M );
+    bind_genesis_utils_io_gzip_output_target( M );
     bind_genesis_utils_math_binomial( M );
     bind_genesis_utils_math_ranking( M );
     bind_genesis_utils_math_moments( M );
     bind_genesis_utils_math_statistics( M );
     bind_genesis_utils_text_base64( M );
-    bind_genesis_utils_text_string( M );
-    bind_genesis_utils_text_string_1( M );
-    bind_genesis_utils_text_string_2( M );
-    bind_genesis_utils_text_string_3( M );
     bind_genesis_utils_text_convert( M );
     bind_genesis_utils_text_style( M );
     bind_genesis_utils_text_table( M );
-    bind_genesis_utils_tools_date_time( M );
+    bind_genesis_utils_tools_geodesy_geo_coordinate( M );
     bind_genesis_utils_tools_hash_sha1( M );
     bind_genesis_utils_tools_hash_sha256( M );
     bind_genesis_utils_tools_tickmarks( M );

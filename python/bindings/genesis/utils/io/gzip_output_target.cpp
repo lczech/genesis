@@ -1,13 +1,17 @@
 #include <genesis/utils/io/base_input_source.hpp>
 #include <genesis/utils/io/base_output_target.hpp>
 #include <genesis/utils/io/functions.hpp>
+#include <genesis/utils/io/gzip_output_target.hpp>
 #include <genesis/utils/io/gzip_stream.hpp>
 #include <genesis/utils/io/input_source_add_ons.hpp>
 #include <genesis/utils/io/output_target.hpp>
 #include <genesis/utils/io/output_target_add_ons.hpp>
+#include <genesis/utils/io/string_output_target.hpp>
+#include <genesis/utils/threading/thread_pool.hpp>
 #include <iterator>
 #include <memory>
 #include <ostream>
+#include <sstream> // __str__
 #include <string>
 #include <vector>
 
@@ -23,10 +27,114 @@ PYBIND11_DECLARE_HOLDER_TYPE( T, T*, false )
 PYBIND11_MAKE_OPAQUE( std::shared_ptr<void> )
 #endif
 
-void bind_genesis_utils_io_output_target(
+void bind_genesis_utils_io_gzip_output_target(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 )
 {
+    { // genesis::utils::io::GzipBlockOutputTarget file:genesis/utils/io/gzip_output_target.hpp
+      // line:193
+        pybind11::class_<
+            genesis::utils::io::GzipBlockOutputTarget,
+            std::shared_ptr<genesis::utils::io::GzipBlockOutputTarget>,
+            genesis::utils::io::BaseOutputTarget>
+            cl( M( "genesis::utils::io" ),
+                "GzipBlockOutputTarget",
+                "Output target for writing byte data to a gzip-compressed target in blocks of gzip "
+                "data.\n\n This output target is a wrapper that takes some other output target\n "
+                "(FileOutputTarget, StringOutputTarget, StreamOutputTarget, etc),\n and compresses "
+                "using the gzip format on the fly while writing to that other target.\n\n Using "
+                "gzip blocks allows us to compress in parallel using multiple threads. By default, "
+                "if no\n `thread_pool` is provided, we use the global pool of "
+                "Options::get().global_thread_pool().\n Furthermore, using gzip blocks should "
+                "allow for downstream indexing and random access into the\n compressed file, "
+                "similar to VCF tabix indexing, although we currently have not tested this.\n See "
+                "the GzipBlockOStream class for details on gzip block compression.\n\n The class "
+                "can be moved, but not copied, because of the internal state that is kept for\n "
+                "compression, and which would mess up the output if copied.\n\n \n "
+                "GzipBlockOStream\n \n\n to_gzip_block_file" );
+    }
+    { // genesis::utils::io::StringOutputTarget file:genesis/utils/io/string_output_target.hpp
+      // line:69
+        pybind11::class_<
+            genesis::utils::io::StringOutputTarget,
+            std::shared_ptr<genesis::utils::io::StringOutputTarget>,
+            genesis::utils::io::BaseOutputTarget>
+            cl( M( "genesis::utils::io" ),
+                "StringOutputTarget",
+                "Output target for writing data to a string.\n\n The target string to write to can "
+                "be specified when constructing this class. In that case,\n it has to stay alive "
+                "for the duration of the data writing process where this class is used.\n "
+                "Internally, the data is buffered in a stringstream, and only written to the "
+                "string\n on destruction of this class.\n\n     std::string target;\n     "
+                "write_output_target( content, to_string( target ));\n     // use target\n\n "
+                "Alternatively, when no target string is specified upon construction, the written "
+                "results can\n be obtained later via the get() method. We use the io::to_string() "
+                "method here, which returns\n a `std::shared_ptr` to the base class "
+                "BaseOutputTarget, so usage is a bit tricky:\n\n     auto target = to_string();\n  "
+                "   write_output_target( content, target );\n     // use "
+                "static_cast<StringOutputTarget*>( target.get() )->get()\n\n See BaseOutputTarget "
+                "for more information on the functionality." );
+        // function-signature: genesis::utils::io::StringOutputTarget::StringOutputTarget()()
+        // file:genesis/utils/io/string_output_target.hpp line:80
+        cl.def( pybind11::init( []() { return new genesis::utils::io::StringOutputTarget(); } ) );
+        // function-signature:
+        // genesis::utils::io::StringOutputTarget::StringOutputTarget(std::string &)(std::string &)
+        // file:genesis/utils/io/string_output_target.hpp line:86
+        cl.def( pybind11::init<std::string&>(), pybind11::arg( "target" ) );
+
+        // function-signature: std::string genesis::utils::io::StringOutputTarget::get() const()
+        // file:genesis/utils/io/string_output_target.hpp line:111
+        cl.def(
+            "get",
+            ( std::string( genesis::utils::io::StringOutputTarget::* )() const ) &
+                genesis::utils::io::StringOutputTarget::get,
+            "Get the string result.\n\nC++: genesis::utils::io::StringOutputTarget::get() const "
+            "--> std::string"
+        );
+    }
+    // genesis::utils::io::to_gzip_file(const std::string &, enum
+    // genesis::utils::io::GzipCompressionLevel) file:genesis/utils/io/output_target.hpp line:154
+    // function-signature: class std::shared_ptr<class genesis::utils::io::BaseOutputTarget>
+    // genesis::utils::io::to_gzip_file(const std::string &, enum
+    // genesis::utils::io::GzipCompressionLevel)(const std::string &, enum
+    // genesis::utils::io::GzipCompressionLevel) file:genesis/utils/io/output_target.hpp line:154
+    M( "genesis::utils::io" )
+        .def(
+            "to_gzip_file",
+            ( class std::shared_ptr<class genesis::utils::io::BaseOutputTarget>( * )(
+                const std::string&, enum genesis::utils::io::GzipCompressionLevel
+            ) ) &
+                genesis::utils::io::to_gzip_file,
+            "Obtain an output target for writing to a gzip-compressed file.\n\n The output target "
+            "returned from this function can be used in the writer classes, e.g.,\n "
+            "placement::JplaceWriter or sequence::FastaWriter.\n\n \n to_file(), this is a wrapper "
+            "that automatically sets GzipCompressionLevel::kDefaultCompression\n\nC++: "
+            "genesis::utils::io::to_gzip_file(const std::string &, enum "
+            "genesis::utils::io::GzipCompressionLevel) --> class std::shared_ptr<class "
+            "genesis::utils::io::BaseOutputTarget>",
+            pybind11::arg( "file_name" ),
+            pybind11::arg( "compression_level" )
+        );
+
+    // genesis::utils::io::to_gzip_file(const std::string &) file:genesis/utils/io/output_target.hpp
+    // line:169 function-signature: class std::shared_ptr<class
+    // genesis::utils::io::BaseOutputTarget> genesis::utils::io::to_gzip_file(const std::string
+    // &)(const std::string &) file:genesis/utils/io/output_target.hpp line:169
+    M( "genesis::utils::io" )
+        .def(
+            "to_gzip_file",
+            ( class std::shared_ptr<
+                class genesis::utils::io::BaseOutputTarget>( * )( const std::string& ) ) &
+                genesis::utils::io::to_gzip_file,
+            "Obtain an output target for writing to a gzip-compressed file.\n\n The output target "
+            "returned from this function can be used in the writer classes, e.g.,\n "
+            "placement::JplaceWriter or sequence::FastaWriter.\n\n \n to_file(), this is a wrapper "
+            "that automatically sets GzipCompressionLevel::kDefaultCompression\n\nC++: "
+            "genesis::utils::io::to_gzip_file(const std::string &) --> class std::shared_ptr<class "
+            "genesis::utils::io::BaseOutputTarget>",
+            pybind11::arg( "file_name" )
+        );
+
     // genesis::utils::io::to_gzip_block_file(const std::string &, enum
     // genesis::utils::io::GzipCompressionLevel, std::size_t, bool)
     // file:genesis/utils/io/output_target.hpp line:236 function-signature: class
