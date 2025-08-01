@@ -46,6 +46,3 @@ class TestGenesisUtilsTextConvert(unittest.TestCase):
             utils.text.convert_to_bool,
             "foo"
         )
-
-if __name__ == '__main__':
-    unittest.main()

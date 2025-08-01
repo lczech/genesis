@@ -182,6 +182,3 @@ class TestGenesisUtilsIoInputGzip(unittest.TestCase):
         raw_data = utils.core.file_read( raw_file )
         zip_data = utils.io.read_input_source( utils.io.from_file( zip_file ))
         self.assertEqual(raw_data, zip_data)
-
-if __name__ == '__main__':
-    unittest.main()

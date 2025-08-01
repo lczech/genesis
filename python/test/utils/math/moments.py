@@ -33,6 +33,3 @@ class TestGenesisUtilsMathMoments(unittest.TestCase):
         self.assertEqual( m.count(), 5 )
         self.assertEqual( m.mean(), 3.0 )
         self.assertEqual( m.variance(), 2.0 )
-
-if __name__ == '__main__':
-    unittest.main()

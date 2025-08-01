@@ -63,6 +63,3 @@ class TestGenesisUtilsMathRanking(unittest.TestCase):
             [ 4.5, 6.0, 8.0, 1.5, 3.0, 4.5, 8.0, 8.0, 1.5 ],
             math.ranking_fractional([ 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 5.0, 5.0, 1.0 ])
         )
-
-if __name__ == '__main__':
-    unittest.main()

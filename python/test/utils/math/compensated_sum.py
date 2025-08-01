@@ -51,6 +51,3 @@ class TestGenesisUtilsMathCompensatedSum(unittest.TestCase):
             # s.add(0.1)
         self.assertEqual( s.get(), 10.0 )
         self.assertEqual( float(s), 10.0 )
-
-if __name__ == '__main__':
-    unittest.main()

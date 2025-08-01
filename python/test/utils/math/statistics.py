@@ -125,6 +125,3 @@ class TestGenesisUtilsMathStatistics(unittest.TestCase):
 
     # def test_median(self):
     #     self.assertAlmostEqual( 1.5,  math.median([ 0, 1, 2, 3 ]))
-
-if __name__ == '__main__':
-    unittest.main()

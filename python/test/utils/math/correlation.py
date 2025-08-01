@@ -51,6 +51,3 @@ class TestGenesisUtilsMathCorrelation(unittest.TestCase):
         self.assertAlmostEqual( ca, 0.466666666666666666 )
         self.assertAlmostEqual( cb, 0.466666666666666666 )
         self.assertAlmostEqual( cc, 0.466666666666666666 )
-
-if __name__ == '__main__':
-    unittest.main()

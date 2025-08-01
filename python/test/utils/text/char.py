@@ -40,6 +40,3 @@ class TestGenesisUtilsTextChar(unittest.TestCase):
             utils.text.char_to_hex,
             "string"
         )
-
-if __name__ == '__main__':
-    unittest.main()

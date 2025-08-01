@@ -316,6 +316,3 @@ class TestGenesisUtilsIoOutputGzip(unittest.TestCase):
         # Clean up the tmp file
         if os.path.isfile(tmp_name):
             os.remove(tmp_name)
-
-if __name__ == '__main__':
-    unittest.main()

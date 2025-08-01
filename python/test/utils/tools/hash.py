@@ -66,6 +66,3 @@ class TestGenesisUtilsHash(unittest.TestCase):
             utils.HashingFunctions.kSHA256
         )
         self.assertEqual( hash, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" )
-
-if __name__ == '__main__':
-    unittest.main()
