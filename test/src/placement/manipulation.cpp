@@ -45,12 +45,12 @@
 #include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
 using namespace genesis::tree;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 // =================================================================================================
 //     Reroot
@@ -89,7 +89,7 @@ static void TestPlacementReroot(
     }
 
     // Check if the edge_nums reordering outcome is correct.
-    EXPECT_EQ( check_string, utils::text::trim( result )) << " with start edge " << reroot_edge_id;
+    EXPECT_EQ( check_string, genesis::util::text::trim( result )) << " with start edge " << reroot_edge_id;
 
     // check if proximal lengths were adjusted correctly
     size_t i = 0;

@@ -42,7 +42,7 @@
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 // =================================================================================================
 //     Postorder

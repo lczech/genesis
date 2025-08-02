@@ -34,12 +34,12 @@
 #include "genesis/population/window/function.hpp"
 #include "genesis/population/window/region_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/container/generic_input_stream.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/function.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/random.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
+#include "genesis/util/bit/bitvector.hpp"
+#include "genesis/util/bit/bitvector/function.hpp"
+#include "genesis/util/math/common.hpp"
+#include "genesis/util/math/random.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <cassert>
 #include <ctime>
@@ -50,11 +50,11 @@
 #include <vector>
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::bit;
-using namespace genesis::utils::core;
-using namespace genesis::utils::math;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::bit;
+using namespace genesis::util::core;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 // -------------------------------------------------------------------------
 //     Run test case
@@ -567,7 +567,7 @@ TEST( WindowStream, RegionWindowStream )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     // We have 2^9 = 512 possible combinations of variants, and the same for regions.
     // So we want at least that many tests, to have (on average across test runs) a good enough

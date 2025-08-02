@@ -31,8 +31,8 @@
  * @ingroup tree
  */
 
-#include <genesis/utils/color/color.hpp>
-#include <genesis/utils/color/function.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/function.hpp>
 
 #include <vector>
 
@@ -104,7 +104,7 @@ public:
      * If this function is called with an empty vector, the color printing is reset to not
      * print the edge colors that might have been set before.
      */
-    void edge_colors( std::vector<genesis::utils::color::Color> const& color_vector )
+    void edge_colors( std::vector<genesis::util::color::Color> const& color_vector )
     {
         edge_colors_ = color_vector;
     }
@@ -112,7 +112,7 @@ public:
     /**
      * @brief Return the edge colors that are currently set.
      */
-    std::vector<genesis::utils::color::Color> const& edge_colors() const
+    std::vector<genesis::util::color::Color> const& edge_colors() const
     {
         return edge_colors_;
     }
@@ -143,7 +143,7 @@ public:
      * By default, we do not use an ignored color. If this function is called (which sets a color),
      * also use_ignored_color() is set to `true`, so that the color is actually used.
      */
-    void ignored_color( genesis::utils::color::Color value )
+    void ignored_color( genesis::util::color::Color value )
     {
         ignored_color_ = value;
         use_ignored_color_ = true;
@@ -152,7 +152,7 @@ public:
     /**
      * @brief Return the currently set ignored color. See the setter for more information.
      */
-    genesis::utils::color::Color ignored_color() const
+    genesis::util::color::Color ignored_color() const
     {
         return ignored_color_;
     }
@@ -182,9 +182,9 @@ public:
 
 private:
 
-    std::vector<genesis::utils::color::Color> edge_colors_;
+    std::vector<genesis::util::color::Color> edge_colors_;
     bool                      enable_color_  = true;
-    genesis::utils::color::Color              ignored_color_ = genesis::utils::color::Color(0, 0, 0);
+    genesis::util::color::Color              ignored_color_ = genesis::util::color::Color(0, 0, 0);
     bool                      use_ignored_color_ = false;
 
 };

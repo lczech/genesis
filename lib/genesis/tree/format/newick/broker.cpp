@@ -34,7 +34,7 @@
 #include <cassert>
 #include <string>
 
-#include <genesis/utils/core/logging.hpp>
+#include <genesis/util/core/logging.hpp>
 
 namespace genesis {
 namespace tree {

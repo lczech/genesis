@@ -32,7 +32,7 @@
  */
 
 #include <genesis/tree/tree.hpp>
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 #include <vector>
 #include <unordered_set>
@@ -194,7 +194,7 @@ struct BalanceData
      * In order to get the absolute masses without taxon weighing, and without normalization,
      * see #raw_edge_masses.
      */
-    genesis::utils::containers::Matrix<double> edge_masses;
+    genesis::util::container::Matrix<double> edge_masses;
 
     /**
      * @brief The absolute raw per-edge masses per original input Tree.
@@ -210,7 +210,7 @@ struct BalanceData
      * In order to get the final edge masses that are used in the balances computation,
      * see #edge_masses.
      */
-    genesis::utils::containers::Matrix<double> raw_edge_masses;
+    genesis::util::container::Matrix<double> raw_edge_masses;
 
     /**
      * @brief The taxon/edge weights calculated from mulitple trees.

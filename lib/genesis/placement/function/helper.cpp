@@ -35,7 +35,7 @@
 #include <genesis/placement/pquery/plain.hpp>
 #include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/iterator/postorder.hpp>
-#include <genesis/utils/core/logging.hpp>
+#include <genesis/util/core/logging.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -164,7 +164,7 @@ std::vector<size_t> placement_count_per_edge( Sample const& sample )
     return result;
 }
 
-genesis::utils::containers::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set )
+genesis::util::container::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set )
 {
     // Basics.
     auto const set_size = sample_set.size();
@@ -173,7 +173,7 @@ genesis::utils::containers::Matrix<size_t> placement_count_per_edge( SampleSet c
     }
 
     // Init matrix.
-    auto result = genesis::utils::containers::Matrix<size_t>( set_size, sample_set[ 0 ].tree().edge_count(), 0 );
+    auto result = genesis::util::container::Matrix<size_t>( set_size, sample_set[ 0 ].tree().edge_count(), 0 );
 
     // Fill matrix.
     for( size_t i = 0; i < set_size; ++i ) {

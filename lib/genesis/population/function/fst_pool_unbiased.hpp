@@ -40,10 +40,10 @@
 #include <genesis/population/function/window_average.hpp>
 #include <genesis/population/genome_locus_set.hpp>
 #include <genesis/population/window/base_window.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/compensated_sum.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/compensated_sum.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -144,7 +144,7 @@ private:
 
     void process_( SampleCounts const& smp1, SampleCounts const& smp2 ) override
     {
-        using namespace genesis::utils::math;
+        using namespace genesis::util::math;
 
         // Helper function for the two components of pi within
         auto pi_within_partial_ = [](
@@ -435,9 +435,9 @@ private:
     SampleCountsFilterStats sample_filter_stats_b_;
 
     // Sums over the window of pi within for both pools, and pi between them.
-    genesis::utils::math::NeumaierSum pi_w_smp1_sum_ = 0.0;
-    genesis::utils::math::NeumaierSum pi_w_smp2_sum_ = 0.0;
-    genesis::utils::math::NeumaierSum pi_b_sum_    = 0.0;
+    genesis::util::math::NeumaierSum pi_w_smp1_sum_ = 0.0;
+    genesis::util::math::NeumaierSum pi_w_smp2_sum_ = 0.0;
+    genesis::util::math::NeumaierSum pi_b_sum_    = 0.0;
 
 };
 
@@ -464,7 +464,7 @@ inline std::string fst_pool_unbiased_estimator_to_string(
 inline FstPoolCalculatorUnbiased::Estimator fst_pool_unbiased_estimator_from_string(
     std::string const& str
 ) {
-    auto const low = genesis::utils::text::to_lower( str );
+    auto const low = genesis::util::text::to_lower( str );
     if( low == "nei" ) {
         return FstPoolCalculatorUnbiased::Estimator::kNei;
     }

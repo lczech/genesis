@@ -35,8 +35,8 @@
 #include <genesis/tree/format/newick/element.hpp>
 #include <genesis/tree/format/newick/writer.hpp>
 #include <genesis/tree/function/function.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/text/string.hpp>
 
 namespace genesis {
 namespace tree {
@@ -284,7 +284,7 @@ public:
                         c = '_';
                     }
                 }
-                // name = genesis::utils::text::replace_all(name, " ", "_");
+                // name = genesis::util::text::replace_all(name, " ", "_");
             }
 
             // Filter out default names if needed.
@@ -304,7 +304,7 @@ public:
     {
         if (enable_branch_lengths_) {
             auto const& edge_data = edge.data<CommonEdgeData>();
-            auto bl = genesis::utils::text::to_string_rounded( edge_data.branch_length, branch_length_precision_ );
+            auto bl = genesis::util::text::to_string_rounded( edge_data.branch_length, branch_length_precision_ );
             element.values.insert (element.values.begin(), bl );
         }
     }

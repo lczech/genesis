@@ -34,13 +34,13 @@
 #include <genesis/population/filter/variant_filter.hpp>
 #include <genesis/population/function/function.hpp>
 #include <genesis/sequence/function/code.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/io/parser.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/convert.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -83,7 +83,7 @@ void FrequencyTableInputStream::Iterator::parse_header_()
     assert( parent_ );
 
     // Get a vector of each field in the header line.
-    auto const header_fields = genesis::utils::text::split(
+    auto const header_fields = genesis::util::text::split(
         input_stream_->get_line(), parent_->separator_char_, false
     );
 
@@ -97,7 +97,7 @@ void FrequencyTableInputStream::Iterator::parse_header_()
     // to be going to be slower.
     for( auto const& field : header_fields ) {
         // Safety.
-        if( field.empty() || ! std::all_of( field.begin(), field.end(), genesis::utils::text::is_graph )) {
+        if( field.empty() || ! std::all_of( field.begin(), field.end(), genesis::util::text::is_graph )) {
             throw std::runtime_error(
                 "Invalid frequency table with non-graph characters or empty field in header."
             );
@@ -254,9 +254,9 @@ void FrequencyTableInputStream::Iterator::parse_header_field_(
         auto cur_var = current_variant_;
         auto const sep_char = parent_->separator_char_;
         column_processors_.push_back(
-            [cur_var, sep_char]( genesis::utils::io::InputStream& it )
+            [cur_var, sep_char]( genesis::util::io::InputStream& it )
             {
-                genesis::utils::io::skip_until(
+                genesis::util::io::skip_until(
                     it, [sep_char]( char c ){
                         return c == '\n' || c == sep_char;
                     }
@@ -307,11 +307,11 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_chr_(
     auto const sep_char = parent_->separator_char_;
 
     // Add processing function that will be used for parsing values of this column.
-    column_processors_.push_back( [cur_var, sep_char]( genesis::utils::io::InputStream& it ){
+    column_processors_.push_back( [cur_var, sep_char]( genesis::util::io::InputStream& it ){
         // Read the chromosome name, and check its validity.
-        cur_var->chromosome = genesis::utils::io::read_until(
+        cur_var->chromosome = genesis::util::io::read_until(
             it, [sep_char]( char c ){
-                return ! genesis::utils::text::is_graph( c ) || c == '\n' || c == sep_char;
+                return ! genesis::util::text::is_graph( c ) || c == '\n' || c == sep_char;
             }
         );
         if( cur_var->chromosome.empty() ) {
@@ -348,8 +348,8 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_pos_(
     }
     header_info_.has_pos = true;
     auto cur_var = current_variant_;
-    column_processors_.push_back( [cur_var]( genesis::utils::io::InputStream& it ){
-        cur_var->position = genesis::utils::io::parse_unsigned_integer<size_t>( it );
+    column_processors_.push_back( [cur_var]( genesis::util::io::InputStream& it ){
+        cur_var->position = genesis::util::io::parse_unsigned_integer<size_t>( it );
         if( cur_var->position == 0 ) {
             throw std::runtime_error(
                 "Malformed frequency table with position == 0 in line " + it.at()
@@ -382,10 +382,10 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_ref_(
     }
     header_info_.has_ref = true;
     auto cur_var = current_variant_;
-    column_processors_.push_back( [cur_var]( genesis::utils::io::InputStream& it ){
+    column_processors_.push_back( [cur_var]( genesis::util::io::InputStream& it ){
         // Read the single char base, and check it.
         // This even works when we are at the end of the data already.
-        auto const b = genesis::utils::text::to_upper( *it );
+        auto const b = genesis::util::text::to_upper( *it );
         if( ! is_valid_base_or_n( b )) {
             throw std::runtime_error(
                 "Malformed frequency table with reference base not in [ACGTN] in line " + it.at()
@@ -420,9 +420,9 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_alt_(
     }
     header_info_.has_alt = true;
     auto cur_var = current_variant_;
-    column_processors_.push_back( [cur_var]( genesis::utils::io::InputStream& it ){
+    column_processors_.push_back( [cur_var]( genesis::util::io::InputStream& it ){
         // Same as above for the ref base.
-        auto const b = genesis::utils::text::to_upper( *it );
+        auto const b = genesis::util::text::to_upper( *it );
         if( ! is_valid_base_or_n( b )) {
             throw std::runtime_error(
                 "Malformed frequency table with alternative base not in [ACGTN] in line " + it.at()
@@ -466,11 +466,11 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_ref_(
     if( is_ignored_sample_( samplename )) {
         // Local copy of the parent pointer, so that we can capture it in the lambda in C++11...
         auto parent = parent_;
-        column_processors_.push_back( [parent]( genesis::utils::io::InputStream& it ){
+        column_processors_.push_back( [parent]( genesis::util::io::InputStream& it ){
             // If the filed is missing data, we parse it in the function to check that.
             // If it isn't, we parese it as an int, but discard the value.
             if( ! parse_if_missing_( parent, it ) ) {
-                genesis::utils::io::parse_unsigned_integer<size_t>( it );
+                genesis::util::io::parse_unsigned_integer<size_t>( it );
             }
         });
         return 1;
@@ -498,12 +498,12 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_ref_(
     auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::io::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::util::io::InputStream& it ){
         assert( index < sample_data->size() );
         if( parse_if_missing_( parent, it ) ) {
             sample_data->at(index).is_missing = true;
         } else {
-            sample_data->at(index).ref_cnt = genesis::utils::io::parse_unsigned_integer<size_t>( it );
+            sample_data->at(index).ref_cnt = genesis::util::io::parse_unsigned_integer<size_t>( it );
         }
     });
 
@@ -536,9 +536,9 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_alt_(
     all_samplenames.insert( samplename );
     if( is_ignored_sample_( samplename )) {
         auto parent = parent_;
-        column_processors_.push_back( [parent]( genesis::utils::io::InputStream& it ){
+        column_processors_.push_back( [parent]( genesis::util::io::InputStream& it ){
             if( ! parse_if_missing_( parent, it ) ) {
-                genesis::utils::io::parse_unsigned_integer<size_t>( it );
+                genesis::util::io::parse_unsigned_integer<size_t>( it );
             }
         });
         return 1;
@@ -555,12 +555,12 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_alt_(
     auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::io::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::util::io::InputStream& it ){
         assert( index < sample_data->size() );
         if( parse_if_missing_( parent, it ) ) {
             sample_data->at(index).is_missing = true;
         } else {
-            sample_data->at(index).alt_cnt = genesis::utils::io::parse_unsigned_integer<size_t>( it );
+            sample_data->at(index).alt_cnt = genesis::util::io::parse_unsigned_integer<size_t>( it );
         }
     });
     return 1;
@@ -588,9 +588,9 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_frq_(
     all_samplenames.insert( samplename );
     if( is_ignored_sample_( samplename )) {
         auto parent = parent_;
-        column_processors_.push_back( [parent]( genesis::utils::io::InputStream& it ){
+        column_processors_.push_back( [parent]( genesis::util::io::InputStream& it ){
             if( ! parse_if_missing_( parent, it ) ) {
-                genesis::utils::io::parse_float<double>( it );
+                genesis::util::io::parse_float<double>( it );
             }
         });
         return 1;
@@ -607,12 +607,12 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_frq_(
     auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::io::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::util::io::InputStream& it ){
         assert( index < sample_data->size() );
         if( parse_if_missing_( parent, it ) ) {
             sample_data->at(index).is_missing = true;
         } else {
-            sample_data->at(index).frq = genesis::utils::io::parse_float<double>( it );
+            sample_data->at(index).frq = genesis::util::io::parse_float<double>( it );
         }
     });
     return 1;
@@ -640,9 +640,9 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_cov_(
     all_samplenames.insert( samplename );
     if( is_ignored_sample_( samplename )) {
         auto parent = parent_;
-        column_processors_.push_back( [parent]( genesis::utils::io::InputStream& it ){
+        column_processors_.push_back( [parent]( genesis::util::io::InputStream& it ){
             if( ! parse_if_missing_( parent, it ) ) {
-                genesis::utils::io::parse_unsigned_integer<size_t>( it );
+                genesis::util::io::parse_unsigned_integer<size_t>( it );
             }
         });
         return 1;
@@ -659,12 +659,12 @@ int FrequencyTableInputStream::Iterator::evaluate_if_field_is_sample_cov_(
     auto parent = parent_;
     auto sample_data = sample_data_;
     auto index = sample_info.index;
-    column_processors_.push_back( [parent, sample_data, index]( genesis::utils::io::InputStream& it ){
+    column_processors_.push_back( [parent, sample_data, index]( genesis::util::io::InputStream& it ){
         assert( index < sample_data->size() );
         if( parse_if_missing_( parent, it ) ) {
             sample_data->at(index).is_missing = true;
         } else {
-            sample_data->at(index).cov = genesis::utils::io::parse_unsigned_integer<size_t>( it );
+            sample_data->at(index).cov = genesis::util::io::parse_unsigned_integer<size_t>( it );
         }
     });
     return 1;
@@ -710,7 +710,7 @@ bool FrequencyTableInputStream::Iterator::is_ignored_sample_(
 
 bool FrequencyTableInputStream::Iterator::parse_if_missing_(
     FrequencyTableInputStream const* parent,
-    genesis::utils::io::InputStream& input_stream
+    genesis::util::io::InputStream& input_stream
 ) {
     auto const buffer = input_stream.buffer();
 
@@ -773,7 +773,7 @@ bool FrequencyTableInputStream::Iterator::match_header_field_(
     if( ! user_string.empty() ) {
         return field == user_string;
     }
-    return genesis::utils::text::contains_ci_alnum( predefined_list, field );
+    return genesis::util::text::contains_ci_alnum( predefined_list, field );
 }
 
 bool FrequencyTableInputStream::Iterator::match_header_sample_(
@@ -848,13 +848,13 @@ bool FrequencyTableInputStream::Iterator::match_header_sample_user_partial_(
     // Check for exact prefix or suffix matches, and also require that there needs to be
     // a remainder to be used as sample name, i.e., that not the whole substring matches.
     if(
-        genesis::utils::text::starts_with( field, substring, samplename ) &&
+        genesis::util::text::starts_with( field, substring, samplename ) &&
         ! samplename.empty()
     ) {
         return true;
     }
     if(
-        genesis::utils::text::ends_with( field, substring, samplename ) &&
+        genesis::util::text::ends_with( field, substring, samplename ) &&
         ! samplename.empty()
     ) {
         return true;
@@ -871,13 +871,13 @@ bool FrequencyTableInputStream::Iterator::match_header_sample_predefined_partial
     // that there needs to be a remainder to be used as sample name, i.e., that not the whole
     // substring matches.
     if(
-        genesis::utils::text::starts_with_ci_alnum( field, substring, samplename, true ) &&
+        genesis::util::text::starts_with_ci_alnum( field, substring, samplename, true ) &&
         ! samplename.empty()
     ) {
         return true;
     }
     if(
-        genesis::utils::text::ends_with_ci_alnum( field, substring, samplename, true ) &&
+        genesis::util::text::ends_with_ci_alnum( field, substring, samplename, true ) &&
         ! samplename.empty()
     ) {
         return true;
@@ -895,7 +895,7 @@ bool FrequencyTableInputStream::Iterator::match_header_sample_predefined_partial
 
 void FrequencyTableInputStream::Iterator::increment_()
 {
-    using namespace genesis::utils::text;
+    using namespace genesis::util::text;
     assert( input_stream_ );
     assert( parent_ );
     auto& it = *input_stream_;
@@ -1120,7 +1120,7 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
 
         // Get the frequency, and check if it is within tolerance,
         // and and process it to be within the unit interval.
-        using namespace genesis::utils::math;
+        using namespace genesis::util::math;
         auto frq = sample_data.frq;
         if( frq < 0.0 ) {
             if( ! almost_equal_relative( frq, 0.0, parent_->allowed_rel_freq_error_ )) {
@@ -1192,7 +1192,7 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
         auto const ref = static_cast<double>( ref_cnt );
         auto const alt = static_cast<double>( alt_cnt );
         auto const frq = ( parent_->frequency_is_ref_ ? ref : alt ) / ( ref + alt );
-        if( ! genesis::utils::math::almost_equal_relative(
+        if( ! genesis::util::math::almost_equal_relative(
             frq, sample_data.frq, parent_->allowed_rel_freq_error_
         )) {
             throw std::runtime_error(
@@ -1207,16 +1207,16 @@ void FrequencyTableInputStream::Iterator::process_sample_data_(
 
     // Now store the counts in the sample, using the ref/alt base info if available,
     // or fixed bases if ref and/or alt are not available.
-    char ref_base = genesis::utils::text::to_upper( variant.reference_base );
-    char alt_base = genesis::utils::text::to_upper( variant.alternative_base );
+    char ref_base = genesis::util::text::to_upper( variant.reference_base );
+    char alt_base = genesis::util::text::to_upper( variant.alternative_base );
     assert( is_valid_base_or_n( ref_base ));
     assert( is_valid_base_or_n( alt_base ));
-    if( genesis::utils::text::char_match_ci( ref_base, 'N' )) {
+    if( genesis::util::text::char_match_ci( ref_base, 'N' )) {
         // Neither base is given. We do not change the base assignment of the variant,
         // but we need positions to use for setting the values. Arbitrarily choose A and T.
         ref_base = 'A';
         alt_base = 'T';
-    } else if( genesis::utils::text::char_match_ci( alt_base, 'N' )) {
+    } else if( genesis::util::text::char_match_ci( alt_base, 'N' )) {
         // Only ref base is given. Use its transition base as the most likely alternative.
         assert( is_valid_base( ref_base ));
         alt_base = ::genesis::sequence::nucleic_acid_transition( ref_base );

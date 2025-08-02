@@ -34,8 +34,8 @@
 #include <genesis/tree/common_tree/tree.hpp>
 #include <genesis/tree/format/newick/element.hpp>
 #include <genesis/tree/format/newick/reader.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/text/string.hpp>
 
 namespace genesis {
 namespace tree {
@@ -233,7 +233,7 @@ public:
 
         // Handle underscores/spaces.
         if( replace_name_underscores_ ) {
-            name = genesis::utils::text::replace_all(name, "_", " ");
+            name = genesis::util::text::replace_all(name, "_", " ");
         }
 
         node.data<CommonNodeData>().name = name;

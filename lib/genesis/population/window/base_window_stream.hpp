@@ -32,8 +32,8 @@
  */
 
 #include <genesis/population/window/window.hpp>
-#include <genesis/utils/container/range.hpp>
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/container/range.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <cassert>
 #include <functional>

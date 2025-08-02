@@ -33,8 +33,8 @@
 
 #include <genesis/sequence/sequence.hpp>
 
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -182,7 +182,7 @@ public:
         // Do the same for the first-word form as well. We always compute the label here,
         // even if not used later, so that we can do the check before actually modifying our content.
         // Slightly cleaner that way.
-        auto const label2 = genesis::utils::text::split( entry.name, "\t ", true )[0];
+        auto const label2 = genesis::util::text::split( entry.name, "\t ", true )[0];
         if( also_look_up_first_word && indices_.count( label2 ) > 0 ) {
             throw std::runtime_error(
                 "Cannot add duplicate sequence name \"" + label2 + "\" to SequenceDict, "

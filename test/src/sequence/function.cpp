@@ -40,7 +40,7 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 TEST( SequenceSet, Characteristics )
 {

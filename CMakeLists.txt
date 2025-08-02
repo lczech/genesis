@@ -144,14 +144,14 @@ endif()
 
 # Extract Genesis version from version source file.
 file(
-    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/util/core/version.hpp" GENESIS_VERSION_LINE
     REGEX "^.*#GENESIS_VERSION#.*$"
 )
 if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(v.*)\".*" )
     set(GENESIS_VERSION "${CMAKE_MATCH_1}")
 endif()
 file(
-    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/util/core/version.hpp" GENESIS_VERSION_LINE
     REGEX "^.*#GENESIS_VERSION_NAME#.*$"
 )
 if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(.*)\".*" )

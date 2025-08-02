@@ -35,11 +35,11 @@
 #include <genesis/tree/mass_tree/tree.hpp>
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/container/matrix/operator.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <atomic>
@@ -148,7 +148,7 @@ void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
 double mass_tree_center_masses_on_branches( MassTree& tree )
 {
     double work = 0.0;
-    genesis::utils::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    genesis::util::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
     {
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
 
@@ -174,7 +174,7 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
 double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
 {
     double work = 0.0;
-    genesis::utils::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    genesis::util::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
     {
         auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
 
@@ -238,7 +238,7 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
     };
 
     double work = 0.0;
-    genesis::utils::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    genesis::util::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
     {
 
         // Shorthands.
@@ -302,7 +302,7 @@ void mass_trees_make_average_branch_lengths( std::vector<MassTree>& mass_trees )
     }
 
     // Set branch lengths and ajust masses.
-    genesis::utils::threading::parallel_for_each( mass_trees, [&]( MassTree& tree )
+    genesis::util::threading::parallel_for_each( mass_trees, [&]( MassTree& tree )
     {
         for( size_t edge_idx = 0; edge_idx < tree.edge_count(); ++edge_idx ) {
 
@@ -350,14 +350,14 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
     return result;
 }
 
-genesis::utils::containers::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees )
+genesis::util::container::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees )
 {
     if( mass_trees.empty() || mass_trees[0].empty() ) {
         return {};
     }
 
-    genesis::utils::containers::Matrix<double> result{ mass_trees.size(), mass_trees[0].edge_count(), 0.0 };
-    genesis::utils::threading::parallel_for( 0, mass_trees.size(), [&]( size_t i )
+    genesis::util::container::Matrix<double> result{ mass_trees.size(), mass_trees[0].edge_count(), 0.0 };
+    genesis::util::threading::parallel_for( 0, mass_trees.size(), [&]( size_t i )
     {
         if(  mass_trees[i].edge_count() != result.cols() ) {
             throw std::runtime_error(
@@ -376,7 +376,7 @@ std::vector<std::pair<double, double>> mass_tree_mass_per_edge_averaged( MassTre
     // First value: position. Second value: mass at that position.
     auto result = std::vector<std::pair<double, double>>( tree.edge_count(), { 0.0, 0.0 });
 
-    genesis::utils::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
+    genesis::util::threading::parallel_for( 0, tree.edge_count(), [&]( size_t i )
     {
         auto const& edge = tree.edge_at(i);
         auto const& edge_data = edge.data<MassTreeEdgeData>();

@@ -33,7 +33,7 @@
 #include <genesis/taxonomy/taxonomy.hpp>
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/function/taxonomy.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <sstream>
 
@@ -78,7 +78,7 @@ bool PrinterNested::print_to_ostream_(
     }
 
     // Indent string.
-    auto in = genesis::utils::text::repeat( indent_string_, depth );
+    auto in = genesis::util::text::repeat( indent_string_, depth );
 
     bool finished = true;
     for( auto const& t : tax ) {

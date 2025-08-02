@@ -37,7 +37,7 @@
 #include <genesis/tree/function/tree_set.hpp>
 #include <genesis/tree/iterator/preorder.hpp>
 #include <genesis/tree/tree_set.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <stdexcept>
@@ -89,7 +89,7 @@ TreeNode const* find_node(
 ) {
     auto clean_name = name;
     if (replace_underscores) {
-        clean_name = genesis::utils::text::replace_all(name, "_", " ");
+        clean_name = genesis::util::text::replace_all(name, "_", " ");
     }
 
     // Try to find the node, return immediately on success.

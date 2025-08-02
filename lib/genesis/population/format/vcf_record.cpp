@@ -559,7 +559,7 @@ VcfFormatIteratorGenotype VcfRecord::end_format_genotype() const
     return VcfFormatIteratorGenotype();
 }
 
-genesis::utils::containers::Range<VcfFormatIteratorGenotype> VcfRecord::get_format_genotype() const {
+genesis::util::container::Range<VcfFormatIteratorGenotype> VcfRecord::get_format_genotype() const {
     return {
         VcfFormatIteratorGenotype( header_->data(), record_, "GT", VcfValueType::kInteger ),
         VcfFormatIteratorGenotype()
@@ -576,7 +576,7 @@ VcfFormatIteratorString VcfRecord::end_format_string() const
     return VcfFormatIteratorString();
 }
 
-genesis::utils::containers::Range<VcfFormatIteratorString> VcfRecord::get_format_string(
+genesis::util::container::Range<VcfFormatIteratorString> VcfRecord::get_format_string(
     std::string const& id
 ) const {
     return {
@@ -595,7 +595,7 @@ VcfFormatIteratorInt VcfRecord::end_format_int() const
     return VcfFormatIteratorInt();
 }
 
-genesis::utils::containers::Range<VcfFormatIteratorInt> VcfRecord::get_format_int(
+genesis::util::container::Range<VcfFormatIteratorInt> VcfRecord::get_format_int(
     std::string const& id
 ) const {
     return {
@@ -614,7 +614,7 @@ VcfFormatIteratorFloat VcfRecord::end_format_float() const
     return VcfFormatIteratorFloat();
 }
 
-genesis::utils::containers::Range<VcfFormatIteratorFloat> VcfRecord::get_format_float(
+genesis::util::container::Range<VcfFormatIteratorFloat> VcfRecord::get_format_float(
     std::string const& id
 ) const {
     return {

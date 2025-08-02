@@ -28,4 +28,4 @@
 // For even more order and modularity, we here simply pull in per-namespace
 // headers, so that we can keep the scope of each of them relatively small.
 
-#include <genesis/utils/math/compensated_sum_instances.hpp>
+#include <genesis/util/math/compensated_sum_instances.hpp>

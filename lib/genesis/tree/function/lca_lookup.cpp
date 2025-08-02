@@ -92,7 +92,7 @@ void LcaLookup::init_( Tree const& tree )
     // Store root, so that tree can be re-rooted outside of this class.
     root_idx_ = tree.root_node().index();
 
-    using RmqIntType = genesis::utils::math::RangeMinimumQuery::IntType;
+    using RmqIntType = genesis::util::math::RangeMinimumQuery::IntType;
 
     // Init vectors.
     std::vector<RmqIntType> eulertour_levels;
@@ -117,7 +117,7 @@ void LcaLookup::init_( Tree const& tree )
             eulertour_first_occurrence_[ node_idx ] = eulertour_order_.size() - 1;
         }
     }
-    eulertour_rmq_ = genesis::utils::math::RangeMinimumQuery( eulertour_levels );
+    eulertour_rmq_ = genesis::util::math::RangeMinimumQuery( eulertour_levels );
 }
 
 size_t LcaLookup::eulertour_query_( size_t i, size_t j ) const

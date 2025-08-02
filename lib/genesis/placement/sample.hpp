@@ -40,7 +40,7 @@
 #include <genesis/placement/placement_tree.hpp>
 #include <genesis/placement/pquery.hpp>
 
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 namespace genesis {
 namespace placement {
@@ -271,14 +271,14 @@ public:
      *
      * This makes iterating Pqueries via a range based for loop easy.
      */
-    genesis::utils::containers::Range<iterator_pqueries>       pqueries();
+    genesis::util::container::Range<iterator_pqueries>       pqueries();
 
     /**
      * @brief Return a const Range iterator to the @link Pquery Pqueries @endlink.
      *
      * This makes iterating Pqueries via a range based for loop easy.
      */
-    genesis::utils::containers::Range<const_iterator_pqueries> pqueries() const;
+    genesis::util::container::Range<const_iterator_pqueries> pqueries() const;
 
     // -------------------------------------------------------------------------
     //     Members

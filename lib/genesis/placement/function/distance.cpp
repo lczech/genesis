@@ -32,8 +32,8 @@
 
 #include <genesis/placement/pquery.hpp>
 #include <genesis/placement/pquery/plain.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -49,14 +49,14 @@ namespace placement {
 double pquery_distance(
     PqueryPlain const&           pquery_a,
     PqueryPlain const&           pquery_b,
-    genesis::utils::containers::Matrix<double> const& node_distances,
+    genesis::util::container::Matrix<double> const& node_distances,
     bool                         with_pendant_length
 ) {
     double sum = 0.0;
 
-    genesis::utils::threading::parallel_for( 0, pquery_a.placements.size(), [&]( size_t pppai ) {
+    genesis::util::threading::parallel_for( 0, pquery_a.placements.size(), [&]( size_t pppai ) {
         auto const& place_a = pquery_a.placements[ pppai ];
-        genesis::utils::threading::parallel_for( 0, pquery_a.placements.size(), [&]( size_t pppbi ) {
+        genesis::util::threading::parallel_for( 0, pquery_a.placements.size(), [&]( size_t pppbi ) {
             auto const& place_b = pquery_b.placements[ pppbi ];
             double dist;
 
@@ -112,9 +112,9 @@ double pquery_distance(
 ) {
     double sum = 0.0;
 
-    genesis::utils::threading::parallel_for( 0, pquery_a.placement_size(), [&]( size_t pai ) {
+    genesis::util::threading::parallel_for( 0, pquery_a.placement_size(), [&]( size_t pai ) {
         auto const& place_a = pquery_a.placement_at( pai );
-        genesis::utils::threading::parallel_for( 0, pquery_b.placement_size(), [&]( size_t pab ) {
+        genesis::util::threading::parallel_for( 0, pquery_b.placement_size(), [&]( size_t pab ) {
             auto const& place_b = pquery_b.placement_at( pab );
             double dist = distance_function( place_a, place_b );
             dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
@@ -131,7 +131,7 @@ double pquery_distance(
 double pquery_distance(
     Pquery const&                pquery_a,
     Pquery const&                pquery_b,
-    genesis::utils::containers::Matrix<double> const& node_distances,
+    genesis::util::container::Matrix<double> const& node_distances,
     bool                         with_pendant_length
 ) {
     return pquery_distance(
@@ -150,7 +150,7 @@ double pquery_distance(
 double placement_distance(
     PqueryPlacement const& place_a,
     PqueryPlacement const& place_b,
-    genesis::utils::containers::Matrix<double> const& node_distances
+    genesis::util::container::Matrix<double> const& node_distances
 ) {
     double dist;
 
@@ -195,7 +195,7 @@ double placement_distance(
 double pquery_path_length_distance(
     Pquery const&                pquery_a,
     Pquery const&                pquery_b,
-    genesis::utils::containers::Matrix<size_t> const& node_path_lengths
+    genesis::util::container::Matrix<size_t> const& node_path_lengths
 ) {
     return pquery_distance(
         pquery_a,
@@ -209,7 +209,7 @@ double pquery_path_length_distance(
 size_t placement_path_length_distance(
     PqueryPlacement const&       place_a,
     PqueryPlacement const&       place_b,
-    genesis::utils::containers::Matrix<size_t> const& node_path_lengths
+    genesis::util::container::Matrix<size_t> const& node_path_lengths
 ) {
     // special case
     if( place_a.edge().index() == place_b.edge().index() ) {
@@ -250,7 +250,7 @@ double pquery_distance( Pquery const& pquery, DistanceFunction distance_function
     double sum = 0.0;
 
     // Calculate the weighted distance of the pquery, using the specified function.
-    genesis::utils::threading::parallel_for( 0, pquery.placement_size(), [&]( size_t pai ) {
+    genesis::util::threading::parallel_for( 0, pquery.placement_size(), [&]( size_t pai ) {
         auto const& placement = pquery.placement_at( pai );
         double dist = distance_function( placement );
         dist *= placement.like_weight_ratio;
@@ -266,7 +266,7 @@ double pquery_distance( Pquery const& pquery, DistanceFunction distance_function
 double pquery_distance(
     Pquery const&                pquery,
     tree::TreeNode const&        node,
-    genesis::utils::containers::Matrix<double> const& node_distances
+    genesis::util::container::Matrix<double> const& node_distances
 ) {
     return pquery_distance(
         pquery,
@@ -279,7 +279,7 @@ double pquery_distance(
 double placement_distance(
     PqueryPlacement const&       placement,
     tree::TreeNode const&        node,
-    genesis::utils::containers::Matrix<double> const& node_distances
+    genesis::util::container::Matrix<double> const& node_distances
 ) {
     // proximal
     double const pd = placement.proximal_length
@@ -298,7 +298,7 @@ double placement_distance(
 // double pquery_path_length_distance(
 //     Pquery const&                pquery,
 //     tree::TreeNode const&        node,
-//     genesis::utils::containers::Matrix<size_t> const& node_path_lengths
+//     genesis::util::container::Matrix<size_t> const& node_path_lengths
 // ) {
 //     return pquery_distance(
 //         pquery,
@@ -311,7 +311,7 @@ double placement_distance(
 // size_t placement_path_length_distance(
 //     PqueryPlacement const&       placement,
 //     tree::TreeNode const&        node,
-//     genesis::utils::containers::Matrix<size_t> const& node_path_lengths
+//     genesis::util::container::Matrix<size_t> const& node_path_lengths
 // ){
 //     size_t const pd = node_path_lengths( placement.edge().primary_node().index(), node.index() );
 //     size_t const dd = node_path_lengths( placement.edge().secondary_node().index(), node.index() );
@@ -321,7 +321,7 @@ double placement_distance(
 double pquery_path_length_distance(
     Pquery const&                pquery,
     tree::TreeEdge const&        edge,
-    genesis::utils::containers::Matrix<size_t> const& edge_path_lengths
+    genesis::util::container::Matrix<size_t> const& edge_path_lengths
 ){
     return pquery_distance(
         pquery,
@@ -334,7 +334,7 @@ double pquery_path_length_distance(
 size_t placement_path_length_distance(
     PqueryPlacement const&       placement,
     tree::TreeEdge const&        edge,
-    genesis::utils::containers::Matrix<size_t> const& edge_path_lengths
+    genesis::util::container::Matrix<size_t> const& edge_path_lengths
 ){
     return edge_path_lengths( placement.edge().index(), edge.index() );
 }

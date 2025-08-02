@@ -34,8 +34,8 @@
 #include <genesis/population/genome_locus_set.hpp>
 #include <genesis/population/genome_region.hpp>
 #include <genesis/population/genome_region_list.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <string>
 #include <utility>
@@ -113,7 +113,7 @@ public:
     /**
      * @brief Read a GFF2/GFF3/GTF input source, and return its content as a list of Feature structs.
      */
-    std::vector<Feature> read( std::shared_ptr< genesis::utils::io::BaseInputSource > source ) const;
+    std::vector<Feature> read( std::shared_ptr< genesis::util::io::BaseInputSource > source ) const;
 
     /**
      * @brief Read an input source, and return its content as a GenomeLocusSet.
@@ -125,7 +125,7 @@ public:
      * are covered (filtered / to be considered) for downstream analyses.
      */
     GenomeLocusSet read_as_genome_locus_set(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source
+        std::shared_ptr< genesis::util::io::BaseInputSource > source
     ) const;
 
     /**
@@ -140,17 +140,17 @@ public:
      * See the `overlap` flag of GenomeRegionList::add( GenomeLocus const&, bool ) for details.
      */
     GenomeRegionList read_as_genome_region_list(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         bool merge = false
     ) const;
 
     /**
      * @brief Read a GFF2/GFF3/GTF input source, and add its content to an existing GenomeRegionList.
      *
-     * @copydetails GffReader::read_as_genome_region_list( std::shared_ptr< genesis::utils::io::BaseInputSource >, bool ) const
+     * @copydetails GffReader::read_as_genome_region_list( std::shared_ptr< genesis::util::io::BaseInputSource >, bool ) const
      */
     void read_as_genome_region_list(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         GenomeRegionList& target,
         bool merge = false
     ) const;
@@ -160,7 +160,7 @@ public:
     // -------------------------------------------------------------------------
 
     bool parse_line(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Feature&            feature
     ) const;
 

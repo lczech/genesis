@@ -34,8 +34,8 @@
 #include <genesis/population/genome_locus_set.hpp>
 #include <genesis/population/genome_region.hpp>
 #include <genesis/population/genome_region_list.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -94,7 +94,7 @@ public:
      * are covered (filtered / to be considered) for downstream analyses.
      */
     GenomeLocusSet read_as_genome_locus_set(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source
+        std::shared_ptr< genesis::util::io::BaseInputSource > source
     ) const;
 
     /**
@@ -108,17 +108,17 @@ public:
      * on the flag.
      */
     GenomeRegionList read_as_genome_region_list(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         bool merge = false
     ) const;
 
     /**
      * @brief Read a `map`/`bim` input source, and add its content to an existing GenomeRegionList.
      *
-     * @copydetails GenomeRegionReader::read_as_genome_region_list( std::shared_ptr< genesis::utils::io::BaseInputSource >, bool ) const
+     * @copydetails GenomeRegionReader::read_as_genome_region_list( std::shared_ptr< genesis::util::io::BaseInputSource >, bool ) const
      */
     void read_as_genome_region_list(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         GenomeRegionList& target,
         bool merge = false
     ) const;
@@ -160,7 +160,7 @@ private:
      * for every line, to do the actual storage and downstream steps after parsing.
      */
     void read_(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::function<void( GenomeRegion const& region )> callback
     ) const;
 

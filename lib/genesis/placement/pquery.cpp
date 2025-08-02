@@ -31,7 +31,7 @@
 #include <genesis/placement/pquery.hpp>
 
 #include <genesis/placement/placement_tree.hpp>
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/core/std.hpp>
 
 namespace genesis {
 namespace placement {
@@ -70,12 +70,12 @@ Pquery::const_iterator_placements Pquery::end_placements() const
     return placements_.cend();
 }
 
-genesis::utils::containers::Range<Pquery::iterator_placements> Pquery::placements()
+genesis::util::container::Range<Pquery::iterator_placements> Pquery::placements()
 {
     return { placements_ };
 }
 
-genesis::utils::containers::Range<Pquery::const_iterator_placements> Pquery::placements() const
+genesis::util::container::Range<Pquery::const_iterator_placements> Pquery::placements() const
 {
     return { placements_ };
 }
@@ -159,12 +159,12 @@ Pquery::const_iterator_names Pquery::end_names() const
     return names_.cend();
 }
 
-genesis::utils::containers::Range<Pquery::iterator_names> Pquery::names()
+genesis::util::container::Range<Pquery::iterator_names> Pquery::names()
 {
     return { names_ };
 }
 
-genesis::utils::containers::Range<Pquery::const_iterator_names> Pquery::names() const
+genesis::util::container::Range<Pquery::const_iterator_names> Pquery::names() const
 {
     return { names_ };
 }

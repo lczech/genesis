@@ -39,11 +39,11 @@
 #include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 // =================================================================================================
 //     Levelorder
@@ -64,7 +64,7 @@ void TestLevelorder(std::string node_name, std::string out_nodes)
               +  it.node().data<CommonNodeData>().name
               +  " ";
     }
-    EXPECT_EQ( out_nodes, utils::text::trim( nodes )) << " with start node " << node_name;
+    EXPECT_EQ( out_nodes, genesis::util::text::trim( nodes )) << " with start node " << node_name;
 }
 
 TEST (TreeIterator, Levelorder)
@@ -95,7 +95,7 @@ void TestLevelorderSubtree( Subtree const& subtree, const std::string expected_n
               +  it.node().data<CommonNodeData>().name
               +  " ";
     }
-    EXPECT_EQ( expected_nodes, utils::text::trim( nodes )) << " with start node " << name;
+    EXPECT_EQ( expected_nodes, genesis::util::text::trim( nodes )) << " with start node " << name;
 
     // Use free function iterator wrapper.
     nodes = "";
@@ -106,7 +106,7 @@ void TestLevelorderSubtree( Subtree const& subtree, const std::string expected_n
               +  it.node().data<CommonNodeData>().name
               +  " ";
     }
-    EXPECT_EQ( expected_nodes, utils::text::trim( nodes )) << " with start node " << name;
+    EXPECT_EQ( expected_nodes, genesis::util::text::trim( nodes )) << " with start node " << name;
 }
 
 TEST (TreeIterator, LevelorderSubtree)

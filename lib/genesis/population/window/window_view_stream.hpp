@@ -35,7 +35,7 @@
 #include <genesis/population/window/window.hpp>
 #include <genesis/population/window/window_view.hpp>
 
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <cassert>
 #include <memory>
@@ -278,14 +278,14 @@ protected:
         // Cannot use make_unique here, as the Iterator constructor is private,
         // and trying to make make_unique a friend does not seem to be working...
         return std::unique_ptr<DerivedIterator>( new DerivedIterator( this ));
-        // return genesis::utils::core::make_unique<DerivedIterator>( this );
+        // return genesis::util::core::make_unique<DerivedIterator>( this );
     }
 
     std::unique_ptr<typename base_type::BaseIterator>
     get_end_iterator_() override final
     {
         return std::unique_ptr<DerivedIterator>( new DerivedIterator( nullptr ));
-        // return genesis::utils::core::make_unique<DerivedIterator>( nullptr );
+        // return genesis::util::core::make_unique<DerivedIterator>( nullptr );
     }
 
     // -------------------------------------------------------------------------

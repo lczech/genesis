@@ -37,8 +37,8 @@
 #include <genesis/tree/function/distance.hpp>
 #include <genesis/tree/function/function.hpp>
 #include <genesis/tree/function/operator.hpp>
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -269,7 +269,7 @@ void filter_n_max_weight_placements( Sample& smp, size_t n )
 void filter_min_weight_threshold( Pquery& pquery, double threshold )
 {
     auto& placements = pquery.expose_placements();
-    genesis::utils::core::erase_if( placements, [&]( PqueryPlacement const& placement ){
+    genesis::util::core::erase_if( placements, [&]( PqueryPlacement const& placement ){
         return placement.like_weight_ratio < threshold;
     });
 
@@ -297,7 +297,7 @@ void filter_min_weight_threshold( Sample& smp,    double threshold )
 void filter_min_pendant_length( Pquery& pquery, double threshold )
 {
     auto& placements = pquery.expose_placements();
-    genesis::utils::core::erase_if( placements, [&]( PqueryPlacement const& placement ){
+    genesis::util::core::erase_if( placements, [&]( PqueryPlacement const& placement ){
         return placement.pendant_length < threshold;
     });
 }
@@ -312,7 +312,7 @@ void filter_min_pendant_length( Sample& sample, double threshold )
 void filter_max_pendant_length( Pquery& pquery, double threshold )
 {
     auto& placements = pquery.expose_placements();
-    genesis::utils::core::erase_if( placements, [&]( PqueryPlacement const& placement ){
+    genesis::util::core::erase_if( placements, [&]( PqueryPlacement const& placement ){
         return placement.pendant_length > threshold;
     });
 }

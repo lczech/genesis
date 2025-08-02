@@ -32,8 +32,8 @@
 
 #include <genesis/tree/common_tree/tree.hpp>
 #include <genesis/tree/function/function.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <unordered_map>
@@ -85,7 +85,7 @@ void make_tree_from_parents_table_add_edge_(
 
         // Create a new node. For now, we use CommonNodeData for simplicty.
         // We set all properties except for the link, which is done later.
-        auto new_node = genesis::utils::core::make_unique< TreeNode >();
+        auto new_node = genesis::util::core::make_unique< TreeNode >();
         new_node->reset_index( node_index );
         new_node->reset_data( CommonNodeData::create() );
         new_node->data<CommonNodeData>().name = node_name;
@@ -120,9 +120,9 @@ void make_tree_from_parents_table_add_edge_(
     // and the nodes are missing the respective pointers to those.
 
     // First create the new elements we need, to have all pointers.
-    auto parent_link = genesis::utils::core::make_unique< TreeLink >();
-    auto child_link  = genesis::utils::core::make_unique< TreeLink >();
-    auto new_edge    = genesis::utils::core::make_unique< TreeEdge >();
+    auto parent_link = genesis::util::core::make_unique< TreeLink >();
+    auto child_link  = genesis::util::core::make_unique< TreeLink >();
+    auto new_edge    = genesis::util::core::make_unique< TreeEdge >();
 
     // At the parent, we make a new link to connect to the child node.
     // If we just created the parent, this is the first link of the parent,
@@ -206,7 +206,7 @@ Tree make_tree_from_parents_table(
     if( root_nodes.size() != 1 ) {
         throw std::invalid_argument(
             "Provided list of child and parent nodes does not form a singe tree, but a forest with " +
-            std::to_string( root_nodes.size() ) + " root nodes: " + genesis::utils::text::join( root_nodes )
+            std::to_string( root_nodes.size() ) + " root nodes: " + genesis::util::text::join( root_nodes )
         );
     }
     assert( tree.node_count() == child_names.size() + 1 );

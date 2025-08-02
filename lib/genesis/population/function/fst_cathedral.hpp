@@ -36,8 +36,8 @@
 #include <genesis/population/function/fst_pool_unbiased.hpp>
 #include <genesis/population/plotting/cathedral_plot.hpp>
 #include <genesis/sequence/sequence_dict.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/math/compensated_sum.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/math/compensated_sum.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -50,13 +50,13 @@
 // =================================================================================================
 
 namespace genesis {
-namespace utils {
-namespace formats {
+namespace util {
+namespace format {
 
     class JsonDocument;
 
-} // namespace formats
-} // namespace utils
+} // namespace format
+} // namespace util
 } // namespace genesis
 
 namespace genesis {
@@ -153,9 +153,9 @@ private:
     // Store our accumualted values. We are using a Neumaier summation here,
     // as we might be adding and subtracting values of different orders of magnitude,
     // which would lead to large errors with the standard Kahan sum.
-    genesis::utils::math::NeumaierSum pi_within_sum_  = 0.0;
-    genesis::utils::math::NeumaierSum pi_between_sum_ = 0.0;
-    genesis::utils::math::NeumaierSum pi_total_sum_   = 0.0;
+    genesis::util::math::NeumaierSum pi_within_sum_  = 0.0;
+    genesis::util::math::NeumaierSum pi_between_sum_ = 0.0;
+    genesis::util::math::NeumaierSum pi_total_sum_   = 0.0;
     size_t value_count_ = 0;
 };
 
@@ -231,12 +231,12 @@ inline void compute_fst_cathedral_matrix(
 
 /**
  * @brief Get a user-readable description of the data of a FstCathedralPlotRecord as a
- * @link genesis::utils::formats::JsonDocument JsonDocument@endlink.
+ * @link genesis::util::format::JsonDocument JsonDocument@endlink.
  *
  * @see cathedral_plot_record_to_json_document(), cathedral_plot_parameters_to_json_document(),
  * save_cathedral_plot_record_to_files(), load_cathedral_plot_record_from_files()
  */
-genesis::utils::formats::JsonDocument fst_cathedral_plot_record_to_json_document(
+genesis::util::format::JsonDocument fst_cathedral_plot_record_to_json_document(
     FstCathedralPlotRecord const& record
 );
 

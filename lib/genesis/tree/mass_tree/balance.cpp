@@ -37,11 +37,11 @@
 #include <genesis/tree/mass_tree/tree.hpp>
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/distance.hpp>
-#include <genesis/utils/math/statistic.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/distance.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -123,7 +123,7 @@ BalanceData mass_balance_data(
     auto tendencies = std::vector<double>( result.tree.edge_count(), 1.0 );
     if( trees.size() > 1 && settings.tendency != BalanceSettings::WeightTendency::kNone ) {
 
-        genesis::utils::threading::parallel_for( 0, tendencies.size(), [&]( size_t c )
+        genesis::util::threading::parallel_for( 0, tendencies.size(), [&]( size_t c )
         {
             switch( settings.tendency ) {
                 case BalanceSettings::WeightTendency::kNone: {
@@ -132,13 +132,13 @@ BalanceData mass_balance_data(
                     break;
                 }
                 case BalanceSettings::WeightTendency::kMedian: {
-                    tendencies[c] = genesis::utils::math::median(
+                    tendencies[c] = genesis::util::math::median(
                         result.edge_masses.col(c).begin(), result.edge_masses.col(c).end()
                     );
                     break;
                 }
                 case BalanceSettings::WeightTendency::kArithmeticMean: {
-                    tendencies[c] = genesis::utils::math::arithmetic_mean(
+                    tendencies[c] = genesis::util::math::arithmetic_mean(
                         result.edge_masses.col(c).begin(), result.edge_masses.col(c).end()
                     );
                     break;
@@ -150,7 +150,7 @@ BalanceData mass_balance_data(
                     for( auto& e : raw ) {
                         e += 1.0;
                     }
-                    tendencies[c] = genesis::utils::math::geometric_mean( raw );
+                    tendencies[c] = genesis::util::math::geometric_mean( raw );
                     break;
                 }
                 default: {
@@ -176,13 +176,13 @@ BalanceData mass_balance_data(
         assert( edge_masses_cpy.cols() == result.tree.edge_count() );
         assert( edge_masses_cpy.cols() == norms.size() );
         for( size_t r = 0; r < edge_masses_cpy.rows(); ++r ) {
-            genesis::utils::math::closure(
+            genesis::util::math::closure(
                 edge_masses_cpy.row(r).begin(), edge_masses_cpy.row(r).end()
             );
         }
 
         // Calculate the norm on these masses.
-        genesis::utils::threading::parallel_for( 0, norms.size(), [&]( size_t c )
+        genesis::util::threading::parallel_for( 0, norms.size(), [&]( size_t c )
         {
             // Get iterators, so that we avoid copying the vectors.
             auto em_beg = edge_masses_cpy.col(c).begin();
@@ -195,19 +195,19 @@ BalanceData mass_balance_data(
                     break;
                 }
                 case BalanceSettings::WeightNorm::kManhattan: {
-                    norms[c] = genesis::utils::math::manhattan_norm( em_beg, em_end );
+                    norms[c] = genesis::util::math::manhattan_norm( em_beg, em_end );
                     break;
                 }
                 case BalanceSettings::WeightNorm::kEuclidean: {
-                    norms[c] = genesis::utils::math::euclidean_norm( em_beg, em_end );
+                    norms[c] = genesis::util::math::euclidean_norm( em_beg, em_end );
                     break;
                 }
                 case BalanceSettings::WeightNorm::kMaximum: {
-                    norms[c] = genesis::utils::math::maximum_norm( em_beg, em_end );
+                    norms[c] = genesis::util::math::maximum_norm( em_beg, em_end );
                     break;
                 }
                 case BalanceSettings::WeightNorm::kAitchison: {
-                    norms[c] = genesis::utils::math::aitchison_norm( em_beg, em_end );
+                    norms[c] = genesis::util::math::aitchison_norm( em_beg, em_end );
                     break;
                 }
                 default: {
@@ -263,7 +263,7 @@ BalanceData mass_balance_data(
     // Then, calculate the closure (relative abundances) per row (tree) of the masses.
     result.raw_edge_masses = result.edge_masses;
     for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
-        genesis::utils::math::closure(
+        genesis::util::math::closure(
             result.edge_masses.row(r).begin(), result.edge_masses.row(r).end()
         );
     }
@@ -274,7 +274,7 @@ BalanceData mass_balance_data(
         assert( result.taxon_weights.size() == result.edge_masses.cols() );
 
         // Get the minimum, which we use as a dummy for taxon weights of zero.
-        auto const em_min = genesis::utils::math::finite_minimum(
+        auto const em_min = genesis::util::math::finite_minimum(
             result.edge_masses.begin(), result.edge_masses.end()
         );
         for( size_t r = 0; r < result.edge_masses.rows(); ++r ) {
@@ -360,7 +360,7 @@ std::vector<double> mass_balance(
 ) {
     auto result = std::vector<double>( data.edge_masses.rows(), 0.0 );
 
-    genesis::utils::threading::parallel_for( 0, data.edge_masses.rows(), [&]( size_t r ){
+    genesis::util::threading::parallel_for( 0, data.edge_masses.rows(), [&]( size_t r ){
         result[r] = mass_balance( data, numerator_edge_indices, denominator_edge_indices, r );
     });
 
@@ -449,7 +449,7 @@ double mass_balance(
         assert( std::isfinite( scaling_n ));
         double geom_mean;
         if( scaling_n > 0.0 ) {
-            geom_mean = genesis::utils::math::weighted_geometric_mean( sub_masses, sub_weights );
+            geom_mean = genesis::util::math::weighted_geometric_mean( sub_masses, sub_weights );
             assert( std::isfinite( geom_mean ));
         } else {
             geom_mean = std::numeric_limits<double>::quiet_NaN();
@@ -458,7 +458,7 @@ double mass_balance(
         // If we have no edge weights, the scaling terms should be the same as the number of edges.
         assert(
             ! data.taxon_weights.empty() ||
-            genesis::utils::math::almost_equal_relative( scaling_n, indices.size(), 0.1 )
+            genesis::util::math::almost_equal_relative( scaling_n, indices.size(), 0.1 )
         );
 
         return BalanceTerms{ geom_mean, scaling_n };

@@ -34,9 +34,9 @@
 #include <genesis/sequence/function/code.hpp>
 #include <genesis/sequence/sequence_set.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/format/bmp/writer.hpp>
-#include <genesis/utils/color/color.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/format/bmp/writer.hpp>
+#include <genesis/util/color/color.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -50,10 +50,10 @@ namespace sequence {
 // =================================================================================================
 
 void PrinterBitmap::write(
-    SequenceSet const& set, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+    SequenceSet const& set, std::shared_ptr< genesis::util::io::BaseOutputTarget> target
 ) const {
     auto image = make_image_( set );
-    auto writer = genesis::utils::formats::BmpWriter();
+    auto writer = genesis::util::format::BmpWriter();
     writer.write( image, target );
 }
 
@@ -61,14 +61,14 @@ void PrinterBitmap::write(
 //     Internal Helper Functions
 // =================================================================================================
 
-genesis::utils::containers::Matrix<genesis::utils::color::Color> PrinterBitmap::make_image_( SequenceSet const& set ) const
+genesis::util::container::Matrix<genesis::util::color::Color> PrinterBitmap::make_image_( SequenceSet const& set ) const
 {
     // Create a black image of the correct size.
     size_t const max_line = longest_sequence_length( set );
-    auto image = genesis::utils::containers::Matrix<genesis::utils::color::Color>(
+    auto image = genesis::util::container::Matrix<genesis::util::color::Color>(
         set.size() * pixel_height_,
         max_line   * pixel_width_,
-        genesis::utils::color::Color( 0.0, 0.0, 0.0 )
+        genesis::util::color::Color( 0.0, 0.0, 0.0 )
     );
 
     // Iterate the sequences in the set.
@@ -79,7 +79,7 @@ genesis::utils::containers::Matrix<genesis::utils::color::Color> PrinterBitmap::
         for( size_t c = 0; c < seq.length(); ++c ) {
 
             // Find the color for the current char, or use black if no color available.
-            auto pixel = genesis::utils::color::Color( 0.0, 0.0, 0.0 );
+            auto pixel = genesis::util::color::Color( 0.0, 0.0, 0.0 );
             auto color_it = color_map_.find( seq[c] );
             if( color_it != color_map_.end() ) {
                 pixel = color_it->second;
@@ -103,13 +103,13 @@ genesis::utils::containers::Matrix<genesis::utils::color::Color> PrinterBitmap::
 //     Properties
 // =================================================================================================
 
-PrinterBitmap& PrinterBitmap::color_map( std::map<char, genesis::utils::color::Color> const& value )
+PrinterBitmap& PrinterBitmap::color_map( std::map<char, genesis::util::color::Color> const& value )
 {
     color_map_ = value;
     return *this;
 }
 
-std::map<char, genesis::utils::color::Color> const& PrinterBitmap::color_map() const
+std::map<char, genesis::util::color::Color> const& PrinterBitmap::color_map() const
 {
     return color_map_;
 }

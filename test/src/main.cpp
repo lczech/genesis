@@ -38,7 +38,7 @@
 #include <unistd.h>
 
 #include "src/common.hpp"
-#include "genesis/utils/core/options.hpp"
+#include "genesis/util/core/options.hpp"
 
 GenesisTestEnvironment* environment;
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     }
 
     // Return true iff the directory exists.
-    // This is copied from the genesis library `./lib/utils/core/fs.hpp`
+    // This is copied from the genesis library `./genesis/util/core/fs.hpp`
     // because we do not want to rely on something that we are about to test...
     auto dir_exists = [] (const std::string& dir )
     {
@@ -109,12 +109,12 @@ int main(int argc, char **argv)
     environment->fail_on_missing_data_dir = true;
 
     // We want to see Logging information while testing.
-    genesis::utils::core::Logging::log_to_stdout();
-    genesis::utils::core::Logging::max_level(genesis::utils::core::Logging::kDebug4);
+    genesis::util::core::Logging::log_to_stdout();
+    genesis::util::core::Logging::max_level(genesis::util::core::Logging::kDebug4);
 
     // Start the global thread pool, once here.
     // Needed by some of the tests.
-    genesis::utils::core::Options::get().init_global_thread_pool( 2 );
+    genesis::util::core::Options::get().init_global_thread_pool( 2 );
 
     ::testing::AddGlobalTestEnvironment(environment);
     return RUN_ALL_TESTS();

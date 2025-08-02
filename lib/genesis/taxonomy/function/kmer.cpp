@@ -40,14 +40,14 @@
 #include <genesis/taxonomy/iterator/preorder.hpp>
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/format/json/document.hpp>
-#include <genesis/utils/format/json/reader.hpp>
-#include <genesis/utils/format/json/writer.hpp>
-#include <genesis/utils/math/statistic.hpp>
-#include <genesis/utils/text/string.hpp>
-#include <genesis/utils/text/table.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/format/json/document.hpp>
+#include <genesis/util/format/json/reader.hpp>
+#include <genesis/util/format/json/writer.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/text/string.hpp>
+#include <genesis/util/text/table.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -342,8 +342,8 @@ std::string grouped_or_partitioned_taxonomy_report( Taxonomy const& tax )
                 // The input to this function shall come from grouped_taxonomy_trunk(),
                 // which creates pseudo-groups with this name prefix. Check this.
                 if(
-                    ! genesis::utils::text::starts_with( taxon.name(), "group_" ) &&
-                    ! genesis::utils::text::starts_with( taxon.name(), "partition_" )
+                    ! genesis::util::text::starts_with( taxon.name(), "group_" ) &&
+                    ! genesis::util::text::starts_with( taxon.name(), "partition_" )
                 ) {
                     throw std::invalid_argument( "Taxonomy is not the trunk" );
                 }
@@ -386,20 +386,20 @@ std::string grouped_or_partitioned_taxonomy_report( Taxonomy const& tax )
     size_t const grouped_sum_seq_lengths = std::accumulate(
         sum_seq_lengths.begin(), sum_seq_lengths.end(), static_cast<size_t>(0)
     );
-    auto const arithmetic_mean_ns = genesis::utils::math::arithmetic_mean(
+    auto const arithmetic_mean_ns = genesis::util::math::arithmetic_mean(
         num_sequences.begin(), num_sequences.end()
     );
-    auto const arithmetic_mean_sl = genesis::utils::math::arithmetic_mean(
+    auto const arithmetic_mean_sl = genesis::util::math::arithmetic_mean(
         sum_seq_lengths.begin(), sum_seq_lengths.end()
     );
-    auto const quartiles_ns = genesis::utils::math::quartiles(
+    auto const quartiles_ns = genesis::util::math::quartiles(
         num_sequences.begin(), num_sequences.end()
     );
-    auto const quartiles_sl = genesis::utils::math::quartiles(
+    auto const quartiles_sl = genesis::util::math::quartiles(
         sum_seq_lengths.begin(), sum_seq_lengths.end()
     );
 
-    using namespace genesis::utils::text;
+    using namespace genesis::util::text;
     std::stringstream ss;
     ss << num_groups << " groups/partitions:\n\n";
     Table summary;
@@ -432,9 +432,9 @@ std::string grouped_or_partitioned_taxonomy_report( Taxonomy const& tax )
 
 void fill_json_array_with_taxonomy_groups_or_partitions_(
     Taxonomy const& tax,
-    genesis::utils::formats::JsonDocument::ArrayType& array
+    genesis::util::format::JsonDocument::ArrayType& array
 ) {
-    using genesis::utils::formats::JsonDocument;
+    using genesis::util::format::JsonDocument;
 
     // Iterate the children, adding their data to the groups they were assigned to.
     for( auto const& child : tax ) {
@@ -498,11 +498,11 @@ void fill_json_array_with_taxonomy_groups_or_partitions_(
 
 void write_taxonomy_grouping_or_partitioning_to_json(
     Taxonomy const& tax,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> target
 ) {
-    auto doc = genesis::utils::formats::JsonDocument::array();
+    auto doc = genesis::util::format::JsonDocument::array();
     fill_json_array_with_taxonomy_groups_or_partitions_( tax, doc.get_array() );
-    genesis::utils::formats::JsonWriter().write( doc, target );
+    genesis::util::format::JsonWriter().write( doc, target );
 }
 
 // --------------------------------------------------------------------------
@@ -510,10 +510,10 @@ void write_taxonomy_grouping_or_partitioning_to_json(
 // --------------------------------------------------------------------------
 
 std::vector<TaxonomyGroupPartitionData> read_taxonomy_grouping_or_partitioning_from_json(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+    std::shared_ptr<genesis::util::io::BaseInputSource> source
 ) {
     std::vector<TaxonomyGroupPartitionData> result;
-    auto doc = genesis::utils::formats::JsonReader().read( source );
+    auto doc = genesis::util::format::JsonReader().read( source );
     auto& arr = doc.get_array();
     result.reserve( arr.size() );
     for( auto& child : arr ) {
@@ -544,11 +544,11 @@ std::vector<TaxonomyGroupPartitionData> read_taxonomy_grouping_or_partitioning_f
 
 void write_kmer_taxonomy_to_json(
     Taxonomy const& tax,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> target,
     bool with_group_or_partition_data,
     bool only_trunk
 ) {
-    using genesis::utils::formats::JsonDocument;
+    using genesis::util::format::JsonDocument;
 
     auto json_writer = TaxonomyJsonWriter();
     json_writer.taxon_to_json = [with_group_or_partition_data](
@@ -626,10 +626,10 @@ void write_kmer_taxonomy_to_json(
 // --------------------------------------------------------------------------
 
 Taxonomy read_kmer_taxonomy_from_json(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+    std::shared_ptr<genesis::util::io::BaseInputSource> source
 ) {
     auto json_reader = TaxonomyJsonReader();
-    json_reader.json_to_taxon = []( genesis::utils::formats::JsonDocument::ObjectType const& obj, Taxon& tax )
+    json_reader.json_to_taxon = []( genesis::util::format::JsonDocument::ObjectType const& obj, Taxon& tax )
     {
         tax.reset_data( KmerTaxonData::create() );
         auto& data = tax.data<KmerTaxonData>();

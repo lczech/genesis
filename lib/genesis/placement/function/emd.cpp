@@ -45,7 +45,7 @@
 #include <genesis/tree/tree_set.hpp>
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 #include <cassert>
 
@@ -100,7 +100,7 @@ double earth_movers_distance (
 //     EMD matrix for a SampleSet
 // -------------------------------------------------------------------------
 
-genesis::utils::containers::Matrix<double> earth_movers_distance(
+genesis::util::container::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
     double const     p,
     bool const       with_pendant_length

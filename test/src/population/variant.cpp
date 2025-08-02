@@ -39,8 +39,8 @@
 #include "genesis/population/format/vcf_record.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
+using namespace genesis::util;
+using namespace genesis::util::core;
 
 TEST( Variant, ConvertFromVcfRecordPool )
 {

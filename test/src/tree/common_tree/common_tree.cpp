@@ -40,14 +40,14 @@
 #include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
 
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/function.hpp"
+#include "genesis/util/color/color.hpp"
+#include "genesis/util/color/function.hpp"
 
 #include <algorithm>
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 TEST(CommonTree, EdgeColorBranchLengthGradient)
 {
@@ -62,8 +62,8 @@ TEST(CommonTree, EdgeColorBranchLengthGradient)
     auto colors = edge_color_branch_length_gradient(tree);
 
     // We expect at least one branch to have max color (red) and one to have min color (green).
-    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::color::Color(1, 0, 0)) );
-    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::color::Color(0, 1, 0)) );
+    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), genesis::util::color::Color(1, 0, 0)) );
+    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), genesis::util::color::Color(0, 1, 0)) );
 }
 
 TEST(CommonTree, NodeNames)

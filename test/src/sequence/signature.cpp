@@ -37,26 +37,26 @@
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
 
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/math/common.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <algorithm>
 #include <numeric>
 #include <string>
 
 using namespace genesis::sequence;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::math;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 TEST( Sequence, KmerList )
 {
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
         auto list = SignatureSpecifications( "ACGT", k ).kmer_list();
-        EXPECT_EQ( genesis::utils::math::int_pow( 4, k ), list.size() );
+        EXPECT_EQ( genesis::util::math::int_pow( 4, k ), list.size() );
         EXPECT_EQ( std::string( k, 'A' ), list.front() );
         EXPECT_EQ( std::string( k, 'T' ), list.back() );
 

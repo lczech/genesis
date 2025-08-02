@@ -41,8 +41,8 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
-namespace containers {
+namespace util {
+namespace container {
 
     template<typename T>
     class Matrix;
@@ -119,11 +119,11 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double p
 /**
  * @brief Calculate the pairwise earth mover's distance for all @link MassTree MassTrees@endlink.
  *
- * The result is a pairwise distance @link genesis::utils::containers::Matrix Matrix@endlink using the indices of the
+ * The result is a pairwise distance @link genesis::util::container::Matrix Matrix@endlink using the indices of the
  * given `vector`. See earth_movers_distance( MassTree const&, MassTree const&, double ) for details
  * on the calculation.
  */
-genesis::utils::containers::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double p = 1.0 );
+genesis::util::container::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double p = 1.0 );
 
 /**
  * @brief Calculate the earth mover's distance of masses on a given Tree.

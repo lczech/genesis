@@ -40,11 +40,11 @@
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree/subtree.hpp>
 
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/statistic.hpp>
-#include <genesis/utils/color/color.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -199,7 +199,7 @@ PhyloFactor phylo_factor_find_best_edge(
     auto const cand_vec = std::vector<size_t>( candidate_edges.begin(), candidate_edges.end() );
 
     // Try out all candidate edges.
-    genesis::utils::threading::parallel_for(
+    genesis::util::threading::parallel_for(
         0, cand_vec.size(),
         [&]( size_t i )
         {

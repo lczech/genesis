@@ -33,8 +33,8 @@
 
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
-#include <genesis/utils/format/csv/reader.hpp>
-#include <genesis/utils/io/input_source.hpp>
+#include <genesis/util/format/csv/reader.hpp>
+#include <genesis/util/io/input_source.hpp>
 
 #include <cctype>
 #include <string>
@@ -105,20 +105,20 @@ struct NcbiTableParameters
 };
 
 NcbiNodeLookup read_ncbi_node_table(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+    std::shared_ptr<genesis::util::io::BaseInputSource> source
 );
 
 NcbiNodeLookup read_ncbi_node_table(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
+    std::shared_ptr<genesis::util::io::BaseInputSource> source,
     NcbiTableParameters const& params
 );
 
 NcbiNameLookup read_ncbi_name_table(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+    std::shared_ptr<genesis::util::io::BaseInputSource> source
 );
 
 NcbiNameLookup read_ncbi_name_table(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
+    std::shared_ptr<genesis::util::io::BaseInputSource> source,
     NcbiTableParameters const& params
 );
 
@@ -143,13 +143,13 @@ Taxonomy read_ncbi_taxonomy(
 );
 
 Taxonomy read_ncbi_taxonomy(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> node_source,
-    std::shared_ptr<genesis::utils::io::BaseInputSource> name_source
+    std::shared_ptr<genesis::util::io::BaseInputSource> node_source,
+    std::shared_ptr<genesis::util::io::BaseInputSource> name_source
 );
 
 Taxonomy read_ncbi_taxonomy(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> node_source,
-    std::shared_ptr<genesis::utils::io::BaseInputSource> name_source,
+    std::shared_ptr<genesis::util::io::BaseInputSource> node_source,
+    std::shared_ptr<genesis::util::io::BaseInputSource> name_source,
     NcbiTableParameters const& params
 );
 

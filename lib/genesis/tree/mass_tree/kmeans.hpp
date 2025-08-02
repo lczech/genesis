@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include <genesis/utils/math/kmeans.hpp>
+#include <genesis/util/math/kmeans.hpp>
 
 namespace genesis {
 namespace tree {
@@ -51,7 +51,7 @@ using MassTree = Tree;
 // =================================================================================================
 
 class MassTreeKmeans
-    : public genesis::utils::math::Kmeans< MassTree >
+    : public genesis::util::math::Kmeans< MassTree >
 {
 public:
 

@@ -37,16 +37,16 @@
 #include "genesis/population/format/vcf_header.hpp"
 #include "genesis/population/format/vcf_input_stream.hpp"
 #include "genesis/population/format/vcf_record.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <bitset>
 #include <numeric>
 #include <stdexcept>
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::text;
 
 TEST( Vcf, Header )
 {
@@ -723,7 +723,7 @@ TEST( Vcf, FormatIteratorDoc )
     // class, and test whether it compiles. Not much more, as the actual tests are above.
     // Decativate the logging output, so that we can compile with logging, but without
     // polluting our test output.
-    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::LoggingLevel::kNone );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::LoggingLevel::kNone );
 
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;

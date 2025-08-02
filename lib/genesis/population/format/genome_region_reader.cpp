@@ -30,11 +30,11 @@
 
 #include <genesis/population/format/genome_region_reader.hpp>
 
-#include <genesis/utils/io/parser.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/convert.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <limits>
@@ -48,7 +48,7 @@ namespace population {
 // =================================================================================================
 
 GenomeLocusSet GenomeRegionReader::read_as_genome_locus_set(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     GenomeLocusSet result;
     read_( source, [&]( GenomeRegion const& region ){
@@ -58,7 +58,7 @@ GenomeLocusSet GenomeRegionReader::read_as_genome_locus_set(
 }
 
 GenomeRegionList GenomeRegionReader::read_as_genome_region_list(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     bool merge
 ) const {
     GenomeRegionList result;
@@ -67,7 +67,7 @@ GenomeRegionList GenomeRegionReader::read_as_genome_region_list(
 }
 
 void GenomeRegionReader::read_as_genome_region_list(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     GenomeRegionList& target,
     bool merge
 ) const {
@@ -81,11 +81,11 @@ void GenomeRegionReader::read_as_genome_region_list(
 // =================================================================================================
 
 void GenomeRegionReader::read_(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     std::function<void( GenomeRegion const& region )> callback
 ) const {
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::text;
+    using namespace genesis::util::io;
+    using namespace genesis::util::text;
 
     InputStream it( source );
 

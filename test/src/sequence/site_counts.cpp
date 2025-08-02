@@ -39,9 +39,9 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST( Sequence, Entropy )
 {

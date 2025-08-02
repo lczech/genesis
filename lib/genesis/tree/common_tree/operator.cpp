@@ -33,8 +33,8 @@
 #include <genesis/tree/common_tree/tree.hpp>
 #include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/tree.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/math/common.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/math/common.hpp>
 
 namespace genesis {
 namespace tree {
@@ -82,11 +82,11 @@ bool equal_common_trees(
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
-        // if( ! genesis::utils::math::almost_equal_relative( l_ptr->branch_length, r_ptr->branch_length ) ) {
+        // if( ! genesis::util::math::almost_equal_relative( l_ptr->branch_length, r_ptr->branch_length ) ) {
         //     LOG_DBG << "Differing branch lengths: " << l_ptr->branch_length << " and " << r_ptr->branch_length;
         // }
 
-        return genesis::utils::math::almost_equal_relative( l_ptr->branch_length, r_ptr->branch_length );
+        return genesis::util::math::almost_equal_relative( l_ptr->branch_length, r_ptr->branch_length );
     };
 
     return tree::equal( lhs, rhs, node_comparator, edge_comparator );

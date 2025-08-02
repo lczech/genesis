@@ -35,7 +35,7 @@
 #include <genesis/population/sample_counts.hpp>
 #include <genesis/population/variant.hpp>
 #include <genesis/sequence/reference_genome.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <array>
 #include <iosfwd>
@@ -56,7 +56,7 @@ namespace population {
 inline constexpr bool is_valid_base( char c )
 {
     // Can't use a function call here, to comply with C++11 constexpr rules.
-    // c = genesis::utils::text::to_upper( c );
+    // c = genesis::util::text::to_upper( c );
     return (
         c == 'A' || c == 'a' ||
         c == 'C' || c == 'c' ||
@@ -71,7 +71,7 @@ inline constexpr bool is_valid_base( char c )
 inline constexpr bool is_valid_base_or_n( char c )
 {
     // Can't use a function call here, to comply with C++11 constexpr rules.
-    // c = genesis::utils::text::to_upper( c );
+    // c = genesis::util::text::to_upper( c );
     return (
         c == 'A' || c == 'a' ||
         c == 'C' || c == 'c' ||

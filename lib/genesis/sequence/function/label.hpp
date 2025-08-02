@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/tool/hash/function.hpp>
+#include <genesis/util/tool/hash/function.hpp>
 
 #include <string>
 #include <utility>
@@ -143,20 +143,20 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
 /**
  * @brief Relabel the Sequence using the hash digest of its sites.
  *
- * See ::utils::HashingFunctions for the available hashing functions.
+ * See genesis::util::HashingFunctions for the available hashing functions.
  */
-void relabel_with_hash( Sequence& seq, genesis::utils::HashingFunctions hash_function );
+void relabel_with_hash( Sequence& seq, genesis::util::HashingFunctions hash_function );
 
 /**
  * @brief Relabel all Sequence%s in the SequenceSet using the hash digest of the sites.
  *
- * See ::utils::HashingFunctions for the available hashing functions.
+ * See genesis::util::HashingFunctions for the available hashing functions.
  *
  * If there are duplicate Sequence%s, this function will lead to multiple Sequence%s with the same
  * name, which might be an issue for downstream programs that expect unique labels.
  * See has_unique_labels() to check this.
  */
-void relabel_with_hash( SequenceSet& set, genesis::utils::HashingFunctions hash_function );
+void relabel_with_hash( SequenceSet& set, genesis::util::HashingFunctions hash_function );
 
 // =================================================================================================
 //     Validity

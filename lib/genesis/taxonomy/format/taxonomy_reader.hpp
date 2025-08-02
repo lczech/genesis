@@ -32,8 +32,8 @@
  */
 
 #include <genesis/taxonomy/format/taxopath_parser.hpp>
-#include <genesis/utils/format/csv/reader.hpp>
-#include <genesis/utils/io/input_source.hpp>
+#include <genesis/util/format/csv/reader.hpp>
+#include <genesis/util/io/input_source.hpp>
 
 #include <string>
 
@@ -43,13 +43,13 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
 namespace io {
 
     class InputStream;
 
 } // namespace io
-} // namespace utils
+} // namespace util
 
 namespace taxonomy {
 
@@ -72,13 +72,13 @@ namespace taxonomy {
  *     TaxonomyReader()
  *         .rank_field_position( 2 )
  *         .expect_strict_order( true )
- *         .read( genesis::utils::io::from_file( infile ), tax );
+ *         .read( genesis::util::io::from_file( infile ), tax );
  *
  * It expects one taxon per input line. This line can also contain other information, for example
  *
  *     Archaea;Crenarchaeota;Thermoprotei;Desulfurococcales;	14	order	119
  *
- * In order to separate the fields of the input, a @link genesis::utils::formats::CsvReader CsvReader@endlink is used.
+ * In order to separate the fields of the input, a @link genesis::util::format::CsvReader CsvReader@endlink is used.
  * By default, all its properties except for the separator chars are left at their default values.
  * The separator char is set to a tab `\t` instead of a comma, as this is more common for
  * taxonomy files.
@@ -150,18 +150,18 @@ public:
     /**
      * @brief Read taxonomy data from an input source, and add the contents to a Taxonomy.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    void read( std::shared_ptr<genesis::utils::io::BaseInputSource> source, Taxonomy& target ) const;
+    void read( std::shared_ptr<genesis::util::io::BaseInputSource> source, Taxonomy& target ) const;
 
     /**
      * @brief Read a taxonomy from an input source and return the Taxonomy.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    Taxonomy read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
+    Taxonomy read( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -171,7 +171,7 @@ public:
      * @brief Parse all data from an InputStream into a Taxonomy object.
      */
     void parse_document(
-        genesis::utils::io::InputStream& it,
+        genesis::util::io::InputStream& it,
         Taxonomy&           tax
     ) const;
 
@@ -181,7 +181,7 @@ public:
      * The name is expected to be a taxonomic path string. See Taxopath for details on that format.
      */
     Line parse_line(
-        genesis::utils::io::InputStream& it
+        genesis::util::io::InputStream& it
     ) const;
 
     // ---------------------------------------------------------------------
@@ -189,7 +189,7 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Get the @link genesis::utils::formats::CsvReader CsvReader@endlink used for reading a taxonomy file.
+     * @brief Get the @link genesis::util::format::CsvReader CsvReader@endlink used for reading a taxonomy file.
      *
      * This can be used to modify the reading behaviour, particularly values like the separator chars
      * within the lines of the file. By default, the TaxonomyReader uses a tab `\t` char to separate
@@ -198,9 +198,9 @@ public:
      * It is also possible to change other properties of the CsvReader, for example escaping behaviour,
      * if the input data needs special treatment in those regards.
      *
-     * See @link genesis::utils::formats::CsvReader CsvReader@endlink for details about those properties.
+     * See @link genesis::util::format::CsvReader CsvReader@endlink for details about those properties.
      */
-    genesis::utils::formats::CsvReader&  csv_reader();
+    genesis::util::format::CsvReader&  csv_reader();
 
     /**
      * @brief Get the TaxopathParser used for parsing taxonomic path strings.
@@ -320,7 +320,7 @@ public:
 
 private:
 
-    genesis::utils::formats::CsvReader  csv_reader_;
+    genesis::util::format::CsvReader  csv_reader_;
     TaxopathParser taxopath_parser_;
 
     int  name_field_position_ =  0;

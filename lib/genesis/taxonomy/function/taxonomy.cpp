@@ -33,8 +33,8 @@
 #include <genesis/taxonomy/iterator/preorder.hpp>
 #include <genesis/taxonomy/printer/nested.hpp>
 
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -175,7 +175,7 @@ size_t taxa_count_with_rank(
                 ++count;
             }
         } else {
-            if( genesis::utils::text::equals_ci( t.rank(), rank )) {
+            if( genesis::util::text::equals_ci( t.rank(), rank )) {
                 ++count;
             }
         }
@@ -196,7 +196,7 @@ std::unordered_map< std::string, size_t> taxa_count_ranks(
         if( case_sensitive ) {
             ++result[ taxon.rank() ];
         } else {
-            ++result[ genesis::utils::text::to_lower( taxon.rank() ) ];
+            ++result[ genesis::util::text::to_lower( taxon.rank() ) ];
         }
 
         // Recurse.
@@ -237,7 +237,7 @@ void sort_by_name( Taxonomy& tax, bool recursive, bool case_sensitive )
         return lhs.name() < rhs.name();
     };
     auto comp_by_name_ci = []( Taxon const& lhs, Taxon const& rhs ) {
-        return genesis::utils::text::to_lower( lhs.name() ) < genesis::utils::text::to_lower( rhs.name() );
+        return genesis::util::text::to_lower( lhs.name() ) < genesis::util::text::to_lower( rhs.name() );
     };
 
     // Sort.

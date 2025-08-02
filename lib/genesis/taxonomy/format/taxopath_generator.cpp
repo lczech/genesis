@@ -33,7 +33,7 @@
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
 #include <genesis/taxonomy/taxopath.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -61,11 +61,11 @@ std::string TaxopathGenerator::to_string( Taxopath const& taxopath ) const
                 cpy[i] = "";
             }
         }
-        res = genesis::utils::text::join( cpy, delimiter_ );
+        res = genesis::util::text::join( cpy, delimiter_ );
 
     } else {
         // Without trimming, the result is easy to create.
-        res = genesis::utils::text::join( taxopath.elements(), delimiter_ );
+        res = genesis::util::text::join( taxopath.elements(), delimiter_ );
     }
 
     if( append_delimiter_ ) {
@@ -123,7 +123,7 @@ std::string TaxopathGenerator::to_string( Taxon const& taxon ) const
 
     // Now reverse and return the joined result.
     std::reverse( taxa.begin(), taxa.end() );
-    auto res = genesis::utils::text::join( taxa, delimiter_ );
+    auto res = genesis::util::text::join( taxa, delimiter_ );
 
     if( append_delimiter_ ) {
         return res + delimiter_;

@@ -37,10 +37,10 @@
 #include <genesis/tree/function/distance.hpp>
 #include <genesis/tree/function/function.hpp>
 #include <genesis/tree/function/operator.hpp>
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -95,9 +95,9 @@ std::vector<double> placement_mass_per_edges_with_multiplicities( Sample const& 
     return result;
 }
 
-genesis::utils::containers::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet const& sample_set )
+genesis::util::container::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet const& sample_set )
 {
-    auto result = genesis::utils::containers::Matrix<double>();
+    auto result = genesis::util::container::Matrix<double>();
 
     // Edge case.
     if( sample_set.size() == 0 ) {
@@ -106,7 +106,7 @@ genesis::utils::containers::Matrix<double> placement_mass_per_edges_with_multipl
 
     // Init matrix.
     auto const set_size = sample_set.size();
-    result = genesis::utils::containers::Matrix<double>( set_size, sample_set[ 0 ].tree().edge_count(), 0.0 );
+    result = genesis::util::container::Matrix<double>( set_size, sample_set[ 0 ].tree().edge_count(), 0.0 );
 
     // Return completely empty matrix in edge cases.
     if( result.rows() == 0 || result.cols() == 0 ) {
@@ -114,7 +114,7 @@ genesis::utils::containers::Matrix<double> placement_mass_per_edges_with_multipl
     }
 
     // Fill matrix.
-    genesis::utils::threading::parallel_for( 0, set_size, [&]( size_t i ) {
+    genesis::util::threading::parallel_for( 0, set_size, [&]( size_t i ) {
         auto const& smp = sample_set[ i ];
 
         if( smp.tree().edge_count() != result.cols() ) {
@@ -170,9 +170,9 @@ std::vector<double> placement_mass_per_edge_without_multiplicities( Sample const
     return result;
 }
 
-genesis::utils::containers::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet const& sample_set )
+genesis::util::container::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet const& sample_set )
 {
-    auto result = genesis::utils::containers::Matrix<double>();
+    auto result = genesis::util::container::Matrix<double>();
 
     // Edge case.
     if( sample_set.size() == 0 ) {
@@ -181,7 +181,7 @@ genesis::utils::containers::Matrix<double> placement_mass_per_edge_without_multi
 
     // Init matrix.
     auto const set_size = sample_set.size();
-    result = genesis::utils::containers::Matrix<double>( set_size, sample_set[ 0 ].tree().edge_count(), 0.0 );
+    result = genesis::util::container::Matrix<double>( set_size, sample_set[ 0 ].tree().edge_count(), 0.0 );
 
     // Return completely empty matrix in edge cases.
     if( result.rows() == 0 || result.cols() == 0 ) {
@@ -189,7 +189,7 @@ genesis::utils::containers::Matrix<double> placement_mass_per_edge_without_multi
     }
 
     // Fill matrix.
-    genesis::utils::threading::parallel_for( 0, set_size, [&]( size_t i ) {
+    genesis::util::threading::parallel_for( 0, set_size, [&]( size_t i ) {
         auto const& smp = sample_set[ i ];
 
         if( smp.tree().edge_count() != result.cols() ) {

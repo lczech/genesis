@@ -33,8 +33,8 @@
 
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
-#include <genesis/utils/format/json/document.hpp>
-#include <genesis/utils/io/output_target.hpp>
+#include <genesis/util/format/json/document.hpp>
+#include <genesis/util/io/output_target.hpp>
 
 #include <functional>
 #include <iosfwd>
@@ -74,7 +74,7 @@ public:
      * additional data in the Json object of that Taxon.
      */
     std::function<
-        void( Taxon const&, genesis::utils::formats::JsonDocument::ObjectType& )
+        void( Taxon const&, genesis::util::format::JsonDocument::ObjectType& )
     > taxon_to_json;
 
     /**
@@ -105,10 +105,10 @@ public:
 
     void write(
         Taxonomy const& tax,
-        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+        std::shared_ptr< genesis::util::io::BaseOutputTarget> target
     ) const;
 
-    genesis::utils::formats::JsonDocument to_document( Taxonomy const& tax ) const;
+    genesis::util::format::JsonDocument to_document( Taxonomy const& tax ) const;
 
     // ---------------------------------------------------------------------
     //     Members
@@ -116,7 +116,7 @@ public:
 
 private:
 
-    genesis::utils::formats::JsonDocument::ObjectType taxon_to_object_( Taxon const& tax ) const;
+    genesis::util::format::JsonDocument::ObjectType taxon_to_object_( Taxon const& tax ) const;
 
 };
 

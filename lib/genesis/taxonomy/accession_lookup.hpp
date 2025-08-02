@@ -33,9 +33,9 @@
 
 #include <genesis/taxonomy/taxonomy.hpp>
 #include <genesis/taxonomy/taxon.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <memory>
 #include <mutex>
@@ -126,7 +126,7 @@ public:
     // -------------------------------------------------------------------------
 
     AccessionLookup()
-        : mtx_( ::genesis::utils::core::make_unique<std::mutex>() )
+        : mtx_( ::genesis::util::core::make_unique<std::mutex>() )
     {}
 
     ~AccessionLookup() = default;
@@ -372,7 +372,7 @@ private:
             return it;
         }
         if( also_look_up_first_word ) {
-            auto const words = genesis::utils::text::split( accession, "\t ", true );
+            auto const words = genesis::util::text::split( accession, "\t ", true );
             if( words.empty() ) {
                 return map_.end();
             }

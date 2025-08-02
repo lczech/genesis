@@ -32,7 +32,7 @@
  */
 
 #include <genesis/tree/tree.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <iterator>
 #include <type_traits>
@@ -182,7 +182,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorNodeLinks< true >>
+genesis::util::container::Range< IteratorNodeLinks< true >>
 node_links( ElementType const& element )
 {
     return {
@@ -192,7 +192,7 @@ node_links( ElementType const& element )
 }
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorNodeLinks< false >>
+genesis::util::container::Range< IteratorNodeLinks< false >>
 node_links( ElementType& element )
 {
     return {

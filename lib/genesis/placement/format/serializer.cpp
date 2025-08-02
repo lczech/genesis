@@ -34,10 +34,10 @@
 #include <genesis/placement/format/newick_writer.hpp>
 #include <genesis/placement/sample.hpp>
 #include <genesis/placement/sample_set.hpp>
-#include <genesis/utils/io/deserializer.hpp>
-#include <genesis/utils/io/serializer.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/io/deserializer.hpp>
+#include <genesis/util/io/serializer.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <stdexcept>
 
@@ -64,7 +64,7 @@ unsigned char SampleSerializer::version = 1;
 void SampleSerializer::save( Sample const& map, std::string const& file_name )
 {
     // Prepare.
-    genesis::utils::io::Serializer ser( genesis::utils::io::to_file( file_name ));
+    genesis::util::io::Serializer ser( genesis::util::io::to_file( file_name ));
     // if (!ser) {
     //     throw std::invalid_argument("Serialization failed.");
     // }
@@ -81,7 +81,7 @@ void SampleSerializer::save( Sample const& map, std::string const& file_name )
     nw.enable_names(true);
     nw.enable_branch_lengths(true);
     std::string tree;
-    nw.write( map.tree(), genesis::utils::io::to_string( tree ));
+    nw.write( map.tree(), genesis::util::io::to_string( tree ));
     ser.put( tree );
 
     // Write pqueries.
@@ -123,7 +123,7 @@ Sample SampleSerializer::load( std::string const& file_name )
     Sample map;
 
     // Prepare, check stream status.
-    genesis::utils::io::Deserializer des( genesis::utils::io::from_file( file_name ));
+    genesis::util::io::Deserializer des( genesis::util::io::from_file( file_name ));
     if( ! des ) {
         throw std::invalid_argument( "Deserialization failed: Cannot open file." );
     }
@@ -142,7 +142,7 @@ Sample SampleSerializer::load( std::string const& file_name )
     // Read and check tree.
     auto tree_string = des.get<std::string>();
     map.tree() = PlacementTreeNewickReader().read(
-        genesis::utils::io::from_string( tree_string )
+        genesis::util::io::from_string( tree_string )
     );
 
     // Read pqueries.
@@ -193,7 +193,7 @@ void SampleSerializer::load( std::vector<std::string> const& file_names, SampleS
     auto tmp = std::vector<Sample>( file_names.size() );
 
     // Parallel loading.
-    genesis::utils::threading::parallel_for(
+    genesis::util::threading::parallel_for(
         0, file_names.size(),
         [&](size_t i)
         {
@@ -203,12 +203,12 @@ void SampleSerializer::load( std::vector<std::string> const& file_names, SampleS
 
     // Move to target SampleSet.
     for( size_t i = 0; i < file_names.size(); ++i ) {
-        auto const name = genesis::utils::core::file_filename( genesis::utils::core::file_basename( file_names[i] ) );
+        auto const name = genesis::util::core::file_filename( genesis::util::core::file_basename( file_names[i] ) );
         sample_set.add( std::move( tmp[i] ), name );
     }
 
     // for( auto const& fn : file_names ) {
-    //     auto const name = genesis::utils::core::file_filename( genesis::utils::core::file_basename(fn) );
+    //     auto const name = genesis::util::core::file_filename( genesis::util::core::file_basename(fn) );
     //     sample_set.add( load( fn ), name );
     // }
 

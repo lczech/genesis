@@ -33,7 +33,7 @@
 
 #include <vector>
 
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 namespace genesis {
 namespace tree {
@@ -59,7 +59,7 @@ class TreeLink;
  *
  * The vector is indexed using the node().index() for every node.
  */
-genesis::utils::containers::Matrix<size_t> node_path_length_matrix( Tree const& tree );
+genesis::util::container::Matrix<size_t> node_path_length_matrix( Tree const& tree );
 
 /**
  * @brief Return a vector containing the depth of all nodes with respect to the given start node.
@@ -88,7 +88,7 @@ std::vector<size_t> node_path_length_vector(
 //     Edge Distance Measures
 // =================================================================================================
 
-genesis::utils::containers::Matrix<size_t> edge_path_length_matrix(
+genesis::util::container::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
 );
 

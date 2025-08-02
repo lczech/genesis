@@ -35,9 +35,9 @@
 #include <genesis/tree/iterator/levelorder.hpp>
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -51,14 +51,14 @@ namespace tree {
 //     Node Distance Measures
 // =================================================================================================
 
-genesis::utils::containers::Matrix<size_t> node_path_length_matrix(
+genesis::util::container::Matrix<size_t> node_path_length_matrix(
     Tree const& tree
 ) {
     auto max_val = std::numeric_limits<size_t>::max();
-    genesis::utils::containers::Matrix<size_t> mat( tree.node_count(), tree.node_count(), max_val );
+    genesis::util::container::Matrix<size_t> mat( tree.node_count(), tree.node_count(), max_val );
 
     // Fill every row of the matrix.
-    genesis::utils::threading::parallel_for( 0, tree.node_count(), [&]( size_t ni ){
+    genesis::util::threading::parallel_for( 0, tree.node_count(), [&]( size_t ni ){
         auto const& row_node = tree.node_at( ni );
         assert( row_node.index() == ni );
 
@@ -138,11 +138,11 @@ std::vector<size_t> node_path_length_vector(
 //     Edge Distance Measures
 // =================================================================================================
 
-genesis::utils::containers::Matrix<size_t> edge_path_length_matrix(
+genesis::util::container::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
 ) {
     // Result matrix that will be returned.
-    genesis::utils::containers::Matrix<size_t> mat (tree.edge_count(), tree.edge_count());
+    genesis::util::container::Matrix<size_t> mat (tree.edge_count(), tree.edge_count());
 
     // For calculating the distance between edges, we use the distances between nodes and for every
     // pair of edged find the nodes at the ends of the edges that are closest to each other. This

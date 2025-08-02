@@ -32,7 +32,7 @@
 
 #include <genesis/population/function/function.hpp>
 #include <genesis/population/filter/sample_counts_filter.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <cassert>
 #include <cmath>

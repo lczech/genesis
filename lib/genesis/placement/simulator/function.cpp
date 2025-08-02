@@ -39,9 +39,9 @@
 #include <genesis/tree/function/distance.hpp>
 #include <genesis/tree/function/function.hpp>
 
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -59,7 +59,7 @@ namespace placement {
 std::ostream& operator << ( std::ostream& out, SimulatorEdgeDistribution const& distrib )
 {
     out << "Weight of each edge: ";
-    out << genesis::utils::text::join( distrib.edge_weights, ", ") << "\n";
+    out << genesis::util::text::join( distrib.edge_weights, ", ") << "\n";
     return out;
 }
 
@@ -142,7 +142,7 @@ void set_random_weights( size_t edge_count, SimulatorEdgeDistribution& edge_dist
 
     std::uniform_real_distribution<double> distrib( 0.0, 1.0 );
     for( size_t i = 0; i < edge_count; ++i ) {
-        edge_distrib.edge_weights[i] = distrib( genesis::utils::core::Options::get().random_engine() );
+        edge_distrib.edge_weights[i] = distrib( genesis::util::core::Options::get().random_engine() );
     }
 }
 
@@ -171,7 +171,7 @@ void set_random_edges( size_t edge_count, SimulatorEdgeDistribution& edge_distri
 
     std::bernoulli_distribution distrib;
     for (size_t i = 0; i < edge_count; ++i) {
-        if( distrib( genesis::utils::core::Options::get().random_engine() )) {
+        if( distrib( genesis::util::core::Options::get().random_engine() )) {
             edge_distrib.edge_weights[i] = 1.0;
         }
     }
@@ -274,13 +274,13 @@ size_t set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistributi
 
     assert( edge_count > 0 );
     std::uniform_int_distribution<size_t> edge_selection( 0, edge_count - 1 );
-    size_t edge_idx = edge_selection( genesis::utils::core::Options::get().random_engine() );
+    size_t edge_idx = edge_selection( genesis::util::core::Options::get().random_engine() );
 
     // Randomly select a subtree, either starting at the end of the edge in direction of the root,
     // or away from it.
     PlacementTreeLink const* start_link;
     std::bernoulli_distribution dir_distrib;
-    if( dir_distrib( genesis::utils::core::Options::get().random_engine() )) {
+    if( dir_distrib( genesis::util::core::Options::get().random_engine() )) {
         // Primary direction
         start_link = &sample.tree().edge_at(edge_idx).primary_link();
     } else {

@@ -38,20 +38,20 @@
 #include "genesis/sequence/function/quality.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/util/core/fs.hpp"
+#include "genesis/util/core/std.hpp"
+#include "genesis/util/text/string.hpp"
+#include "genesis/util/io/input_stream.hpp"
 
 #include <fstream>
 #include <string>
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 TEST( Sequence, FastqReader )
 {
@@ -178,7 +178,7 @@ TEST( Sequence, FastqWriter )
 
     // Write back into a string.
     std::string written;
-    FastqWriter().write( sset, utils::io::to_string( written ));
+    FastqWriter().write( sset, genesis::util::io::to_string( written ));
 
     // Compare to raw file data.
     auto const data = file_read( infile );
@@ -197,7 +197,7 @@ TEST( Sequence, FastqOutputStream )
     // Write to string. Need scope to actually do the writing.
     std::string target;
     {
-        auto out_it = FastqOutputStream( utils::io::to_string( target ));
+        auto out_it = FastqOutputStream( genesis::util::io::to_string( target ));
         for( auto const& seq : sset ) {
             out_it << seq;
         }

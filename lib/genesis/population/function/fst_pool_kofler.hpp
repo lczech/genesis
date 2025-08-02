@@ -32,9 +32,9 @@
  */
 
 #include <genesis/population/function/fst_pool_calculator.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/compensated_sum.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/compensated_sum.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -174,7 +174,7 @@ public:
     static std::tuple<double, double, double> f_st_pool_kofler_pi_snp(
         SampleCounts const& p1, SampleCounts const& p2
     ) {
-        using namespace genesis::utils::math;
+        using namespace genesis::util::math;
 
         // _pi / _uncorrectedPiPerSNPFromFreqs
         auto pi_snp_ = [](
@@ -233,9 +233,9 @@ private:
     double p2_poolsize_ = 0;
 
     // Theta Pi values for the two populations and their combination
-    genesis::utils::math::NeumaierSum p1_pi_sum_ = 0.0;
-    genesis::utils::math::NeumaierSum p2_pi_sum_ = 0.0;
-    genesis::utils::math::NeumaierSum pp_pi_sum_ = 0.0;
+    genesis::util::math::NeumaierSum p1_pi_sum_ = 0.0;
+    genesis::util::math::NeumaierSum p2_pi_sum_ = 0.0;
+    genesis::util::math::NeumaierSum pp_pi_sum_ = 0.0;
 
 };
 

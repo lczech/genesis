@@ -47,16 +47,16 @@
 #include "genesis/population/window/interval_window_stream.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/container/transform_iterator.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/util/container/transform_iterator.hpp"
+#include "genesis/util/core/options.hpp"
+#include "genesis/util/math/random.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::containers;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::math;
+using namespace genesis::util;
+using namespace genesis::util::container;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
 
 // =================================================================================================
 //     Generator (deprecated)
@@ -486,7 +486,7 @@ TEST( FST, RandomFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     size_t num_tests = 5000;
     for( size_t i = 0; i < num_tests; ++i ) {

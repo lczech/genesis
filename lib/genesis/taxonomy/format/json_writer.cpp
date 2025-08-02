@@ -31,9 +31,9 @@
 #include <genesis/taxonomy/format/json_writer.hpp>
 
 #include <genesis/taxonomy/iterator/preorder.hpp>
-#include <genesis/utils/format/json/document.hpp>
-#include <genesis/utils/format/json/writer.hpp>
-#include <genesis/utils/io/output_stream.hpp>
+#include <genesis/util/format/json/document.hpp>
+#include <genesis/util/format/json/writer.hpp>
+#include <genesis/util/io/output_stream.hpp>
 
 #include <iostream>
 
@@ -45,15 +45,15 @@ namespace taxonomy {
 // =================================================================================================
 
 void TaxonomyJsonWriter::write(
-    Taxonomy const& tax, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+    Taxonomy const& tax, std::shared_ptr< genesis::util::io::BaseOutputTarget> target
 ) const {
-    genesis::utils::formats::JsonWriter().write( to_document( tax ), target );
+    genesis::util::format::JsonWriter().write( to_document( tax ), target );
 }
 
-genesis::utils::formats::JsonDocument TaxonomyJsonWriter::to_document(
+genesis::util::format::JsonDocument TaxonomyJsonWriter::to_document(
     Taxonomy const& tax
 ) const {
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::format;
     JsonDocument doc = JsonDocument::array();
     for( auto const& child : tax ) {
         doc.push_back( taxon_to_object_( child ));
@@ -61,11 +61,11 @@ genesis::utils::formats::JsonDocument TaxonomyJsonWriter::to_document(
     return doc;
 }
 
-genesis::utils::formats::JsonDocument::ObjectType TaxonomyJsonWriter::taxon_to_object_(
+genesis::util::format::JsonDocument::ObjectType TaxonomyJsonWriter::taxon_to_object_(
     Taxon const& tax
 ) const {
-    using namespace genesis::utils::formats;
-    auto obj = genesis::utils::formats::JsonDocument::ObjectType();
+    using namespace genesis::util::format;
+    auto obj = genesis::util::format::JsonDocument::ObjectType();
 
     // Set the basic properties of a Taxon.
     obj[ "name" ] = tax.name();

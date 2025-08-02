@@ -112,7 +112,7 @@ void rescale_counts(
  * SampleCounts::g_count, SampleCounts::t_count, SampleCounts::n_count, and SampleCounts::d_count) exceeds
  * the given @p max_depth, the counts are resampled _with_ replacement so that their sum is the
  * given @p max_depth. This uses
- * @link ::genesis::utils::multinomial_distribution() multinomial_distribution()@endlink
+ * @link ::genesis::util::multinomial_distribution() multinomial_distribution()@endlink
  * for the sampling. If the count sum is below, nothing is done.
  *
  * @see resample_counts()
@@ -175,7 +175,7 @@ void resample_counts(
  * SampleCounts::g_count, SampleCounts::t_count, SampleCounts::n_count, and SampleCounts::d_count) exceeds
  * the given @p max_depth, the counts are resampled _without_ replacement so that their sum is
  * the given @p max_depth. This uses
- * @link ::genesis::utils::multivariate_hypergeometric_distribution() multivariate_hypergeometric_distribution()@endlink
+ * @link ::genesis::util::multivariate_hypergeometric_distribution() multivariate_hypergeometric_distribution()@endlink
  * for the sampling. If the count sum is below, nothing is done.
  *
  * @see subscale_counts()

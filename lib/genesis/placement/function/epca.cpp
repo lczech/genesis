@@ -38,14 +38,14 @@
 #include <genesis/tree/function/function.hpp>
 #include <genesis/tree/iterator/postorder.hpp>
 
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/container/matrix/operator.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/matrix.hpp>
-#include <genesis/utils/math/pca.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/matrix.hpp>
+#include <genesis/util/math/pca.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -178,14 +178,14 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
 //     Edge PCA Imbalance Matrix
 // =================================================================================================
 
-genesis::utils::containers::Matrix<double> epca_imbalance_matrix(
+genesis::util::container::Matrix<double> epca_imbalance_matrix(
     SampleSet const& samples,
     bool include_leaves,
     bool normalize
 ) {
     // If there are no samples, return empty matrix.
     if( samples.size() == 0 ) {
-        return genesis::utils::containers::Matrix<double>();
+        return genesis::util::container::Matrix<double>();
     }
 
     // Check if all trees have the same tpology and edge nums.
@@ -200,9 +200,9 @@ genesis::utils::containers::Matrix<double> epca_imbalance_matrix(
 
     if( include_leaves ) {
 
-        auto imbalance_matrix = genesis::utils::containers::Matrix<double>( samples.size(), edge_count );
+        auto imbalance_matrix = genesis::util::container::Matrix<double>( samples.size(), edge_count );
 
-        genesis::utils::threading::parallel_for( 0, samples.size(), [&]( size_t s ) {
+        genesis::util::threading::parallel_for( 0, samples.size(), [&]( size_t s ) {
             auto const& smp = samples[s];
             auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
@@ -216,7 +216,7 @@ genesis::utils::containers::Matrix<double> epca_imbalance_matrix(
                 // it's imbalance is minus 1, as all its mass is on the root side.
                 assert(
                     ! is_leaf( samples[s].tree().edge_at(i).secondary_node() ) ||
-                    genesis::utils::math::almost_equal_relative( imbalance_vec[ i ], -1.0 )
+                    genesis::util::math::almost_equal_relative( imbalance_vec[ i ], -1.0 )
                 );
 
                 imbalance_matrix( s, i ) = imbalance_vec[ i ];
@@ -231,9 +231,9 @@ genesis::utils::containers::Matrix<double> epca_imbalance_matrix(
         auto const inner_edge_indices = tree::inner_edge_indices( samples.at( 0 ).tree() );
 
         // Prepare result
-        auto imbalance_matrix = genesis::utils::containers::Matrix<double>( samples.size(), inner_edge_indices.size() );
+        auto imbalance_matrix = genesis::util::container::Matrix<double>( samples.size(), inner_edge_indices.size() );
 
-        genesis::utils::threading::parallel_for( 0, samples.size(), [&]( size_t s ) {
+        genesis::util::threading::parallel_for( 0, samples.size(), [&]( size_t s ) {
             auto const& smp = samples[s];
             auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
@@ -258,7 +258,7 @@ genesis::utils::containers::Matrix<double> epca_imbalance_matrix(
 //     Splitify Transform with Kappa
 // =================================================================================================
 
-void epca_splitify_transform( genesis::utils::containers::Matrix<double>& imbalance_matrix, double kappa )
+void epca_splitify_transform( genesis::util::container::Matrix<double>& imbalance_matrix, double kappa )
 {
     // Precondition check.
     if( kappa < 0.0 ) {
@@ -269,7 +269,7 @@ void epca_splitify_transform( genesis::utils::containers::Matrix<double>& imbala
     // We do not need to calculate the abs and power in this case.
     if( kappa == 0.0 ) {
         for( auto& elem : imbalance_matrix ) {
-            elem = static_cast<double>( genesis::utils::math::signum( elem ));
+            elem = static_cast<double>( genesis::util::math::signum( elem ));
         }
         return;
     }
@@ -281,7 +281,7 @@ void epca_splitify_transform( genesis::utils::containers::Matrix<double>& imbala
 
     // If neither applies, do the full transformation.
     for( auto& elem : imbalance_matrix ) {
-        elem = static_cast<double>( genesis::utils::math::signum( elem )) * std::pow( std::abs( elem ), kappa );
+        elem = static_cast<double>( genesis::util::math::signum( elem )) * std::pow( std::abs( elem ), kappa );
     }
 }
 
@@ -307,7 +307,7 @@ EpcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t co
     assert( imbalance_matrix.cols() == inner_edge_indices.size() );
 
     // Filter and transform the imbalance matrix.
-    auto const not_filtered_indices = genesis::utils::math::filter_constant_columns(
+    auto const not_filtered_indices = genesis::util::math::filter_constant_columns(
         imbalance_matrix, epsilon
     );
     epca_splitify_transform( imbalance_matrix, kappa );
@@ -326,8 +326,8 @@ EpcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t co
     }
 
     // Run and return PCA.
-    auto pca = genesis::utils::math::principal_component_analysis(
-        imbalance_matrix, components, genesis::utils::math::PcaStandardization::kCovariance
+    auto pca = genesis::util::math::principal_component_analysis(
+        imbalance_matrix, components, genesis::util::math::PcaStandardization::kCovariance
     );
     assert( pca.eigenvalues.size()  == components );
     assert( pca.eigenvectors.rows() == edge_indices.size() );

@@ -39,7 +39,7 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
 namespace color {
 
     class Color;
@@ -55,7 +55,7 @@ class Tree;
 //     Edge Color Functions
 // =================================================================================================
 
-std::vector<genesis::utils::color::Color> edge_color_branch_length_gradient(
+std::vector<genesis::util::color::Color> edge_color_branch_length_gradient(
     Tree const& tree,
     bool zero_based = false
 );

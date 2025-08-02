@@ -119,7 +119,7 @@ enum class SubsamplingMethod
  * to be below a given @p max_depth.
  *
  * This is intended to be used as a transformation on a VariantInputStream, see
- * @link ::genesis::utils::containers::GenericInputStream::add_transform() add_transform()@endlink for details.
+ * @link ::genesis::util::container::GenericInputStream::add_transform() add_transform()@endlink for details.
  * The function creates a transformation function to be used on a stream, and subsamples or
  * subscales the SampleCounts of each Variant in the stream, so that @p max_depth is not
  * exceeded. This is useful for instance when computing the pool sequencing diversity estimators,
@@ -185,7 +185,7 @@ std::function<void(Variant&)> make_variant_input_stream_sample_subsampling_trans
  *         // ...
  *     }
  *
- * @see See @link ::genesis::utils::containers::GenericInputStream::add_observer() GenericInputStream::add_observer()@endlink
+ * @see See @link ::genesis::util::container::GenericInputStream::add_observer() GenericInputStream::add_observer()@endlink
  * for the function of the underlying iterator that accepts the returned function from here.
  *
  * @see make_variant_input_stream_from_vector(),

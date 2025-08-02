@@ -31,7 +31,7 @@
  * @ingroup placement
  */
 
-#include <genesis/utils/io/output_target.hpp>
+#include <genesis/util/io/output_target.hpp>
 
 #include <iosfwd>
 #include <string>
@@ -43,8 +43,8 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
-namespace formats {
+namespace util {
+namespace format {
 
     class JsonDocument;
 
@@ -72,10 +72,10 @@ namespace placement {
  *     std::string outfile = "path/to/file.jplace";
  *     Sample sample;
  *
- *     JplaceWriter().write( sample, genesis::utils::io::to_file( outfile ));
+ *     JplaceWriter().write( sample, genesis::util::io::to_file( outfile ));
  *
  * Furthermore, using to_document(), the Sample can also be transformed into our internal
- * Json representaion in form of a genesis::utils::formats::JsonDocument that adheres to the Jplace standard.
+ * Json representaion in form of a genesis::util::format::JsonDocument that adheres to the Jplace standard.
  * This is probably rarely needed, but might be useful nonetheless.
  *
  * See JplaceReader for more information on the data format. See Sample for more information
@@ -105,10 +105,10 @@ public:
     /**
      * @brief Write a Sample to an output target, using the Jplace format.
      *
-     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
-     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::util::io::to_file(), genesis::util::io::to_stream(), and
+     * genesis::util::text::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( Sample const& sample, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
+    void write( Sample const& sample, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const;
 
     /**
      * @brief Store the data of a Sample in a JsonDocument object.
@@ -117,7 +117,7 @@ public:
      * streams. It is however kept here for reference and in case someone wants to work with Json files
      * directly.
      */
-    genesis::utils::formats::JsonDocument to_document( Sample const& sample ) const;
+    genesis::util::format::JsonDocument to_document( Sample const& sample ) const;
 
     // -------------------------------------------------------------------------
     //     Settings

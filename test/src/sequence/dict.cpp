@@ -35,18 +35,18 @@
 #include "genesis/sequence/sequence_dict.hpp"
 #include "genesis/sequence/function/dict.hpp"
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/gzip_input_source.hpp"
+#include "genesis/util/core/fs.hpp"
+#include "genesis/util/core/std.hpp"
+#include "genesis/util/io/input_stream.hpp"
+#include "genesis/util/io/gzip_input_source.hpp"
 
 #include <fstream>
 #include <string>
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 void test_tair10_dict_file( SequenceDict const& dict )
 {

@@ -33,7 +33,7 @@
 #include <genesis/tree/function/operator.hpp>
 #include <genesis/tree/function/function.hpp>
 
-#include <genesis/utils/math/common.hpp>
+#include <genesis/util/math/common.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -62,9 +62,9 @@ double CircularLayout::radius() const
 //     Virtual Functions
 // =================================================================================================
 
-genesis::utils::formats::SvgDocument CircularLayout::to_svg_document_() const
+genesis::util::format::SvgDocument CircularLayout::to_svg_document_() const
 {
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::format;
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_lines;
@@ -110,8 +110,8 @@ genesis::utils::formats::SvgDocument CircularLayout::to_svg_document_() const
         auto const& node_data = node.data<LayoutNodeData>();
         auto const& prnt_data = tree().node_at( node_data.parent_index ).data<LayoutNodeData>();
 
-        auto const node_spreading = 2.0 * genesis::utils::math::PI * node_data.spreading * max_spreading;
-        auto const prnt_spreading = 2.0 * genesis::utils::math::PI * prnt_data.spreading * max_spreading;
+        auto const node_spreading = 2.0 * genesis::util::math::PI * node_data.spreading * max_spreading;
+        auto const prnt_spreading = 2.0 * genesis::util::math::PI * prnt_data.spreading * max_spreading;
 
         auto const node_x = node_data.distance * radius * cos( node_spreading );
         auto const node_y = node_data.distance * radius * sin( node_spreading );
@@ -126,8 +126,8 @@ genesis::utils::formats::SvgDocument CircularLayout::to_svg_document_() const
             // Get line strokes
             auto spreading_stroke = edge_data.spreading_stroke;
             auto distance_stroke = edge_data.distance_stroke;
-            spreading_stroke.line_cap = genesis::utils::formats::SvgStroke::LineCap::kRound;
-            distance_stroke.line_cap = genesis::utils::formats::SvgStroke::LineCap::kRound;
+            spreading_stroke.line_cap = genesis::util::format::SvgStroke::LineCap::kRound;
+            distance_stroke.line_cap = genesis::util::format::SvgStroke::LineCap::kRound;
 
             // Calculate circular spreading
             auto start_a = prnt_spreading;

@@ -33,7 +33,7 @@
 
 #include <genesis/placement/sample.hpp>
 #include <genesis/placement/sample_set.hpp>
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 #include <vector>
 
@@ -74,7 +74,7 @@ std::vector<double> placement_mass_per_edges_with_multiplicities( Sample const& 
  * See placement_mass_per_edges_with_multiplicities( Sample const& ) for details.
  * The Matrix is simply a row-wise concatenation of this vector function.
  */
-genesis::utils::containers::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet const& sample_set );
+genesis::util::container::Matrix<double> placement_mass_per_edges_with_multiplicities( SampleSet const& sample_set );
 
 /**
  * @brief Get the mass of all PqueryPlacement%s of the Sample, using the
@@ -115,7 +115,7 @@ std::vector<double> placement_mass_per_edge_without_multiplicities( Sample const
  * See placement_mass_per_edge_without_multiplicities( Sample const& ) for details.
  * The Matrix is simply a row-wise concatenation of this vector function.
  */
-genesis::utils::containers::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet const& sample_set );
+genesis::util::container::Matrix<double> placement_mass_per_edge_without_multiplicities( SampleSet const& sample_set );
 
 /**
  * @brief Get the summed mass of all PqueryPlacement%s in all @link Pquery Pqueries @endlink of the

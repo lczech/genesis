@@ -33,7 +33,7 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/bipartition/bipartition.hpp>
-#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector.hpp>
 
 #include <string>
 #include <vector>
@@ -56,7 +56,7 @@ std::vector<size_t> node_to_leaf_map( Tree const& tree );
  * @brief Return a Bitvector that has as many entries as the @p tree has leaf nodes,
  * and is `true` where the given @p leaf_nodes are.
  */
-genesis::utils::bit::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode const*> leaf_nodes );
+genesis::util::bit::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode const*> leaf_nodes );
 
 std::vector<size_t> get_subtree_edges( TreeLink const& subtree );
 

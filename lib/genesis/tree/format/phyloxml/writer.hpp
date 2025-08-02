@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include <genesis/utils/io/output_target.hpp>
+#include <genesis/util/io/output_target.hpp>
 
 #include <functional>
 #include <string>
@@ -43,8 +43,8 @@ namespace genesis {
 //     Forward declarations
 // =================================================================================================
 
-namespace utils {
-namespace formats {
+namespace util {
+namespace format {
 
     class XmlDocument;
     class XmlElement;
@@ -68,7 +68,7 @@ class  TreeSet;
  *
  * This class supports to write a Tree into a Phyloxml format representation, using
  *
- *     PhyloxmlWriter().write( tree, genesis::utils::io::to_file( "path/to/tree.phyloxml" ));
+ *     PhyloxmlWriter().write( tree, genesis::util::io::to_file( "path/to/tree.phyloxml" ));
  *
  * It understands the Phyloxml format, but is agnostic of the actual data representation of
  * TreeNode and TreeEdge data. This approach allows to store data in any wanted format.
@@ -112,45 +112,45 @@ public:
 
     /**
      * @brief Function type that allows to do some preparatory work with the Tree and
-     * @link genesis::utils::formats::XmlDocument XmlDocument@endlink before the actual tree writing begins.
+     * @link genesis::util::format::XmlDocument XmlDocument@endlink before the actual tree writing begins.
      *
      * This is for example useful if a certain kind of value for the nodes depends on other
      * nodes. Using this function, such data can be collected and then used when writing the nodes.
      */
     using prepare_writing_function = std::function< void(
-        Tree const& tree, genesis::utils::formats::XmlDocument& xml
+        Tree const& tree, genesis::util::format::XmlDocument& xml
     ) >;
 
     /**
      * @brief Function type that allows to do some finalizing work with the Tree and
-     * @link genesis::utils::formats::XmlDocument XmlDocument@endlink after the actual tree writing finished.
+     * @link genesis::util::format::XmlDocument XmlDocument@endlink after the actual tree writing finished.
      *
      * This can for example be used for some cleanup.
      */
     using finish_writing_function = std::function< void(
-        Tree const& tree, genesis::utils::formats::XmlDocument& xml
+        Tree const& tree, genesis::util::format::XmlDocument& xml
     ) >;
 
     /**
      * @brief Function type that translates from a TreeNode to an
-     * @link genesis::utils::formats::XmlElement XmlElement@endlink.
+     * @link genesis::util::format::XmlElement XmlElement@endlink.
      *
      * This is called for each TreeNode while writing the Tree to Phyloxml and is used to
      * transfer data from the node into a suitable representation in the Phyloxml format.
      */
     using node_to_element_function = std::function< void(
-        TreeNode const& node, genesis::utils::formats::XmlElement&  element
+        TreeNode const& node, genesis::util::format::XmlElement&  element
     ) >;
 
     /**
      * @brief Function type that translates from a TreeEdge to an
-     * @link genesis::utils::formats::XmlElement XmlElement@endlink.
+     * @link genesis::util::format::XmlElement XmlElement@endlink.
      *
      * This is called for each TreeEdge while writing the Tree to Phyloxml and is used to
      * transfer data from the edge into a suitable representation in the Phyloxml format.
      */
     using edge_to_element_function = std::function< void(
-        TreeEdge const& edge, genesis::utils::formats::XmlElement&  element
+        TreeEdge const& edge, genesis::util::format::XmlElement&  element
     ) >;
 
     // -------------------------------------------------------------------------
@@ -173,15 +173,15 @@ public:
     /**
      * @brief Write a Tree to an output target, using the Phyloxml format.
      *
-     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
-     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::util::io::to_file(), genesis::util::io::to_stream(), and
+     * genesis::util::text::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( Tree const& tree, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
+    void write( Tree const& tree, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const;
 
     /**
      * @brief Store the information of the tree into an Phyloxml-formatted XmlDocument.
      */
-    void to_document ( Tree const& tree, genesis::utils::formats::XmlDocument& xml) const;
+    void to_document ( Tree const& tree, genesis::util::format::XmlDocument& xml) const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions

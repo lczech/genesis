@@ -34,7 +34,7 @@
 #include <genesis/tree/format/color_writer_plugin.hpp>
 #include <genesis/tree/format/phyloxml/writer.hpp>
 #include <genesis/tree/tree.hpp>
-#include <genesis/utils/format/xml/document.hpp>
+#include <genesis/util/format/xml/document.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -84,7 +84,7 @@ public:
     //      Plugin Functions
     // -------------------------------------------------------------------------
 
-    void prepare_writing( Tree const& tree, genesis::utils::formats::XmlDocument& xml ) const
+    void prepare_writing( Tree const& tree, genesis::util::format::XmlDocument& xml ) const
     {
         (void) xml;
 
@@ -103,7 +103,7 @@ public:
         }
     }
 
-    void edge_to_element( TreeEdge const& edge, genesis::utils::formats::XmlElement& element ) const
+    void edge_to_element( TreeEdge const& edge, genesis::util::format::XmlElement& element ) const
     {
         if (!ColorWriterPlugin::enable_color()) {
             return;
@@ -119,12 +119,12 @@ public:
     void register_with( PhyloxmlWriter& writer ) const
     {
         writer.prepare_writing_plugins.push_back(
-            [&]( Tree const& tree, genesis::utils::formats::XmlDocument& xml ) {
+            [&]( Tree const& tree, genesis::util::format::XmlDocument& xml ) {
                 prepare_writing( tree, xml );
             }
         );
         writer.edge_to_element_plugins.push_back(
-            [&]( TreeEdge const& edge, genesis::utils::formats::XmlElement& element ) {
+            [&]( TreeEdge const& edge, genesis::util::format::XmlElement& element ) {
                 edge_to_element( edge, element );
             }
         );
@@ -136,26 +136,26 @@ public:
 
 private:
 
-    void set_color_( genesis::utils::formats::XmlElement& element, unsigned char r, unsigned char g, unsigned char b ) const
+    void set_color_( genesis::util::format::XmlElement& element, unsigned char r, unsigned char g, unsigned char b ) const
     {
         if(
             ColorWriterPlugin::use_ignored_color() &&
-            genesis::utils::color::Color(r, g, b) == ColorWriterPlugin::ignored_color()
+            genesis::util::color::Color(r, g, b) == ColorWriterPlugin::ignored_color()
         ) {
             return;
         }
 
         // TODO do not create new element if there is already one!
-        auto re = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("red");
+        auto re = genesis::util::core::make_unique< genesis::util::format::XmlElement >("red");
         re->append_markup(std::to_string(r));
 
-        auto ge = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("green");
+        auto ge = genesis::util::core::make_unique< genesis::util::format::XmlElement >("green");
         ge->append_markup(std::to_string(g));
 
-        auto be = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("blue");
+        auto be = genesis::util::core::make_unique< genesis::util::format::XmlElement >("blue");
         be->append_markup(std::to_string(b));
 
-        auto color = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >("color");
+        auto color = genesis::util::core::make_unique< genesis::util::format::XmlElement >("color");
         color->content.push_back(std::move(re));
         color->content.push_back(std::move(ge));
         color->content.push_back(std::move(be));
@@ -163,7 +163,7 @@ private:
         element.content.push_back(std::move(color));
     }
 
-    void set_color_( genesis::utils::formats::XmlElement& element, genesis::utils::color::Color color ) const
+    void set_color_( genesis::util::format::XmlElement& element, genesis::util::color::Color color ) const
     {
         set_color_( element, color.r_byte(), color.g_byte(), color.b_byte() );
     }

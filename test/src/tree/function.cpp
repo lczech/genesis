@@ -39,14 +39,14 @@
 #include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/function/function.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/container/matrix/operator.hpp"
+#include "genesis/util/text/string.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils::containers;
-using namespace genesis::utils::io;
-using namespace genesis::utils::text;
+using namespace genesis::util::container;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Tree Sides

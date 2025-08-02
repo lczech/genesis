@@ -38,16 +38,16 @@
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/function.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/util/math/random.hpp"
 
 #include <cmath>
 #include <limits>
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::math;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
 
 // =================================================================================================
 //     Random Fuzzy

@@ -423,226 +423,226 @@
 // #include <genesis/tree/tree/subtree.hpp>
 
 // ================================================================================================
-//   utils
+//   util
 // ================================================================================================
 
 // ---------------------------------------------------------------------
 //   bit
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/bit/bit.hpp>
-#include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/function.hpp>
-#include <genesis/utils/bit/bitvector/operator.hpp>
-#include <genesis/utils/bit/twobit_vector.hpp>
-#include <genesis/utils/bit/twobit_vector/function.hpp>
-#include <genesis/utils/bit/twobit_vector/iterator_deletions.hpp>
-#include <genesis/utils/bit/twobit_vector/iterator_insertions.hpp>
-#include <genesis/utils/bit/twobit_vector/iterator_substitutions.hpp>
+#include <genesis/util/bit/bit.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
+#include <genesis/util/bit/twobit_vector.hpp>
+#include <genesis/util/bit/twobit_vector/function.hpp>
+#include <genesis/util/bit/twobit_vector/iterator_deletions.hpp>
+#include <genesis/util/bit/twobit_vector/iterator_insertions.hpp>
+#include <genesis/util/bit/twobit_vector/iterator_substitutions.hpp>
 
 // ---------------------------------------------------------------------
 //   color
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/color/color.hpp>
-#include <genesis/utils/color/function.hpp>
-// #include <genesis/utils/color/heat_map.hpp>
-#include <genesis/utils/color/helper.hpp>
-#include <genesis/utils/color/list_diverging.hpp>
-#include <genesis/utils/color/list_misc.hpp>
-#include <genesis/utils/color/list_qualitative.hpp>
-#include <genesis/utils/color/list_sequential.hpp>
-#include <genesis/utils/color/map.hpp>
-#include <genesis/utils/color/name.hpp>
-#include <genesis/utils/color/norm_boundary.hpp>
-#include <genesis/utils/color/norm_diverging.hpp>
-#include <genesis/utils/color/norm_linear.hpp>
-#include <genesis/utils/color/norm_logarithmic.hpp>
-#include <genesis/utils/color/normalization.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/function.hpp>
+// #include <genesis/util/color/heat_map.hpp>
+#include <genesis/util/color/helper.hpp>
+#include <genesis/util/color/list_diverging.hpp>
+#include <genesis/util/color/list_misc.hpp>
+#include <genesis/util/color/list_qualitative.hpp>
+#include <genesis/util/color/list_sequential.hpp>
+#include <genesis/util/color/map.hpp>
+#include <genesis/util/color/name.hpp>
+#include <genesis/util/color/norm_boundary.hpp>
+#include <genesis/util/color/norm_diverging.hpp>
+#include <genesis/util/color/norm_linear.hpp>
+#include <genesis/util/color/norm_logarithmic.hpp>
+#include <genesis/util/color/normalization.hpp>
 
 // ---------------------------------------------------------------------
 //   container
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/container/bitpacked_vector.hpp>
-// #include <genesis/utils/container/dataframe.hpp>
-// #include <genesis/utils/container/dataframe/operator.hpp>
-// #include <genesis/utils/container/dataframe/reader.hpp>
-// #include <genesis/utils/container/deref_iterator.hpp>
-// #include <genesis/utils/container/filter_iterator.hpp>
-// #include <genesis/utils/container/function_cache.hpp>
-// #include <genesis/utils/container/generic_input_stream.hpp>
-// #include <genesis/utils/container/hash_tuple.hpp>
-// #include <genesis/utils/container/interval_tree.hpp>
-// #include <genesis/utils/container/interval_tree/function.hpp>
-// #include <genesis/utils/container/interval_tree/fwd.hpp>
-// #include <genesis/utils/container/interval_tree/interval.hpp>
-// #include <genesis/utils/container/interval_tree/iterator.hpp>
-// #include <genesis/utils/container/interval_tree/node.hpp>
-// #include <genesis/utils/container/matrix.hpp>
-// #include <genesis/utils/container/matrix/col.hpp>
-// #include <genesis/utils/container/matrix/operator.hpp>
-// #include <genesis/utils/container/matrix/reader.hpp>
-// #include <genesis/utils/container/matrix/row.hpp>
-// #include <genesis/utils/container/matrix/simple_reader.hpp>
-// #include <genesis/utils/container/matrix/writer.hpp>
-// #include <genesis/utils/container/mru_cache.hpp>
-// #include <genesis/utils/container/optional.hpp>
-// #include <genesis/utils/container/range.hpp>
-// #include <genesis/utils/container/transform_iterator.hpp>
+// #include <genesis/util/container/bitpacked_vector.hpp>
+// #include <genesis/util/container/dataframe.hpp>
+// #include <genesis/util/container/dataframe/operator.hpp>
+// #include <genesis/util/container/dataframe/reader.hpp>
+// #include <genesis/util/container/deref_iterator.hpp>
+// #include <genesis/util/container/filter_iterator.hpp>
+// #include <genesis/util/container/function_cache.hpp>
+// #include <genesis/util/container/generic_input_stream.hpp>
+// #include <genesis/util/container/hash_tuple.hpp>
+// #include <genesis/util/container/interval_tree.hpp>
+// #include <genesis/util/container/interval_tree/function.hpp>
+// #include <genesis/util/container/interval_tree/fwd.hpp>
+// #include <genesis/util/container/interval_tree/interval.hpp>
+// #include <genesis/util/container/interval_tree/iterator.hpp>
+// #include <genesis/util/container/interval_tree/node.hpp>
+// #include <genesis/util/container/matrix.hpp>
+// #include <genesis/util/container/matrix/col.hpp>
+// #include <genesis/util/container/matrix/operator.hpp>
+// #include <genesis/util/container/matrix/reader.hpp>
+// #include <genesis/util/container/matrix/row.hpp>
+// #include <genesis/util/container/matrix/simple_reader.hpp>
+// #include <genesis/util/container/matrix/writer.hpp>
+// #include <genesis/util/container/mru_cache.hpp>
+// #include <genesis/util/container/optional.hpp>
+// #include <genesis/util/container/range.hpp>
+// #include <genesis/util/container/transform_iterator.hpp>
 
 // ---------------------------------------------------------------------
 //   core
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/core/exception.hpp>
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/info.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/core/options.hpp>
-#include <genesis/utils/core/resource_logger.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/core/version.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/core/exception.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/info.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/core/options.hpp>
+#include <genesis/util/core/resource_logger.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/core/version.hpp>
 
 // ---------------------------------------------------------------------
 //   format
 // ---------------------------------------------------------------------
 
-// #include <genesis/utils/format/bmp/writer.hpp>
-// #include <genesis/utils/format/csv/input_iterator.hpp>
-// #include <genesis/utils/format/csv/reader.hpp>
-// #include <genesis/utils/format/json/document.hpp>
-// #include <genesis/utils/format/json/iterator.hpp>
-// #include <genesis/utils/format/json/reader.hpp>
-// #include <genesis/utils/format/json/writer.hpp>
-// #include <genesis/utils/format/nexus/block.hpp>
-// #include <genesis/utils/format/nexus/document.hpp>
-// #include <genesis/utils/format/nexus/taxa.hpp>
-// #include <genesis/utils/format/nexus/trees.hpp>
-// #include <genesis/utils/format/nexus/writer.hpp>
-// #include <genesis/utils/format/svg/attribute.hpp>
-// #include <genesis/utils/format/svg/axis.hpp>
-// #include <genesis/utils/format/svg/color_bar.hpp>
-// #include <genesis/utils/format/svg/definitions.hpp>
-// #include <genesis/utils/format/svg/document.hpp>
-// #include <genesis/utils/format/svg/gradient.hpp>
-// #include <genesis/utils/format/svg/group.hpp>
-// #include <genesis/utils/format/svg/helper.hpp>
-// #include <genesis/utils/format/svg/image.hpp>
-// #include <genesis/utils/format/svg/matrix.hpp>
-// #include <genesis/utils/format/svg/object.hpp>
-// #include <genesis/utils/format/svg/pie_chart.hpp>
-// #include <genesis/utils/format/svg/shape.hpp>
-// #include <genesis/utils/format/svg/svg.hpp>
-// #include <genesis/utils/format/svg/text.hpp>
-// #include <genesis/utils/format/xml/document.hpp>
-// #include <genesis/utils/format/xml/helper.hpp>
-// #include <genesis/utils/format/xml/writer.hpp>
+// #include <genesis/util/format/bmp/writer.hpp>
+// #include <genesis/util/format/csv/input_iterator.hpp>
+// #include <genesis/util/format/csv/reader.hpp>
+// #include <genesis/util/format/json/document.hpp>
+// #include <genesis/util/format/json/iterator.hpp>
+// #include <genesis/util/format/json/reader.hpp>
+// #include <genesis/util/format/json/writer.hpp>
+// #include <genesis/util/format/nexus/block.hpp>
+// #include <genesis/util/format/nexus/document.hpp>
+// #include <genesis/util/format/nexus/taxa.hpp>
+// #include <genesis/util/format/nexus/trees.hpp>
+// #include <genesis/util/format/nexus/writer.hpp>
+// #include <genesis/util/format/svg/attribute.hpp>
+// #include <genesis/util/format/svg/axis.hpp>
+// #include <genesis/util/format/svg/color_bar.hpp>
+// #include <genesis/util/format/svg/definitions.hpp>
+// #include <genesis/util/format/svg/document.hpp>
+// #include <genesis/util/format/svg/gradient.hpp>
+// #include <genesis/util/format/svg/group.hpp>
+// #include <genesis/util/format/svg/helper.hpp>
+// #include <genesis/util/format/svg/image.hpp>
+// #include <genesis/util/format/svg/matrix.hpp>
+// #include <genesis/util/format/svg/object.hpp>
+// #include <genesis/util/format/svg/pie_chart.hpp>
+// #include <genesis/util/format/svg/shape.hpp>
+// #include <genesis/util/format/svg/svg.hpp>
+// #include <genesis/util/format/svg/text.hpp>
+// #include <genesis/util/format/xml/document.hpp>
+// #include <genesis/util/format/xml/helper.hpp>
+// #include <genesis/util/format/xml/writer.hpp>
 
 // ---------------------------------------------------------------------
 //   io
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/io/base_input_source.hpp>
-#include <genesis/utils/io/base_output_target.hpp>
-#include <genesis/utils/io/deserializer.hpp>
-#include <genesis/utils/io/file_input_source.hpp>
-#include <genesis/utils/io/file_output_target.hpp>
-#include <genesis/utils/io/function.hpp>
-#include <genesis/utils/io/gzip.hpp>
-#include <genesis/utils/io/gzip_block_ostream.hpp>
-#include <genesis/utils/io/gzip_input_source.hpp>
-#include <genesis/utils/io/gzip_output_target.hpp>
-#include <genesis/utils/io/gzip_stream.hpp>
-#include <genesis/utils/io/input_buffer.hpp>
-#include <genesis/utils/io/input_reader.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/io/output_stream.hpp>
-#include <genesis/utils/io/output_target.hpp>
-#include <genesis/utils/io/parser.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/io/serializer.hpp>
-#include <genesis/utils/io/stream_input_source.hpp>
-#include <genesis/utils/io/stream_output_target.hpp>
-#include <genesis/utils/io/strict_fstream.hpp>
-#include <genesis/utils/io/string_input_source.hpp>
-#include <genesis/utils/io/string_output_target.hpp>
+#include <genesis/util/io/base_input_source.hpp>
+#include <genesis/util/io/base_output_target.hpp>
+#include <genesis/util/io/deserializer.hpp>
+#include <genesis/util/io/file_input_source.hpp>
+#include <genesis/util/io/file_output_target.hpp>
+#include <genesis/util/io/function.hpp>
+#include <genesis/util/io/gzip.hpp>
+#include <genesis/util/io/gzip_block_ostream.hpp>
+#include <genesis/util/io/gzip_input_source.hpp>
+#include <genesis/util/io/gzip_output_target.hpp>
+#include <genesis/util/io/gzip_stream.hpp>
+#include <genesis/util/io/input_buffer.hpp>
+#include <genesis/util/io/input_reader.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/io/output_stream.hpp>
+#include <genesis/util/io/output_target.hpp>
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/io/serializer.hpp>
+#include <genesis/util/io/stream_input_source.hpp>
+#include <genesis/util/io/stream_output_target.hpp>
+#include <genesis/util/io/strict_fstream.hpp>
+#include <genesis/util/io/string_input_source.hpp>
+#include <genesis/util/io/string_output_target.hpp>
 
 // ---------------------------------------------------------------------
 //   math
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/math/binomial.hpp>
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/compensated_sum.hpp>
-#include <genesis/utils/math/correlation.hpp>
-// #include <genesis/utils/math/distance.hpp>
-#include <genesis/utils/math/distribution.hpp>
-// #include <genesis/utils/math/euclidean_kmeans.hpp>
-// #include <genesis/utils/math/hac.hpp>
-// #include <genesis/utils/math/hac/function.hpp>
-// #include <genesis/utils/math/hac/linkage.hpp>
-// #include <genesis/utils/math/histogram.hpp>
-// #include <genesis/utils/math/histogram/accumulator.hpp>
-// #include <genesis/utils/math/histogram/distance.hpp>
-// #include <genesis/utils/math/histogram/operation.hpp>
-// #include <genesis/utils/math/histogram/operator.hpp>
-// #include <genesis/utils/math/histogram/statistic.hpp>
-// #include <genesis/utils/math/kmeans.hpp>
-// #include <genesis/utils/math/matrix.hpp>
-// #include <genesis/utils/math/mds.hpp>
-#include <genesis/utils/math/moments.hpp>
-// #include <genesis/utils/math/pca.hpp>
-#include <genesis/utils/math/random.hpp>
-// #include <genesis/utils/math/range_minimum_query.hpp>
-#include <genesis/utils/math/ranking.hpp>
-// #include <genesis/utils/math/regression/dataframe.hpp>
-// #include <genesis/utils/math/regression/factor.hpp>
-// #include <genesis/utils/math/regression/family.hpp>
-// #include <genesis/utils/math/regression/glm.hpp>
-// #include <genesis/utils/math/regression/helper.hpp>
-// #include <genesis/utils/math/regression/link.hpp>
-// #include <genesis/utils/math/regression/slr.hpp>
-#include <genesis/utils/math/statistic.hpp>
+#include <genesis/util/math/binomial.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/compensated_sum.hpp>
+#include <genesis/util/math/correlation.hpp>
+// #include <genesis/util/math/distance.hpp>
+#include <genesis/util/math/distribution.hpp>
+// #include <genesis/util/math/euclidean_kmeans.hpp>
+// #include <genesis/util/math/hac.hpp>
+// #include <genesis/util/math/hac/function.hpp>
+// #include <genesis/util/math/hac/linkage.hpp>
+// #include <genesis/util/math/histogram.hpp>
+// #include <genesis/util/math/histogram/accumulator.hpp>
+// #include <genesis/util/math/histogram/distance.hpp>
+// #include <genesis/util/math/histogram/operation.hpp>
+// #include <genesis/util/math/histogram/operator.hpp>
+// #include <genesis/util/math/histogram/statistic.hpp>
+// #include <genesis/util/math/kmeans.hpp>
+// #include <genesis/util/math/matrix.hpp>
+// #include <genesis/util/math/mds.hpp>
+#include <genesis/util/math/moments.hpp>
+// #include <genesis/util/math/pca.hpp>
+#include <genesis/util/math/random.hpp>
+// #include <genesis/util/math/range_minimum_query.hpp>
+#include <genesis/util/math/ranking.hpp>
+// #include <genesis/util/math/regression/dataframe.hpp>
+// #include <genesis/util/math/regression/factor.hpp>
+// #include <genesis/util/math/regression/family.hpp>
+// #include <genesis/util/math/regression/glm.hpp>
+// #include <genesis/util/math/regression/helper.hpp>
+// #include <genesis/util/math/regression/link.hpp>
+// #include <genesis/util/math/regression/slr.hpp>
+#include <genesis/util/math/statistic.hpp>
 
 // ---------------------------------------------------------------------
 //   text
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/text/base64.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/convert.hpp>
-#include <genesis/utils/text/light_string.hpp>
-#include <genesis/utils/text/string.hpp>
-#include <genesis/utils/text/style.hpp>
-#include <genesis/utils/text/table.hpp>
+#include <genesis/util/text/base64.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/light_string.hpp>
+#include <genesis/util/text/string.hpp>
+#include <genesis/util/text/style.hpp>
+#include <genesis/util/text/table.hpp>
 
 // ---------------------------------------------------------------------
 //   threading
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/threading/concurrent_vector_guard.hpp>
-#include <genesis/utils/threading/multi_future.hpp>
-#include <genesis/utils/threading/sequential_output_buffer.hpp>
-#include <genesis/utils/threading/serial_task_queue.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
-#include <genesis/utils/threading/thread_local_cache.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/threadsafe_queue.hpp>
+#include <genesis/util/threading/concurrent_vector_guard.hpp>
+#include <genesis/util/threading/multi_future.hpp>
+#include <genesis/util/threading/sequential_output_buffer.hpp>
+#include <genesis/util/threading/serial_task_queue.hpp>
+#include <genesis/util/threading/thread_function.hpp>
+#include <genesis/util/threading/thread_local_cache.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/threadsafe_queue.hpp>
 
 // ---------------------------------------------------------------------
 //   tool
 // ---------------------------------------------------------------------
 
-#include <genesis/utils/tool/char_lookup.hpp>
-#include <genesis/utils/tool/date_time.hpp>
-#include <genesis/utils/tool/geodesy/function.hpp>
-#include <genesis/utils/tool/geodesy/geo_coordinate.hpp>
-#include <genesis/utils/tool/hash/function.hpp>
-#include <genesis/utils/tool/hash/md5.hpp>
-#include <genesis/utils/tool/hash/sha1.hpp>
-#include <genesis/utils/tool/hash/sha256.hpp>
-#include <genesis/utils/tool/tickmarks.hpp>
-#include <genesis/utils/tool/timer.hpp>
+#include <genesis/util/tool/char_lookup.hpp>
+#include <genesis/util/tool/date_time.hpp>
+#include <genesis/util/tool/geodesy/function.hpp>
+#include <genesis/util/tool/geodesy/geo_coordinate.hpp>
+#include <genesis/util/tool/hash/function.hpp>
+#include <genesis/util/tool/hash/md5.hpp>
+#include <genesis/util/tool/hash/sha1.hpp>
+#include <genesis/util/tool/hash/sha256.hpp>
+#include <genesis/util/tool/tickmarks.hpp>
+#include <genesis/util/tool/timer.hpp>

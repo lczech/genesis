@@ -66,7 +66,7 @@ Variant convert_to_variant(
  * @see guess_quality_encoding()
  */
 genesis::sequence::QualityEncoding guess_pileup_quality_encoding(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     size_t max_lines = 0
 );
 

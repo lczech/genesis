@@ -30,11 +30,11 @@
 
 #include <genesis/population/function/genome_region.hpp>
 
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/text/convert.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -106,7 +106,7 @@ std::string to_string( GenomeRegion const& region )
 
 GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bool end_exclusive )
 {
-    using namespace genesis::utils::text;
+    using namespace genesis::util::text;
     GenomeRegion result;
 
     // Helper function to throw on error without copies of the same error message each time.
@@ -193,9 +193,9 @@ GenomeRegionList parse_genome_regions(
 ) {
     GenomeRegionList result;
 
-    auto const region_list = genesis::utils::text::split( regions, ",", false );
+    auto const region_list = genesis::util::text::split( regions, ",", false );
     for( auto const& region : region_list ) {
-        result.add( parse_genome_region( genesis::utils::text::trim( region ), zero_based, end_exclusive ));
+        result.add( parse_genome_region( genesis::util::text::trim( region ), zero_based, end_exclusive ));
     }
 
     return result;

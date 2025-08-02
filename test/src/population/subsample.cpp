@@ -34,13 +34,13 @@
 #include "genesis/population/variant.hpp"
 #include "genesis/population/function/subsample.hpp"
 #include "genesis/population/function/function.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/util/math/random.hpp"
 
 using namespace genesis::population;
 using namespace genesis::sequence;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::math;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::math;
 
 template<typename Transformer>
 void test_sample_counts_subsampling_(

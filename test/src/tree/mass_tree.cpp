@@ -40,18 +40,18 @@
 #include "genesis/tree/mass_tree/function.hpp"
 #include "genesis/tree/mass_tree/phylo_ilr.hpp"
 
-#include "genesis/utils/container/matrix/operator.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
+#include "genesis/util/math/common.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <vector>
 
 using namespace genesis;
 using namespace placement;
 using namespace genesis::tree;
-using namespace genesis::utils::io;
-using namespace genesis::utils::math;
-using namespace genesis::utils::text;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 TEST( MassTree, Binify )
 {

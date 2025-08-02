@@ -32,9 +32,9 @@
  */
 
 #include <genesis/taxonomy/function/kmer_data.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/output_target.hpp>
-#include <genesis/utils/bit/bitvector.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/output_target.hpp>
+#include <genesis/util/bit/bitvector.hpp>
 
 #include <cstddef>
 #include <string>

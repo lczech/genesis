@@ -30,7 +30,7 @@
 
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -117,13 +117,13 @@ Tree Tree::clone_topology() const
     // Create all objects. We need two loops per array, because the pointers have to exist
     // in order to be linked to each other.
     for( size_t i = 0; i < links_.size(); ++i ) {
-        res.links_[i] = genesis::utils::core::make_unique< TreeLink >();
+        res.links_[i] = genesis::util::core::make_unique< TreeLink >();
     }
     for( size_t i = 0; i < nodes_.size(); ++i ) {
-        res.nodes_[i] = genesis::utils::core::make_unique< TreeNode >();
+        res.nodes_[i] = genesis::util::core::make_unique< TreeNode >();
     }
     for( size_t i = 0; i < edges_.size(); ++i ) {
-        res.edges_[i] = genesis::utils::core::make_unique< TreeEdge >();
+        res.edges_[i] = genesis::util::core::make_unique< TreeEdge >();
     }
 
     // Set all pointers for the topology in a second round of loops.

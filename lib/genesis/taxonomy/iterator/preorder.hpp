@@ -33,7 +33,7 @@
 
 #include <genesis/taxonomy/taxonomy.hpp>
 #include <genesis/taxonomy/taxon.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <cassert>
 #include <functional>
@@ -208,7 +208,7 @@ private:
 // =================================================================================================
 
 template<typename TaxonomyType>
-genesis::utils::containers::Range< IteratorPreorder< Taxonomy const, Taxon const >>
+genesis::util::container::Range< IteratorPreorder< Taxonomy const, Taxon const >>
 inline preorder( TaxonomyType const& taxonomy )
 {
     return {
@@ -218,7 +218,7 @@ inline preorder( TaxonomyType const& taxonomy )
 }
 
 template<typename TaxonomyType>
-genesis::utils::containers::Range< IteratorPreorder< Taxonomy, Taxon >>
+genesis::util::container::Range< IteratorPreorder< Taxonomy, Taxon >>
 inline preorder( TaxonomyType& taxonomy )
 {
     return {

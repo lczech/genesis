@@ -35,9 +35,9 @@
 #include <genesis/tree/iterator/preorder.hpp>
 #include <genesis/tree/printer/compact.hpp>
 #include <genesis/tree/tree/subtree.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <ostream>
 
@@ -125,7 +125,7 @@ bool equal(
     // if we already know the result.
 
     bool result = true;
-    genesis::utils::threading::parallel_for( 1, trees.size(), [&]( size_t i ){
+    genesis::util::threading::parallel_for( 1, trees.size(), [&]( size_t i ){
         if( ! result ) {
             // continue;
             return;
@@ -197,7 +197,7 @@ bool identical_topology( std::vector<Tree> const& trees, bool identical_indices 
     // if we already know the result.
 
     bool result = true;
-    genesis::utils::threading::parallel_for( 1, trees.size(), [&]( size_t i ){
+    genesis::util::threading::parallel_for( 1, trees.size(), [&]( size_t i ){
         if( ! result ) {
             // continue;
             return;

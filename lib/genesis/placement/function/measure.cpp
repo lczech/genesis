@@ -51,12 +51,12 @@
 #include <genesis/tree/tree_set.hpp>
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/core/options.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/container/matrix/operator.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/core/options.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <atomic>
@@ -71,10 +71,10 @@ namespace placement {
 //     Expected Distance between Placement Locations
 // =================================================================================================
 
-double edpl( Pquery const& pquery, genesis::utils::containers::Matrix<double> const& node_distances )
+double edpl( Pquery const& pquery, genesis::util::container::Matrix<double> const& node_distances )
 {
     double result = 0.0;
-    genesis::utils::threading::parallel_for( 0, pquery.placement_size(), [&]( size_t i ) {
+    genesis::util::threading::parallel_for( 0, pquery.placement_size(), [&]( size_t i ) {
         for( size_t j = i + 1; j < pquery.placement_size(); ++j ) {
 
             auto const& place_i = pquery.placement_at(i);
@@ -92,13 +92,13 @@ double edpl( Pquery const& pquery, genesis::utils::containers::Matrix<double> co
     return 2 * result;
 }
 
-std::vector<double> edpl( Sample const& sample, genesis::utils::containers::Matrix<double> const& node_distances )
+std::vector<double> edpl( Sample const& sample, genesis::util::container::Matrix<double> const& node_distances )
 {
     // Prepare result (facilitate copy elision).
     auto result = std::vector<double>( sample.size(), 0 );
 
     // Fill result vector.
-    genesis::utils::threading::parallel_for( 0, sample.size(), [&]( size_t qi ) {
+    genesis::util::threading::parallel_for( 0, sample.size(), [&]( size_t qi ) {
         auto const& pquery = sample.at( qi );
         result[qi] = edpl( pquery, node_distances );
     });
@@ -170,7 +170,7 @@ double pairwise_distance(
 static double variance_partial_ (
     PqueryPlain const&              pqry_a,
     std::vector<PqueryPlain> const& pqrys_b,
-    genesis::utils::containers::Matrix<double> const&    node_distances,
+    genesis::util::container::Matrix<double> const&    node_distances,
     bool                            with_pendant_length
 ) {
     double partial = 0.0;
@@ -207,7 +207,7 @@ double variance(
 
     // Do a pairwise calculation on all placements.
     // int progress = 0;
-    genesis::utils::threading::parallel_for( 0, vd_pqueries.size(), [&]( size_t i ) {
+    genesis::util::threading::parallel_for( 0, vd_pqueries.size(), [&]( size_t i ) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
 
         PqueryPlain const& pqry_a = vd_pqueries[i];

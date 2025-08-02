@@ -36,10 +36,10 @@
 #include <genesis/taxonomy/iterator/preorder.hpp>
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/math/statistic.hpp>
-#include <genesis/utils/text/string.hpp>
-#include <genesis/utils/text/table.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/text/string.hpp>
+#include <genesis/util/text/table.hpp>
 
 #include <algorithm>
 #include <cassert>

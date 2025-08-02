@@ -33,8 +33,8 @@
 
 #include <genesis/sequence/function/quality.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/tool/char_lookup.hpp>
-#include <genesis/utils/io/input_source.hpp>
+#include <genesis/util/tool/char_lookup.hpp>
+#include <genesis/util/io/input_source.hpp>
 
 #include <functional>
 #include <iosfwd>
@@ -47,7 +47,7 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
 namespace io {
     class InputStream;
 }
@@ -77,7 +77,7 @@ namespace sequence {
  *     FastqReader()
  *         .site_casing( SiteCasing::kUnchanged )
  *         .valid_chars( nucleic_acid_codes_all() )
- *         .read( genesis::utils::io::from_file( infile ), sequence_set );
+ *         .read( genesis::util::io::from_file( infile ), sequence_set );
  *
  * The expected data format is:
  *
@@ -135,7 +135,7 @@ namespace sequence {
  *             // do something with the quality_string, and potentially store it in the sequence
  *         }
  *     );
- *     reader.read( genesis::utils::io::from_file( infile ), sequence_set );
+ *     reader.read( genesis::util::io::from_file( infile ), sequence_set );
  *
  * More information on the format can be found at:
  *
@@ -224,10 +224,10 @@ public:
      * @brief Read all Sequence%s from an input source in Fastq format and return them as a
      * SequenceSet.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    SequenceSet read( std::shared_ptr< genesis::utils::io::BaseInputSource > source ) const;
+    SequenceSet read( std::shared_ptr< genesis::util::io::BaseInputSource > source ) const;
 
     /**
      * @brief Read all Sequence%s from an input source in Fastq format into a SequenceSet.
@@ -236,10 +236,10 @@ public:
      * repeatedly calling this or similar read functions, multiple input files can easily be read
      * into one SequenceSet.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    void read( std::shared_ptr< genesis::utils::io::BaseInputSource > source, SequenceSet& sequence_set ) const;
+    void read( std::shared_ptr< genesis::util::io::BaseInputSource > source, SequenceSet& sequence_set ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -252,14 +252,14 @@ public:
      * It is however also fine to call it from the outside.
      */
     void parse_document(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         SequenceSet&        sequence_set
     ) const;
 
     /**
      * @brief Parse a Sequence in Fastq format.
      *
-     * This function takes an genesis::utils::io::InputStream and interprets it as a Fastq formatted sequence.
+     * This function takes an genesis::util::io::InputStream and interprets it as a Fastq formatted sequence.
      * It extracts the data and writes it into the given Sequence object. See the class description
      * of FastqReader for the expected data format.
      *
@@ -270,7 +270,7 @@ public:
      * input stream.
      */
     bool parse_sequence(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Sequence&           sequence
     ) const;
 
@@ -279,27 +279,27 @@ protected:
     /**
      * @brief Parse a fastq sequence into the given @p sequence object.
      */
-    bool parse_sequence_( genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const;
+    bool parse_sequence_( genesis::util::io::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the first label line (starting with an @).
      */
-    void parse_label1_(   genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const;
+    void parse_label1_(   genesis::util::io::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the sequence line(s).
      */
-    void parse_sites_(    genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const;
+    void parse_sites_(    genesis::util::io::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the second label line (starting with a +, and either empty or equal to the first).
      */
-    void parse_label2_(   genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const;
+    void parse_label2_(   genesis::util::io::InputStream& input_stream, Sequence& sequence ) const;
 
     /**
      * @brief Parse the quality score line(s), which also runs the plugin, if available.
      */
-    void parse_quality_(  genesis::utils::io::InputStream& input_stream, Sequence& sequence ) const;
+    void parse_quality_(  genesis::util::io::InputStream& input_stream, Sequence& sequence ) const;
 
     // ---------------------------------------------------------------------
     //     Properties
@@ -353,7 +353,7 @@ public:
      * This function is provided in case direct access to the lookup is needed. Usually, the
      * valid_chars() function should suffice. See there for details.
      */
-    genesis::utils::CharLookup<bool>& valid_char_lookup();
+    genesis::util::CharLookup<bool>& valid_char_lookup();
 
     /**
      * @brief Set the QualityEncoding used for decoding the quality score line of the Fastq file.
@@ -383,7 +383,7 @@ private:
 
     SiteCasing              site_casing_      = SiteCasing::kUnchanged;
     bool                    use_validation_   = false;
-    genesis::utils::CharLookup<bool> lookup_;
+    genesis::util::CharLookup<bool> lookup_;
 
     QualityEncoding         quality_encoding_ = QualityEncoding::kSanger;
 

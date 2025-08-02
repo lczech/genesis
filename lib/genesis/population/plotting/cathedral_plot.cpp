@@ -31,18 +31,18 @@
 #include <genesis/population/plotting/cathedral_plot.hpp>
 
 #include <genesis/population/plotting/genome_heatmap.hpp>
-#include <genesis/utils/color/heat_map.hpp>
-#include <genesis/utils/color/normalization.hpp>
-#include <genesis/utils/container/matrix/reader.hpp>
-#include <genesis/utils/container/matrix/writer.hpp>
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/format/bmp/writer.hpp>
-#include <genesis/utils/format/json/document.hpp>
-#include <genesis/utils/format/json/reader.hpp>
-#include <genesis/utils/format/json/writer.hpp>
-#include <genesis/utils/format/svg/svg.hpp>
-#include <genesis/utils/math/statistic.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/color/heat_map.hpp>
+#include <genesis/util/color/normalization.hpp>
+#include <genesis/util/container/matrix/reader.hpp>
+#include <genesis/util/container/matrix/writer.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/format/bmp/writer.hpp>
+#include <genesis/util/format/json/document.hpp>
+#include <genesis/util/format/json/reader.hpp>
+#include <genesis/util/format/json/writer.hpp>
+#include <genesis/util/format/svg/svg.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -151,7 +151,7 @@ std::string cathedral_window_width_method_to_string( CathedralWindowWidthMethod 
 
 CathedralWindowWidthMethod cathedral_window_width_method_from_string( std::string const& method )
 {
-    auto const lower = genesis::utils::text::to_lower( method );
+    auto const lower = genesis::util::text::to_lower( method );
     if( lower == "exponential" ) {
         return CathedralWindowWidthMethod::kExponential;
     }
@@ -170,10 +170,10 @@ CathedralWindowWidthMethod cathedral_window_width_method_from_string( std::strin
 //     Storage Functions
 // =================================================================================================
 
-genesis::utils::formats::JsonDocument cathedral_plot_parameters_to_json_document(
+genesis::util::format::JsonDocument cathedral_plot_parameters_to_json_document(
     CathedralPlotParameters const& parameters
 ) {
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::format;
 
     // Create a top-level object Json document.
     auto document = JsonDocument::object();
@@ -193,11 +193,11 @@ genesis::utils::formats::JsonDocument cathedral_plot_parameters_to_json_document
     return document;
 }
 
-genesis::utils::formats::JsonDocument cathedral_plot_record_to_json_document(
+genesis::util::format::JsonDocument cathedral_plot_record_to_json_document(
     CathedralPlotRecord const& record
 ) {
-    using namespace genesis::utils::formats;
-    using namespace genesis::utils::math;
+    using namespace genesis::util::format;
+    using namespace genesis::util::math;
 
     validate_cathedral_plot_record( record );
 
@@ -225,13 +225,13 @@ genesis::utils::formats::JsonDocument cathedral_plot_record_to_json_document(
 }
 
 void save_cathedral_plot_record_to_targets(
-    genesis::utils::formats::JsonDocument const& record_document,
-    genesis::utils::containers::Matrix<double> const& record_value_matrix,
-    std::shared_ptr<genesis::utils::io::BaseOutputTarget> json_target,
-    std::shared_ptr<genesis::utils::io::BaseOutputTarget> csv_target
+    genesis::util::format::JsonDocument const& record_document,
+    genesis::util::container::Matrix<double> const& record_value_matrix,
+    std::shared_ptr<genesis::util::io::BaseOutputTarget> json_target,
+    std::shared_ptr<genesis::util::io::BaseOutputTarget> csv_target
 ) {
-    using namespace genesis::utils::containers;
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::container;
+    using namespace genesis::util::format;
 
     // Error checking, to avoid user error. Would be better to have that also coded into
     // the functions, but well, refactor later...
@@ -254,12 +254,12 @@ void save_cathedral_plot_record_to_targets(
 }
 
 void save_cathedral_plot_record_to_files(
-    genesis::utils::formats::JsonDocument const& record_document,
-    genesis::utils::containers::Matrix<double> const& record_value_matrix,
+    genesis::util::format::JsonDocument const& record_document,
+    genesis::util::container::Matrix<double> const& record_value_matrix,
     std::string const& base_path
 ) {
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::io;
+    using namespace genesis::util::format;
 
     save_cathedral_plot_record_to_targets(
         record_document,
@@ -277,15 +277,15 @@ void save_cathedral_plot_record_to_files(
     save_cathedral_plot_record_to_files( document, record.value_matrix, base_path );
 }
 
-std::pair<genesis::utils::formats::JsonDocument, genesis::utils::containers::Matrix<double>>
+std::pair<genesis::util::format::JsonDocument, genesis::util::container::Matrix<double>>
 load_cathedral_plot_record_components_from_files(
     std::string const& base_path
 ) {
-    using namespace genesis::utils::containers;
-    using namespace genesis::utils::core;
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::formats;
-    using namespace genesis::utils::text;
+    using namespace genesis::util::container;
+    using namespace genesis::util::core;
+    using namespace genesis::util::io;
+    using namespace genesis::util::format;
+    using namespace genesis::util::text;
 
     // We want to be lenient here, and allow to either specify the base path,
     // or either of the two actual files that we want to read.
@@ -352,24 +352,24 @@ CathedralPlotRecord load_cathedral_plot_record_from_files(
 //     Plotting Functions
 // =================================================================================================
 
-genesis::utils::containers::Matrix<genesis::utils::color::Color> make_cathedral_plot_heatmap(
+genesis::util::container::Matrix<genesis::util::color::Color> make_cathedral_plot_heatmap(
     CathedralPlotRecord const& record,
-    genesis::utils::color::HeatmapParameters const& heatmap_parameters
+    genesis::util::color::HeatmapParameters const& heatmap_parameters
 ) {
     validate_cathedral_plot_record( record );
-    return genesis::utils::color::make_heatmap_matrix(
+    return genesis::util::color::make_heatmap_matrix(
         record.value_matrix, heatmap_parameters
     );
 }
 
-genesis::utils::formats::SvgDocument make_cathedral_plot_svg(
+genesis::util::format::SvgDocument make_cathedral_plot_svg(
     CathedralPlotRecord const& record,
-    genesis::utils::color::HeatmapParameters const& heatmap_parameters,
-    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& image
+    genesis::util::color::HeatmapParameters const& heatmap_parameters,
+    genesis::util::container::Matrix<genesis::util::color::Color> const& image
 ) {
-    using namespace genesis::utils;
-    using namespace genesis::utils::containers;
-    using namespace genesis::utils::formats;
+    using namespace genesis::util;
+    using namespace genesis::util::container;
+    using namespace genesis::util::format;
 
     // Error and boundary checks
     validate_cathedral_plot_record( record );
@@ -401,7 +401,7 @@ genesis::utils::formats::SvgDocument make_cathedral_plot_svg(
     auto const x_axis = make_svg_axis( x_axis_settings, x_ticks, "Genome position" );
 
     // Make the y-axis ticks, depending on the type of window scaling.
-    std::vector<genesis::utils::Tickmarks::LabeledTick> y_ticks;
+    std::vector<genesis::util::Tickmarks::LabeledTick> y_ticks;
     switch( record.parameters.window_width_method ) {
         case CathedralWindowWidthMethod::kExponential: {
             y_ticks = Tickmarks().logarithmic_labels( min_win_width, max_win_width );
@@ -445,9 +445,9 @@ genesis::utils::formats::SvgDocument make_cathedral_plot_svg(
     return svg.document();
 }
 
-genesis::utils::formats::SvgDocument make_cathedral_plot_svg(
+genesis::util::format::SvgDocument make_cathedral_plot_svg(
     CathedralPlotRecord const& record,
-    genesis::utils::color::HeatmapParameters const& heatmap_parameters
+    genesis::util::color::HeatmapParameters const& heatmap_parameters
 ) {
     auto const image = make_cathedral_plot_heatmap( record, heatmap_parameters );
     return make_cathedral_plot_svg( record, heatmap_parameters, image );

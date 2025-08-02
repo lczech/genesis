@@ -37,19 +37,19 @@
 #include "genesis/tree/function/function.hpp"
 #include "genesis/tree/tree.hpp"
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/format/svg/svg.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/name.hpp"
-#include "genesis/utils/color/norm_linear.hpp"
+#include "genesis/util/core/fs.hpp"
+#include "genesis/util/format/svg/svg.hpp"
+#include "genesis/util/color/color.hpp"
+#include "genesis/util/color/name.hpp"
+#include "genesis/util/color/norm_linear.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils::core;
-using namespace genesis::utils::color;
-using namespace genesis::utils::containers;
-using namespace genesis::utils::formats;
-using namespace genesis::utils::io;
+using namespace genesis::util::core;
+using namespace genesis::util::color;
+using namespace genesis::util::container;
+using namespace genesis::util::format;
+using namespace genesis::util::io;
 
 TEST(Tree, Drawing)
 {
@@ -108,7 +108,7 @@ TEST(Tree, Drawing)
     // Set label alignment.
     layout.align_labels( true );
     layout.extra_spacer( 50.0 );
-    auto spacer_stroke = SvgStroke( utils::color::Color( 0.8, 0.8, 0.8 ));
+    auto spacer_stroke = SvgStroke( genesis::util::color::Color( 0.8, 0.8, 0.8 ));
     spacer_stroke.dash_array = std::vector<double>({ 2.0, 0.5 });
     spacer_stroke.dash_offset = 2.0;
     layout.set_label_spacer_strokes( spacer_stroke, spreading );
@@ -121,7 +121,7 @@ TEST(Tree, Drawing)
             SvgPoint( 0, 0 ),
             10,
             SvgStroke(),
-            SvgFill( utils::color::Color() )
+            SvgFill( genesis::util::color::Color() )
         ));
         // node_shapes[i].add( SvgImage(
         //     "http://files.gamebanana.com/img/ico/sprays/516c32f08e03d.png",
@@ -145,9 +145,9 @@ TEST(Tree, Drawing)
 
 TEST( Tree, DrawingHeatTree )
 {
-    using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+    using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
     HeatTreeParameters params;
 

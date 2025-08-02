@@ -45,15 +45,15 @@
 #include "genesis/tree/function/operator.hpp"
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/io/input_stream.hpp"
+#include "genesis/util/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 TEST(Newick, FromAndToString)
 {
@@ -171,10 +171,10 @@ TEST(Newick, ColorPlugin)
     tree = CommonTreeNewickReader().read( from_string(input));
 
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
-    auto color_vector = std::vector<utils::color::Color>( tree.edge_count() );
+    auto color_vector = std::vector<genesis::util::color::Color>( tree.edge_count() );
     for( auto const& edge : tree.edges() ) {
         if( is_leaf( edge.primary_node() ) || is_leaf( edge.secondary_node() )) {
-            color_vector[ edge.index() ] = utils::color::Color(1, 0, 0);
+            color_vector[ edge.index() ] = genesis::util::color::Color(1, 0, 0);
         }
     }
 
@@ -182,7 +182,7 @@ TEST(Newick, ColorPlugin)
     // We set ignored color to fuchsia ("magic pink") in order to also print out the black colored
     // inner edges.
     color_plugin.edge_colors(color_vector);
-    color_plugin.ignored_color(utils::color::Color(1, 0, 1));
+    color_plugin.ignored_color(genesis::util::color::Color(1, 0, 1));
     std::string output = writer.to_string(tree);
 
     // Check if we actually got the right number of red color tag comments.

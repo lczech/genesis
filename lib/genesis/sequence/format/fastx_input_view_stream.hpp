@@ -32,10 +32,10 @@
  */
 
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/text/char.hpp>
 
 // The class provided in this file is only available with string_view support.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -92,7 +92,7 @@ using FastqInputViewStream = FastxInputViewStream;
  *         std::cout << s.sites() << "\n";
  *     }
  *
- * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+ * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
  * get an input source that can be used here.
  *
  * Thread safety: No thread safety. The common use case for this iterator is to loop over a file.
@@ -162,7 +162,7 @@ public:
             }
 
             // Start reading from the input source into a stream.
-            input_stream_ = std::make_shared<genesis::utils::io::InputStream>( parent_->input_source_ );
+            input_stream_ = std::make_shared<genesis::util::io::InputStream>( parent_->input_source_ );
 
             // Check whether the input stream is good (not end-of-stream) and can be read from.
             // If not, we reached its end, so we stop immediately.
@@ -182,7 +182,7 @@ public:
                 throw std::runtime_error(
                     "Malformed fasta/fastq " + input_stream_->source_name() +
                     ", starting with neither '>' nor '@', but instead " +
-                    genesis::utils::text::char_to_hex( **input_stream_ )
+                    genesis::util::text::char_to_hex( **input_stream_ )
                 );
             }
 
@@ -462,7 +462,7 @@ public:
         FastxInputViewStream const* parent_ = nullptr;
 
         // Data stream to read from.
-        std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
+        std::shared_ptr<genesis::util::io::InputStream> input_stream_;
 
         // fasta = true, fastq = false
         bool format_is_fasta_;
@@ -490,7 +490,7 @@ public:
      * @brief Create an instance that reads from an input source.
      */
     explicit FastxInputViewStream(
-        std::shared_ptr<genesis::utils::io::BaseInputSource> source
+        std::shared_ptr<genesis::util::io::BaseInputSource> source
     )
         : input_source_( source )
     {}
@@ -537,7 +537,7 @@ public:
         return allow_empty_seqs_;
     }
 
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source() const
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source() const
     {
         return input_source_;
     }
@@ -548,7 +548,7 @@ public:
 
 private:
 
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source_;
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source_;
     bool allow_empty_seqs_ = true;
 
 };

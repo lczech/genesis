@@ -30,7 +30,7 @@
 
 #include <genesis/taxonomy/function/ranks.hpp>
 
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <unordered_map>
 
@@ -91,9 +91,9 @@ std::string rank_from_abbreviation( char r )
  */
 std::string rank_to_abbreviation( std::string const& rank )
 {
-    auto r = genesis::utils::text::to_lower( rank );
+    auto r = genesis::util::text::to_lower( rank );
     for( auto const& p : rank_abbreviations ) {
-        if( genesis::utils::text::to_lower( p.second ) == r ) {
+        if( genesis::util::text::to_lower( p.second ) == r ) {
             return std::string( 1, p.first );
         }
     }

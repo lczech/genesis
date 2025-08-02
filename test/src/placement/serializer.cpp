@@ -42,7 +42,7 @@
 
 using namespace genesis;
 using namespace genesis::placement;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 TEST(SampleSerializer, SaveAndLoad)
 {

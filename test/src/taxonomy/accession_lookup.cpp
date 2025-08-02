@@ -38,7 +38,7 @@
 
 using namespace genesis;
 using namespace genesis::taxonomy;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 TEST( Taxonomy, AccessionLookup )
 {

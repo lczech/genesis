@@ -35,13 +35,13 @@
 #include "genesis/population/function/genome_region.hpp"
 #include "genesis/population/genome_locus_set.hpp"
 #include "genesis/population/genome_region.hpp"
-#include "genesis/utils/bit/bitvector/operator.hpp"
+#include "genesis/util/bit/bitvector/operator.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::bit;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::bit;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST( GenomeLocusSet, ParseFile )
 {

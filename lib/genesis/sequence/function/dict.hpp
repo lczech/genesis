@@ -34,7 +34,7 @@
 #include <genesis/sequence/reference_genome.hpp>
 #include <genesis/sequence/sequence_dict.hpp>
 #include <genesis/sequence/sequence_set.hpp>
-#include <genesis/utils/io/input_source.hpp>
+#include <genesis/util/io/input_source.hpp>
 
 #include <string>
 #include <vector>
@@ -58,7 +58,7 @@ namespace sequence {
  *
  * See there for details.
  */
-SequenceDict read_sequence_dict( std::shared_ptr<genesis::utils::io::BaseInputSource> source );
+SequenceDict read_sequence_dict( std::shared_ptr<genesis::util::io::BaseInputSource> source );
 
 /**
  * @brief Read a `.fai` sequence index file, describing, e.g., reference genome sequence properties.
@@ -70,7 +70,7 @@ SequenceDict read_sequence_dict( std::shared_ptr<genesis::utils::io::BaseInputSo
  *
  * See there for details.
  */
-SequenceDict read_sequence_fai( std::shared_ptr<genesis::utils::io::BaseInputSource> source );
+SequenceDict read_sequence_fai( std::shared_ptr<genesis::util::io::BaseInputSource> source );
 
 /**
  * @brief Get the sequence dict/index information of a given set of Sequence%s.

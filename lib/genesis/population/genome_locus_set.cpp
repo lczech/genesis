@@ -30,8 +30,8 @@
 
 #include <genesis/population/genome_locus_set.hpp>
 
-#include <genesis/utils/bit/bitvector/function.hpp>
-#include <genesis/utils/bit/bitvector/operator.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -49,7 +49,7 @@ void GenomeLocusSet::add(
     size_t start,
     size_t end
 ) {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
 
     // Check chromosome.
     if( chromosome.empty() ) {
@@ -101,14 +101,14 @@ void GenomeLocusSet::add(
 
 void GenomeLocusSet::add(
     std::string const& chromosome,
-    genesis::utils::bit::Bitvector const& values
+    genesis::util::bit::Bitvector const& values
 ) {
-    add( chromosome, genesis::utils::bit::Bitvector( values ));
+    add( chromosome, genesis::util::bit::Bitvector( values ));
 }
 
 void GenomeLocusSet::add(
     std::string const& chromosome,
-    genesis::utils::bit::Bitvector&& values
+    genesis::util::bit::Bitvector&& values
 ) {
     // Checks.
     if( chromosome.empty() ) {
@@ -145,7 +145,7 @@ void GenomeLocusSet::add(
 
 void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
 {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
 
     // Shorthand for clarity and for ease of refactoring
     // if we need to make this a free function later.
@@ -225,7 +225,7 @@ void GenomeLocusSet::set_intersect( GenomeLocusSet const& rhs )
 void GenomeLocusSet::set_union( GenomeLocusSet const& rhs )
 {
     // Remark on the name: `union` is a C++ keyword, so we cannot name the function just that...
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
 
     // Shorthand for clarity and for ease of refactoring
     // if we need to make this a free function later.
@@ -266,7 +266,7 @@ void GenomeLocusSet::set_union( GenomeLocusSet const& rhs )
 
 void GenomeLocusSet::invert( sequence::SequenceDict const& sequence_dict )
 {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
 
     for( auto& chr_bv : locus_map_ ) {
         // Basic check for the chromosome

@@ -44,9 +44,9 @@
 
 #include <string>
 
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 using namespace genesis::taxonomy;
 
 TEST( Taxonomy, ForEach )

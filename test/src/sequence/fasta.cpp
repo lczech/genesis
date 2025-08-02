@@ -39,19 +39,19 @@
 #include "genesis/sequence/function/function.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/gzip_input_source.hpp"
+#include "genesis/util/core/fs.hpp"
+#include "genesis/util/core/std.hpp"
+#include "genesis/util/io/input_stream.hpp"
+#include "genesis/util/io/gzip_input_source.hpp"
 
 #include <fstream>
 #include <string>
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST( Sequence, FastaReaderValidating )
 {
@@ -185,8 +185,8 @@ TEST( Sequence, FastaCompressed )
 
     // Get sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta.gz";
-    InputStream cit { genesis::utils::core::make_unique<GzipInputSource>(
-        genesis::utils::core::make_unique<FileInputSource>( infile )
+    InputStream cit { genesis::util::core::make_unique<GzipInputSource>(
+        genesis::util::core::make_unique<FileInputSource>( infile )
     )};
 
     // Read.
@@ -257,7 +257,7 @@ TEST( Sequence, FastaWriter )
     EXPECT_EQ( 10, sset.size() );
 
     std::string target;
-    FastaWriter().line_length(50).write( sset, utils::io::to_string( target ));
+    FastaWriter().line_length(50).write( sset, genesis::util::io::to_string( target ));
 
     auto const read_again = file_read( infile );
     EXPECT_FALSE( target.empty() );
@@ -276,7 +276,7 @@ TEST( Sequence, FastaOutputStream )
     // Write to string. Need scope to actually do the writing.
     std::string target;
     {
-        auto out_it = FastaOutputStream( utils::io::to_string( target ));
+        auto out_it = FastaOutputStream( genesis::util::io::to_string( target ));
         out_it.writer().line_length( 50 );
         for( auto const& seq : sset ) {
             out_it << seq;

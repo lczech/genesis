@@ -40,7 +40,7 @@
 
 #include <genesis/population/genome_locus.hpp>
 #include <genesis/population/genome_region.hpp>
-#include <genesis/utils/container/interval_tree.hpp>
+#include <genesis/util/container/interval_tree.hpp>
 
 namespace genesis {
 namespace population {
@@ -82,7 +82,7 @@ struct EmptyGenomeData
  * See also GenomeLocus, GenomeLocusSet, and GenomeRegion for related classes that have the same
  * special cases.
  *
- * Interally, we use an @link genesis::utils::containers::IntervalTree IntervalTree@endlink to represent the
+ * Interally, we use an @link genesis::util::container::IntervalTree IntervalTree@endlink to represent the
  * regions of each chromosome, stored in a map from chromosome name to IntervalTree.
  * This is so that access and querying of contained positions is as fast as possible,
  * and so that we do not store the chromosome name string with every region.
@@ -103,8 +103,8 @@ public:
     // using data_type = DataType;
     using data_type = EmptyGenomeData;
     using numerical_type = size_t;
-    using tree_type = genesis::utils::containers::IntervalTree<
-        data_type, numerical_type, genesis::utils::containers::IntervalClosed
+    using tree_type = genesis::util::container::IntervalTree<
+        data_type, numerical_type, genesis::util::container::IntervalClosed
     >;
     using self_type = GenomeRegionList;
 
@@ -436,7 +436,7 @@ public:
 
     /**
      * @brief For a given chromosome, return the
-     * @link genesis::utils::containers::IntervalTree IntervalTree@endlink that stores its regions.
+     * @link genesis::util::container::IntervalTree IntervalTree@endlink that stores its regions.
      */
     tree_type const& chromosome_regions( std::string const& chromosome ) const
     {
@@ -445,7 +445,7 @@ public:
 
     /**
      * @brief For a given chromosome, return the
-     * @link genesis::utils::containers::IntervalTree IntervalTree@endlink that stores its regions.
+     * @link genesis::util::container::IntervalTree IntervalTree@endlink that stores its regions.
      *
      * Note that this exposes the underlying container, and hence has to be used with caution.
      * In particular position 0 is considered special in this GenomeRegionList class:
@@ -486,7 +486,7 @@ public:
      * @brief Access the underlying container directly.
      *
      * Expose the map from chromosome names to the
-     * @link genesis::utils::containers::IntervalTree IntervalTree@endlink that stores the regions of each
+     * @link genesis::util::container::IntervalTree IntervalTree@endlink that stores the regions of each
      * chromosome.
      * This is okay to expose, as this class is merely a thin convenience wrapper around it anyway.
      * If the class ever changes to be more than that, we might remove access to this.

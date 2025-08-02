@@ -32,8 +32,8 @@
 
 #include <genesis/population/format/sam_flags.hpp>
 
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <cstdint>
@@ -102,15 +102,15 @@ int string_to_sam_flag( std::string const& value )
 
     // If the above fails, add our own more lenient parsing on top.
     // We allow comma, space, and plus as delimiters, because why not.
-    auto const flags = genesis::utils::text::split( value, ",+| " );
+    auto const flags = genesis::util::text::split( value, ",+| " );
 
     // Clean up all flags by removing non-alpha-numeric chars, and making it lower case.
     // Then check in the map to get the value.
     result = 0;
     for( auto const& flag : flags ) {
-        auto cleaned_value = genesis::utils::text::to_lower_ascii( flag );
-        genesis::utils::core::erase_if( cleaned_value, []( char const c ){
-            return ! genesis::utils::text::is_alnum( c );
+        auto cleaned_value = genesis::util::text::to_lower_ascii( flag );
+        genesis::util::core::erase_if( cleaned_value, []( char const c ){
+            return ! genesis::util::text::is_alnum( c );
         });
 
         // Try the sam function first, which takes care of all numeric values.

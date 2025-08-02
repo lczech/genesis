@@ -32,12 +32,12 @@
 
 #include <genesis/sequence/sequence_set.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -62,7 +62,7 @@ PhylipReader::PhylipReader()
 //     Reading
 // =================================================================================================
 
-SequenceSet PhylipReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
+SequenceSet PhylipReader::read( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const
 {
     // Create a new set and fill it.
     SequenceSet result;
@@ -70,9 +70,9 @@ SequenceSet PhylipReader::read( std::shared_ptr<genesis::utils::io::BaseInputSou
     return result;
 }
 
-void PhylipReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source, SequenceSet& target ) const
+void PhylipReader::read( std::shared_ptr<genesis::util::io::BaseInputSource> source, SequenceSet& target ) const
 {
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     switch( mode_ ) {
         case Mode::kSequential: {
             parse_phylip_sequential( it, target );
@@ -93,9 +93,9 @@ void PhylipReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> so
 //     Parsing
 // =================================================================================================
 
-PhylipReader::Header PhylipReader::parse_phylip_header( genesis::utils::io::InputStream& it ) const
+PhylipReader::Header PhylipReader::parse_phylip_header( genesis::util::io::InputStream& it ) const
 {
-    using namespace genesis::utils::io;
+    using namespace genesis::util::io;
     Header result;
 
     // Read number of sequences.
@@ -129,7 +129,7 @@ PhylipReader::Header PhylipReader::parse_phylip_header( genesis::utils::io::Inpu
 
     // Process end of header line and proceed to first non-empty line.
     skip_while( it, ::isblank );
-    result.options = genesis::utils::text::trim_right( read_to_end_of_line( it ));
+    result.options = genesis::util::text::trim_right( read_to_end_of_line( it ));
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting end of line at " + it.at() + "."
@@ -140,9 +140,9 @@ PhylipReader::Header PhylipReader::parse_phylip_header( genesis::utils::io::Inpu
     return result;
 }
 
-std::string PhylipReader::parse_phylip_label( genesis::utils::io::InputStream& it ) const
+std::string PhylipReader::parse_phylip_label( genesis::util::io::InputStream& it ) const
 {
-    using namespace genesis::utils::io;
+    using namespace genesis::util::io;
     std::string label;
 
     // Labels need to start with some graphical char.
@@ -175,34 +175,34 @@ std::string PhylipReader::parse_phylip_label( genesis::utils::io::InputStream& i
             label += *it;
             ++it;
         }
-        label = genesis::utils::text::trim( label );
+        label = genesis::util::text::trim( label );
     }
 
-    label = genesis::utils::text::trim( label );
+    label = genesis::util::text::trim( label );
     assert( label.size() > 0 );
     return label;
 }
 
-std::string PhylipReader::parse_phylip_sequence_line( genesis::utils::io::InputStream& it ) const
+std::string PhylipReader::parse_phylip_sequence_line( genesis::util::io::InputStream& it ) const
 {
     // Read the (rest of) the current line from the input.
     auto seq = it.get_line();
 
     // Clean up as needed. Blanks always, digits only on demand.
-    genesis::utils::core::erase_if( seq, []( char c ){
+    genesis::util::core::erase_if( seq, []( char c ){
         return c == ' ' || c == '\t';
     });
     if( remove_digits_ ) {
-        genesis::utils::core::erase_if( seq, []( char c ){
+        genesis::util::core::erase_if( seq, []( char c ){
             return  ::isdigit( c );
         });
     }
 
     // Change case as needed.
     if( site_casing_ == SiteCasing::kToUpper ) {
-        seq = genesis::utils::text::to_upper_ascii( seq );
+        seq = genesis::util::text::to_upper_ascii( seq );
     } else if( site_casing_ == SiteCasing::kToLower ) {
-        seq = genesis::utils::text::to_lower_ascii( seq );
+        seq = genesis::util::text::to_lower_ascii( seq );
     }
 
     // Validate as needed.
@@ -211,7 +211,7 @@ std::string PhylipReader::parse_phylip_sequence_line( genesis::utils::io::InputS
             if( !lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Phylip " + it.source_name() + ": Invalid sequence symbol "
-                    + genesis::utils::text::char_to_hex( c )
+                    + genesis::util::text::char_to_hex( c )
                     + " in sequence near line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
@@ -221,7 +221,7 @@ std::string PhylipReader::parse_phylip_sequence_line( genesis::utils::io::InputS
     return seq;
 }
 
-void PhylipReader::parse_phylip_sequential(  genesis::utils::io::InputStream& it, SequenceSet& sset ) const
+void PhylipReader::parse_phylip_sequential(  genesis::util::io::InputStream& it, SequenceSet& sset ) const
 {
     // Parse header line.
     auto header = parse_phylip_header( it );
@@ -262,7 +262,7 @@ void PhylipReader::parse_phylip_sequential(  genesis::utils::io::InputStream& it
     }
 
     // Final checks.
-    genesis::utils::io::skip_while( it, isspace );
+    genesis::util::io::skip_while( it, isspace );
     if( it ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expected end of file at " + it.at() + "."
@@ -271,7 +271,7 @@ void PhylipReader::parse_phylip_sequential(  genesis::utils::io::InputStream& it
     assert( sset.size() == num_seq );
 }
 
-void PhylipReader::parse_phylip_interleaved( genesis::utils::io::InputStream& it, SequenceSet& sset ) const
+void PhylipReader::parse_phylip_interleaved( genesis::util::io::InputStream& it, SequenceSet& sset ) const
 {
     // Parse header line.
     auto header = parse_phylip_header( it );
@@ -414,7 +414,7 @@ std::string PhylipReader::valid_chars() const
     }
 }
 
-genesis::utils::CharLookup<bool>& PhylipReader::valid_char_lookup()
+genesis::util::CharLookup<bool>& PhylipReader::valid_char_lookup()
 {
     return lookup_;
 }

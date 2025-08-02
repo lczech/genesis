@@ -30,7 +30,7 @@
 
 #include <genesis/population/plotting/genome_heatmap.hpp>
 
-#include <genesis/utils/format/bmp/writer.hpp>
+#include <genesis/util/format/bmp/writer.hpp>
 
 #include <cassert>
 
@@ -43,12 +43,12 @@ namespace population {
 
 void GenomeHeatmap::add(
     std::string const& label,
-    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& heatmap,
-    genesis::utils::formats::SvgGroup x_axis,
-    genesis::utils::formats::SvgGroup y_axis,
-    std::pair<genesis::utils::formats::SvgGradientLinear, genesis::utils::formats::SvgGroup> color_bar
+    genesis::util::container::Matrix<genesis::util::color::Color> const& heatmap,
+    genesis::util::format::SvgGroup x_axis,
+    genesis::util::format::SvgGroup y_axis,
+    std::pair<genesis::util::format::SvgGradientLinear, genesis::util::format::SvgGroup> color_bar
 ) {
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::format;
 
     // Make a text, based on the template
     auto txt = text_template_;
@@ -86,7 +86,7 @@ void GenomeHeatmap::add(
     // Add the heatmap as a bitmap, embedded by encoding it in base64, and using pixelated rendering
     // (which is not really well defined in svg, but we try hard).
     std::string matrix_bmp;
-    BmpWriter().write( heatmap, genesis::utils::io::to_string( matrix_bmp ));
+    BmpWriter().write( heatmap, genesis::util::io::to_string( matrix_bmp ));
     auto img = SvgImage(
         svg_data_uri( "image/bmp", matrix_bmp, true ),
         SvgPoint{ 0.0, current_y_ },
@@ -131,7 +131,7 @@ void GenomeHeatmap::add(
     current_y_ += 20.0;
 }
 
-void GenomeHeatmap::write( std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void GenomeHeatmap::write( std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
     document_.write( target->ostream() );
 }

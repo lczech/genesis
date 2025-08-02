@@ -30,8 +30,8 @@
 
 #include <genesis/taxonomy/format/json_reader.hpp>
 
-#include <genesis/utils/format/json/document.hpp>
-#include <genesis/utils/format/json/reader.hpp>
+#include <genesis/util/format/json/document.hpp>
+#include <genesis/util/format/json/reader.hpp>
 
 namespace genesis {
 namespace taxonomy {
@@ -40,15 +40,15 @@ namespace taxonomy {
 //     Reading
 // =================================================================================================
 
-Taxonomy TaxonomyJsonReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
+Taxonomy TaxonomyJsonReader::read( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const
 {
-    auto doc = genesis::utils::formats::JsonReader().read( source );
+    auto doc = genesis::util::format::JsonReader().read( source );
     return read( doc );
 }
 
-Taxonomy TaxonomyJsonReader::read( genesis::utils::formats::JsonDocument& doc ) const
+Taxonomy TaxonomyJsonReader::read( genesis::util::format::JsonDocument& doc ) const
 {
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::format;
     Taxonomy tax;
     auto& arr = doc.get_array();
     for( auto& child : arr ) {
@@ -57,7 +57,7 @@ Taxonomy TaxonomyJsonReader::read( genesis::utils::formats::JsonDocument& doc ) 
     return tax;
 }
 
-Taxon TaxonomyJsonReader::object_to_taxon_( genesis::utils::formats::JsonDocument::ObjectType& obj ) const
+Taxon TaxonomyJsonReader::object_to_taxon_( genesis::util::format::JsonDocument::ObjectType& obj ) const
 {
     Taxon tax;
 

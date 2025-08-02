@@ -36,15 +36,15 @@
 #include "genesis/sequence/format/phylip_reader.hpp"
 #include "genesis/sequence/format/phylip_writer.hpp"
 
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <string>
 
 using namespace genesis::sequence;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Read
@@ -253,6 +253,6 @@ TEST( Sequence, PhylipWriter )
     EXPECT_EQ( 5, sset.size() );
 
     std::string target;
-    PhylipWriter().label_length(10).write( sset, genesis::utils::io::to_string( target ) );
+    PhylipWriter().label_length(10).write( sset, genesis::util::io::to_string( target ) );
     EXPECT_EQ( 6, count_substring_occurrences( target, "\n" ));
 }

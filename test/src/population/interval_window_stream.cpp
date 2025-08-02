@@ -39,14 +39,14 @@
 #include "genesis/population/window/interval_window_stream.hpp"
 #include "genesis/population/window/variant_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/container/generic_input_stream.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
 
 #include <unordered_map>
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 template<class WindowStream>
 void test_sliding_interval_stream_( WindowStream& win_it )

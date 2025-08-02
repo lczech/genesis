@@ -30,9 +30,9 @@
 
 #include <genesis/sequence/function/code.hpp>
 
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/string.hpp>
-#include <genesis/utils/color/color.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/string.hpp>
+#include <genesis/util/color/color.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -171,7 +171,7 @@ static const std::map<char, std::string> amino_acid_text_colors_map = {
     { '?', "DarkGray" }
 };
 
-static const std::map<char, genesis::utils::color::Color> nucleic_acid_colors_map = {
+static const std::map<char, genesis::util::color::Color> nucleic_acid_colors_map = {
     { 'A', { 1.0, 0.0, 0.0 } },
     { 'C', { 0.0, 1.0, 0.0 } },
     { 'G', { 1.0, 1.0, 0.0 } },
@@ -198,7 +198,7 @@ static const std::map<char, genesis::utils::color::Color> nucleic_acid_colors_ma
     { '?', { 0.5, 0.5, 0.5 } }
 };
 
-static const std::map<char, genesis::utils::color::Color> amino_acid_colors_map = {
+static const std::map<char, genesis::util::color::Color> amino_acid_colors_map = {
     { 'A', { 0.098, 0.500, 1.000 } },
     { 'B', { 0.376, 0.376, 0.376 } },
     { 'C', { 0.902, 0.500, 0.500 } },
@@ -359,7 +359,7 @@ std::string amino_acid_codes_all()
 std::string normalize_code_alphabet( std::string const& alphabet )
 {
     // Uppercase, sort, uniq the alphabet.
-    auto normalized = genesis::utils::text::to_upper( alphabet );
+    auto normalized = genesis::util::text::to_upper( alphabet );
     std::sort( normalized.begin(), normalized.end() );
     normalized.erase( std::unique( normalized.begin(), normalized.end() ), normalized.end() );
     return normalized;
@@ -403,7 +403,7 @@ char normalize_nucleic_acid_code( char code, bool accept_degenerated )
         case 'v':
         case 'V':
             if( accept_degenerated ) {
-                return genesis::utils::text::to_upper( code );
+                return genesis::util::text::to_upper( code );
             } else {
                 throw std::invalid_argument(
                     "Degenerated nucleic acid code not accepted: " + std::string( 1, code )
@@ -472,7 +472,7 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
         case 'v':
         case 'w':
         case 'y':
-            return genesis::utils::text::to_upper( code );
+            return genesis::util::text::to_upper( code );
         case 'B':
         case 'J':
         case 'Z':
@@ -480,7 +480,7 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
         case 'j':
         case 'z':
             if( accept_degenerated ) {
-                return genesis::utils::text::to_upper( code );
+                return genesis::util::text::to_upper( code );
             } else {
                 throw std::invalid_argument(
                     "Degenerated amino acid code not accepted: " + std::string( 1, code )
@@ -669,12 +669,12 @@ std::map<char, std::string> amino_acid_text_colors()
     return amino_acid_text_colors_map;
 }
 
-std::map<char, genesis::utils::color::Color> nucleic_acid_colors()
+std::map<char, genesis::util::color::Color> nucleic_acid_colors()
 {
     return nucleic_acid_colors_map;
 }
 
-std::map<char, genesis::utils::color::Color> amino_acid_colors()
+std::map<char, genesis::util::color::Color> amino_acid_colors()
 {
     return amino_acid_colors_map;
 }
@@ -713,7 +713,7 @@ std::string nucleic_acid_ambiguities( char code )
 char nucleic_acid_ambiguity_code( std::string codes )
 {
     // Uppercase, sort, uniq the codes.
-    auto tmp = genesis::utils::text::to_upper( codes );
+    auto tmp = genesis::util::text::to_upper( codes );
     std::sort( tmp.begin(), tmp.end() );
     tmp.erase( std::unique( tmp.begin(), tmp.end() ), tmp.end() );
 

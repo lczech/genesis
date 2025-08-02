@@ -32,7 +32,7 @@
 
 #include <genesis/placement/function/helper.hpp>
 #include <genesis/tree/function/operator.hpp>
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -261,12 +261,12 @@ Sample::const_iterator_pqueries Sample::end() const
     return pqueries_.end();
 }
 
-genesis::utils::containers::Range<Sample::iterator_pqueries> Sample::pqueries()
+genesis::util::container::Range<Sample::iterator_pqueries> Sample::pqueries()
 {
     return { pqueries_ };
 }
 
-genesis::utils::containers::Range<Sample::const_iterator_pqueries> Sample::pqueries() const
+genesis::util::container::Range<Sample::const_iterator_pqueries> Sample::pqueries() const
 {
     return { pqueries_ };
 }

@@ -33,7 +33,7 @@
 #include <genesis/sequence/function/code.hpp>
 #include <genesis/sequence/sequence.hpp>
 #include <genesis/sequence/sequence_set.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -65,7 +65,7 @@ SiteCounts::SiteCounts( std::string const& characters, size_t length )
     // We store the chars per row, and the sites per column (e.g., one column represents the 'A's
     // for all sites, while one row represents the possible chars for one site).
     // This way, we use cache locality when filling in data.
-    counts_ = genesis::utils::containers::Matrix< CountsIntType >( length, characters_.size() );
+    counts_ = genesis::util::container::Matrix< CountsIntType >( length, characters_.size() );
 }
 
 // ================================================================================================
@@ -178,7 +178,7 @@ void SiteCounts::clear()
 {
     characters_ = "";
     lookup_.set_all( 0 );
-    counts_ = genesis::utils::containers::Matrix< CountsIntType >();
+    counts_ = genesis::util::container::Matrix< CountsIntType >();
     num_seqs_ = 0;
 }
 

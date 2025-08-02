@@ -32,7 +32,7 @@
  */
 
 #include <genesis/population/format/sync_reader.hpp>
-#include <genesis/utils/io/input_source.hpp>
+#include <genesis/util/io/input_source.hpp>
 
 #include <string>
 #include <vector>
@@ -52,7 +52,7 @@ namespace population {
  *
  * Basic usage:
  *
- *     auto it = SyncInputStream( genesis::utils::io::from_file( infile ));
+ *     auto it = SyncInputStream( genesis::util::io::from_file( infile ));
  *     while( it ) {
  *         // work with it->...
  *         ++it;
@@ -60,7 +60,7 @@ namespace population {
  *
  * or
  *
- *     for( auto it = SyncInputStream( genesis::utils::io::from_file( infile )); it; ++it ) {
+ *     for( auto it = SyncInputStream( genesis::util::io::from_file( infile )); it; ++it ) {
  *         // work with it->...
  *     }
  *
@@ -101,10 +101,10 @@ public:
      * a SyncReader with settings to be used.
      */
     explicit SyncInputStream(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         SyncReader const&                         reader = {}
     )
-        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
+        : input_stream_( std::make_shared<genesis::util::io::InputStream>( source ))
         , reader_( reader )
     {
         // Read the header line, if present. If not, this does nothing.
@@ -125,11 +125,11 @@ public:
      * settings to be used.
      */
     SyncInputStream(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter,
         SyncReader const&                         reader = {}
     )
-        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
+        : input_stream_( std::make_shared<genesis::util::io::InputStream>( source ))
         , reader_( reader )
         , sample_filter_( sample_filter )
         , use_sample_filter_( true )
@@ -265,7 +265,7 @@ private:
 
     // Basic iterator setup and input.
     bool good_ = false;
-    std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
+    std::shared_ptr<genesis::util::io::InputStream> input_stream_;
 
     // Reading into variants
     SyncReader reader_;

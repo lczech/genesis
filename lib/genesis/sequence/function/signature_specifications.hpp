@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/tool/char_lookup.hpp>
+#include <genesis/util/tool/char_lookup.hpp>
 
 #include <string>
 #include <vector>
@@ -210,7 +210,7 @@ private:
 
     // Induced Settings and Helpers
     bool        is_nucleic_acids_ = false;
-    genesis::utils::CharLookup<size_t> index_lookup_;
+    genesis::util::CharLookup<size_t> index_lookup_;
 
     // Cached lookup lists
     mutable std::vector<std::string> kmer_list_;

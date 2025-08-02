@@ -37,9 +37,9 @@
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
 
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/text/style.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/text/style.hpp>
 
 #include <cassert>
 #include <algorithm>
@@ -371,7 +371,7 @@ void prune_by_entropy(
 
         // If we go into the front taxon, but achieve a new size that is further away from
         // our target size, we don't do go deeper.
-        using namespace genesis::utils::math;
+        using namespace genesis::util::math;
         if(
             abs_diff( border_taxa_count, target_taxonomy_size ) <
             abs_diff( border_taxa_count + cur_front.second->size(), target_taxonomy_size )
@@ -479,7 +479,7 @@ std::string print_pruned_taxonomy( Taxonomy const& taxonomy )
     auto print_taxon = [&] ( Taxon const& taxon ) {
         result += std::string( taxon_level(taxon) * 4, ' ' );
         if( taxon.data<EntropyTaxonData>().status == EntropyTaxonData::PruneStatus::kBorder ) {
-            result += genesis::utils::text::Style("Red")(taxon.name());
+            result += genesis::util::text::Style("Red")(taxon.name());
         } else {
             result += taxon.name();
         }
@@ -666,7 +666,7 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_nested_invervals(
         auto cand_list = split_taxonomy_by_entropy_threshold( taxonomy, entropies, threshold );
 
         // If we are closer to our target size, update the list.
-        using namespace genesis::utils::math;
+        using namespace genesis::util::math;
         if(
             abs_diff( cand_list.size(), target_taxonomy_size ) <
             abs_diff( crop_list.size(), target_taxonomy_size )

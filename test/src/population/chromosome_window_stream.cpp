@@ -40,13 +40,13 @@
 #include "genesis/population/window/genome_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
-#include "genesis/utils/container/generic_input_stream.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::containers;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::container;
+using namespace genesis::util::io;
 
 void test_window_stream_chromosome_stream_chromosome_empty_()
 {

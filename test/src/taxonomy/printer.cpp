@@ -36,14 +36,14 @@
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <stdexcept>
 
 using namespace genesis;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 using namespace genesis::taxonomy;
 
 TEST( Taxonomy, PrinterNested )
@@ -80,7 +80,7 @@ TEST( Taxonomy, PrinterNested )
         printer.line_limit( i );
         auto head = printer( tax );
 
-        EXPECT_EQ( genesis::utils::text::head( all, i ) + "\n...\n", head );
+        EXPECT_EQ( genesis::util::text::head( all, i ) + "\n...\n", head );
     }
 
     // printer.print_ranks( true );

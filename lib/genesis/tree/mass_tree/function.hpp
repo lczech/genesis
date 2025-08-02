@@ -41,8 +41,8 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
-namespace containers {
+namespace util {
+namespace container {
 
     template<typename T>
     class Matrix;
@@ -200,7 +200,7 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree );
  * @link MassTreeEdge::index() index@endlink of the edges.
  * Hence, the Tree%s need to have identical topology.
  */
-genesis::utils::containers::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees );
+genesis::util::container::Matrix<double> mass_tree_mass_per_edge( std::vector<MassTree> const& mass_trees );
 
 /**
  * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses Mass@endlink

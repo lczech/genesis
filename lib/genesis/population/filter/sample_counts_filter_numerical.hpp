@@ -273,7 +273,7 @@ bool apply_sample_counts_filter_numerical(
  *
  * The function uses apply_sample_counts_filter_numerical(), modifying the samples, and tagging
  * whether the filtering determined that the samples should be kept. It can hence be used with
- * @link genesis::utils::containers::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
+ * @link genesis::util::container::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
  * to mark filtered positions in the stream. alternative that instead excludes
  * the Variant::status from the stream.
  */

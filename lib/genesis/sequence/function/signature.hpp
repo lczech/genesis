@@ -105,7 +105,7 @@ std::vector<double> signature_symmetrized_frequencies(
 /**
  * @brief Calcuate the rank signature of a @p sequence according to the @p settings.
  *
- * That is, @link genesis::utils::ranking_standard() standard ranking@endlink is applied to the
+ * That is, @link genesis::util::ranking_standard() standard ranking@endlink is applied to the
  * k-mer counts of the Sequence.
  */
 std::vector<size_t> signature_ranks(
@@ -116,7 +116,7 @@ std::vector<size_t> signature_ranks(
 /**
  * @brief Calcuate the symmetrized rank signature of a @p sequence according to the @p settings.
  *
- * That is, @link genesis::utils::ranking_standard() standard ranking@endlink is applied to the
+ * That is, @link genesis::util::ranking_standard() standard ranking@endlink is applied to the
  * symmetrized (combined reverse complement) k-mer counts of the Sequence.
  */
 std::vector<size_t> signature_symmetrized_ranks(

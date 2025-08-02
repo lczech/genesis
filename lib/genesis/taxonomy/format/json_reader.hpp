@@ -33,8 +33,8 @@
 
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
-#include <genesis/utils/format/json/document.hpp>
-#include <genesis/utils/io/input_source.hpp>
+#include <genesis/util/format/json/document.hpp>
+#include <genesis/util/io/input_source.hpp>
 
 #include <functional>
 #include <iosfwd>
@@ -68,7 +68,7 @@ public:
      * This function is called for every Taxon, and can be used to read the additional data
      * in the Json object of that Taxon that was stored there by the JsonWriter.
      */
-    std::function<void( genesis::utils::formats::JsonDocument::ObjectType const&, Taxon& )> json_to_taxon;
+    std::function<void( genesis::util::format::JsonDocument::ObjectType const&, Taxon& )> json_to_taxon;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -90,14 +90,14 @@ public:
     /**
      * @brief Read a Taxonomy from an input source.
      */
-    Taxonomy read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
+    Taxonomy read( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const;
 
     /**
      * @brief Read a Taxonomy from an input JsonDocument.
      *
      * This is destructive, to save at least some memory while reading.
      */
-    Taxonomy read( genesis::utils::formats::JsonDocument& doc ) const;
+    Taxonomy read( genesis::util::format::JsonDocument& doc ) const;
 
     // ---------------------------------------------------------------------
     //     Members
@@ -105,7 +105,7 @@ public:
 
 private:
 
-    Taxon object_to_taxon_( genesis::utils::formats::JsonDocument::ObjectType& obj ) const;
+    Taxon object_to_taxon_( genesis::util::format::JsonDocument::ObjectType& obj ) const;
 
 };
 

@@ -32,7 +32,7 @@
  */
 
 #include <genesis/placement/sample.hpp>
-#include <genesis/utils/core/options.hpp>
+#include <genesis/util/core/options.hpp>
 
 #include <random>
 #include <stdexcept>
@@ -93,7 +93,7 @@ public:
      */
     size_t generate()
     {
-        return distrib_( genesis::utils::core::Options::get().random_engine() );
+        return distrib_( genesis::util::core::Options::get().random_engine() );
     }
 
     // -------------------------------------------------
@@ -213,7 +213,7 @@ public:
      */
     double generate()
     {
-        return distrib_( genesis::utils::core::Options::get().random_engine() );
+        return distrib_( genesis::util::core::Options::get().random_engine() );
     }
 
     // -----------------------------------------------------
@@ -272,7 +272,7 @@ public:
         // We don't use the edge in the default distribution.
         (void) edge;
 
-        return distrib_( genesis::utils::core::Options::get().random_engine() );
+        return distrib_( genesis::util::core::Options::get().random_engine() );
     }
 
     // -----------------------------------------------------
@@ -331,7 +331,7 @@ public:
         // We do a multiplication with the branch length here, because this allows for a single
         // distribution instance instead of one per different length.
         auto branch_length = edge.data<PlacementEdgeData>().branch_length;
-        return distrib_( genesis::utils::core::Options::get().random_engine() ) * branch_length;
+        return distrib_( genesis::util::core::Options::get().random_engine() ) * branch_length;
     }
 
     // -----------------------------------------------------

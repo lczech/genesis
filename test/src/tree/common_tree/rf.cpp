@@ -38,12 +38,12 @@
 #include "genesis/tree/function/function.hpp"
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/container/matrix/operator.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils::containers;
-using namespace genesis::utils::io;
+using namespace genesis::util::container;
+using namespace genesis::util::io;
 
 TEST(CommonTree, RFDistance)
 {

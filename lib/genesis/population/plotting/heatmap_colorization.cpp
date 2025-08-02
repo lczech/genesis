@@ -30,13 +30,13 @@
 
 #include <genesis/population/plotting/heatmap_colorization.hpp>
 
-#include <genesis/utils/color/normalization.hpp>
-#include <genesis/utils/color/norm_diverging.hpp>
-#include <genesis/utils/color/norm_linear.hpp>
-#include <genesis/utils/color/norm_logarithmic.hpp>
+#include <genesis/util/color/normalization.hpp>
+#include <genesis/util/color/norm_diverging.hpp>
+#include <genesis/util/color/norm_linear.hpp>
+#include <genesis/util/color/norm_logarithmic.hpp>
 
-#include <genesis/utils/format/bmp/writer.hpp>
-#include <genesis/utils/core/logging.hpp>
+#include <genesis/util/format/bmp/writer.hpp>
+#include <genesis/util/core/logging.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -52,12 +52,12 @@ namespace population {
 //     Allele Frequency Heatmap
 // =================================================================================================
 
-std::pair<genesis::utils::containers::Matrix<genesis::utils::color::Color>, double> HeatmapColorization::spectrum_to_image(
+std::pair<genesis::util::container::Matrix<genesis::util::color::Color>, double> HeatmapColorization::spectrum_to_image(
     Spectrum const& spectrum
 ) const {
-    using namespace genesis::utils::color;
-    using namespace genesis::utils::containers;
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::color;
+    using namespace genesis::util::container;
+    using namespace genesis::util::format;
 
     // Check.
     if( color_map_.empty() ) {
@@ -193,9 +193,9 @@ std::pair<genesis::utils::containers::Matrix<genesis::utils::color::Color>, doub
     return { image, max_per_column_ ? 1 : abs_max };
 }
 
-std::pair<genesis::utils::formats::SvgGroup, double> HeatmapColorization::spectrum_to_svg(
+std::pair<genesis::util::format::SvgGroup, double> HeatmapColorization::spectrum_to_svg(
     Spectrum const& spectrum,
-    genesis::utils::formats::SvgMatrixSettings settings
+    genesis::util::format::SvgMatrixSettings settings
 ) const {
     // Generate the pixel color image matrix.
     auto const spec_img_and_max = spectrum_to_image( spectrum );
@@ -206,12 +206,12 @@ std::pair<genesis::utils::formats::SvgGroup, double> HeatmapColorization::spectr
 
 double HeatmapColorization::spectrum_to_bmp_file(
     HeatmapColorization::Spectrum const& spectrum,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> target
 ) const {
 
     // Generate the pixel color image matrix, and write the image to file.
     auto const spec_img_and_max = spectrum_to_image( spectrum );
-    genesis::utils::formats::BmpWriter().write( spec_img_and_max.first, target );
+    genesis::util::format::BmpWriter().write( spec_img_and_max.first, target );
 
     // Return only the max value here.
     return spec_img_and_max.second;

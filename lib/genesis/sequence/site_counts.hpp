@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/tool/char_lookup.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/tool/char_lookup.hpp>
 
 #include <cstdint>
 #include <string>
@@ -55,7 +55,7 @@ class SequenceSet;
  * @brief Store counts of the occurence for certain characters at the sites of Sequence%s.
  *
  * This class is a helper for statistical analyses of Sequences, and for calculating consensus
- * sequences and the like. It stores a @link genesis::utils::containers::Matrix Matrix@endlink of counts, for a
+ * sequences and the like. It stores a @link genesis::util::container::Matrix Matrix@endlink of counts, for a
  * set of characters and a given sequence length. That is, it expected aligned (same length)
  * sequences.
  *
@@ -181,7 +181,7 @@ public:
      * @brief Return the count for a character and a site, given their indices.
      *
      * The characters are indexed in the order given by characters(). This function is thus
-     * mainly for speedup reasons when iterating the whole @link genesis::utils::containers::Matrix Matrix@endlink.
+     * mainly for speedup reasons when iterating the whole @link genesis::util::container::Matrix Matrix@endlink.
      */
     CountsIntType count_at( size_t character_index, size_t site_index ) const;
 
@@ -243,8 +243,8 @@ public:
 private:
 
     std::string                        characters_;
-    genesis::utils::CharLookup< unsigned char > lookup_;
-    genesis::utils::containers::Matrix< CountsIntType >     counts_;
+    genesis::util::CharLookup< unsigned char > lookup_;
+    genesis::util::container::Matrix< CountsIntType >     counts_;
     CountsIntType                      num_seqs_ = 0;
 
 };

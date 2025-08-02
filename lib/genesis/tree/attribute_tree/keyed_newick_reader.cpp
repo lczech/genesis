@@ -30,7 +30,7 @@
 
 #include <genesis/tree/attribute_tree/keyed_newick_reader.hpp>
 
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -229,7 +229,7 @@ KeyedAttributeTreeNewickReaderPlugin::PairList KeyedAttributeTreeNewickReaderPlu
 
     // Process all comments and see whether they have the desireed prefix.
     for( auto const& comment : element.comments ) {
-        if( ! genesis::utils::text::starts_with( comment, prefix_ ) ) {
+        if( ! genesis::util::text::starts_with( comment, prefix_ ) ) {
             continue;
         }
 
@@ -262,8 +262,8 @@ KeyedAttributeTreeNewickReaderPlugin::PairList KeyedAttributeTreeNewickReaderPlu
                 if( ass_pos != std::string::npos ) {
                     if( trim_ ) {
                         result.emplace_back(
-                            genesis::utils::text::trim( entry.substr( 0, ass_pos )),
-                            genesis::utils::text::trim( entry.substr( ass_pos + 1 ))
+                            genesis::util::text::trim( entry.substr( 0, ass_pos )),
+                            genesis::util::text::trim( entry.substr( ass_pos + 1 ))
                         );
                     } else {
                         result.emplace_back(

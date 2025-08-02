@@ -36,15 +36,15 @@
 #include <genesis/taxonomy/iterator/preorder.hpp>
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
-#include <genesis/utils/container/matrix/operator.hpp>
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/io/deserializer.hpp>
-#include <genesis/utils/io/serializer.hpp>
-#include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/function.hpp>
-#include <genesis/utils/bit/bitvector/operator.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/io/deserializer.hpp>
+#include <genesis/util/io/serializer.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
+#include <genesis/util/text/string.hpp>
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -156,7 +156,7 @@ void add_secondary_colors_with_binary_reduction(
 
 void add_secondary_colors_from_bitvectors(
     KmerColorGamut& gamut,
-    std::vector<genesis::utils::bit::Bitvector> const& bitvecs,
+    std::vector<genesis::util::bit::Bitvector> const& bitvecs,
     bool test_for_all_set_color
 ) {
     // We need at least one fully set bitvector, to guarantee that our imaginary colors
@@ -172,13 +172,13 @@ void add_secondary_colors_from_bitvectors(
                 "that does not match the element count"
             );
         }
-        if( genesis::utils::bit::pop_count( bv ) < 2 ) {
+        if( genesis::util::bit::pop_count( bv ) < 2 ) {
             throw std::invalid_argument(
                 "Cannot initialize Kmer Color Gamut with Bitvectors representing "
                 "the empty color or primary colors (i.e., zero or single bit set)"
             );
         }
-        if( test_for_all_set_color && genesis::utils::bit::all_set( bv )) {
+        if( test_for_all_set_color && genesis::util::bit::all_set( bv )) {
             found_all_set = true;
         }
 
@@ -208,9 +208,9 @@ void add_secondary_colors_from_groups(
     // Quick and dirty: create bitvectors from the indices, then forward to the bitvector function.
     // We are currently not expecting more than a few hundred or thousand initial colors, so this
     // should be fine for initialization. If extended to more colors, might need optimization.
-    std::vector<genesis::utils::bit::Bitvector> bitvecs;
+    std::vector<genesis::util::bit::Bitvector> bitvecs;
     for( auto const& group_indices : groups ) {
-        bitvecs.emplace_back( genesis::utils::bit::Bitvector( gamut.get_element_count(), group_indices ));
+        bitvecs.emplace_back( genesis::util::bit::Bitvector( gamut.get_element_count(), group_indices ));
     }
     add_secondary_colors_from_bitvectors( gamut, bitvecs, test_for_all_set_color );
 }
@@ -219,12 +219,12 @@ void add_secondary_colors_from_groups(
 //     make_secondary_colors_from_taxonomy_bottom_up
 // -------------------------------------------------------------------------
 
-std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
+std::vector<genesis::util::bit::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
     taxonomy::Taxonomy const& tax,
     size_t power_set_limit,
     bool add_primary_colors
 ) {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
     using namespace genesis::taxonomy;
 
     // Cautionary check of computational limits within this function. If this function ever
@@ -235,7 +235,7 @@ std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_
     }
 
     // Prepare the result and get the number of bits per bitvector, i.e., the number of groups.
-    std::vector<genesis::utils::bit::Bitvector> colors;
+    std::vector<genesis::util::bit::Bitvector> colors;
     auto const num_groups = count_taxon_groups_or_partitions( tax );
     if( num_groups == 0 ) {
         return colors;
@@ -436,7 +436,7 @@ std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_
             // For grouping, also check that all indices are unique, which they need to be,
             // as we excluded duplicate sibling indices. If we find duplicates here still,
             // that means that duplicate group indices are distributed across non-silbing taxa.
-            if( genesis::utils::core::contains_duplicates( group_indices )) {
+            if( genesis::util::core::contains_duplicates( group_indices )) {
                 throw std::runtime_error( "Duplicate group indices that are not siblings" );
             }
         } else if( type == -1 ) {
@@ -456,7 +456,7 @@ std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_
     assert( group_indices.front() == 0 );
     assert( group_indices.back()  == num_groups - 1 );
     assert( std::is_sorted( group_indices.begin(), group_indices.end() ));
-    assert( ! genesis::utils::core::contains_duplicates( group_indices ));
+    assert( ! genesis::util::core::contains_duplicates( group_indices ));
 
     // Lastly, we need to check that the all-set color is part of the color set, in order for
     // the kmer color gamut to work properly. This is the case if there is one single highest
@@ -477,13 +477,13 @@ std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_
 //     collect_taxa_bitvectors_top_down_experiment_
 // -------------------------------------------------------
 
-std::vector<genesis::utils::bit::Bitvector> collect_taxa_bitvectors_top_down_experiment_(
+std::vector<genesis::util::bit::Bitvector> collect_taxa_bitvectors_top_down_experiment_(
     taxonomy::Taxonomy const& tax,
     size_t power_set_taxa,
     bool use_num_sequences,
     size_t num_groups
 ) {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
     using namespace genesis::taxonomy;
 
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -725,7 +725,7 @@ std::vector<TopDownClade> collect_taxa_bitvectors_top_down_partition_sizes_(
     bool use_num_sequences,
     size_t num_groups
 ) {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
     using namespace genesis::taxonomy;
 
     // Ad hoc solution similar to the partitioning algorithm: split taxa up until their size is below
@@ -800,7 +800,7 @@ std::vector<TopDownClade> collect_taxa_bitvectors_top_down_partition_sizes_(
     assert( clades.size() == power_set_taxa );
 
     for( size_t i = 0; i < clades.size(); ++i ) {
-        using namespace genesis::utils::text;
+        using namespace genesis::util::text;
         std::vector<size_t> indices;
         for( auto const& taxon : clades[i].clade_taxa ) {
             indices.push_back( taxon->data<KmerTaxonData>().index );
@@ -816,13 +816,13 @@ std::vector<TopDownClade> collect_taxa_bitvectors_top_down_partition_sizes_(
 //     collect_taxa_bitvectors_top_down_partitioning_
 // -------------------------------------------------------
 
-std::vector<genesis::utils::bit::Bitvector> collect_taxa_bitvectors_top_down_partitioning_(
+std::vector<genesis::util::bit::Bitvector> collect_taxa_bitvectors_top_down_partitioning_(
     taxonomy::Taxonomy const& tax,
     size_t power_set_taxa,
     bool use_num_sequences,
     size_t num_groups
 ) {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
     using namespace genesis::taxonomy;
     assert( power_set_taxa > 0 );
     assert( num_groups >= power_set_taxa );
@@ -901,13 +901,13 @@ std::vector<genesis::utils::bit::Bitvector> collect_taxa_bitvectors_top_down_par
 //     collect_taxa_bitvectors_top_down_intervals_
 // -------------------------------------------------------
 
-std::vector<genesis::utils::bit::Bitvector> collect_taxa_bitvectors_top_down_intervals_(
+std::vector<genesis::util::bit::Bitvector> collect_taxa_bitvectors_top_down_intervals_(
     taxonomy::Taxonomy const& tax,
     size_t power_set_taxa,
     bool use_num_sequences,
     size_t num_groups
 ) {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
     using namespace genesis::taxonomy;
 
     // New approach that just builds intervals of partitions of roughly equal size.
@@ -992,13 +992,13 @@ std::vector<genesis::utils::bit::Bitvector> collect_taxa_bitvectors_top_down_int
 //     make_secondary_colors_from_taxonomy_top_down
 // -------------------------------------------------------
 
-std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_top_down(
+std::vector<genesis::util::bit::Bitvector> make_secondary_colors_from_taxonomy_top_down(
     taxonomy::Taxonomy const& tax,
     char method,
     size_t power_set_taxa,
     bool use_num_sequences
 ) {
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
     using namespace genesis::taxonomy;
 
     // Similar to above: Cautionary check of computational limits within this function.
@@ -1007,7 +1007,7 @@ std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_
     }
 
     // Prepare the result and get the number of bits per bitvector, i.e., the number of groups.
-    std::vector<genesis::utils::bit::Bitvector> colors;
+    std::vector<genesis::util::bit::Bitvector> colors;
     auto const num_groups = count_taxon_groups_or_partitions( tax );
     if( num_groups < power_set_taxa ) {
         throw std::invalid_argument(
@@ -1018,7 +1018,7 @@ std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_
 
     // Get the list of taxa that we want to run the power set on. It could be smaller than what
     // we want if the taxonomy is small, but never bigger. Update the limit to the actual size.
-    std::vector<genesis::utils::bit::Bitvector> top_taxa;
+    std::vector<genesis::util::bit::Bitvector> top_taxa;
     if( method == 'e' ) {
         top_taxa = collect_taxa_bitvectors_top_down_experiment_(
             tax, power_set_taxa, use_num_sequences, num_groups
@@ -1094,7 +1094,7 @@ void verify_unique_colors( KmerColorGamut const& gamut )
     // We copy to a set for this. Using a pairwise comparison between all colors of the same hash
     // would be far more efficient, but this function is mostly for debugging only anyway.
     assert( gamut.get_color_list().size() == gamut.get_color_lookup().size() );
-    std::unordered_set<genesis::utils::bit::Bitvector> elements_bvs;
+    std::unordered_set<genesis::util::bit::Bitvector> elements_bvs;
     for( auto const& color : gamut.get_color_list() ) {
         elements_bvs.insert( color.elements );
     }
@@ -1117,7 +1117,7 @@ std::string print_kmer_color_list( KmerColorGamut const& gamut )
     for( size_t i = 0; i < gamut.get_color_list().size(); ++i ) {
         auto const& color = gamut.get_color_at(i);
         ss << std::setw( int_width ) << i;
-        ss << " " << genesis::utils::bit::to_bit_string( color.elements );
+        ss << " " << genesis::util::bit::to_bit_string( color.elements );
         ss << "\n";
     }
     return ss.str();
@@ -1239,11 +1239,11 @@ std::string print_kmer_color_gamut_summary( KmerColorGamut const& gamut )
 
 void serialize_kmer_color_gamut_colors(
     KmerColorGamut const& gamut,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> output_target
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> output_target
 ) {
     // We need to iterate through the color vector manually here,
     // as the Bitvectors are wrapped in a struct for future compatibility.
-    auto ser = genesis::utils::io::Serializer( output_target );
+    auto ser = genesis::util::io::Serializer( output_target );
     auto const& color_list = gamut.get_color_list();
     ser << color_list.size();
     for( auto const& color : color_list ) {
@@ -1253,32 +1253,32 @@ void serialize_kmer_color_gamut_colors(
 
 void serialize_kmer_color_gamut_matrix(
     KmerColorGamut const& gamut,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> output_target
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> output_target
 ) {
     // Functionality for std::vector and Matrix is already
     // implemented in the respective classes and functions.
-    auto ser = genesis::utils::io::Serializer( output_target );
+    auto ser = genesis::util::io::Serializer( output_target );
     ser << gamut.get_gamut_matrix();
 }
 
-std::vector<genesis::utils::bit::Bitvector> deserialize_kmer_color_gamut_colors(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source
+std::vector<genesis::util::bit::Bitvector> deserialize_kmer_color_gamut_colors(
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source
 ) {
     // Functionality for std::vector and Bitvector is already
     // implemented in the respective classes and functions.
-    std::vector<genesis::utils::bit::Bitvector> result;
-    auto deser = genesis::utils::io::Deserializer( input_source );
+    std::vector<genesis::util::bit::Bitvector> result;
+    auto deser = genesis::util::io::Deserializer( input_source );
     deser >> result;
     return result;
 }
 
-genesis::utils::containers::Matrix<size_t> deserialize_kmer_color_gamut_matrix(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source
+genesis::util::container::Matrix<size_t> deserialize_kmer_color_gamut_matrix(
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source
 ) {
     // Functionality for std::vector and Matrix is already
     // implemented in the respective classes and functions.
-    genesis::utils::containers::Matrix<size_t> result;
-    auto deser = genesis::utils::io::Deserializer( input_source );
+    genesis::util::container::Matrix<size_t> result;
+    auto deser = genesis::util::io::Deserializer( input_source );
     deser >> result;
     return result;
 }

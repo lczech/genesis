@@ -32,7 +32,7 @@
  */
 
 #include <genesis/tree/mass_tree/balance.hpp>
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 #include <functional>
 #include <unordered_set>
@@ -179,7 +179,7 @@ std::vector<PhyloFactor> phylogenetic_factorization(
  * function needs to be stored for later: In that case, the objective function can be provided
  * as a lambda that uses the additional @p edge_index to store the results of some objective
  * computation. The intended use case is for instance the computation of
- * @link genesis::utils::glm_fit() glm_fit()@endlink in the objective function, and subsequent
+ * @link genesis::util::glm_fit() glm_fit()@endlink in the objective function, and subsequent
  * storage of the model output, such has deviance or beta estimates, for later inspection.
  */
 std::vector<PhyloFactor> phylogenetic_factorization(

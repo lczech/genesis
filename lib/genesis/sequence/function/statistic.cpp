@@ -34,7 +34,7 @@
 #include <genesis/sequence/function/function.hpp>
 #include <genesis/sequence/sequence_set.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/tool/char_lookup.hpp>
+#include <genesis/util/tool/char_lookup.hpp>
 
 #include <array>
 #include <cassert>
@@ -151,7 +151,7 @@ std::map<char, double> base_frequencies( SequenceSet const& set, std::string con
 size_t count_chars( SequenceSet const& set, std::string const& chars )
 {
     // Init array to false, then set all necessary chars to true.
-    auto lookup = genesis::utils::CharLookup<bool>( false );
+    auto lookup = genesis::util::CharLookup<bool>( false );
     lookup.set_selection_upper_lower( chars, true );
 
     size_t counter = 0;

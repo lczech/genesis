@@ -38,7 +38,7 @@
 #include <genesis/population/window/window_view_stream.hpp>
 #include <genesis/population/window/window_view.hpp>
 #include <genesis/population/window/window.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <cassert>
 #include <deque>
@@ -780,14 +780,14 @@ protected:
         // Cannot use make_unique here, as the Iterator constructor is private,
         // and trying to make make_unique a friend does not seem to be working...
         return std::unique_ptr<DerivedIterator>( new DerivedIterator( this ));
-        // return genesis::utils::core::make_unique<DerivedIterator>( this );
+        // return genesis::util::core::make_unique<DerivedIterator>( this );
     }
 
     std::unique_ptr<typename BaseWindowStream<InputStreamIterator, DataType>::BaseIterator>
     get_end_iterator_() override final
     {
         return std::unique_ptr<DerivedIterator>( new DerivedIterator() );
-        // return genesis::utils::core::make_unique<DerivedIterator>( nullptr );
+        // return genesis::util::core::make_unique<DerivedIterator>( nullptr );
     }
 
     // -------------------------------------------------------------------------

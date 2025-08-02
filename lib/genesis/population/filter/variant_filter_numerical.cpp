@@ -32,7 +32,7 @@
 
 #include <genesis/population/filter/variant_filter.hpp>
 #include <genesis/population/function/function.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -176,8 +176,8 @@ bool apply_variant_filter_numerical(
         }
 
         // Get the frequency, based on whether we can uses the bases or not.
-        auto const ref_base = genesis::utils::text::to_upper( variant.reference_base );
-        auto const alt_base = genesis::utils::text::to_upper( variant.alternative_base );
+        auto const ref_base = genesis::util::text::to_upper( variant.reference_base );
+        auto const alt_base = genesis::util::text::to_upper( variant.alternative_base );
         size_t ref_cnt = 0;
         size_t alt_cnt = 0;
         if( ! is_valid_base( ref_base )) {

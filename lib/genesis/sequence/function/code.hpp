@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/color/color.hpp>
+#include <genesis/util/color/color.hpp>
 
 #include <map>
 #include <string>
@@ -191,7 +191,7 @@ bool nucleic_acid_code_containment( char a, char b, bool undetermined_matches_al
 /**
  * @brief Return a map of text colors for each nucleic acid code.
  *
- * This function gives a color name usable for genesis::utils::text::Style for each nucleic acid code.
+ * This function gives a color name usable for genesis::util::text::Style for each nucleic acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
  */
 std::map<char, std::string> nucleic_acid_text_colors();
@@ -199,7 +199,7 @@ std::map<char, std::string> nucleic_acid_text_colors();
 /**
  * @brief Return a map of text colors for each amino acid code.
  *
- * This function gives a color name usable for genesis::utils::text::Style for each amino acid code.
+ * This function gives a color name usable for genesis::util::text::Style for each amino acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
  */
 std::map<char, std::string> amino_acid_text_colors();
@@ -209,14 +209,14 @@ std::map<char, std::string> amino_acid_text_colors();
  *
  * This function gives a Color for each nucleic acid code.
  */
-std::map<char, genesis::utils::color::Color> nucleic_acid_colors();
+std::map<char, genesis::util::color::Color> nucleic_acid_colors();
 
 /**
  * @brief Return a map of Color%s for each amino acid code.
  *
  * This function gives a Color for each amino acid code.
  */
-std::map<char, genesis::utils::color::Color> amino_acid_colors();
+std::map<char, genesis::util::color::Color> amino_acid_colors();
 
 // =================================================================================================
 //     Code Names

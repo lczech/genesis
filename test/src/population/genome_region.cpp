@@ -35,9 +35,9 @@
 #include "genesis/population/genome_region.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 GenomeRegion make_genome_region( std::string const& chr, size_t s, size_t e )
 {

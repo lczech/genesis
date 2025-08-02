@@ -34,15 +34,15 @@
 #include "genesis/population/format/sam_flags.hpp"
 #include "genesis/population/format/sam_variant_input_stream.hpp"
 #include "genesis/population/function/function.hpp"
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/core/fs.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <cstdlib>
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::text;
 
 #ifdef GENESIS_HTSLIB
 

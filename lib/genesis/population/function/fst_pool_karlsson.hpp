@@ -33,9 +33,9 @@
 
 #include <genesis/population/function/fst_pool_calculator.hpp>
 #include <genesis/population/function/function.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/math/common.hpp>
-#include <genesis/utils/math/compensated_sum.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/compensated_sum.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -141,7 +141,7 @@ public:
         std::pair<SortedSampleCounts, SortedSampleCounts> const& sample_counts
     ) {
         // PoPoolation2 function: calculate_nk_dk
-        using namespace genesis::utils::math;
+        using namespace genesis::util::math;
 
         // Error check. We only want biallelic SNPs, so we check that the smallest two values
         // here are actually zero.
@@ -208,8 +208,8 @@ public:
 private:
 
     // Result values.
-    genesis::utils::math::NeumaierSum sum_nk_ = 0.0;
-    genesis::utils::math::NeumaierSum sum_dk_ = 0.0;
+    genesis::util::math::NeumaierSum sum_nk_ = 0.0;
+    genesis::util::math::NeumaierSum sum_dk_ = 0.0;
 
 };
 

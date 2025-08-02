@@ -37,9 +37,9 @@
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree/subtree.hpp>
 
-#include <genesis/utils/core/algorithm.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/core/algorithm.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -62,11 +62,11 @@ Tree minimal_tree_topology()
     auto& edges = result.expose_edge_container();
 
     // Create all needed elements...
-    auto link1_u = genesis::utils::core::make_unique< TreeLink >();
-    auto link2_u = genesis::utils::core::make_unique< TreeLink >();
-    auto node1_u = genesis::utils::core::make_unique< TreeNode >();
-    auto node2_u = genesis::utils::core::make_unique< TreeNode >();
-    auto edge0_u = genesis::utils::core::make_unique< TreeEdge >();
+    auto link1_u = genesis::util::core::make_unique< TreeLink >();
+    auto link2_u = genesis::util::core::make_unique< TreeLink >();
+    auto node1_u = genesis::util::core::make_unique< TreeNode >();
+    auto node2_u = genesis::util::core::make_unique< TreeNode >();
+    auto edge0_u = genesis::util::core::make_unique< TreeEdge >();
 
     // ... and connect them with each other.
     link1_u->reset_index( 0 );
@@ -125,10 +125,10 @@ TreeNode& add_new_node( Tree& tree, TreeNode& target_node )
     //  2. The link that belongs to the newly created leaf node.
     //  3. The newly created node itself.
     //  4. The edge between the two nodes.
-    auto con_link_u = genesis::utils::core::make_unique< TreeLink >();
-    auto end_link_u = genesis::utils::core::make_unique< TreeLink >();
-    auto end_node_u = genesis::utils::core::make_unique< TreeNode >();
-    auto con_edge_u = genesis::utils::core::make_unique< TreeEdge >();
+    auto con_link_u = genesis::util::core::make_unique< TreeLink >();
+    auto end_link_u = genesis::util::core::make_unique< TreeLink >();
+    auto end_node_u = genesis::util::core::make_unique< TreeNode >();
+    auto con_edge_u = genesis::util::core::make_unique< TreeEdge >();
 
     // Get the pointers, for ease of use.
     auto const con_link = con_link_u.get();
@@ -206,10 +206,10 @@ TreeNode& add_new_node(
     //  * Two links that build a new node in the middle of the target edge.
     //  * The new node in the middle of the target edge.
     //  * A new edge that connects to the secondary end of the target edge.
-    auto pri_link_u = genesis::utils::core::make_unique< TreeLink >();
-    auto sec_link_u = genesis::utils::core::make_unique< TreeLink >();
-    auto mid_node_u = genesis::utils::core::make_unique< TreeNode >();
-    auto sec_edge_u = genesis::utils::core::make_unique< TreeEdge >();
+    auto pri_link_u = genesis::util::core::make_unique< TreeLink >();
+    auto sec_link_u = genesis::util::core::make_unique< TreeLink >();
+    auto mid_node_u = genesis::util::core::make_unique< TreeNode >();
+    auto sec_edge_u = genesis::util::core::make_unique< TreeEdge >();
 
     // Get the pointers, for ease of use.
     auto const pri_link = pri_link_u.get();
@@ -361,7 +361,7 @@ void delete_leaf_node( Tree& tree, TreeNode& target_node )
 
     // Delete both links, and adjust the indices of the other links as needed.
     // Deleting two elemetns is tricky, as the indices shift...
-    auto const minmax_link_idx = genesis::utils::core::minmax_value(
+    auto const minmax_link_idx = genesis::util::core::minmax_value(
         attach_link.index(), attach_link.outer().index()
     );
     links.erase( links.begin() + minmax_link_idx.first );
@@ -448,7 +448,7 @@ void delete_linear_node(
 
     // Delete both links of the node, and adjust the indices of the other links as needed.
     // Deleting two elemetns is tricky, as the indices shift...
-    auto const minmax_link_idx = genesis::utils::core::minmax_value(
+    auto const minmax_link_idx = genesis::util::core::minmax_value(
         pr_link.index(), pr_link.next().index()
     );
     links.erase( links.begin() + minmax_link_idx.first );
@@ -873,10 +873,10 @@ void ladderize( Tree& tree, LadderizeOrder order )
 
         // Sort the sizes. We use stable sort in order to not change the order of equal sized subtrees.
         auto child_order = ( order == LadderizeOrder::kSmallFirst
-            ? genesis::utils::core::stable_sort_indices(
+            ? genesis::util::core::stable_sort_indices(
                 child_sizes.begin(), child_sizes.end(), std::less<size_t>()
             )
-            : genesis::utils::core::stable_sort_indices(
+            : genesis::util::core::stable_sort_indices(
                 child_sizes.begin(), child_sizes.end(), std::greater<size_t>()
             )
         );

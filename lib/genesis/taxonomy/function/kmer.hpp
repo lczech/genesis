@@ -32,8 +32,8 @@
  */
 
 #include <genesis/taxonomy/function/kmer_data.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/output_target.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/output_target.hpp>
 
 #include <cstddef>
 #include <string>
@@ -164,7 +164,7 @@ struct TaxonomyGroupPartitionData
  */
 void write_taxonomy_grouping_or_partitioning_to_json(
     Taxonomy const& tax,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> target
 );
 
 /**
@@ -173,7 +173,7 @@ void write_taxonomy_grouping_or_partitioning_to_json(
  * See TaxonomyGroupPartitionData for a description of the resuling POD struct per taxonomic group.
  */
 std::vector<TaxonomyGroupPartitionData> read_taxonomy_grouping_or_partitioning_from_json(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+    std::shared_ptr<genesis::util::io::BaseInputSource> source
 );
 
 /**
@@ -190,7 +190,7 @@ std::vector<TaxonomyGroupPartitionData> read_taxonomy_grouping_or_partitioning_f
  */
 void write_kmer_taxonomy_to_json(
     Taxonomy const& tax,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> target,
     bool with_group_or_partition_data = false,
     bool only_trunk = false
 );
@@ -203,7 +203,7 @@ void write_kmer_taxonomy_to_json(
  * scaffold/trunk of the taxonomy will be read as well.
  */
 Taxonomy read_kmer_taxonomy_from_json(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source
+    std::shared_ptr<genesis::util::io::BaseInputSource> source
 );
 
 } // namespace taxonomy

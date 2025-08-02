@@ -33,7 +33,7 @@
 
 #include <genesis/tree/common_tree/tree.hpp>
 #include <genesis/tree/tree.hpp>
-#include <genesis/utils/format/svg/svg.hpp>
+#include <genesis/util/format/svg/svg.hpp>
 
 #include <string>
 #include <vector>
@@ -145,8 +145,8 @@ public:
 
     long parent_index = -1;
 
-    genesis::utils::formats::SvgGroup shape;
-    genesis::utils::formats::SvgStroke spacer_stroke = genesis::utils::formats::SvgStroke( genesis::utils::formats::SvgStroke::Type::kNone );
+    genesis::util::format::SvgGroup shape;
+    genesis::util::format::SvgStroke spacer_stroke = genesis::util::format::SvgStroke( genesis::util::format::SvgStroke::Type::kNone );
 
 };
 
@@ -205,10 +205,10 @@ public:
 
 public:
 
-    genesis::utils::formats::SvgStroke spreading_stroke;
-    genesis::utils::formats::SvgStroke distance_stroke;
+    genesis::util::format::SvgStroke spreading_stroke;
+    genesis::util::format::SvgStroke distance_stroke;
 
-    genesis::utils::formats::SvgGroup shape;
+    genesis::util::format::SvgGroup shape;
 
 };
 

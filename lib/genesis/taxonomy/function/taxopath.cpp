@@ -33,7 +33,7 @@
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
 #include <genesis/taxonomy/taxopath.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <stdexcept>
 

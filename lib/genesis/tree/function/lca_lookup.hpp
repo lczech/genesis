@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include <genesis/utils/math/range_minimum_query.hpp>
+#include <genesis/util/math/range_minimum_query.hpp>
 
 #include <vector>
 
@@ -57,7 +57,7 @@ class TreeNode;
  * base to consider which nodes are "lower", or any arbitrary other node of the tree.
  * See operator() for the lookup functions.
  *
- * Internally, the class uses a @link genesis::utils::math::RangeMinimumQuery RangeMinimumQuery@endlink (RMQ) and
+ * Internally, the class uses a @link genesis::util::math::RangeMinimumQuery RangeMinimumQuery@endlink (RMQ) and
  * indices of nodes during an eulertour() of the tree. This makes it fast even for large trees.
  *
  * Caveat: The Tree object is referenced from inside this class. Its livetime thus needs to be
@@ -125,7 +125,7 @@ private:
      * @brief RMQ helper struct that enables to find the smallest entry between two
      * positions in an eulertour of the tree.
      */
-    genesis::utils::math::RangeMinimumQuery eulertour_rmq_;
+    genesis::util::math::RangeMinimumQuery eulertour_rmq_;
 
     /**
      * @brief Indices of nodes in the order of an eulertour of the tree.

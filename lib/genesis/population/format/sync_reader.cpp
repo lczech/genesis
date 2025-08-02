@@ -33,10 +33,10 @@
 #include <genesis/population/filter/sample_counts_filter.hpp>
 #include <genesis/population/filter/variant_filter.hpp>
 #include <genesis/population/function/function.hpp>
-#include <genesis/utils/io/parser.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <cstdint>
@@ -54,7 +54,7 @@ namespace population {
 // -------------------------------------------------------------------------
 
 std::vector<std::string> SyncReader::read_header(
-    genesis::utils::io::InputStream& input_stream
+    genesis::util::io::InputStream& input_stream
 ) const {
     // Check that there is a header; if not, we just leave again, without any sample names.
     std::vector<std::string> result;
@@ -71,7 +71,7 @@ std::vector<std::string> SyncReader::read_header(
 
     // Now we can read the rest of the line, and for simplicity just split later.
     // Check that the fixed columns are there as expected.
-    result = genesis::utils::text::split( it.get_line(), '\t', false );
+    result = genesis::util::text::split( it.get_line(), '\t', false );
     if( result.size() < 3 || result[0] != "chr" || result[1] != "pos" || result[2] != "ref" ) {
         throw std::runtime_error(
             "Malformed sync " + it.source_name() + ": Header row provided (starting with '#'), " +
@@ -83,7 +83,7 @@ std::vector<std::string> SyncReader::read_header(
 }
 
 std::vector<std::string> SyncReader::read_header(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     std::vector<bool> const& sample_filter
 ) const {
     // The header only has to be read once, so we do not need to be overly efficient here.
@@ -118,10 +118,10 @@ std::vector<std::string> SyncReader::read_header(
 // -------------------------------------------------------------------------
 
 std::vector<Variant> SyncReader::read(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     std::vector<Variant> result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Potentially read the header (and discard it, as our Variant does not store sample names).
     read_header( it );
@@ -136,11 +136,11 @@ std::vector<Variant> SyncReader::read(
 }
 
 std::vector<Variant> SyncReader::read(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     std::vector<bool> const&                  sample_filter
 ) const {
     std::vector<Variant> result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Potentially read the header (and discard it, as our Variant does not store sample names).
     read_header( it, sample_filter );
@@ -158,14 +158,14 @@ std::vector<Variant> SyncReader::read(
 // -------------------------------------------------------------------------
 
 bool SyncReader::parse_line(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     Variant&            variant
 ) const {
     return parse_line_( input_stream, variant, {}, false );
 }
 
 bool SyncReader::parse_line(
-    genesis::utils::io::InputStream&      input_stream,
+    genesis::util::io::InputStream&      input_stream,
     Variant&                 variant,
     std::vector<bool> const& sample_filter
 ) const {
@@ -181,13 +181,13 @@ bool SyncReader::parse_line(
 // -------------------------------------------------------------------------
 
 bool SyncReader::parse_line_(
-    genesis::utils::io::InputStream&      input_stream,
+    genesis::util::io::InputStream&      input_stream,
     Variant&                 variant,
     std::vector<bool> const& sample_filter,
     bool                     use_sample_filter
 ) const {
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::text;
+    using namespace genesis::util::io;
+    using namespace genesis::util::text;
 
     // Shorthand.
     auto& it = input_stream;
@@ -322,7 +322,7 @@ bool SyncReader::parse_line_(
 #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 
 void SyncReader::parse_sample_gcc_intrinsic_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SampleCounts&       sample
 ) const {
     auto& it = input_stream;
@@ -554,10 +554,10 @@ void SyncReader::parse_sample_gcc_intrinsic_(
 // -------------------------------------------------------------------------
 
 void SyncReader::parse_sample_simple_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SampleCounts&       sample
 ) const {
-    using namespace genesis::utils::io;
+    using namespace genesis::util::io;
     auto& it = input_stream;
     it.read_char_or_throw( '\t' );
 
@@ -581,10 +581,10 @@ void SyncReader::parse_sample_simple_(
 // -------------------------------------------------------------------------
 
 void SyncReader::parse_sample_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SampleCounts&       sample
 ) const {
-    using namespace genesis::utils::text;
+    using namespace genesis::util::text;
 
     auto& it = input_stream;
     auto const buff = it.buffer();
@@ -678,9 +678,9 @@ void SyncReader::parse_sample_(
 // -------------------------------------------------------------------------
 
 void SyncReader::skip_sample_(
-    genesis::utils::io::InputStream& input_stream
+    genesis::util::io::InputStream& input_stream
 ) const {
-    using namespace genesis::utils::io;
+    using namespace genesis::util::io;
 
     // The skip functions are slow, because they need char by char access to the input stream.
     // Need to fix this at some point. For now, just read into an unused dummy.

@@ -36,11 +36,11 @@
 #include <genesis/tree/tree_set.hpp>
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/io/output_stream.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/output_stream.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <cassert>
 #include <deque>
@@ -57,14 +57,14 @@ namespace tree {
 //     Writing
 // =================================================================================================
 
-void NewickWriter::write( Tree const& tree, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void NewickWriter::write( Tree const& tree, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
     write( tree_to_broker( tree ), target );
 }
 
 void NewickWriter::write(
     TreeSet const& tree_set,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> target,
     bool with_names
 ) const {
     auto& os = target->ostream();
@@ -94,7 +94,7 @@ void NewickWriter::write(
 std::string NewickWriter::to_string( Tree const& tree ) const
 {
     std::ostringstream oss;
-    write( tree, genesis::utils::io::to_stream( oss ));
+    write( tree, genesis::util::io::to_stream( oss ));
     return oss.str();
 }
 
@@ -141,7 +141,7 @@ NewickBroker NewickWriter::tree_to_broker( Tree const& tree ) const
     return broker;
 }
 
-void NewickWriter::write( NewickBroker const& broker, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void NewickWriter::write( NewickBroker const& broker, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
     auto& os = target->ostream();
 
@@ -231,9 +231,9 @@ size_t NewickWriter::write_( NewickBrokerElement const& bn, std::ostream& os ) c
 
         // Check for nonprintables.
         for( auto const& c : bn.name ) {
-            if( ! genesis::utils::text::is_print(c) ) {
+            if( ! genesis::util::text::is_print(c) ) {
                 throw std::runtime_error(
-                    "Error writing Newick file: non-printable character " + genesis::utils::text::char_to_hex( c ) +
+                    "Error writing Newick file: non-printable character " + genesis::util::text::char_to_hex( c ) +
                     "found in Newick node label."
                 );
             }

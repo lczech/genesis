@@ -33,7 +33,7 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree/subtree.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <iterator>
 #include <type_traits>
@@ -202,7 +202,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorEulertour< true >>
+genesis::util::container::Range< IteratorEulertour< true >>
 eulertour( ElementType const& element )
 {
     return {
@@ -212,7 +212,7 @@ eulertour( ElementType const& element )
 }
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorEulertour< false >>
+genesis::util::container::Range< IteratorEulertour< false >>
 eulertour( ElementType& element )
 {
     return {

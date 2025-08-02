@@ -39,7 +39,7 @@
 #include <genesis/population/function/function.hpp>
 #include <genesis/population/sample_counts.hpp>
 #include <genesis/population/variant.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/text/char.hpp>
 
 extern "C" {
     #include <htslib/hts.h>
@@ -410,8 +410,8 @@ Variant convert_to_variant_as_pool( VcfRecord const& record )
     Variant result;
     result.chromosome       = record.get_chromosome();
     result.position         = record.get_position();
-    result.reference_base   = genesis::utils::text::to_upper( snp_chars.first[0] );
-    result.alternative_base = genesis::utils::text::to_upper( snp_chars.first[1] );
+    result.reference_base   = genesis::util::text::to_upper( snp_chars.first[0] );
+    result.alternative_base = genesis::util::text::to_upper( snp_chars.first[1] );
     // TODO the alt base above is only reasonable for biallelic SNPs
 
     // Process the sample AD counts that are present in the VCF record line.
@@ -483,8 +483,8 @@ Variant convert_to_variant_as_individuals(
     // Prepare common fields of the result. Same as convert_to_variant_as_pool(), see there.
     result.chromosome       = record.get_chromosome();
     result.position         = record.get_position();
-    result.reference_base   = genesis::utils::text::to_upper( snp_chars.first[0] );
-    result.alternative_base = genesis::utils::text::to_upper( snp_chars.first[1] );
+    result.reference_base   = genesis::util::text::to_upper( snp_chars.first[0] );
+    result.alternative_base = genesis::util::text::to_upper( snp_chars.first[1] );
     // TODO the alt base above is only reasonable for biallelic SNPs
 
     // We merge everything into one sample, representing the individuals as a pool.

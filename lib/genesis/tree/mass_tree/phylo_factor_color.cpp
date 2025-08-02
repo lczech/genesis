@@ -57,7 +57,7 @@ std::vector<size_t> phylo_factor_edge_indices(
 //     Single Factor Coloring
 // =================================================================================================
 
-std::vector<genesis::utils::color::Color> phylo_factor_single_factor_colors(
+std::vector<genesis::util::color::Color> phylo_factor_single_factor_colors(
     Tree const& tree,
     std::vector<PhyloFactor> const& factors,
     size_t factor_index,
@@ -69,11 +69,11 @@ std::vector<genesis::utils::color::Color> phylo_factor_single_factor_colors(
     auto const& factor = factors[ factor_index ];
 
     // Prepare all edges in neutral color.
-    auto edge_cols = std::vector<genesis::utils::color::Color>( tree.edge_count(), colors.neutral_edges );
+    auto edge_cols = std::vector<genesis::util::color::Color>( tree.edge_count(), colors.neutral_edges );
 
     // Helper to set the color of one edge to a value, unless it already has a value,
     // in which case we have an error.
-    auto set_color_ = [&]( size_t index, genesis::utils::color::Color color ){
+    auto set_color_ = [&]( size_t index, genesis::util::color::Color color ){
         if( index >= edge_cols.size() ) {
             throw std::runtime_error( "Invalid edge index in a phylo factor." );
         }
@@ -109,7 +109,7 @@ std::vector<genesis::utils::color::Color> phylo_factor_single_factor_colors(
 //     Factor Clade Coloring
 // =================================================================================================
 
-std::vector<genesis::utils::color::Color> phylo_factor_clade_colors(
+std::vector<genesis::util::color::Color> phylo_factor_clade_colors(
     Tree const& tree,
     std::vector<PhyloFactor> const& factors,
     size_t num_factors,
@@ -129,10 +129,10 @@ std::vector<genesis::utils::color::Color> phylo_factor_clade_colors(
     }
 
     // Prepare all edges in base color.
-    auto edge_cols = std::vector<genesis::utils::color::Color>( tree.edge_count(), colors.base_edges );
+    auto edge_cols = std::vector<genesis::util::color::Color>( tree.edge_count(), colors.base_edges );
 
     // Helper to set the color of one edge to a value.
-    auto set_color_ = [&]( size_t index, genesis::utils::color::Color color ){
+    auto set_color_ = [&]( size_t index, genesis::util::color::Color color ){
         if( index >= edge_cols.size() ) {
             throw std::runtime_error( "Invalid edge index in a phylo factor." );
         }

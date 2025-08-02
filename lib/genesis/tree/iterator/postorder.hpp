@@ -33,7 +33,7 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree/subtree.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -317,7 +317,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorPostorder< true >>
+genesis::util::container::Range< IteratorPostorder< true >>
 postorder( ElementType const& element )
 {
     return {
@@ -327,7 +327,7 @@ postorder( ElementType const& element )
 }
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorPostorder< false >>
+genesis::util::container::Range< IteratorPostorder< false >>
 postorder( ElementType& element )
 {
     return {

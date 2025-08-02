@@ -30,11 +30,11 @@
 
 #include <genesis/population/format/map_bim_reader.hpp>
 
-#include <genesis/utils/io/parser.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/convert.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <limits>
@@ -48,7 +48,7 @@ namespace population {
 // =================================================================================================
 
 std::vector<MapBimReader::Feature> MapBimReader::read(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     std::vector<MapBimReader::Feature> result;
     read_( source, [&]( Feature&& feat ){
@@ -58,7 +58,7 @@ std::vector<MapBimReader::Feature> MapBimReader::read(
 }
 
 GenomeLocusSet MapBimReader::read_as_genome_locus_set(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     GenomeLocusSet result;
     read_( source, [&]( Feature&& feat ){
@@ -68,7 +68,7 @@ GenomeLocusSet MapBimReader::read_as_genome_locus_set(
 }
 
 GenomeRegionList MapBimReader::read_as_genome_region_list(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     bool merge
 ) const {
     GenomeRegionList result;
@@ -77,7 +77,7 @@ GenomeRegionList MapBimReader::read_as_genome_region_list(
 }
 
 void MapBimReader::read_as_genome_region_list(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     GenomeRegionList& target,
     bool merge
 ) const {
@@ -91,10 +91,10 @@ void MapBimReader::read_as_genome_region_list(
 // =================================================================================================
 
 void MapBimReader::read_(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     std::function<void(Feature&&)> callback
 ) const {
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // We use an internal reading function that takes care of checking that the number of columns
     // is constant throughout the input file. This avoids code duplication for these checkes
@@ -139,12 +139,12 @@ void MapBimReader::read_(
 }
 
 size_t MapBimReader::parse_line_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     MapBimReader::Feature& feature,
     std::vector<std::string>& buffer
 ) const {
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::text;
+    using namespace genesis::util::io;
+    using namespace genesis::util::text;
 
     // Setup.
     size_t found_columns = 0;

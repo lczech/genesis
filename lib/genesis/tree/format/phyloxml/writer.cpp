@@ -35,12 +35,12 @@
 #include <genesis/tree/function/distance.hpp>
 #include <genesis/tree/iterator/preorder.hpp>
 
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/format/xml/document.hpp>
-#include <genesis/utils/format/xml/writer.hpp>
-#include <genesis/utils/io/output_stream.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/format/xml/document.hpp>
+#include <genesis/util/format/xml/writer.hpp>
+#include <genesis/util/io/output_stream.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -53,14 +53,14 @@ namespace tree {
 //     Printing
 // =================================================================================================
 
-void PhyloxmlWriter::write( Tree const& tree, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void PhyloxmlWriter::write( Tree const& tree, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
-    genesis::utils::formats::XmlDocument xml;
+    genesis::util::format::XmlDocument xml;
     to_document( tree, xml );
-    genesis::utils::formats::XmlWriter().write( xml, target );
+    genesis::util::format::XmlWriter().write( xml, target );
 }
 
-void PhyloxmlWriter::to_document ( Tree const& tree, genesis::utils::formats::XmlDocument& xml ) const
+void PhyloxmlWriter::to_document ( Tree const& tree, genesis::util::format::XmlDocument& xml ) const
 {
     xml.clear();
 
@@ -84,13 +84,13 @@ void PhyloxmlWriter::to_document ( Tree const& tree, genesis::utils::formats::Xm
     xml.attributes.emplace("xmlns",     "http://www.phyloxml.org");
 
     // Add the (phylogeny) element.
-    auto phylogeny = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >();
+    auto phylogeny = genesis::util::core::make_unique< genesis::util::format::XmlElement >();
     phylogeny->tag = "phylogeny";
     phylogeny->attributes.emplace("rooted",     "true");
     //~ phylogeny.attributes.emplace("rerootable", "true");
 
     // Create a stack where we will push the tree elements to. Use the phylogeny element as root.
-    std::vector< genesis::utils::formats::XmlElement* > stack;
+    std::vector< genesis::util::format::XmlElement* > stack;
     stack.push_back(phylogeny.get());
     xml.content.push_back(std::move(phylogeny));
     size_t cur_d = 0;
@@ -115,7 +115,7 @@ void PhyloxmlWriter::to_document ( Tree const& tree, genesis::utils::formats::Xm
 
         // Create clade element, append it to the stack, so that all sub-elements will use it as
         // parent.
-        auto clade = genesis::utils::core::make_unique< genesis::utils::formats::XmlElement >();
+        auto clade = genesis::util::core::make_unique< genesis::util::format::XmlElement >();
         clade->tag = "clade";
 
         // Call all plugins to translate node and edge data to xml.

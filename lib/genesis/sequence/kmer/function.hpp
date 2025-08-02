@@ -32,7 +32,7 @@
  */
 
 #include <genesis/sequence/kmer/kmer.hpp>
-#include <genesis/utils/math/common.hpp>
+#include <genesis/util/math/common.hpp>
 
 #include <cassert>
 #include <cstdint>
@@ -175,7 +175,7 @@ inline size_t number_of_kmers( uint8_t k, uint8_t alphabet_size = 4 )
  */
 inline size_t number_of_canonical_kmers( uint8_t k )
 {
-    using namespace genesis::utils::math;
+    using namespace genesis::util::math;
 
     // We need distinct approaches for even and odd values, due to palindromes.
     // It might be easier to just have a hard coded table... but this way is more approachable.
@@ -210,7 +210,7 @@ inline size_t number_of_palindromes( uint8_t k )
         // No palindromes for odd k
         return 0;
     }
-    return genesis::utils::math::int_pow( 4, k / 2 );
+    return genesis::util::math::int_pow( 4, k / 2 );
 }
 
 // =================================================================================================

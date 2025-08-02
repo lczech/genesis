@@ -70,9 +70,9 @@ double RectangularLayout::height() const
 //     Virtual Functions
 // =================================================================================================
 
-genesis::utils::formats::SvgDocument RectangularLayout::to_svg_document_() const
+genesis::util::format::SvgDocument RectangularLayout::to_svg_document_() const
 {
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::format;
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_lines;
@@ -117,8 +117,8 @@ genesis::utils::formats::SvgDocument RectangularLayout::to_svg_document_() const
             // Get line strokes
             auto spreading_stroke = edge_data.spreading_stroke;
             auto distance_stroke = edge_data.distance_stroke;
-            // spreading_stroke.line_cap = genesis::utils::formats::SvgStroke::LineCap::kSquare;
-            // distance_stroke.line_cap = genesis::utils::formats::SvgStroke::LineCap::kButt;
+            // spreading_stroke.line_cap = genesis::util::format::SvgStroke::LineCap::kSquare;
+            // distance_stroke.line_cap = genesis::util::format::SvgStroke::LineCap::kButt;
 
             // Calculate linear distance
             auto const dist_start_x = prnt_data.distance * width;

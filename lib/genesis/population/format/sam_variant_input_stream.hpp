@@ -39,7 +39,7 @@
 #include <genesis/population/genome_locus.hpp>
 #include <genesis/population/variant.hpp>
 #include <genesis/population/variant.hpp>
-#include <genesis/utils/core/fs.hpp>
+#include <genesis/util/core/fs.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -378,7 +378,7 @@ public:
         // We check here, as input_file() allows to change the file after construction,
         // so we only do the check once we know that we are good to go.
         std::string err_str;
-        if( ! genesis::utils::core::file_is_readable( input_file_, err_str )) {
+        if( ! genesis::util::core::file_is_readable( input_file_, err_str )) {
             throw std::runtime_error(
                 "Cannot open input sam/bam/cram file '" + input_file_ + "': " + err_str
             );

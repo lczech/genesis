@@ -32,7 +32,7 @@
  */
 
 #include <genesis/sequence/kmer/kmer.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <array>
 #include <cassert>
@@ -275,7 +275,7 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-inline genesis::utils::containers::Range<MicrovariantScanner> iterate_microvariants(
+inline genesis::util::container::Range<MicrovariantScanner> iterate_microvariants(
     Kmer const& kmer, bool include_original = true
 ) {
     return {

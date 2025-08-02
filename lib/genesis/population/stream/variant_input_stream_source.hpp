@@ -42,7 +42,7 @@
 #include <genesis/population/variant.hpp>
 #include <genesis/sequence/reference_genome.hpp>
 #include <genesis/sequence/sequence_dict.hpp>
-#include <genesis/utils/container/generic_input_stream.hpp>
+#include <genesis/util/container/generic_input_stream.hpp>
 
 #include <cassert>
 #include <functional>

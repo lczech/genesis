@@ -31,10 +31,10 @@
  * @ingroup population
  */
 
-#include <genesis/utils/color/color.hpp>
-#include <genesis/utils/color/heat_map.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/io/base_output_target.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/heat_map.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/io/base_output_target.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -50,14 +50,14 @@
 // =================================================================================================
 
 namespace genesis {
-namespace utils {
-namespace formats {
+namespace util {
+namespace format {
 
     class JsonDocument;
     class SvgDocument;
 
-} // namespace formats
-} // namespace utils
+} // namespace format
+} // namespace util
 } // namespace genesis
 
 namespace genesis {
@@ -131,7 +131,7 @@ struct CathedralPlotRecord
     CathedralPlotParameters parameters;
 
     // Data matrix containing per-pixel values.
-    genesis::utils::containers::Matrix<double> value_matrix;
+    genesis::util::container::Matrix<double> value_matrix;
     std::vector<double> window_widths;
 };
 
@@ -202,7 +202,7 @@ void compute_cathedral_matrix(
     Accumulator accumulator = Accumulator{}
 ) {
     // Prepare a result matrix for the values, of the desired dimensions.
-    record.value_matrix = genesis::utils::containers::Matrix<double>( parameters.height, parameters.width );
+    record.value_matrix = genesis::util::container::Matrix<double>( parameters.height, parameters.width );
     record.window_widths = std::vector<double>( parameters.height );
 
     // Also store the parameters in the record, for later reference to have them in one place.
@@ -320,17 +320,17 @@ void compute_cathedral_matrix(
 
 /**
  * @brief Get a user-readable description of a CathedralPlotParameters as a
- * @link genesis::utils::formats::JsonDocument JsonDocument@endlink.
+ * @link genesis::util::format::JsonDocument JsonDocument@endlink.
  *
  * @see cathedral_plot_parameters_to_json_document()
  */
-genesis::utils::formats::JsonDocument cathedral_plot_parameters_to_json_document(
+genesis::util::format::JsonDocument cathedral_plot_parameters_to_json_document(
     CathedralPlotParameters const& parameters
 );
 
 /**
  * @brief Get a user-readable description of the data of a CathedralPlotRecord as a
- * @link genesis::utils::formats::JsonDocument JsonDocument@endlink.
+ * @link genesis::util::format::JsonDocument JsonDocument@endlink.
  *
  * This is meant for user output, so that cathedral plots can be generated from a data matrix,
  * without having to recompute the matrix.
@@ -338,7 +338,7 @@ genesis::utils::formats::JsonDocument cathedral_plot_parameters_to_json_document
  * @see fst_cathedral_plot_record_to_json_document(), cathedral_plot_parameters_to_json_document(),
  * save_cathedral_plot_record_to_files(), load_cathedral_plot_record_from_files()
  */
-genesis::utils::formats::JsonDocument cathedral_plot_record_to_json_document(
+genesis::util::format::JsonDocument cathedral_plot_record_to_json_document(
     CathedralPlotRecord const& record
 );
 
@@ -350,10 +350,10 @@ genesis::utils::formats::JsonDocument cathedral_plot_record_to_json_document(
  * versions of this function.
  */
 void save_cathedral_plot_record_to_targets(
-    genesis::utils::formats::JsonDocument const& record_document,
-    genesis::utils::containers::Matrix<double> const& record_value_matrix,
-    std::shared_ptr<genesis::utils::io::BaseOutputTarget> json_target,
-    std::shared_ptr<genesis::utils::io::BaseOutputTarget> csv_target
+    genesis::util::format::JsonDocument const& record_document,
+    genesis::util::container::Matrix<double> const& record_value_matrix,
+    std::shared_ptr<genesis::util::io::BaseOutputTarget> json_target,
+    std::shared_ptr<genesis::util::io::BaseOutputTarget> csv_target
 );
 
 /**
@@ -369,8 +369,8 @@ void save_cathedral_plot_record_to_targets(
  * load_cathedral_plot_record_from_files().
  */
 void save_cathedral_plot_record_to_files(
-    genesis::utils::formats::JsonDocument const& record_document,
-    genesis::utils::containers::Matrix<double> const& record_value_matrix,
+    genesis::util::format::JsonDocument const& record_document,
+    genesis::util::container::Matrix<double> const& record_value_matrix,
     std::string const& base_path
 );
 
@@ -399,7 +399,7 @@ void save_cathedral_plot_record_to_files(
  * and a Matrix of values for the heatmap. See load_cathedral_plot_record_from_files() for the
  * convenience function that actually loads and fills the CathedralPlotRecord from that.
  */
-std::pair<genesis::utils::formats::JsonDocument, genesis::utils::containers::Matrix<double>>
+std::pair<genesis::util::format::JsonDocument, genesis::util::container::Matrix<double>>
 load_cathedral_plot_record_components_from_files(
     std::string const& base_path
 );
@@ -427,9 +427,9 @@ CathedralPlotRecord load_cathedral_plot_record_from_files(
  * This is meant as a high level function for convenience, and to show how such a heat map can
  * be made. See also make_cathedral_plot_svg().
  */
-genesis::utils::containers::Matrix<genesis::utils::color::Color> make_cathedral_plot_heatmap(
+genesis::util::container::Matrix<genesis::util::color::Color> make_cathedral_plot_heatmap(
     CathedralPlotRecord const& record,
-    genesis::utils::color::HeatmapParameters const& heatmap_parameters
+    genesis::util::color::HeatmapParameters const& heatmap_parameters
 );
 
 /**
@@ -440,10 +440,10 @@ genesis::utils::containers::Matrix<genesis::utils::color::Color> make_cathedral_
  * This is meant as a high level function for convenience, and to show how such a heat map can
  * be made. See also make_cathedral_plot_heatmap().
  */
-genesis::utils::formats::SvgDocument make_cathedral_plot_svg(
+genesis::util::format::SvgDocument make_cathedral_plot_svg(
     CathedralPlotRecord const& record,
-    genesis::utils::color::HeatmapParameters const& heatmap_parameters,
-    genesis::utils::containers::Matrix<genesis::utils::color::Color> const& image
+    genesis::util::color::HeatmapParameters const& heatmap_parameters,
+    genesis::util::container::Matrix<genesis::util::color::Color> const& image
 );
 
 /**
@@ -454,9 +454,9 @@ genesis::utils::formats::SvgDocument make_cathedral_plot_svg(
  * This is meant as a high level function for convenience, and to show how such a heat map can
  * be made. See also make_cathedral_plot_heatmap().
  */
-genesis::utils::formats::SvgDocument make_cathedral_plot_svg(
+genesis::util::format::SvgDocument make_cathedral_plot_svg(
     CathedralPlotRecord const& record,
-    genesis::utils::color::HeatmapParameters const& heatmap_parameters
+    genesis::util::color::HeatmapParameters const& heatmap_parameters
 );
 
 } // namespace population

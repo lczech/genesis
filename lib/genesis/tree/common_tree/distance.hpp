@@ -34,7 +34,7 @@
 #include <vector>
 
 #include <genesis/tree/common_tree/tree.hpp>
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 namespace genesis {
 namespace tree {
@@ -49,7 +49,7 @@ namespace tree {
  *
  * The elements of the matrix are indexed using node().index().
  */
-genesis::utils::containers::Matrix<double> node_branch_length_distance_matrix(
+genesis::util::container::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 );
 
@@ -68,7 +68,7 @@ std::vector<double> node_branch_length_distance_vector(
     TreeNode const* node = nullptr
 );
 
-genesis::utils::containers::Matrix<double> edge_branch_length_distance_matrix(
+genesis::util::container::Matrix<double> edge_branch_length_distance_matrix(
     Tree const& tree
 );
 
@@ -103,7 +103,7 @@ std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
 
 std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
     Tree const& tree,
-    genesis::utils::containers::Matrix<double> const& node_branch_length_distance_mat
+    genesis::util::container::Matrix<double> const& node_branch_length_distance_mat
 );
 
 /**
@@ -115,7 +115,7 @@ std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
 
 std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
     Tree const& tree,
-    genesis::utils::containers::Matrix<double> const& node_branch_length_distance_mat
+    genesis::util::container::Matrix<double> const& node_branch_length_distance_mat
 );
 
 } // namespace tree

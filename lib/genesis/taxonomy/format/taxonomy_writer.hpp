@@ -32,7 +32,7 @@
  */
 
 #include <genesis/taxonomy/format/taxopath_generator.hpp>
-#include <genesis/utils/io/output_target.hpp>
+#include <genesis/util/io/output_target.hpp>
 
 #include <iosfwd>
 #include <string>
@@ -74,7 +74,7 @@ public:
     //     Writing
     // ---------------------------------------------------------------------
 
-    void write( Taxonomy const& tax, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
+    void write( Taxonomy const& tax, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const;
 
     // ---------------------------------------------------------------------
     //     Properties

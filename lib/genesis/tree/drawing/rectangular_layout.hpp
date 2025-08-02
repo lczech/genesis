@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include <genesis/utils/format/svg/svg.hpp>
+#include <genesis/util/format/svg/svg.hpp>
 #include <genesis/tree/drawing/layout_base.hpp>
 
 #include <string>
@@ -85,7 +85,7 @@ public:
 
 private:
 
-    genesis::utils::formats::SvgDocument to_svg_document_() const override;
+    genesis::util::format::SvgDocument to_svg_document_() const override;
 
     // -------------------------------------------------------------
     //     Data Members

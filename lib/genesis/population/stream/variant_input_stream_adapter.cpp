@@ -33,9 +33,9 @@
 #include <genesis/population/filter/sample_counts_filter.hpp>
 #include <genesis/population/filter/variant_filter.hpp>
 #include <genesis/population/function/function.hpp>
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -266,7 +266,7 @@ VariantMergeGroupAssignment make_variant_merging_input_stream_group_assignment_(
         LOG_WARN << "In the provided list of samples to merge into groups, there were "
                  << std::to_string( samples_names_to_warn.size() )
                  << " sample names that did not occur in the input sample names:\n"
-                 << "  - " << genesis::utils::text::join( samples_names_to_warn, "  - " )
+                 << "  - " << genesis::util::text::join( samples_names_to_warn, "  - " )
         ;
     }
 

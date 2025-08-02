@@ -76,30 +76,30 @@ Tree const& LayoutBase::tree() const
 //     Edge Strokes
 // =================================================================================================
 
-void LayoutBase::set_edge_strokes( genesis::utils::formats::SvgStroke const& stroke )
+void LayoutBase::set_edge_strokes( genesis::util::format::SvgStroke const& stroke )
 {
     set_edge_spreading_strokes( stroke );
     set_edge_distance_strokes( stroke );
 }
 
-void LayoutBase::set_edge_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes )
+void LayoutBase::set_edge_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes )
 {
     set_edge_spreading_strokes( strokes );
     set_edge_distance_strokes( strokes );
 }
 
-void LayoutBase::set_edge_spreading_strokes( genesis::utils::formats::SvgStroke const& stroke )
+void LayoutBase::set_edge_spreading_strokes( genesis::util::format::SvgStroke const& stroke )
 {
     for( size_t i = 0; i < tree_.edge_count(); ++i ) {
         tree_.edge_at(i).data<LayoutEdgeData>().spreading_stroke = stroke;
     }
 }
 
-void LayoutBase::set_edge_spreading_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes )
+void LayoutBase::set_edge_spreading_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes )
 {
     // Empty: Reset to default.
     if( strokes.empty() ) {
-        set_edge_spreading_strokes( genesis::utils::formats::SvgStroke() );
+        set_edge_spreading_strokes( genesis::util::format::SvgStroke() );
         return;
     }
 
@@ -112,18 +112,18 @@ void LayoutBase::set_edge_spreading_strokes( std::vector< genesis::utils::format
     }
 }
 
-void LayoutBase::set_edge_distance_strokes( genesis::utils::formats::SvgStroke const& stroke )
+void LayoutBase::set_edge_distance_strokes( genesis::util::format::SvgStroke const& stroke )
 {
     for( size_t i = 0; i < tree_.edge_count(); ++i ) {
         tree_.edge_at(i).data<LayoutEdgeData>().distance_stroke = stroke;
     }
 }
 
-void LayoutBase::set_edge_distance_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes )
+void LayoutBase::set_edge_distance_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes )
 {
     // Empty: Reset to default.
     if( strokes.empty() ) {
-        set_edge_distance_strokes( genesis::utils::formats::SvgStroke() );
+        set_edge_distance_strokes( genesis::util::format::SvgStroke() );
         return;
     }
 
@@ -136,7 +136,7 @@ void LayoutBase::set_edge_distance_strokes( std::vector< genesis::utils::formats
     }
 }
 
-void LayoutBase::set_label_spacer_strokes( genesis::utils::formats::SvgStroke const& stroke, LayoutSpreading spreading )
+void LayoutBase::set_label_spacer_strokes( genesis::util::format::SvgStroke const& stroke, LayoutSpreading spreading )
 {
     for( size_t i = 0; i < tree_.node_count(); ++i ) {
         auto& node = tree_.node_at(i);
@@ -151,12 +151,12 @@ void LayoutBase::set_label_spacer_strokes( genesis::utils::formats::SvgStroke co
     }
 }
 
-void LayoutBase::set_label_spacer_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes )
+void LayoutBase::set_label_spacer_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes )
 {
     // Empty: Reset to default.
     if( strokes.empty() ) {
         set_label_spacer_strokes(
-            genesis::utils::formats::SvgStroke( genesis::utils::formats::SvgStroke::Type::kNone ),
+            genesis::util::format::SvgStroke( genesis::util::format::SvgStroke::Type::kNone ),
             LayoutSpreading::kAllNodes
         );
         return;
@@ -200,18 +200,18 @@ void LayoutBase::set_label_spacer_strokes( std::vector< genesis::utils::formats:
 //     Edge and Node Shapes
 // =================================================================================================
 
-void LayoutBase::set_edge_shapes( genesis::utils::formats::SvgGroup const& shape )
+void LayoutBase::set_edge_shapes( genesis::util::format::SvgGroup const& shape )
 {
     for( size_t i = 0; i < tree_.edge_count(); ++i ) {
         tree_.edge_at(i).data<LayoutEdgeData>().shape = shape;
     }
 }
 
-void LayoutBase::set_edge_shapes( std::vector< genesis::utils::formats::SvgGroup> const& shapes )
+void LayoutBase::set_edge_shapes( std::vector< genesis::util::format::SvgGroup> const& shapes )
 {
     // Empty: Reset to default.
     if( shapes.empty() ) {
-        set_edge_shapes( genesis::utils::formats::SvgGroup() );
+        set_edge_shapes( genesis::util::format::SvgGroup() );
         return;
     }
 
@@ -224,18 +224,18 @@ void LayoutBase::set_edge_shapes( std::vector< genesis::utils::formats::SvgGroup
     }
 }
 
-void LayoutBase::set_node_shapes( genesis::utils::formats::SvgGroup const& shape )
+void LayoutBase::set_node_shapes( genesis::util::format::SvgGroup const& shape )
 {
     for( size_t i = 0; i < tree_.node_count(); ++i ) {
         tree_.node_at(i).data<LayoutNodeData>().shape = shape;
     }
 }
 
-void LayoutBase::set_node_shapes( std::vector< genesis::utils::formats::SvgGroup> const& shapes )
+void LayoutBase::set_node_shapes( std::vector< genesis::util::format::SvgGroup> const& shapes )
 {
     // Empty: Reset to default.
     if( shapes.empty() ) {
-        set_node_shapes( genesis::utils::formats::SvgGroup() );
+        set_node_shapes( genesis::util::format::SvgGroup() );
         return;
     }
 
@@ -535,17 +535,17 @@ double LayoutBase::extra_spacer() const
     return extra_spacer_;
 }
 
-void LayoutBase::text_template( genesis::utils::formats::SvgText const& tt )
+void LayoutBase::text_template( genesis::util::format::SvgText const& tt )
 {
     text_template_ = tt;
 }
 
-genesis::utils::formats::SvgText& LayoutBase::text_template()
+genesis::util::format::SvgText& LayoutBase::text_template()
 {
     return text_template_;
 }
 
-genesis::utils::formats::SvgText const& LayoutBase::text_template() const
+genesis::util::format::SvgText const& LayoutBase::text_template() const
 {
     return text_template_;
 }

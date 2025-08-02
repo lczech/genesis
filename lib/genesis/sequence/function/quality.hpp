@@ -44,7 +44,7 @@ namespace genesis {
 //     Forward declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
 namespace io {
 
     class BaseInputSource;
@@ -216,7 +216,7 @@ QualityEncoding guess_quality_encoding( std::array<size_t, 128> const& char_coun
  * @see guess_quality_encoding()
  */
 QualityEncoding guess_fastq_quality_encoding(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     size_t max_lines = 0,
     size_t max_chars = 0
 );

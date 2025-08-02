@@ -197,7 +197,7 @@ bool apply_variant_filter_numerical(
  *
  * The function uses apply_variant_filter_numerical(), which returns `true` or `false` depending
  * on whether the filtering determined that the Variant should be kept. It can hence be used with
- * @link genesis::utils::containers::GenericInputStream::add_transform_filter() GenericInputStream::add_transform_filter()@endlink
+ * @link genesis::util::container::GenericInputStream::add_transform_filter() GenericInputStream::add_transform_filter()@endlink
  * to exclude positions fully from the stream.
  *
  * See make_variant_filter_numerical_tagging() for an alternative that instead simply sets
@@ -235,7 +235,7 @@ inline std::function<bool(Variant&)> make_variant_filter_numerical_excluding(
  *
  * The function uses apply_variant_filter_numerical(), tagging whether the filtering determined
  * that the Variant should be kept. It can hence be used with
- * @link genesis::utils::containers::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
+ * @link genesis::util::container::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
  * to mark filtered positions in the stream.
  *
  * See make_variant_filter_numerical_excluding() for an alternative that instead excludes

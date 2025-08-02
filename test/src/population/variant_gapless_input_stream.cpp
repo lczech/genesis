@@ -39,15 +39,15 @@
 #include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/sequence/function/dict.hpp"
-#include "genesis/utils/container/generic_input_stream.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/function.hpp"
-#include "genesis/utils/bit/bitvector/operator.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/random.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
+#include "genesis/util/core/algorithm.hpp"
+#include "genesis/util/core/std.hpp"
+#include "genesis/util/bit/bitvector.hpp"
+#include "genesis/util/bit/bitvector/function.hpp"
+#include "genesis/util/bit/bitvector/operator.hpp"
+#include "genesis/util/math/common.hpp"
+#include "genesis/util/math/random.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -58,13 +58,13 @@
 
 using namespace genesis::population;
 using namespace genesis::sequence;
-using namespace genesis::utils;
-using namespace genesis::utils::bit;
-using namespace genesis::utils::containers;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::math;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::bit;
+using namespace genesis::util::container;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Basic Tests
@@ -566,7 +566,7 @@ TEST( GaplessInputStream, Random )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::core::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     // 0.5s runtime, our default for normal tests.
     size_t const max_tests = 5000;

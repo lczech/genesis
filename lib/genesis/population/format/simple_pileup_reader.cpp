@@ -32,10 +32,10 @@
 
 #include <genesis/population/function/function.hpp>
 #include <genesis/sequence/function/code.hpp>
-#include <genesis/utils/io/parser.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/bit/bitvector/operator.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -50,10 +50,10 @@ namespace population {
 // =================================================================================================
 
 std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     std::vector<SimplePileupReader::Record> result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Reset quality code counts.
     quality_code_counts_ = std::array<size_t, 128>{};
@@ -68,14 +68,14 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
 }
 
 // std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
-//     std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+//     std::shared_ptr< genesis::util::io::BaseInputSource > source,
 //     std::vector<size_t> const& sample_indices
 // ) const {
 //     std::vector<SimplePileupReader::Record> result;
-//     genesis::utils::io::InputStream it( source );
+//     genesis::util::io::InputStream it( source );
 //
 //     // Convert the list of indices to a bool vec that tells which samples we want to process.
-//     auto const sample_filter = genesis::utils::make_bool_vector_from_indices( sample_indices );
+//     auto const sample_filter = genesis::util::make_bool_vector_from_indices( sample_indices );
 //
 //     Record rec;
 //     while( parse_line_( it, rec, sample_filter, true )) {
@@ -85,11 +85,11 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
 // }
 
 std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     std::vector<bool> const& sample_filter
 ) const {
     std::vector<SimplePileupReader::Record> result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Reset quality code counts.
     quality_code_counts_ = std::array<size_t, 128>{};
@@ -108,10 +108,10 @@ std::vector<SimplePileupReader::Record> SimplePileupReader::read_records(
 // =================================================================================================
 
 std::vector<Variant> SimplePileupReader::read_variants(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     std::vector<Variant> result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Read until end of input, pushing copies into the result
     // (moving would not reduce the number of times that we need to allocate memory here).
@@ -123,14 +123,14 @@ std::vector<Variant> SimplePileupReader::read_variants(
 }
 
 // std::vector<Variant> SimplePileupReader::read_variants(
-//     std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+//     std::shared_ptr< genesis::util::io::BaseInputSource > source,
 //     std::vector<size_t> const& sample_indices
 // ) const {
 //     std::vector<Variant> result;
-//     genesis::utils::io::InputStream it( source );
+//     genesis::util::io::InputStream it( source );
 //
 //     // Convert the list of indices to a bool vec that tells which samples we want to process.
-//     auto const sample_filter = genesis::utils::make_bool_vector_from_indices( sample_indices );
+//     auto const sample_filter = genesis::util::make_bool_vector_from_indices( sample_indices );
 //
 //     Variant var;
 //     while( parse_line_( it, var, sample_filter, true )) {
@@ -140,11 +140,11 @@ std::vector<Variant> SimplePileupReader::read_variants(
 // }
 
 std::vector<Variant> SimplePileupReader::read_variants(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     std::vector<bool> const& sample_filter
 ) const {
     std::vector<Variant> result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Read until end of input, pushing copies into the result
     // (moving would not reduce the number of times that we need to allocate memory here).
@@ -160,14 +160,14 @@ std::vector<Variant> SimplePileupReader::read_variants(
 // =================================================================================================
 
 bool SimplePileupReader::parse_line_record(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SimplePileupReader::Record& record
 ) const {
     return parse_line_( input_stream, record, {}, false );
 }
 
 bool SimplePileupReader::parse_line_record(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SimplePileupReader::Record& record,
     std::vector<bool> const& sample_filter
 ) const {
@@ -179,7 +179,7 @@ bool SimplePileupReader::parse_line_record(
 // =================================================================================================
 
 bool SimplePileupReader::parse_line_variant(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     Variant& variant
 ) const {
     reset_status_( variant );
@@ -187,7 +187,7 @@ bool SimplePileupReader::parse_line_variant(
 }
 
 bool SimplePileupReader::parse_line_variant(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     Variant& variant,
     std::vector<bool> const& sample_filter
 ) const {
@@ -217,13 +217,13 @@ void SimplePileupReader::reset_status_( Variant& variant ) const
 
 template<class T>
 bool SimplePileupReader::parse_line_(
-    genesis::utils::io::InputStream&      input_stream,
+    genesis::util::io::InputStream&      input_stream,
     T&                       target,
     std::vector<bool> const& sample_filter,
     bool                     use_sample_filter
 ) const {
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::text;
+    using namespace genesis::util::io;
+    using namespace genesis::util::text;
 
     // Shorthand.
     auto& it = input_stream;
@@ -352,7 +352,7 @@ bool SimplePileupReader::parse_line_(
 
 template<class T, class S>
 void SimplePileupReader::process_sample_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     T const&            target,
     S&                  sample
 ) const {
@@ -364,9 +364,9 @@ void SimplePileupReader::process_sample_(
 
     // Read the total read depth / coverage.
     next_field_( it );
-    auto const read_depth = genesis::utils::io::parse_unsigned_integer<size_t>( it );
+    auto const read_depth = genesis::util::io::parse_unsigned_integer<size_t>( it );
     set_sample_read_depth_( read_depth, sample );
-    assert( !it || !genesis::utils::text::is_digit( *it ));
+    assert( !it || !genesis::util::text::is_digit( *it ));
 
     // Read the nucleotides, skipping everything that we don't want. We need to store these
     // in a string first, as we want to do quality checks. Bit unfortunate, and maybe there
@@ -406,7 +406,7 @@ void SimplePileupReader::process_sample_(
     // Final file sanity checks.
     if(
         it &&
-        !( genesis::utils::text::is_blank( *it ) || genesis::utils::text::is_newline( *it ))
+        !( genesis::util::text::is_blank( *it ) || genesis::util::text::is_newline( *it ))
     ) {
         throw std::runtime_error(
             "Malformed pileup " + it.source_name() + " at " + it.at() +
@@ -463,7 +463,7 @@ void SimplePileupReader::set_sample_read_depth_<SampleCounts>(
 // -------------------------------------------------------------------------
 
 bool SimplePileupReader::process_sample_read_bases_buffer_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     char reference_base
 ) const {
     // Shorthand.
@@ -472,8 +472,8 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
     base_buffer_.clear();
 
     // No need to compute upper and lower case again and again here.
-    auto const u_ref_base = genesis::utils::text::to_upper( reference_base );
-    auto const l_ref_base = genesis::utils::text::to_lower( reference_base );
+    auto const u_ref_base = genesis::util::text::to_upper( reference_base );
+    auto const l_ref_base = genesis::util::text::to_lower( reference_base );
 
     // Go through the bases and store them in the buffer,
     // keeping track of the position (pos) in the buffer.
@@ -481,7 +481,7 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
     while( pos < in_buff.second ) {
 
         // Stop when we reach the end of the bases.
-        if( ! genesis::utils::text::is_graph( in_buff.first[pos] )) {
+        if( ! genesis::util::text::is_graph( in_buff.first[pos] )) {
             break;
         }
 
@@ -532,12 +532,12 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
                     }
                     if(
                         strict_bases_ &&
-                        !std::strchr( allowed_codes.c_str(), genesis::utils::text::to_upper( in_buff.first[pos]))
+                        !std::strchr( allowed_codes.c_str(), genesis::util::text::to_upper( in_buff.first[pos]))
                     ) {
                         throw std::runtime_error(
                             "Malformed pileup " + it.source_name() + " near " + it.at() +
                             ": Line with invalid indel character " +
-                            genesis::utils::text::char_to_hex( in_buff.first[pos])
+                            genesis::util::text::char_to_hex( in_buff.first[pos])
                         );
                     }
                     ++pos;
@@ -581,7 +581,7 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
             }
         }
     }
-    assert( pos == in_buff.second || !genesis::utils::text::is_graph( in_buff.first[pos] ) );
+    assert( pos == in_buff.second || !genesis::util::text::is_graph( in_buff.first[pos] ) );
 
     // Now we have reached the end of the buffer-based approach.
     // If that worked, that is, if we are not at the end of the buffer, and so have found
@@ -601,14 +601,14 @@ bool SimplePileupReader::process_sample_read_bases_buffer_(
 // -------------------------------------------------------------------------
 
 void SimplePileupReader::process_sample_read_bases_stream_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     char reference_base
 ) const {
     // Shorthand.
     auto& it = input_stream;
     base_buffer_.clear();
 
-    while( it && genesis::utils::text::is_graph( *it )) {
+    while( it && genesis::util::text::is_graph( *it )) {
         auto const c = *it;
         switch( c ) {
             case '+':
@@ -626,7 +626,7 @@ void SimplePileupReader::process_sample_read_bases_stream_(
 
                 // First, we need to get how many chars there are in this indel.
                 ++it;
-                size_t const indel_cnt = genesis::utils::io::parse_unsigned_integer<size_t>( it );
+                size_t const indel_cnt = genesis::util::io::parse_unsigned_integer<size_t>( it );
 
                 // Then, we skip that many chars, making sure that all is in order.
                 for( size_t i = 0; i < indel_cnt; ++i ) {
@@ -638,11 +638,11 @@ void SimplePileupReader::process_sample_read_bases_stream_(
                     }
                     if(
                         strict_bases_ &&
-                        !std::strchr( allowed_codes.c_str(), genesis::utils::text::to_upper( *it ))
+                        !std::strchr( allowed_codes.c_str(), genesis::util::text::to_upper( *it ))
                     ) {
                         throw std::runtime_error(
                             "Malformed pileup " + it.source_name() + " at " + it.at() +
-                            ": Line with invalid indel character " + genesis::utils::text::char_to_hex( *it )
+                            ": Line with invalid indel character " + genesis::util::text::char_to_hex( *it )
                         );
                     }
                     ++it;
@@ -669,13 +669,13 @@ void SimplePileupReader::process_sample_read_bases_stream_(
             }
             case '.': {
                 // pileup wants '.' to be the ref base in upper case...
-                base_buffer_ += genesis::utils::text::to_upper( reference_base );
+                base_buffer_ += genesis::util::text::to_upper( reference_base );
                 ++it;
                 break;
             }
             case ',': {
                 // ...and ',' to be the ref base in lower case
-                base_buffer_ += genesis::utils::text::to_lower( reference_base );
+                base_buffer_ += genesis::util::text::to_lower( reference_base );
                 ++it;
                 break;
             }
@@ -687,7 +687,7 @@ void SimplePileupReader::process_sample_read_bases_stream_(
             }
         }
     }
-    assert( !it || !genesis::utils::text::is_graph( *it ) );
+    assert( !it || !genesis::util::text::is_graph( *it ) );
 }
 
 // -------------------------------------------------------------------------
@@ -718,7 +718,7 @@ void SimplePileupReader::set_sample_read_bases_<SampleCounts>(
 
 template<>
 void SimplePileupReader::process_quality_string_<SimplePileupReader::Sample>(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SimplePileupReader::Sample& sample
 ) const {
     // Shorthand.
@@ -728,20 +728,20 @@ void SimplePileupReader::process_quality_string_<SimplePileupReader::Sample>(
     if( with_quality_string_ ) {
         next_field_( it );
         sample.phred_scores.reserve( sample.read_depth );
-        while( it && genesis::utils::text::is_graph( *it )) {
+        while( it && genesis::util::text::is_graph( *it )) {
             ++quality_code_counts_[*it];
             sample.phred_scores.push_back( sequence::quality_decode_to_phred_score(
                 *it, quality_encoding_
             ));
             ++it;
         }
-        assert( !it || !genesis::utils::text::is_graph( *it ) );
+        assert( !it || !genesis::util::text::is_graph( *it ) );
 
         // Version that processes the whole string at once. Not much time saved, as we need
         // to allocate the string first. Maybe refine later for speed.
         // std::string qual;
         // qual.reserve( sample.read_depth );
-        // while( it && genesis::utils::text::is_graph( *it )) {
+        // while( it && genesis::util::text::is_graph( *it )) {
         //     qual += *it;
         //     ++it;
         // }
@@ -756,12 +756,12 @@ void SimplePileupReader::process_quality_string_<SimplePileupReader::Sample>(
         }
     }
     assert( sample.phred_scores.empty() || sample.read_bases.size() == sample.phred_scores.size() );
-    assert( !it || !genesis::utils::text::is_graph( *it ) );
+    assert( !it || !genesis::util::text::is_graph( *it ) );
 }
 
 template<>
 void SimplePileupReader::process_quality_string_<SampleCounts>(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SampleCounts& sample
 ) const {
     // Shorthand.
@@ -788,7 +788,7 @@ void SimplePileupReader::process_quality_string_<SampleCounts>(
         size_t pos = 0;
         for( ; pos < in_buff.second; ++pos ) {
             // Stop when we reach the end of the quality scores.
-            if( ! genesis::utils::text::is_graph( in_buff.first[pos] )) {
+            if( ! genesis::util::text::is_graph( in_buff.first[pos] )) {
                 break;
             }
 
@@ -815,7 +815,7 @@ void SimplePileupReader::process_quality_string_<SampleCounts>(
                 tally_base_( it, sample, base_buffer_[pos] );
             }
         }
-        assert( pos == in_buff.second || !genesis::utils::text::is_graph( in_buff.first[pos] ) );
+        assert( pos == in_buff.second || !genesis::util::text::is_graph( in_buff.first[pos] ) );
 
         // Now we have reached the end of the buffer-based approach.
         // If that worked, that is, if we are not at the end of the buffer, and so have found
@@ -832,7 +832,7 @@ void SimplePileupReader::process_quality_string_<SampleCounts>(
 
             // Go through the quality scores, and tally up the bases that have a high enough quality,
             // keeping track of the position (pos) in the buffer.
-            while( it && genesis::utils::text::is_graph( *it )) {
+            while( it && genesis::util::text::is_graph( *it )) {
                 if( pos >= base_buffer_.size() ) {
                     throw std::runtime_error(
                         "Malformed pileup " + it.source_name() + " at " + it.at() +
@@ -850,7 +850,7 @@ void SimplePileupReader::process_quality_string_<SampleCounts>(
                 ++pos;
                 ++it;
             }
-            assert( !it || !genesis::utils::text::is_graph( *it ) );
+            assert( !it || !genesis::util::text::is_graph( *it ) );
         }
 
         // Last check: Did we reach exactly as many quality codes as we have bases?
@@ -868,11 +868,11 @@ void SimplePileupReader::process_quality_string_<SampleCounts>(
             tally_base_( it, sample, c );
         }
     }
-    assert( !it || !genesis::utils::text::is_graph( *it ) );
+    assert( !it || !genesis::util::text::is_graph( *it ) );
 }
 
 inline void SimplePileupReader::tally_base_(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SampleCounts& sample,
     char b
 ) const {
@@ -914,7 +914,7 @@ inline void SimplePileupReader::tally_base_(
         default: {
             throw std::runtime_error(
                 "Malformed pileup " + input_stream.source_name() + " near " + input_stream.at() +
-                ": Invalid allele character " + genesis::utils::text::char_to_hex( b )
+                ": Invalid allele character " + genesis::util::text::char_to_hex( b )
             );
         }
     }
@@ -926,7 +926,7 @@ inline void SimplePileupReader::tally_base_(
 
 template<>
 void SimplePileupReader::process_ancestral_base_<SimplePileupReader::Sample>(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SimplePileupReader::Sample& sample
 ) const {
     // Shorthand.
@@ -936,7 +936,7 @@ void SimplePileupReader::process_ancestral_base_<SimplePileupReader::Sample>(
         next_field_( it );
         // We can simply read in the char here. Even if the iterator is at its end, it will
         // simply return a null char, which will trigger the subsequent error check.
-        char ab = genesis::utils::text::to_upper( *it );
+        char ab = genesis::util::text::to_upper( *it );
         if( !it || is_valid_base_or_n( ab )) {
             if( strict_bases_ ) {
                 throw std::runtime_error(
@@ -954,7 +954,7 @@ void SimplePileupReader::process_ancestral_base_<SimplePileupReader::Sample>(
 
 template<>
 void SimplePileupReader::process_ancestral_base_<SampleCounts>(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SampleCounts& sample
 ) const {
     (void) input_stream;
@@ -982,10 +982,10 @@ void SimplePileupReader::process_ancestral_base_<SampleCounts>(
 // -------------------------------------------------------------------------
 
 void SimplePileupReader::skip_sample_(
-    genesis::utils::io::InputStream& input_stream
+    genesis::util::io::InputStream& input_stream
 ) const {
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::text;
+    using namespace genesis::util::io;
+    using namespace genesis::util::text;
 
     // Shorthand.
     auto& it = input_stream;
@@ -1028,10 +1028,10 @@ void SimplePileupReader::skip_sample_(
 //     next_field_
 // -------------------------------------------------------------------------
 
-void SimplePileupReader::next_field_( genesis::utils::io::InputStream& input_stream ) const
+void SimplePileupReader::next_field_( genesis::util::io::InputStream& input_stream ) const
 {
-    using namespace genesis::utils::io;
-    using namespace genesis::utils::text;
+    using namespace genesis::util::io;
+    using namespace genesis::util::text;
 
     // There needs to be at last some whitespace that separates the field. Affirm that,
     // then skip it until we are at the content of the next field.

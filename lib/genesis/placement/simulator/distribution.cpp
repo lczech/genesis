@@ -31,9 +31,9 @@
 #include <genesis/placement/simulator/distribution.hpp>
 
 #include <genesis/tree/function/distance.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/core/options.hpp>
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/core/options.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -120,7 +120,7 @@ void SimulatorExtraPlacementDistribution::prepare( Sample const& sample )
 std::vector<size_t> SimulatorExtraPlacementDistribution::generate( PlacementTreeEdge const& edge )
 {
     // Draw a number of placements and build a result vector of that size.
-    size_t placement_num = placement_number_distrib_( genesis::utils::core::Options::get().random_engine() );
+    size_t placement_num = placement_number_distrib_( genesis::util::core::Options::get().random_engine() );
     auto result = std::vector<size_t>( placement_num );
 
     // If we are not creating any additional placements, we can skip the next steps.
@@ -159,7 +159,7 @@ std::vector<size_t> SimulatorExtraPlacementDistribution::generate( PlacementTree
             // central one. As we set the weight for path length 0 to 0.0, there should never
             // be a path of 0 length, so assert it.
             size_t path_len = placement_path_length_distrib_(
-                genesis::utils::core::Options::get().random_engine()
+                genesis::util::core::Options::get().random_engine()
             );
             assert( path_len > 0 );
 

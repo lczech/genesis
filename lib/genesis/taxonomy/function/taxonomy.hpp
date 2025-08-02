@@ -393,7 +393,7 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax );
  *
  * The function validates the correctness of internal pointers, particularly, the
  * @link Taxon::parent() parent pointers@endlink of Taxon.
- * If the structure is broken, a @link genesis::utils::core::Logging log message@endlink is logged to `LOG_INFO`
+ * If the structure is broken, a @link genesis::util::core::Logging log message@endlink is logged to `LOG_INFO`
  * and the functions returns `false`.
  *
  * @param taxonomy The Taxonomy object to validate.

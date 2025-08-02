@@ -173,10 +173,10 @@ private:
 
     void set_color_( NewickBrokerElement& element, unsigned char r, unsigned char g, unsigned char b ) const
     {
-        set_color_( element, genesis::utils::color::Color(r, g, b) );
+        set_color_( element, genesis::util::color::Color(r, g, b) );
     }
 
-    void set_color_( NewickBrokerElement& element, genesis::utils::color::Color color ) const
+    void set_color_( NewickBrokerElement& element, genesis::util::color::Color color ) const
     {
         if(
             ColorWriterPlugin::use_ignored_color() &&
@@ -188,7 +188,7 @@ private:
         // TODO do not create new element if there is already one!
         // TODO add functor for converting color to string. maybe not all want hex format...
         element.comments.push_back(
-            color_tag_prefix_ + genesis::utils::color::color_to_hex(color) + color_tag_suffix_
+            color_tag_prefix_ + genesis::util::color::color_to_hex(color) + color_tag_suffix_
         );
     }
 

@@ -32,7 +32,7 @@
  */
 
 #include <genesis/tree/mass_tree/balance.hpp>
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 #include <vector>
 
@@ -70,7 +70,7 @@ using MassTree = Tree;
  * > Elife, vol. 6, p. e21887, Feb. 2017.
  * > https://elifesciences.org/articles/21887
  */
-genesis::utils::containers::Matrix<double> phylogenetic_ilr_transform(
+genesis::util::container::Matrix<double> phylogenetic_ilr_transform(
     BalanceData const& data,
     bool reverse_signs = false
 );
@@ -84,7 +84,7 @@ genesis::utils::containers::Matrix<double> phylogenetic_ilr_transform(
  * in that it splits the tree at each edge, but instead of calculating the imbalance, we
  * use the ILR transform to calculate balances instead.
  */
-genesis::utils::containers::Matrix<double> edge_balances(
+genesis::util::container::Matrix<double> edge_balances(
     BalanceData const& data,
     bool reverse_signs = false
 );

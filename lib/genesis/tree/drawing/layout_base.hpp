@@ -32,7 +32,7 @@
  */
 
 #include <genesis/tree/drawing/layout_tree.hpp>
-#include <genesis/utils/format/svg/svg.hpp>
+#include <genesis/util/format/svg/svg.hpp>
 
 #include <string>
 #include <vector>
@@ -126,36 +126,36 @@ public:
     //     Edge Strokes
     // -------------------------------------------------------------
 
-    void set_edge_strokes( genesis::utils::formats::SvgStroke const& stroke );
-    void set_edge_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
+    void set_edge_strokes( genesis::util::format::SvgStroke const& stroke );
+    void set_edge_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes );
 
-    void set_edge_spreading_strokes( genesis::utils::formats::SvgStroke const& stroke );
-    void set_edge_spreading_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
+    void set_edge_spreading_strokes( genesis::util::format::SvgStroke const& stroke );
+    void set_edge_spreading_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes );
 
-    void set_edge_distance_strokes( genesis::utils::formats::SvgStroke const& stroke );
-    void set_edge_distance_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
+    void set_edge_distance_strokes( genesis::util::format::SvgStroke const& stroke );
+    void set_edge_distance_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes );
 
     void set_label_spacer_strokes(
-        genesis::utils::formats::SvgStroke const& stroke,
+        genesis::util::format::SvgStroke const& stroke,
         LayoutSpreading spreading = LayoutSpreading::kLeafNodesOnly
     );
-    void set_label_spacer_strokes( std::vector< genesis::utils::formats::SvgStroke > const& strokes );
+    void set_label_spacer_strokes( std::vector< genesis::util::format::SvgStroke > const& strokes );
 
     // -------------------------------------------------------------
     //     Edge and Node Shapes
     // -------------------------------------------------------------
 
-    void set_edge_shapes( genesis::utils::formats::SvgGroup const& shape );
-    void set_edge_shapes( std::vector<genesis::utils::formats::SvgGroup> const& shapes );
+    void set_edge_shapes( genesis::util::format::SvgGroup const& shape );
+    void set_edge_shapes( std::vector<genesis::util::format::SvgGroup> const& shapes );
 
-    void set_node_shapes( genesis::utils::formats::SvgGroup const& shape );
-    void set_node_shapes( std::vector<genesis::utils::formats::SvgGroup> const& shapes );
+    void set_node_shapes( genesis::util::format::SvgGroup const& shape );
+    void set_node_shapes( std::vector<genesis::util::format::SvgGroup> const& shapes );
 
     // -------------------------------------------------------------
     //     Drawing
     // -------------------------------------------------------------
 
-    genesis::utils::formats::SvgDocument to_svg_document() const
+    genesis::util::format::SvgDocument to_svg_document() const
     {
         return to_svg_document_();
     }
@@ -195,9 +195,9 @@ public:
     void extra_spacer( double value );
     double extra_spacer() const;
 
-    void text_template( genesis::utils::formats::SvgText const& tt );
-    genesis::utils::formats::SvgText& text_template();
-    genesis::utils::formats::SvgText const& text_template() const;
+    void text_template( genesis::util::format::SvgText const& tt );
+    genesis::util::format::SvgText& text_template();
+    genesis::util::format::SvgText const& text_template() const;
 
     // -------------------------------------------------------------
     //     Protected Functions
@@ -213,7 +213,7 @@ protected:
 
 protected:
 
-    virtual genesis::utils::formats::SvgDocument to_svg_document_() const = 0;
+    virtual genesis::util::format::SvgDocument to_svg_document_() const = 0;
 
     // -------------------------------------------------------------
     //     Private Members
@@ -243,7 +243,7 @@ private:
     bool align_labels_ = false;
     double extra_spacer_ = 10.0;
 
-    genesis::utils::formats::SvgText text_template_ = genesis::utils::formats::SvgText();
+    genesis::util::format::SvgText text_template_ = genesis::util::format::SvgText();
 
 };
 

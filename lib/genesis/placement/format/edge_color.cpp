@@ -34,8 +34,8 @@
 #include <genesis/placement/function/function.hpp>
 #include <genesis/placement/placement_tree.hpp>
 #include <genesis/placement/sample.hpp>
-#include <genesis/utils/color/color.hpp>
-#include <genesis/utils/color/function.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/function.hpp>
 
 #include <cmath>
 
@@ -66,13 +66,13 @@ namespace placement {
  * reasonable to emphasize the differences between those edges with a lower placement count - which
  * is what the default does.
  *
- * See genesis::utils::color::heat_gradient() for more information.
+ * See genesis::util::color::heat_gradient() for more information.
  */
-std::vector<genesis::utils::color::Color> placement_color_count_gradient(
+std::vector<genesis::util::color::Color> placement_color_count_gradient(
     Sample const& smp, bool linear
 ) {
     // Init the result vector with grey color for each edge.
-    auto ret = std::vector<genesis::utils::color::Color>( smp.tree().edge_count(), genesis::utils::color::Color(0.5,0.5,0.5) );
+    auto ret = std::vector<genesis::util::color::Color>( smp.tree().edge_count(), genesis::util::color::Color(0.5,0.5,0.5) );
 
     // Get the highest number of placements on any edge.
     // If this is zero, there are no placements, so we can immediately return.
@@ -94,7 +94,7 @@ std::vector<genesis::utils::color::Color> placement_color_count_gradient(
             } else {
                 val = log( placements_on_edge ) / log( max_placements_per_edge );
             }
-            ret[edge.index()] = genesis::utils::color::heat_gradient(val);
+            ret[edge.index()] = genesis::util::color::heat_gradient(val);
         }
 
         // LOG_DBG <<  edge.placements.size() << " --> "

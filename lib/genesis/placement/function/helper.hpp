@@ -33,7 +33,7 @@
 
 #include <genesis/placement/sample.hpp>
 #include <genesis/placement/sample_set.hpp>
-#include <genesis/utils/container/matrix.hpp>
+#include <genesis/util/container/matrix.hpp>
 
 #include <unordered_map>
 #include <vector>
@@ -121,7 +121,7 @@ std::vector<PqueryPlacement const*> placements_per_edge(
  */
 std::vector<size_t> placement_count_per_edge( Sample const& sample );
 
-genesis::utils::containers::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set );
+genesis::util::container::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set );
 
 /**
  * @brief Return a plain representation of all pqueries of this map.

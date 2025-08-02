@@ -30,10 +30,10 @@
 
 #include <genesis/sequence/function/dict.hpp>
 
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/convert.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -48,13 +48,13 @@ namespace sequence {
 //     Sequence Dict
 // =================================================================================================
 
-SequenceDict read_sequence_dict( std::shared_ptr< genesis::utils::io::BaseInputSource > source )
+SequenceDict read_sequence_dict( std::shared_ptr< genesis::util::io::BaseInputSource > source )
 {
-    using namespace genesis::utils::text;
+    using namespace genesis::util::text;
 
     // Prepare the result and the input stream.
     SequenceDict result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Read lines while there is data.
     // We don't need to be super efficient here, dict files typically only contain a few dozen lines.
@@ -63,7 +63,7 @@ SequenceDict read_sequence_dict( std::shared_ptr< genesis::utils::io::BaseInputS
         ++line_cnt;
 
         // Get the line and split it on tabs; do some basic format sanity checks.
-        auto const line = genesis::utils::text::split( it.get_line(), "\t" );
+        auto const line = genesis::util::text::split( it.get_line(), "\t" );
         if( line.size() == 0 ) {
             continue;
         }
@@ -130,13 +130,13 @@ SequenceDict read_sequence_dict( std::shared_ptr< genesis::utils::io::BaseInputS
     return result;
 }
 
-SequenceDict read_sequence_fai( std::shared_ptr<genesis::utils::io::BaseInputSource> source )
+SequenceDict read_sequence_fai( std::shared_ptr<genesis::util::io::BaseInputSource> source )
 {
-    using namespace genesis::utils::text;
+    using namespace genesis::util::text;
 
     // Prepare the result and the input stream.
     SequenceDict result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // Read lines while there is data.
     // We don't need to be super efficient here, fai files typically only contain a few dozen lines.
@@ -292,8 +292,8 @@ bool verify( SequenceDict const& dict, SequenceSet const& set, bool match_first_
             return false;
         }
         if( match_first_word ) {
-            auto const s_dct = genesis::utils::text::split( dict[i].name, "\t " );
-            auto const s_set = genesis::utils::text::split( set[i].label(), "\t " );
+            auto const s_dct = genesis::util::text::split( dict[i].name, "\t " );
+            auto const s_set = genesis::util::text::split( set[i].label(), "\t " );
             assert( ! s_dct.empty() );
             assert( ! s_set.empty() );
             if( s_dct[0] != s_set[0] ) {

@@ -40,9 +40,9 @@
 #include <stdexcept>
 
 using namespace genesis::taxonomy;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST( Taxonomy, ReaderOrder )
 {

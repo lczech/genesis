@@ -44,16 +44,16 @@
 
 #include <genesis/tree/format/newick/writer.hpp>
 
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/core/options.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/core/version.hpp>
-#include <genesis/utils/format/json/document.hpp>
-#include <genesis/utils/format/json/writer.hpp>
-#include <genesis/utils/io/output_stream.hpp>
-#include <genesis/utils/text/string.hpp>
-#include <genesis/utils/tool/date_time.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/core/options.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/core/version.hpp>
+#include <genesis/util/format/json/document.hpp>
+#include <genesis/util/format/json/writer.hpp>
+#include <genesis/util/io/output_stream.hpp>
+#include <genesis/util/text/string.hpp>
+#include <genesis/util/tool/date_time.hpp>
 
 namespace genesis {
 namespace placement {
@@ -65,14 +65,14 @@ namespace placement {
 JplaceWriter::JplaceWriter()
 {
     program_ = "genesis " + genesis_version();
-    invocation_ = genesis::utils::core::Options::get().command_line_string();
+    invocation_ = genesis::util::core::Options::get().command_line_string();
 }
 
 // =================================================================================================
 //     Printing
 // =================================================================================================
 
-void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
     // Shorthand.
     auto& os = target->ostream();
@@ -88,10 +88,10 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::utils:
 
     // Write metadata.
     os << in << "\"metadata\": {\n";
-    os << in << in << "\"program\": \"" << genesis::utils::text::escape( program_ ) << "\",\n";
-    os << in << in << "\"invocation\": \"" << genesis::utils::text::escape( invocation_ ) << "\",\n";
-    os << in << in << "\"created\": \"" << genesis::utils::text::escape( genesis::utils::current_date() );
-    os << " " << genesis::utils::text::escape( genesis::utils::current_time() ) << "\"\n";
+    os << in << in << "\"program\": \"" << genesis::util::text::escape( program_ ) << "\",\n";
+    os << in << in << "\"invocation\": \"" << genesis::util::text::escape( invocation_ ) << "\",\n";
+    os << in << in << "\"created\": \"" << genesis::util::text::escape( genesis::util::current_date() );
+    os << " " << genesis::util::text::escape( genesis::util::current_time() ) << "\"\n";
     os << in << "},\n";
 
     // Write tree.
@@ -101,7 +101,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::utils:
     newick_writer.branch_length_precision( branch_length_precision_ );
     newick_writer.trailing_new_line( false );
     os << in << "\"tree\": \"";
-    os << genesis::utils::text::escape( newick_writer.to_string( sample.tree() ));
+    os << genesis::util::text::escape( newick_writer.to_string( sample.tree() ));
     os << "\",\n";
 
     // Write field names.
@@ -154,7 +154,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::utils:
             os << in << in << in << "\"nm\": [\n";
             for( size_t j = 0; j < pquery.name_size(); ++j ) {
                 os << in << in << in << in << "[ \"";
-                os << genesis::utils::text::escape( pquery.name_at(j).name ) << "\", ";
+                os << genesis::util::text::escape( pquery.name_at(j).name ) << "\", ";
                 os << pquery.name_at(j).multiplicity << " ]";
 
                 if( j < pquery.name_size() - 1 ) {
@@ -169,7 +169,7 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::utils:
             // Without multiplicity.
             os << in << in << in << "\"n\": [ ";
             for( size_t j = 0; j < pquery.name_size(); ++j ) {
-                os << "\"" << genesis::utils::text::escape( pquery.name_at(j).name ) << "\"";
+                os << "\"" << genesis::util::text::escape( pquery.name_at(j).name ) << "\"";
 
                 if( j < pquery.name_size() - 1 ) {
                     os << ", ";
@@ -192,9 +192,9 @@ void JplaceWriter::write( Sample const& sample, std::shared_ptr< genesis::utils:
     os << "}\n";
 }
 
-genesis::utils::formats::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
+genesis::util::format::JsonDocument JplaceWriter::to_document( Sample const& smp ) const
 {
-    using namespace genesis::utils::formats;
+    using namespace genesis::util::format;
     JsonDocument doc = JsonDocument::object();
 
     // set tree
@@ -276,7 +276,7 @@ genesis::utils::formats::JsonDocument JplaceWriter::to_document( Sample const& s
     auto jmetadata = JsonDocument::object();
     jmetadata[ "program" ] = program_;
     jmetadata[ "invocation" ] = invocation_;
-    jmetadata[ "created" ] = genesis::utils::current_date() + " " + genesis::utils::current_time();
+    jmetadata[ "created" ] = genesis::util::current_date() + " " + genesis::util::current_time();
     doc[ "metadata" ] = jmetadata;
 
     return doc;

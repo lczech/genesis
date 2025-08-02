@@ -30,11 +30,11 @@
 
 #include <genesis/population/format/gff_reader.hpp>
 
-#include <genesis/utils/io/parser.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/char.hpp>
 
-#include <genesis/utils/core/logging.hpp>
+#include <genesis/util/core/logging.hpp>
 
 #include <cassert>
 #include <cstring>
@@ -49,10 +49,10 @@ namespace population {
 // =================================================================================================
 
 std::vector<GffReader::Feature> GffReader::read(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     std::vector<GffReader::Feature> result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     Feature feat;
     while( parse_line( it, feat ) ) {
         result.push_back( std::move( feat ));
@@ -61,10 +61,10 @@ std::vector<GffReader::Feature> GffReader::read(
 }
 
 GenomeLocusSet GffReader::read_as_genome_locus_set(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     GenomeLocusSet result;
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     Feature feat;
     while( parse_line( it, feat ) ) {
         result.add( feat.seqname, feat.start, feat.end );
@@ -73,7 +73,7 @@ GenomeLocusSet GffReader::read_as_genome_locus_set(
 }
 
 GenomeRegionList GffReader::read_as_genome_region_list(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     bool merge
 ) const {
     GenomeRegionList result;
@@ -82,11 +82,11 @@ GenomeRegionList GffReader::read_as_genome_region_list(
 }
 
 void GffReader::read_as_genome_region_list(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     GenomeRegionList& target,
     bool merge
 ) const {
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     Feature feat;
     while( parse_line( it, feat ) ) {
         target.add( feat.seqname, feat.start, feat.end, merge );
@@ -98,10 +98,10 @@ void GffReader::read_as_genome_region_list(
 // =================================================================================================
 
 bool GffReader::parse_line(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     GffReader::Feature& feature
 ) const {
-    using namespace genesis::utils::io;
+    using namespace genesis::util::io;
 
     // Shorthand.
     auto& it = input_stream;

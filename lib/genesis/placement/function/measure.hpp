@@ -55,8 +55,8 @@ namespace placement {
 
 }
 
-namespace utils {
-namespace containers {
+namespace util {
+namespace container {
 
     template<typename T>
     class Matrix;
@@ -87,7 +87,7 @@ namespace placement {
  *
  * @see edpl( Sample const& ) for details.
  */
-double edpl( Pquery const& pquery, genesis::utils::containers::Matrix<double> const& node_distances );
+double edpl( Pquery const& pquery, genesis::util::container::Matrix<double> const& node_distances );
 
 /**
  * @brief Calculate the @link edpl( Sample const&, Pquery const& ) edpl()@endlink
@@ -97,7 +97,7 @@ double edpl( Pquery const& pquery, genesis::utils::containers::Matrix<double> co
  *
  * @see edpl( Sample const& ) for details.
  */
-std::vector<double> edpl( Sample const& sample, genesis::utils::containers::Matrix<double> const& node_distances );
+std::vector<double> edpl( Sample const& sample, genesis::util::container::Matrix<double> const& node_distances );
 
 /**
  * @brief Calculate the EDPL uncertainty values for a Pquery.

@@ -38,6 +38,6 @@
 #include <genesis/sequence.hpp>
 #include <genesis/taxonomy.hpp>
 #include <genesis/tree.hpp>
-#include <genesis/utils.hpp>
+#include <genesis/util.hpp>
 
 #endif // include guard

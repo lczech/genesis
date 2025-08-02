@@ -31,12 +31,12 @@
 #include <genesis/sequence/format/fasta_reader.hpp>
 
 #include <genesis/sequence/function/label.hpp>
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/io/scanner.hpp>
-#include <genesis/utils/text/char.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -61,36 +61,36 @@ FastaReader::FastaReader()
 //     Reading
 // =================================================================================================
 
-SequenceSet FastaReader::read( std::shared_ptr< genesis::utils::io::BaseInputSource > source ) const
+SequenceSet FastaReader::read( std::shared_ptr< genesis::util::io::BaseInputSource > source ) const
 {
     SequenceSet result;
-    genesis::utils::io::InputStream input_stream( source );
+    genesis::util::io::InputStream input_stream( source );
     parse_document_( input_stream, result );
     return result;
 }
 
 void FastaReader::read(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     SequenceSet& sequence_set
 ) const {
-    genesis::utils::io::InputStream input_stream( source );
+    genesis::util::io::InputStream input_stream( source );
     parse_document_( input_stream, sequence_set );
 }
 
-SequenceDict FastaReader::read_dict( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
+SequenceDict FastaReader::read_dict( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const
 {
     SequenceDict result;
-    genesis::utils::io::InputStream input_stream( source );
+    genesis::util::io::InputStream input_stream( source );
     parse_document_( input_stream, result );
     return result;
 }
 
 ReferenceGenome FastaReader::read_reference_genome(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> source,
+    std::shared_ptr<genesis::util::io::BaseInputSource> source,
     bool also_look_up_first_word
 ) const {
     ReferenceGenome result;
-    genesis::utils::io::InputStream input_stream( source );
+    genesis::util::io::InputStream input_stream( source );
     parse_document_( input_stream, result, also_look_up_first_word );
     return result;
 }
@@ -100,14 +100,14 @@ ReferenceGenome FastaReader::read_reference_genome(
 // =================================================================================================
 
 void FastaReader::parse_document(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     SequenceSet&        sequence_set
 ) const {
     parse_document_( input_stream, sequence_set );
 }
 
 bool FastaReader::parse_sequence(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     Sequence&           sequence
 ) const {
     // Init. Call clear on the sequence in order to avoid not setting properties that might be added
@@ -149,7 +149,7 @@ bool FastaReader::parse_sequence(
             buffer_.cbegin(),
             buffer_.cend(),
             []( char c ){
-                return genesis::utils::text::is_print( c );
+                return genesis::util::text::is_print( c );
             }
         );
         if( !buffer_is_print ) {
@@ -174,7 +174,7 @@ bool FastaReader::parse_sequence(
 
     // Skip comments.
     while( it && *it == ';' ) {
-        genesis::utils::io::skip_until( it, '\n' );
+        genesis::util::io::skip_until( it, '\n' );
         assert( it && *it == '\n' );
         ++it;
     }
@@ -209,9 +209,9 @@ bool FastaReader::parse_sequence(
     }
 
     if( site_casing_ == SiteCasing::kToUpper ) {
-        sequence.sites() = genesis::utils::text::to_upper_ascii( buffer_ );
+        sequence.sites() = genesis::util::text::to_upper_ascii( buffer_ );
     } else if( site_casing_ == SiteCasing::kToLower ) {
-        sequence.sites() = genesis::utils::text::to_lower_ascii( buffer_ );
+        sequence.sites() = genesis::util::text::to_lower_ascii( buffer_ );
     } else {
         // We could do a move here instead, but this way, we save some memory,
         // as a copy-constructed string usually only allocates the space it needs.
@@ -227,7 +227,7 @@ bool FastaReader::parse_sequence(
             if( !lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
-                    + genesis::utils::text::char_to_hex( c )
+                    + genesis::util::text::char_to_hex( c )
                     + " in the sequence at/above line " + std::to_string( it.line() - 1 ) + "."
                 );
             }
@@ -238,7 +238,7 @@ bool FastaReader::parse_sequence(
 }
 
 bool FastaReader::parse_sequence_pedantic(
-    genesis::utils::io::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     Sequence&           sequence
 ) const {
     // Init. Call clear in order to avoid not setting properties that might be added to
@@ -263,7 +263,7 @@ bool FastaReader::parse_sequence_pedantic(
     ++it;
 
     // Parse label.
-    std::string label = genesis::utils::io::read_while( it, isprint );
+    std::string label = genesis::util::io::read_while( it, isprint );
     if( label == "" ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
@@ -298,7 +298,7 @@ bool FastaReader::parse_sequence_pedantic(
 
     // Skip comments.
     while( it && *it == ';' ) {
-        genesis::utils::io::skip_while( it, isprint );
+        genesis::util::io::skip_while( it, isprint );
     }
 
     // Check for unexpected end of file.
@@ -330,7 +330,7 @@ bool FastaReader::parse_sequence_pedantic(
             if( use_validation_ && ! lookup_[c] ) {
                 throw std::runtime_error(
                     "Malformed Fasta " + it.source_name() + ": Invalid sequence symbol "
-                    + genesis::utils::text::char_to_hex( c ) + " in sequence at " + it.at() + "."
+                    + genesis::util::text::char_to_hex( c ) + " in sequence at " + it.at() + "."
                 );
             }
 
@@ -443,7 +443,7 @@ std::string FastaReader::valid_chars() const
     }
 }
 
-genesis::utils::CharLookup<bool>& FastaReader::valid_char_lookup()
+genesis::util::CharLookup<bool>& FastaReader::valid_char_lookup()
 {
     return lookup_;
 }

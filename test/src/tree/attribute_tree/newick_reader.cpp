@@ -43,7 +43,7 @@
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils::io;
+using namespace genesis::util::io;
 
 std::pair<size_t, size_t> count_attribute_tree_data( AttributeTree const& tree )
 {

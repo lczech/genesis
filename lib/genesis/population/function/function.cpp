@@ -31,7 +31,7 @@
 #include <genesis/population/function/function.hpp>
 
 #include <genesis/sequence/function/code.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <array>
 #include <cassert>
@@ -79,7 +79,7 @@ SampleCounts::size_type get_base_count( SampleCounts const& sample, char base )
         }
     }
     throw std::runtime_error(
-        "Invalid base character " + genesis::utils::text::char_to_hex( base )
+        "Invalid base character " + genesis::util::text::char_to_hex( base )
     );
 }
 
@@ -121,7 +121,7 @@ void set_base_count( SampleCounts& sample, char base, SampleCounts::size_type va
         }
         default: {
             throw std::runtime_error(
-                "Invalid base character " + genesis::utils::text::char_to_hex( base )
+                "Invalid base character " + genesis::util::text::char_to_hex( base )
             );
         }
     }
@@ -275,7 +275,7 @@ SortedSampleCounts sorted_sample_counts_(
             }
             default: {
                 throw std::runtime_error(
-                    "Cannot use reference base " + genesis::utils::text::char_to_hex( variant.reference_base ) +
+                    "Cannot use reference base " + genesis::util::text::char_to_hex( variant.reference_base ) +
                     "to sort base counts."
                 );
             }
@@ -478,13 +478,13 @@ std::pair<char, double> consensus( SampleCounts const& sample, bool is_covered )
 char guess_reference_base(
     Variant const& variant, bool force, SampleCountsFilterPolicy filter_policy
 ) {
-    auto const ref = genesis::utils::text::to_upper( variant.reference_base );
+    auto const ref = genesis::util::text::to_upper( variant.reference_base );
     if( ! force && is_valid_base( ref )) {
         return ref;
     } else {
         auto const sorted = sorted_sample_counts( variant, false, filter_policy );
         if( sorted[0].count > 0 ) {
-            return genesis::utils::text::to_upper( sorted[0].base );
+            return genesis::util::text::to_upper( sorted[0].base );
         }
     }
 
@@ -495,15 +495,15 @@ char guess_reference_base(
 char guess_alternative_base(
     Variant const& variant, bool force, SampleCountsFilterPolicy filter_policy
 ) {
-    auto const alt = genesis::utils::text::to_upper( variant.alternative_base );
+    auto const alt = genesis::util::text::to_upper( variant.alternative_base );
     if( ! force && is_valid_base( alt )) {
         return alt;
     } else {
-        auto const ref = genesis::utils::text::to_upper( variant.reference_base );
+        auto const ref = genesis::util::text::to_upper( variant.reference_base );
         if( is_valid_base( ref )) {
             auto const sorted = sorted_sample_counts( variant, true, filter_policy );
             if( sorted[1].count > 0 ) {
-                return genesis::utils::text::to_upper( sorted[1].base );
+                return genesis::util::text::to_upper( sorted[1].base );
             }
         }
     }
@@ -516,8 +516,8 @@ void guess_and_set_ref_and_alt_bases(
     Variant& variant, bool force, SampleCountsFilterPolicy filter_policy
 ) {
     // Get base data.
-    auto ref = genesis::utils::text::to_upper( variant.reference_base );
-    auto const alt = genesis::utils::text::to_upper( variant.alternative_base );
+    auto ref = genesis::util::text::to_upper( variant.reference_base );
+    auto const alt = genesis::util::text::to_upper( variant.alternative_base );
 
     // We only want to compute the total counts if necessary.
     SampleCounts total;
@@ -538,7 +538,7 @@ void guess_and_set_ref_and_alt_bases(
         auto const sorted = sorted_sample_counts( total );
         if( sorted[0].count > 0 ) {
             // Update the ref base. Also update our internal `ref` here, as we need it below.
-            ref = genesis::utils::text::to_upper( sorted[0].base );
+            ref = genesis::util::text::to_upper( sorted[0].base );
             variant.reference_base = ref;
         }
     }
@@ -557,7 +557,7 @@ void guess_and_set_ref_and_alt_bases(
             // Use it to define our alt base.
             auto const sorted = sorted_sample_counts_( variant, true, total );
             if( sorted[1].count > 0 ) {
-                variant.alternative_base = genesis::utils::text::to_upper( sorted[1].base );
+                variant.alternative_base = genesis::util::text::to_upper( sorted[1].base );
             }
         }
     }
@@ -573,12 +573,12 @@ void guess_and_set_ref_and_alt_bases(
     if( variant.position == 0 ) {
         throw std::runtime_error( "Invalid position 0 in Variant." );
     }
-    ref_base = genesis::utils::text::to_upper( ref_base );
+    ref_base = genesis::util::text::to_upper( ref_base );
 
     // Now use that reference base. If it is in ACGT, we use it as ref; if not, we check against
     // ambiguity codes to see if it fits with our count-based ref and alt bases instead.
     if( is_valid_base( ref_base )) {
-        auto const var_ref_base = genesis::utils::text::to_upper( variant.reference_base );
+        auto const var_ref_base = genesis::util::text::to_upper( variant.reference_base );
         if( var_ref_base != 'N' && var_ref_base != ref_base ) {
             throw std::runtime_error(
                 "At chromosome \"" + variant.chromosome + "\" position " +
@@ -595,8 +595,8 @@ void guess_and_set_ref_and_alt_bases(
     } else {
         // No usable ref base. Run the normal guessing.
         guess_and_set_ref_and_alt_bases( variant, force, filter_policy );
-        auto const var_ref_base = genesis::utils::text::to_upper( variant.reference_base );
-        auto const var_alt_base = genesis::utils::text::to_upper( variant.alternative_base );
+        auto const var_ref_base = genesis::util::text::to_upper( variant.reference_base );
+        auto const var_alt_base = genesis::util::text::to_upper( variant.alternative_base );
 
         // Now we cross check that the ref genome base is a valid base,
         // and also that it is an ambiguity char that contains either the ref or alt that we found.

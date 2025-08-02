@@ -33,14 +33,14 @@
 
 #include <genesis/sequence/kmer/color_gamut.hpp>
 #include <genesis/taxonomy/taxonomy.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/output_target.hpp>
-#include <genesis/utils/io/output_target.hpp>
-#include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/function.hpp>
-#include <genesis/utils/bit/bitvector/operator.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/output_target.hpp>
+#include <genesis/util/io/output_target.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -61,7 +61,7 @@ void add_secondary_colors_with_binary_reduction(
 
 void add_secondary_colors_from_bitvectors(
     KmerColorGamut& gamut,
-    std::vector<genesis::utils::bit::Bitvector> const& bitvecs,
+    std::vector<genesis::util::bit::Bitvector> const& bitvecs,
     bool test_for_all_set_color = true
 );
 
@@ -74,7 +74,7 @@ void add_secondary_colors_from_groups(
 template <typename T>
 void add_secondary_colors_from_hac(
     KmerColorGamut& gamut,
-    genesis::utils::math::HierarchicalAgglomerativeClustering<T> const& hac,
+    genesis::util::math::HierarchicalAgglomerativeClustering<T> const& hac,
     bool test_for_all_set_color = true
 ) {
     // The HAC produces a new merged cluster in each merging step.
@@ -115,7 +115,7 @@ void add_secondary_colors_from_hac(
 
     // The last merger we added should have led to an entry of all primary colors,
     // such that we have at least one hit when searching for imaginary colors.
-    using namespace genesis::utils::bit;
+    using namespace genesis::util::bit;
     if( test_for_all_set_color && ! all_set( gamut.get_color_list().back().elements )) {
         throw std::runtime_error(
             "Invalid Hierarchical Agglomerative Clustering for initializing secondary colors "
@@ -124,13 +124,13 @@ void add_secondary_colors_from_hac(
     }
 }
 
-std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
+std::vector<genesis::util::bit::Bitvector> make_secondary_colors_from_taxonomy_bottom_up(
     taxonomy::Taxonomy const& tax,
     size_t power_set_limit = 10,
     bool add_primary_colors = false
 );
 
-std::vector<genesis::utils::bit::Bitvector> make_secondary_colors_from_taxonomy_top_down(
+std::vector<genesis::util::bit::Bitvector> make_secondary_colors_from_taxonomy_top_down(
     taxonomy::Taxonomy const& tax,
     char method,
     size_t power_set_taxa = 10,
@@ -151,20 +151,20 @@ std::string print_kmer_color_gamut_summary( KmerColorGamut const& gamut );
 
 void serialize_kmer_color_gamut_colors(
     KmerColorGamut const& gamut,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> output_target
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> output_target
 );
 
 void serialize_kmer_color_gamut_matrix(
     KmerColorGamut const& gamut,
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> output_target
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> output_target
 );
 
-std::vector<genesis::utils::bit::Bitvector> deserialize_kmer_color_gamut_colors(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source
+std::vector<genesis::util::bit::Bitvector> deserialize_kmer_color_gamut_colors(
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source
 );
 
-genesis::utils::containers::Matrix<size_t> deserialize_kmer_color_gamut_matrix(
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source
+genesis::util::container::Matrix<size_t> deserialize_kmer_color_gamut_matrix(
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source
 );
 
 } // namespace sequence

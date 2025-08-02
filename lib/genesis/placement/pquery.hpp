@@ -38,7 +38,7 @@
 #include <genesis/placement/pquery/name.hpp>
 #include <genesis/placement/pquery/placement.hpp>
 
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 namespace genesis {
 
@@ -134,14 +134,14 @@ public:
      *
      * This makes iterating placements via a range based for loop easy.
      */
-    genesis::utils::containers::Range<iterator_placements>       placements();
+    genesis::util::container::Range<iterator_placements>       placements();
 
     /**
     * @brief Return a const Range iterator to the PqueryPlacement%s.
     *
     * This makes iterating placements via a range based for loop easy.
     */
-    genesis::utils::containers::Range<const_iterator_placements> placements() const;
+    genesis::util::container::Range<const_iterator_placements> placements() const;
 
     std::vector<PqueryPlacement>& expose_placements();
 
@@ -234,14 +234,14 @@ public:
     *
     * This makes iterating placements via a range based for loop easy.
     */
-    genesis::utils::containers::Range<iterator_names>       names();
+    genesis::util::container::Range<iterator_names>       names();
 
     /**
     * @brief Return a const Range iterator to the PqueryName%s.
     *
     * This makes iterating placements via a range based for loop easy.
     */
-    genesis::utils::containers::Range<const_iterator_names> names() const;
+    genesis::util::container::Range<const_iterator_names> names() const;
 
     std::vector<PqueryName>& expose_names();
 

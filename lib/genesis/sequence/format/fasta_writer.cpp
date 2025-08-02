@@ -32,8 +32,8 @@
 
 #include <genesis/sequence/sequence_set.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/io/output_stream.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/io/output_stream.hpp>
 
 #include <cassert>
 #include <fstream>
@@ -47,12 +47,12 @@ namespace sequence {
 //     Writing
 // =================================================================================================
 
-void FastaWriter::write( Sequence const& sequence, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void FastaWriter::write( Sequence const& sequence, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
     write_sequence( sequence, target->ostream() );
 }
 
-void FastaWriter::write( SequenceSet const& sequence_set, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void FastaWriter::write( SequenceSet const& sequence_set, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
     auto& os = target->ostream();
     for( Sequence const& sequence : sequence_set ) {

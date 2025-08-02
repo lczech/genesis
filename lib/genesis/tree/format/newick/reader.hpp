@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include <genesis/utils/io/input_source.hpp>
+#include <genesis/util/io/input_source.hpp>
 
 #include <iosfwd>
 #include <functional>
@@ -45,7 +45,7 @@ namespace genesis {
 //     Forward declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
 namespace io {
 
     class InputStream;
@@ -191,10 +191,10 @@ public:
     /**
      * @brief Read a single Tree from an input source containing a Newick tree.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    Tree read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
+    Tree read( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const;
 
     /**
      * @brief Add Tree%s to a TreeSet from an input source containing a list of Newick trees.
@@ -217,11 +217,11 @@ public:
      * The Trees are added to the TreeSet. That means, Trees that already exist in the
      * TreeSet are kept. Thus, this function can be used to add additional Trees to the set.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
     void read(
-        std::shared_ptr<genesis::utils::io::BaseInputSource> source,
+        std::shared_ptr<genesis::util::io::BaseInputSource> source,
         TreeSet& target,
         std::string const& default_name = ""
     ) const;
@@ -229,11 +229,11 @@ public:
     /**
      * @brief Fill a TreeSet from a list of input sources containing Newick trees.
      *
-     * See @link read( std::shared_ptr<genesis::utils::io::BaseInputSource>, TreeSet&, std::string const& ) const read()@endlink
+     * See @link read( std::shared_ptr<genesis::util::io::BaseInputSource>, TreeSet&, std::string const& ) const read()@endlink
      * for details.
      */
     void read(
-        std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
+        std::vector<std::shared_ptr<genesis::util::io::BaseInputSource>> sources,
         TreeSet& target,
         std::string const& default_name = ""
     ) const;
@@ -241,11 +241,11 @@ public:
     /**
      * @brief Return a TreeSet from a list of input sources containing Newick trees.
      *
-     * See @link read( std::shared_ptr<genesis::utils::io::BaseInputSource>, TreeSet&, std::string const& ) const read()@endlink
+     * See @link read( std::shared_ptr<genesis::util::io::BaseInputSource>, TreeSet&, std::string const& ) const read()@endlink
      * for details.
      */
     TreeSet read(
-        std::vector<std::shared_ptr<genesis::utils::io::BaseInputSource>> sources,
+        std::vector<std::shared_ptr<genesis::util::io::BaseInputSource>> sources,
         std::string const& default_name = ""
     ) const;
 
@@ -328,22 +328,22 @@ public:
      * @brief Parse a single tree. Depending on stop_after_semicolon(), stop after the semicolon
      * or continue until the end of the input, checking if there are only comments.
      */
-    Tree parse_single_tree( genesis::utils::io::InputStream& input_stream ) const;
+    Tree parse_single_tree( genesis::util::io::InputStream& input_stream ) const;
 
     /**
      * @brief Parse until the end of the stream and add all Tree%s to the TreeSet.
      */
     void parse_multiple_trees(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         TreeSet&            tree_set,
         std::string const&  default_name
     ) const;
 
     /**
      * @brief Parse one named tree, i.e., a tree as described
-     * @link read( std::shared_ptr<genesis::utils::io::BaseInputSource>, TreeSet&, std::string const& ) const here@endlink.
+     * @link read( std::shared_ptr<genesis::util::io::BaseInputSource>, TreeSet&, std::string const& ) const here@endlink.
      */
-    std::pair< std::string, Tree > parse_named_tree( genesis::utils::io::InputStream& input_stream ) const;
+    std::pair< std::string, Tree > parse_named_tree( genesis::util::io::InputStream& input_stream ) const;
 
     /**
      * @brief Build a Tree from a NewickBroker.
@@ -400,17 +400,17 @@ private:
     /**
      * @brief Check for input after a semicolon and throw if it is not a comment.
      */
-    void parse_trailing_input_( genesis::utils::io::InputStream& input_stream ) const;
+    void parse_trailing_input_( genesis::util::io::InputStream& input_stream ) const;
 
     /**
      * @brief Get the next Newick token from the stream. Used by the parsers.
      */
-    Token get_next_token_( genesis::utils::io::InputStream& input_stream ) const;
+    Token get_next_token_( genesis::util::io::InputStream& input_stream ) const;
 
     /**
      * @brief Parse input and build a broker. Stop after the semicolon.
      */
-    NewickBroker parse_tree_to_broker_( genesis::utils::io::InputStream& input_stream ) const;
+    NewickBroker parse_tree_to_broker_( genesis::util::io::InputStream& input_stream ) const;
 
     // -------------------------------------------------------------------------
     //     Member Data

@@ -42,8 +42,8 @@
 #include <genesis/tree/tree/node_data.hpp>
 #include <genesis/tree/tree/edge_data.hpp>
 
-#include <genesis/utils/container/range.hpp>
-#include <genesis/utils/container/deref_iterator.hpp>
+#include <genesis/util/container/range.hpp>
+#include <genesis/util/container/deref_iterator.hpp>
 
 #include <cassert>
 #include <memory>
@@ -124,14 +124,14 @@ public:
      */
     using EdgeContainerType  = ContainerType< TreeEdge >;
 
-    using      IteratorLinks = genesis::utils::containers::DereferenceIterator< ContainerType<TreeLink>::iterator >;
-    using ConstIteratorLinks = genesis::utils::containers::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
+    using      IteratorLinks = genesis::util::container::DereferenceIterator< ContainerType<TreeLink>::iterator >;
+    using ConstIteratorLinks = genesis::util::container::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
 
-    using      IteratorNodes = genesis::utils::containers::DereferenceIterator< ContainerType<TreeNode>::iterator >;
-    using ConstIteratorNodes = genesis::utils::containers::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
+    using      IteratorNodes = genesis::util::container::DereferenceIterator< ContainerType<TreeNode>::iterator >;
+    using ConstIteratorNodes = genesis::util::container::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
 
-    using      IteratorEdges = genesis::utils::containers::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
-    using ConstIteratorEdges = genesis::utils::containers::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
+    using      IteratorEdges = genesis::util::container::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
+    using ConstIteratorEdges = genesis::util::container::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Construction and Rule of Five
@@ -381,12 +381,12 @@ public:
         return links_.cend();
     }
 
-    genesis::utils::containers::Range<IteratorLinks> links()
+    genesis::util::container::Range<IteratorLinks> links()
     {
         return { links_ };
     }
 
-    genesis::utils::containers::Range<ConstIteratorLinks> links() const
+    genesis::util::container::Range<ConstIteratorLinks> links() const
     {
         return { links_ };
     }
@@ -415,12 +415,12 @@ public:
         return nodes_.cend();
     }
 
-    genesis::utils::containers::Range<IteratorNodes> nodes()
+    genesis::util::container::Range<IteratorNodes> nodes()
     {
         return { nodes_ };
     }
 
-    genesis::utils::containers::Range<ConstIteratorNodes> nodes() const
+    genesis::util::container::Range<ConstIteratorNodes> nodes() const
     {
         return { nodes_ };
     }
@@ -449,12 +449,12 @@ public:
         return edges_.cend();
     }
 
-    genesis::utils::containers::Range<IteratorEdges> edges()
+    genesis::util::container::Range<IteratorEdges> edges()
     {
         return { edges_ };
     }
 
-    genesis::utils::containers::Range<ConstIteratorEdges> edges() const
+    genesis::util::container::Range<ConstIteratorEdges> edges() const
     {
         return { edges_ };
     }

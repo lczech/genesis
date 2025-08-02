@@ -41,7 +41,7 @@
 #include <genesis/tree/common_tree/newick_reader.hpp>
 #include <genesis/tree/format/newick/reader.hpp>
 
-#include <genesis/utils/core/logging.hpp>
+#include <genesis/util/core/logging.hpp>
 
 namespace genesis {
 namespace placement {

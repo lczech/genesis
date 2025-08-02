@@ -33,8 +33,8 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/format/newick/reader.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <iterator>
 
@@ -67,7 +67,7 @@ namespace tree {
  *         ++it;
  *     }
  *
- * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+ * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
  * get an input source that can be used here.
  *
  * See NewickReader for a description of the expected format. In order to change the reading
@@ -100,8 +100,8 @@ public:
     /**
      * @brief Create an instance that reads from an input source, using a default NewickReader.
      */
-    explicit NewickInputIterator( std::shared_ptr<genesis::utils::io::BaseInputSource> source )
-        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
+    explicit NewickInputIterator( std::shared_ptr<genesis::util::io::BaseInputSource> source )
+        : input_stream_( std::make_shared<genesis::util::io::InputStream>( source ))
         , reader_()
         , tree_()
     {
@@ -116,8 +116,8 @@ public:
      * @brief Create an instance that reads from an input source,
      * using the settings of a given NewickReader.
      */
-    NewickInputIterator( std::shared_ptr<genesis::utils::io::BaseInputSource> source, NewickReader const& settings )
-        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
+    NewickInputIterator( std::shared_ptr<genesis::util::io::BaseInputSource> source, NewickReader const& settings )
+        : input_stream_( std::make_shared<genesis::util::io::InputStream>( source ))
         , reader_( settings )
         , tree_()
     {
@@ -234,7 +234,7 @@ public:
 
 private:
 
-    std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
+    std::shared_ptr<genesis::util::io::InputStream> input_stream_;
 
     bool                good_ = true;
     NewickReader        reader_;

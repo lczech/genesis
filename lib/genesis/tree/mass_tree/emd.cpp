@@ -35,11 +35,11 @@
 #include <genesis/tree/mass_tree/tree.hpp>
 #include <genesis/tree/tree.hpp>
 
-#include <genesis/utils/core/logging.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/container/matrix/operator.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -178,7 +178,7 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double c
     return work;
 }
 
-genesis::utils::containers::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double const p )
+genesis::util::container::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double const p )
 {
     // Check.
     if( p <= 0.0 ) {
@@ -188,18 +188,18 @@ genesis::utils::containers::Matrix<double> earth_movers_distance( std::vector<Ma
     }
 
     // Init result matrix.
-    auto result = genesis::utils::containers::Matrix<double>( trees.size(), trees.size(), 0.0 );
+    auto result = genesis::util::container::Matrix<double>( trees.size(), trees.size(), 0.0 );
 
     // We only need to calculate the upper triangle. Get the number of indices needed
     // to describe this triangle.
-    size_t const max_k = genesis::utils::containers::triangular_size( trees.size() );
+    size_t const max_k = genesis::util::container::triangular_size( trees.size() );
 
     // Use dynamic parallelization, as trees might be of different size
     // (in terms of number of mass points).
-    genesis::utils::threading::parallel_for( 0, max_k, [&]( size_t k )
+    genesis::util::threading::parallel_for( 0, max_k, [&]( size_t k )
     {
         // For the given linear index, get the actual position in the Matrix.
-        auto const ij = genesis::utils::containers::triangular_indices( k, trees.size() );
+        auto const ij = genesis::util::container::triangular_indices( k, trees.size() );
         auto const i = ij.first;
         auto const j = ij.second;
 

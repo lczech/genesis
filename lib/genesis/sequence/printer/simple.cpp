@@ -32,8 +32,8 @@
 
 #include <genesis/sequence/sequence_set.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/text/string.hpp>
-#include <genesis/utils/text/style.hpp>
+#include <genesis/util/text/string.hpp>
+#include <genesis/util/text/style.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -196,10 +196,10 @@ void PrinterSimple::print_character_(
 
         // Choose style.
         if( color_mode_ == ColorMode::kForeground ) {
-            out << genesis::utils::text::Style( color)( std::string( 1, site ) );
+            out << genesis::util::text::Style( color)( std::string( 1, site ) );
 
         } else if( color_mode_ == ColorMode::kBackground ) {
-            out << genesis::utils::text::Style( "black", color )( std::string( 1, site ) );
+            out << genesis::util::text::Style( "black", color )( std::string( 1, site ) );
 
         } else {
 

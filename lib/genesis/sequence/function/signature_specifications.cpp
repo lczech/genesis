@@ -31,7 +31,7 @@
 #include <genesis/sequence/function/signature_specifications.hpp>
 
 #include <genesis/sequence/function/code.hpp>
-#include <genesis/utils/math/common.hpp>
+#include <genesis/util/math/common.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -59,7 +59,7 @@ SignatureSpecifications::SignatureSpecifications( std::string const& alphabet, s
     if( alphabet_.size() == 0 ) {
         throw std::invalid_argument( "Invalid alphabet for kmer list." );
     }
-    if( ! genesis::utils::math::is_valid_int_pow( alphabet_.size(), k ) ) {
+    if( ! genesis::util::math::is_valid_int_pow( alphabet_.size(), k ) ) {
         throw std::invalid_argument( "Cannot store kmers for such large k." );
     }
     if( k == 0 ) {
@@ -67,7 +67,7 @@ SignatureSpecifications::SignatureSpecifications( std::string const& alphabet, s
     }
 
     // Create lookup from char to its index in the alphabet.
-    index_lookup_ = genesis::utils::CharLookup<size_t>( InvalidCharIndex );
+    index_lookup_ = genesis::util::CharLookup<size_t>( InvalidCharIndex );
     for( size_t i = 0; i < alphabet_.size(); ++i ) {
         index_lookup_.set_char_upper_lower( alphabet_[i], i );
     }
@@ -116,7 +116,7 @@ std::vector<std::string> const& SignatureSpecifications::kmer_list() const
 
 size_t SignatureSpecifications::kmer_list_size() const
 {
-    return genesis::utils::math::int_pow( alphabet_.size(), k_ );
+    return genesis::util::math::int_pow( alphabet_.size(), k_ );
 }
 
 std::vector<size_t> const& SignatureSpecifications::kmer_combined_reverse_complement_map() const
@@ -132,7 +132,7 @@ std::vector<size_t> const& SignatureSpecifications::kmer_combined_reverse_comple
 
     // Calculate a vector that maps from a kmer index according to kmer_list
     // to a position in [ 0 , s ), so that rev comp indices map to the same position.
-    rev_comp_map_ = std::vector<size_t>( genesis::utils::math::int_pow( 4, k_ ), 0 );
+    rev_comp_map_ = std::vector<size_t>( genesis::util::math::int_pow( 4, k_ ), 0 );
 
     // Store a list of kmers and their indices. it only stores one direction - that is,
     // if we see that the rev comp of a kmer is already in this map, we do not add anything.
@@ -269,13 +269,13 @@ size_t SignatureSpecifications::kmer_reverse_complement_list_size( bool with_pal
     // Calculations according to: https://stackoverflow.com/a/40953130
 
     // Number of palindromic k-mers. For odd k, there are none, for even k, there are 4^(k/2) = 2^k
-    auto const p = ( k_ % 2 == 1 ? 0 : genesis::utils::math::int_pow( 2, k_ ));
+    auto const p = ( k_ % 2 == 1 ? 0 : genesis::util::math::int_pow( 2, k_ ));
 
     // Number of entries needed to store rev comp kmers.
     if( with_palindromes ) {
-        return p + ( genesis::utils::math::int_pow( 4, k_ ) - p ) / 2;
+        return p + ( genesis::util::math::int_pow( 4, k_ ) - p ) / 2;
     } else {
-        return ( genesis::utils::math::int_pow( 4, k_ ) - p ) / 2;
+        return ( genesis::util::math::int_pow( 4, k_ ) - p ) / 2;
     }
 }
 

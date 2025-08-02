@@ -34,8 +34,8 @@
 #include <genesis/sequence/format/fasta_writer.hpp>
 #include <genesis/sequence/format/fastq_writer.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/io/output_target.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/output_target.hpp>
 
 #include <iterator>
 #include <iostream>
@@ -71,14 +71,14 @@ using FastqOutputStream = FastxOutputStream<FastqWriter>;
  *
  * Exemplary usage:
  *
- *     auto out_it = FastqOutputStream( genesis::utils::io::to_file( "path/to/out.fastq" ));
+ *     auto out_it = FastqOutputStream( genesis::util::io::to_file( "path/to/out.fastq" ));
  *     while( ... ) {
  *         Sequence seq = ...
  *         out_it << seq;
  *     }
  *
- * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
- * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
+ * See the output target convenience functions genesis::util::io::to_file(), genesis::util::io::to_stream(), and
+ * genesis::util::text::to_string() for examples of how to obtain a suitable output target.
  */
 template<class Writer>
 class FastxOutputStream
@@ -98,14 +98,14 @@ public:
     FastxOutputStream() = delete;
 
     explicit FastxOutputStream(
-        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target
+        std::shared_ptr< genesis::util::io::BaseOutputTarget> target
     )
         : target_( target )
         , writer_()
     {}
 
     FastxOutputStream(
-        std::shared_ptr< genesis::utils::io::BaseOutputTarget> target,
+        std::shared_ptr< genesis::util::io::BaseOutputTarget> target,
         Writer const& writer
     )
         : target_( target )
@@ -177,7 +177,7 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> output_target() const
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> output_target() const
     {
         return target_;
     }
@@ -204,7 +204,7 @@ public:
 
 private:
 
-    std::shared_ptr< genesis::utils::io::BaseOutputTarget> target_;
+    std::shared_ptr< genesis::util::io::BaseOutputTarget> target_;
     Writer writer_;
 };
 

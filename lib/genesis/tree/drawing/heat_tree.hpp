@@ -33,11 +33,11 @@
 
 #include <genesis/tree/common_tree/tree.hpp>
 #include <genesis/tree/drawing/layout_base.hpp>
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/format/svg/svg.hpp>
-#include <genesis/utils/color/color.hpp>
-#include <genesis/utils/color/map.hpp>
-#include <genesis/utils/color/normalization.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/format/svg/svg.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/map.hpp>
+#include <genesis/util/color/normalization.hpp>
 
 #include <string>
 #include <vector>
@@ -55,31 +55,31 @@ struct HeatTreeParameters
     CommonTree                  tree;
     LayoutType                  type      = LayoutType::kCladogram;
     bool                        ladderize = true;
-    std::vector<genesis::utils::color::Color>   color_per_branch;
-    genesis::utils::formats::SvgStroke            stroke;
+    std::vector<genesis::util::color::Color>   color_per_branch;
+    genesis::util::format::SvgStroke            stroke;
 
     // Matrix parameters
-    genesis::utils::containers::Matrix<genesis::utils::color::Color> matrix;
+    genesis::util::container::Matrix<genesis::util::color::Color> matrix;
     std::vector<std::string>    column_labels;
     bool                        matrix_as_bmp = false;
 };
 
-genesis::utils::formats::SvgDocument heat_tree(
+genesis::util::format::SvgDocument heat_tree(
     HeatTreeParameters const&        params
 );
 
-genesis::utils::formats::SvgDocument heat_tree(
+genesis::util::format::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    genesis::utils::color::ColorMap const&           matrix_color_map,
-    genesis::utils::color::ColorNormalization const& matrix_color_norm
+    genesis::util::color::ColorMap const&           matrix_color_map,
+    genesis::util::color::ColorNormalization const& matrix_color_norm
 );
 
-genesis::utils::formats::SvgDocument heat_tree(
+genesis::util::format::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    genesis::utils::color::ColorMap const&           matrix_color_map,
-    genesis::utils::color::ColorNormalization const& matrix_color_norm,
-    genesis::utils::color::ColorMap const&           tree_color_map,
-    genesis::utils::color::ColorNormalization const& tree_color_norm
+    genesis::util::color::ColorMap const&           matrix_color_map,
+    genesis::util::color::ColorNormalization const& matrix_color_norm,
+    genesis::util::color::ColorMap const&           tree_color_map,
+    genesis::util::color::ColorNormalization const& tree_color_norm
 );
 
 } // namespace tree

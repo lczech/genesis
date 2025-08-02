@@ -73,7 +73,7 @@ public:
      * needs to be provided via color_map(). See there for details.
      *
      * The coloring is applied using escape sequences. This works on most modern terminals.
-     * See genesis::utils::text::Style for details and for a list of the available color names.
+     * See genesis::util::text::Style for details and for a list of the available color names.
      */
     enum class ColorMode {
         /**
@@ -239,7 +239,7 @@ public:
      * printed without color.
      *
      * See @link color_mode( PrinterSimple::ColorMode value ) color_mode()@endlink for more details.
-     * See genesis::utils::text::Style for details and for a list of the available color names.
+     * See genesis::util::text::Style for details and for a list of the available color names.
      */
     PrinterSimple& color_map( std::map<char, std::string> const& value );
 

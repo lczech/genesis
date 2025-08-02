@@ -34,8 +34,8 @@
 #include "genesis/population/function/genome_locus.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
+using namespace genesis::util;
+using namespace genesis::util::core;
 
 TEST( Population, GenomeLocus )
 {

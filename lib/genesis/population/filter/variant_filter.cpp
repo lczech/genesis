@@ -31,7 +31,7 @@
 #include <genesis/population/filter/variant_filter.hpp>
 
 #include <genesis/population/function/function.hpp>
-#include <genesis/utils/text/char.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <array>
 #include <cassert>

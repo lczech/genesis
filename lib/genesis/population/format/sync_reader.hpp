@@ -32,8 +32,8 @@
  */
 
 #include <genesis/population/variant.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <string>
 #include <vector>
@@ -130,7 +130,7 @@ public:
      * sample names.
      */
     std::vector<std::string> read_header(
-        genesis::utils::io::InputStream& input_stream
+        genesis::util::io::InputStream& input_stream
     ) const;
 
     /**
@@ -146,7 +146,7 @@ public:
      * take this type of filter.
      */
     std::vector<std::string> read_header(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         std::vector<bool> const& sample_filter
     ) const;
 
@@ -158,7 +158,7 @@ public:
      * @brief Read the whole input into a vector of Variant%s.
      */
     std::vector<Variant> read(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source
+        std::shared_ptr< genesis::util::io::BaseInputSource > source
     ) const;
 
     /**
@@ -170,7 +170,7 @@ public:
      * not match the number of sample columns, an exception is thrown.
      */
     std::vector<Variant> read(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter
     ) const;
 
@@ -184,7 +184,7 @@ public:
      * Returns wheather the reading was successful, or not, i.e., wheather the input is at its end.
      */
     bool parse_line(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Variant&            sample_set
     ) const;
 
@@ -194,7 +194,7 @@ public:
      * This is an equivalent overload as described in the read() functions. See there for details.
      */
     bool parse_line(
-        genesis::utils::io::InputStream&      input_stream,
+        genesis::util::io::InputStream&      input_stream,
         Variant&                 sample_set,
         std::vector<bool> const& sample_filter
     ) const;
@@ -255,7 +255,7 @@ public:
 private:
 
     bool parse_line_(
-        genesis::utils::io::InputStream&      input_stream,
+        genesis::util::io::InputStream&      input_stream,
         Variant&                 sample_set,
         std::vector<bool> const& sample_filter,
         bool                     use_sample_filter
@@ -265,24 +265,24 @@ private:
     #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 
         void parse_sample_gcc_intrinsic_(
-            genesis::utils::io::InputStream& input_stream,
+            genesis::util::io::InputStream& input_stream,
             SampleCounts&       sample
         ) const;
 
     #endif
 
     void parse_sample_simple_(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         SampleCounts&       sample
     ) const;
 
     void parse_sample_(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         SampleCounts&       sample
     ) const;
 
     void skip_sample_(
-        genesis::utils::io::InputStream& input_stream
+        genesis::util::io::InputStream& input_stream
     ) const;
 
     // -------------------------------------------------------------------------

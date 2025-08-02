@@ -44,7 +44,7 @@ namespace taxonomy {
 //     Writing
 // =================================================================================================
 
-void TaxonomyWriter::write( Taxonomy const& tax, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const
+void TaxonomyWriter::write( Taxonomy const& tax, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const
 {
     auto& os = target->ostream();
     for( auto const& tit : preorder( tax )) {

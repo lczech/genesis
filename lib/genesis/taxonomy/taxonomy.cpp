@@ -48,7 +48,7 @@ Taxonomy::Taxonomy( Taxonomy const& other )
     children_.resize( other.children_.size() );
     for( size_t i = 0; i < other.children_.size(); ++i ) {
         assert( other.children_[i] );
-        children_[i] = genesis::utils::core::make_unique<Taxon>( *other.children_[i] );
+        children_[i] = genesis::util::core::make_unique<Taxon>( *other.children_[i] );
     }
    reset_parent_pointers_( nullptr );
 }
@@ -147,7 +147,7 @@ Taxon& Taxonomy::add_child_( Taxon&& child )
 
     // If not, add it as a a new child.
     names_[ child.name() ] = children_.size();
-    children_.push_back( genesis::utils::core::make_unique<Taxon>( std::move( child )));
+    children_.push_back( genesis::util::core::make_unique<Taxon>( std::move( child )));
     children_.back()->parent_ = nullptr;
     return *children_.back();
 }

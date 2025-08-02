@@ -103,7 +103,7 @@ SampleCounts convert_to_sample_counts(
             default: {
                 throw std::runtime_error(
                     "Malformed pileup sample: Invalid allele character " +
-                    genesis::utils::text::char_to_hex( sample.read_bases[i] )
+                    genesis::util::text::char_to_hex( sample.read_bases[i] )
                 );
             }
         }
@@ -151,7 +151,7 @@ Variant convert_to_variant(
     Variant result;
     result.chromosome     = record.chromosome;
     result.position       = record.position;
-    result.reference_base = genesis::utils::text::to_upper( record.reference_base );
+    result.reference_base = genesis::util::text::to_upper( record.reference_base );
 
     // Convert the individual samples
     result.samples.reserve( record.samples.size() );
@@ -168,7 +168,7 @@ Variant convert_to_variant(
     if( is_valid_base( result.reference_base )) {
         auto const sorted = sorted_sample_counts( result, true, SampleCountsFilterPolicy::kAll );
         if( sorted[1].count > 0 ) {
-            result.alternative_base = genesis::utils::text::to_upper( sorted[1].base );
+            result.alternative_base = genesis::util::text::to_upper( sorted[1].base );
         }
     }
 
@@ -176,7 +176,7 @@ Variant convert_to_variant(
 }
 
 genesis::sequence::QualityEncoding guess_pileup_quality_encoding(
-    std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     size_t max_lines
 ) {
     // Make a reader that uses quality scores.

@@ -33,7 +33,7 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/tree/subtree.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <cassert>
 #include <iterator>
@@ -260,7 +260,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorPreorder< true >>
+genesis::util::container::Range< IteratorPreorder< true >>
 preorder( ElementType const& element )
 {
     return {
@@ -270,7 +270,7 @@ preorder( ElementType const& element )
 }
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorPreorder< false >>
+genesis::util::container::Range< IteratorPreorder< false >>
 preorder( ElementType& element )
 {
     return {

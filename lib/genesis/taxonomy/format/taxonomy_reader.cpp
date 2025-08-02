@@ -35,10 +35,10 @@
 #include <genesis/taxonomy/taxonomy.hpp>
 #include <genesis/taxonomy/taxopath.hpp>
 
-#include <genesis/utils/core/fs.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <fstream>
@@ -64,13 +64,13 @@ TaxonomyReader::TaxonomyReader()
 //     Reading
 // =================================================================================================
 
-void TaxonomyReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source, Taxonomy& target ) const
+void TaxonomyReader::read( std::shared_ptr<genesis::util::io::BaseInputSource> source, Taxonomy& target ) const
 {
-    genesis::utils::io::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     parse_document( it, target );
 }
 
-Taxonomy TaxonomyReader::read( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const
+Taxonomy TaxonomyReader::read( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const
 {
     Taxonomy result;
     read( source, result );
@@ -82,7 +82,7 @@ Taxonomy TaxonomyReader::read( std::shared_ptr<genesis::utils::io::BaseInputSour
 // =================================================================================================
 
 void TaxonomyReader::parse_document(
-    genesis::utils::io::InputStream& it,
+    genesis::util::io::InputStream& it,
     Taxonomy&           tax
 ) const {
     while( it ) {
@@ -110,7 +110,7 @@ void TaxonomyReader::parse_document(
 }
 
 TaxonomyReader::Line TaxonomyReader::parse_line(
-    genesis::utils::io::InputStream& it
+    genesis::util::io::InputStream& it
 ) const {
     // Get the fields of the current line.
     auto fields = csv_reader_.parse_line( it );
@@ -154,7 +154,7 @@ TaxonomyReader::Line TaxonomyReader::parse_line(
 //     Properties
 // =================================================================================================
 
-genesis::utils::formats::CsvReader& TaxonomyReader::csv_reader()
+genesis::util::format::CsvReader& TaxonomyReader::csv_reader()
 {
     return csv_reader_;
 }

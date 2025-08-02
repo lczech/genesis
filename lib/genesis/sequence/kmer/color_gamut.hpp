@@ -31,15 +31,15 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/container/matrix.hpp>
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/bit/bitvector.hpp>
-#include <genesis/utils/bit/bitvector/function.hpp>
-#include <genesis/utils/bit/bitvector/operator.hpp>
-#include <genesis/utils/math/hac.hpp>
-#include <genesis/utils/threading/concurrent_vector_guard.hpp>
-#include <genesis/utils/threading/thread_function.hpp>
-#include <genesis/utils/threading/thread_pool.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
+#include <genesis/util/math/hac.hpp>
+#include <genesis/util/threading/concurrent_vector_guard.hpp>
+#include <genesis/util/threading/thread_function.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
 
 // This whole class is only available from C++17 onwards,
 // as we are using std::shared_mutex and other features from there.
@@ -74,7 +74,7 @@ public:
     //     Types and Enums
     // -------------------------------------------------------------------------
 
-    using Bitvector = genesis::utils::bit::Bitvector;
+    using Bitvector = genesis::util::bit::Bitvector;
 
     struct Color
     {
@@ -187,7 +187,7 @@ public:
     );
 
     void precompute_gamut(
-        std::shared_ptr<genesis::utils::threading::ThreadPool> thread_pool = nullptr
+        std::shared_ptr<genesis::util::threading::ThreadPool> thread_pool = nullptr
     );
 
     // -------------------------------------------------------------------------
@@ -238,7 +238,7 @@ public:
         return lookup_;
     }
 
-    genesis::utils::containers::Matrix<size_t> const& get_gamut_matrix() const
+    genesis::util::container::Matrix<size_t> const& get_gamut_matrix() const
     {
         return gamut_;
     }
@@ -356,7 +356,7 @@ private:
     // the new color indices of the color that is the minimal superset of those two.
     // Many of them will not be exact matches for the color we would want (hence the minimal subset),
     // so in a sense, these are imaginary colors: They cannot be exactly produced.
-    genesis::utils::containers::Matrix<size_t> gamut_;
+    genesis::util::container::Matrix<size_t> gamut_;
 
     // For debugging and performance assessment, we keep track of statis of the gamut.
     // We use a private atomic variant of this, as we are writing the gamut concurrently.
@@ -377,7 +377,7 @@ private:
     mutable std::shared_timed_mutex color_mutex_;
     mutable std::atomic<bool> gamut_started_ = false;
     mutable std::atomic<bool> gamut_filled_ = false;
-    mutable genesis::utils::threading::ConcurrentVectorGuard gamut_guard_;
+    mutable genesis::util::threading::ConcurrentVectorGuard gamut_guard_;
 
 };
 

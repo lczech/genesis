@@ -32,7 +32,7 @@
 
 #include <genesis/taxonomy/taxon.hpp>
 #include <genesis/taxonomy/taxopath.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -50,7 +50,7 @@ Taxopath TaxopathParser::parse( std::string const& taxopath ) const
     std::vector< std::string > elements;
 
     // Split the given string, while keeping empty parts.
-    elements = genesis::utils::text::split( taxopath, delimiters_, false );
+    elements = genesis::util::text::split( taxopath, delimiters_, false );
 
     // If there are no elements, the string was empty. Nothing to do.
     if( elements.size() == 0 ) {
@@ -61,7 +61,7 @@ Taxopath TaxopathParser::parse( std::string const& taxopath ) const
     // Remove white spaces.
     if( trim_whitespaces_ ) {
         for( auto& r : elements ) {
-            r = genesis::utils::text::trim( r );
+            r = genesis::util::text::trim( r );
         }
     }
 

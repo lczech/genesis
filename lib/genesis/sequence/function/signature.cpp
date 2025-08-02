@@ -35,8 +35,8 @@
 #include <genesis/sequence/function/statistic.hpp>
 #include <genesis/sequence/sequence_set.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/math/statistic.hpp>
-#include <genesis/utils/tool/char_lookup.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/tool/char_lookup.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -186,7 +186,7 @@ std::vector<size_t> signature_ranks(
 ) {
     // We use frequencies, because the ranking expects a vec of double,
     // and not a vec of size_t as returned by the counts signature...
-    return genesis::utils::math::ranking_standard(
+    return genesis::util::math::ranking_standard(
         signature_frequencies( sequence, settings )
     );
 }
@@ -197,7 +197,7 @@ std::vector<size_t> signature_symmetrized_ranks(
 ) {
     // We use frequencies, because the ranking expects a vec of double,
     // and not a vec of size_t as returned by the counts signature...
-    return genesis::utils::math::ranking_standard(
+    return genesis::util::math::ranking_standard(
         signature_symmetrized_frequencies( sequence, settings )
     );
 }

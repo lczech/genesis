@@ -40,15 +40,15 @@
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/function/function.hpp"
 #include "genesis/population/function/variant_input_stream.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <unordered_set>
 
 using namespace genesis::population;
-using namespace genesis::utils;
-using namespace genesis::utils::core;
-using namespace genesis::utils::io;
-using namespace genesis::utils::text;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     SAM/BAM/CRAM

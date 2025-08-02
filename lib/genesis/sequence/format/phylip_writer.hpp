@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/io/output_target.hpp>
+#include <genesis/util/io/output_target.hpp>
 
 #include <iosfwd>
 #include <string>
@@ -76,10 +76,10 @@ public:
     /**
      * @brief Write a SequenceSet to an output target, using the Phylip format.
      *
-     * See the output target convenience functions genesis::utils::io::to_file(), genesis::utils::io::to_stream(), and
-     * genesis::utils::text::to_string() for examples of how to obtain a suitable output target.
+     * See the output target convenience functions genesis::util::io::to_file(), genesis::util::io::to_stream(), and
+     * genesis::util::text::to_string() for examples of how to obtain a suitable output target.
      */
-    void write( SequenceSet const& sequence_set, std::shared_ptr< genesis::utils::io::BaseOutputTarget> target ) const;
+    void write( SequenceSet const& sequence_set, std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const;
 
     // ---------------------------------------------------------------------
     //     Properties

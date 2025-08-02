@@ -39,7 +39,7 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
 namespace color {
     class Color;
 }
@@ -64,7 +64,7 @@ namespace placement {
 
 namespace placement {
 
-std::vector<genesis::utils::color::Color> placement_color_count_gradient(
+std::vector<genesis::util::color::Color> placement_color_count_gradient(
     Sample const& smp, bool linear = false
 );
 

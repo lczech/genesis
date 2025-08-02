@@ -32,8 +32,8 @@
  */
 
 #include <genesis/population/format/simple_pileup_reader.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/bit/bitvector/operator.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
 
 #include <string>
 
@@ -54,7 +54,7 @@ namespace population {
  *
  * Basic usage:
  *
- *     auto it = SimplePileupInputStream<>( genesis::utils::io::from_file( infile ));
+ *     auto it = SimplePileupInputStream<>( genesis::util::io::from_file( infile ));
  *     while( it ) {
  *         // work with it.record() or it->...
  *         ++it;
@@ -62,7 +62,7 @@ namespace population {
  *
  * or
  *
- *     for( auto it = SimplePileupInputStream<Variant>( genesis::utils::io::from_file( infile )); it; ++it ) {
+ *     for( auto it = SimplePileupInputStream<Variant>( genesis::util::io::from_file( infile )); it; ++it ) {
  *         // work with it
  *     }
  *
@@ -106,10 +106,10 @@ public:
      * a SimplePileupReader with settings to be used.
      */
     explicit SimplePileupInputStream(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         SimplePileupReader const&                 reader = {}
     )
-        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
+        : input_stream_( std::make_shared<genesis::util::io::InputStream>( source ))
         , reader_( reader )
     {
         // Read the first record of the file.
@@ -122,16 +122,16 @@ public:
     //  * settings to be used.
     //  */
     // SimplePileupInputStream(
-    //     std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+    //     std::shared_ptr< genesis::util::io::BaseInputSource > source,
     //     std::vector<size_t> const&                sample_indices,
     //     SimplePileupReader const&                 reader = {}
     // )
-    //     : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
+    //     : input_stream_( std::make_shared<genesis::util::io::InputStream>( source ))
     //     , reader_( reader )
     //     , use_sample_filter_( true )
     // {
     //     // Prepare the sample filter from the indices.
-    //     sample_filter_ = genesis::utils::make_bool_vector_from_indices( sample_indices );
+    //     sample_filter_ = genesis::util::make_bool_vector_from_indices( sample_indices );
     //
     //     // Read the first record of the file.
     //     increment();
@@ -143,11 +143,11 @@ public:
      * settings to be used.
      */
     SimplePileupInputStream(
-        std::shared_ptr< genesis::utils::io::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter,
         SimplePileupReader const&                 reader = {}
     )
-        : input_stream_( std::make_shared<genesis::utils::io::InputStream>( source ))
+        : input_stream_( std::make_shared<genesis::util::io::InputStream>( source ))
         , reader_( reader )
         , sample_filter_( sample_filter )
         , use_sample_filter_( true )
@@ -267,7 +267,7 @@ private:
 
     // Basic iterator setup and input.
     bool good_ = false;
-    std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
+    std::shared_ptr<genesis::util::io::InputStream> input_stream_;
 
     // Reading into records
     SimplePileupReader reader_;

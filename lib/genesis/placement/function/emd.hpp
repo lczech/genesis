@@ -47,8 +47,8 @@ namespace placement {
 
 }
 
-namespace utils {
-namespace containers {
+namespace util {
+namespace container {
 
     template<typename T>
     class Matrix;
@@ -106,7 +106,7 @@ double earth_movers_distance (
 /**
  * @brief Calculate the pairwise Earth Movers Distance for all Sample%s in a SampleSet.
  *
- * The result is a pairwise distance @link genesis::utils::containers::Matrix Matrix@endlink using the indices of the
+ * The result is a pairwise distance @link genesis::util::container::Matrix Matrix@endlink using the indices of the
  * Sample%s in the SampleSet.
  * See @link earth_movers_distance( const Sample&, const Sample&, double, bool )
  * earth_movers_distance( Sample const&, Sample const&, ... )@endlink for details on this distance
@@ -115,7 +115,7 @@ double earth_movers_distance (
  * earth_movers_distance( MassTree const&, MassTree const& )@endlink for more information on the
  * actual distance calculation, and the parameter @p p.
  */
-genesis::utils::containers::Matrix<double> earth_movers_distance(
+genesis::util::container::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
     double const     p = 1.0,
     bool const       with_pendant_length = false

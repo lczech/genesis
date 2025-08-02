@@ -31,11 +31,11 @@
  * @ingroup sequence
  */
 
-#include <genesis/utils/core/std.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/io/input_stream.hpp>
-#include <genesis/utils/text/convert.hpp>
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <cstddef>
@@ -65,7 +65,7 @@ namespace sequence {
  *         std::cout << s.length << "\n";
  *     }
  *
- * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+ * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
  * get an input source that can be used here.
  *
  * Thread safety: No thread safety. The common use case for this iterator is to loop over a file.
@@ -181,7 +181,7 @@ public:
             }
 
             // Start reading from the input source into a stream.
-            input_stream_ = std::make_shared<genesis::utils::io::InputStream>( parent_->input_source_ );
+            input_stream_ = std::make_shared<genesis::util::io::InputStream>( parent_->input_source_ );
 
             // Start streaming the data
             increment_();
@@ -271,7 +271,7 @@ public:
 
         void increment_()
         {
-            using namespace genesis::utils::text;
+            using namespace genesis::util::text;
 
             assert( parent_ );
 
@@ -361,7 +361,7 @@ public:
         FaiInputStream const* parent_ = nullptr;
 
         // Data stream to read from, and number of lines read.
-        std::shared_ptr<genesis::utils::io::InputStream> input_stream_;
+        std::shared_ptr<genesis::util::io::InputStream> input_stream_;
         size_t line_cnt_ = 0;
 
         // The record that we parse the input into and expose to the user.
@@ -396,7 +396,7 @@ public:
      * FastqReader.
      */
     explicit FaiInputStream(
-        std::shared_ptr<genesis::utils::io::BaseInputSource> source
+        std::shared_ptr<genesis::util::io::BaseInputSource> source
     )
         : input_source_( source )
     {}
@@ -427,7 +427,7 @@ public:
     //     Settings
     // -------------------------------------------------------------------------
 
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source() const
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source() const
     {
         return input_source_;
     }
@@ -454,7 +454,7 @@ public:
 
 private:
 
-    std::shared_ptr<genesis::utils::io::BaseInputSource> input_source_;
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source_;
     bool only_name_and_length_ = false;
 };
 

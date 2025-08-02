@@ -32,7 +32,7 @@
 
 #include <genesis/population/format/vcf_header.hpp>
 
-#include <genesis/utils/text/string.hpp>
+#include <genesis/util/text/string.hpp>
 
 extern "C" {
     #include <htslib/hts.h>
@@ -501,7 +501,7 @@ VcfSpecification VcfHeader::get_specification_( int hl_type, std::string const& 
     if( descr_key >= 0 ) {
         // It seems that htslib leaves the quotes around the description.
         // That is ugly, let's remove!
-        res.description = genesis::utils::text::trim( std::string( hrec->vals[descr_key] ), "\"");
+        res.description = genesis::util::text::trim( std::string( hrec->vals[descr_key] ), "\"");
     }
     return res;
 }

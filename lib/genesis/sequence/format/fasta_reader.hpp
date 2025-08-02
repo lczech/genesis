@@ -35,8 +35,8 @@
 #include <genesis/sequence/sequence_dict.hpp>
 #include <genesis/sequence/sequence_set.hpp>
 #include <genesis/sequence/sequence.hpp>
-#include <genesis/utils/io/input_source.hpp>
-#include <genesis/utils/tool/char_lookup.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/tool/char_lookup.hpp>
 
 #include <iosfwd>
 #include <memory>
@@ -48,7 +48,7 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
 namespace io {
     class InputStream;
 }
@@ -73,7 +73,7 @@ namespace sequence {
  *     FastaReader()
  *         .site_casing( SiteCasing::kUnchanged )
  *         .valid_chars( nucleic_acid_codes_all() )
- *         .read( genesis::utils::io::from_file( infile ), sequence_set );
+ *         .read( genesis::util::io::from_file( infile ), sequence_set );
  *
  * The expected data format:
  *
@@ -181,10 +181,10 @@ public:
      * @brief Read all Sequence%s from an input source in Fasta format and return them as a
      * SequenceSet.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    SequenceSet read( std::shared_ptr< genesis::utils::io::BaseInputSource > source ) const;
+    SequenceSet read( std::shared_ptr< genesis::util::io::BaseInputSource > source ) const;
 
     /**
      * @brief Read all Sequence%s from an input source in Fasta format into a SequenceSet.
@@ -193,16 +193,16 @@ public:
      * repeatedly calling this or similar read functions, multiple input files can easily be read
      * into one SequenceSet.
      *
-     * Use functions such as genesis::utils::io::from_file() and genesis::utils::io::from_string() to conveniently
+     * Use functions such as genesis::util::io::from_file() and genesis::util::io::from_string() to conveniently
      * get an input source that can be used here.
      */
-    void read( std::shared_ptr< genesis::utils::io::BaseInputSource > source, SequenceSet& sequence_set ) const;
+    void read( std::shared_ptr< genesis::util::io::BaseInputSource > source, SequenceSet& sequence_set ) const;
 
     /**
      * @brief Read all Sequence%s from an input source in fasta format, but only return their
      * names and lengths as a SequenceDict.
      */
-    SequenceDict read_dict( std::shared_ptr<genesis::utils::io::BaseInputSource> source ) const;
+    SequenceDict read_dict( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const;
 
     /**
      * @brief Read all Sequence%s from an input source in fasta format into a ReferenceGenome.
@@ -211,7 +211,7 @@ public:
      * See ReferenceGenome for details, and for the explanation of @p also_look_up_first_word.
      */
     ReferenceGenome read_reference_genome(
-        std::shared_ptr<genesis::utils::io::BaseInputSource> source,
+        std::shared_ptr<genesis::util::io::BaseInputSource> source,
         bool also_look_up_first_word = true
     ) const;
 
@@ -226,7 +226,7 @@ public:
      * It uses the currently set parsing_method() for parsing the data.
      */
     void parse_document(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         SequenceSet&        sequence_set
     ) const;
 
@@ -242,7 +242,7 @@ public:
      * `std::runtime_error` exception is thrown indicating the malicious position in the input stream.
      */
     bool parse_sequence(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Sequence&           sequence
     ) const;
 
@@ -262,7 +262,7 @@ public:
      * Apart from that, there are no differences. See FastaReader::ParsingMethod for details.
      */
     bool parse_sequence_pedantic(
-        genesis::utils::io::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Sequence&           sequence
     ) const;
 
@@ -358,7 +358,7 @@ public:
      * This function is provided in case direct access to the lookup is needed. Usually, the
      * valid_chars() function should suffice. See there for details.
      */
-    genesis::utils::CharLookup<bool>& valid_char_lookup();
+    genesis::util::CharLookup<bool>& valid_char_lookup();
 
     // ---------------------------------------------------------------------
     //     Helper Functions
@@ -374,7 +374,7 @@ private:
      * if the `add` function does not need or take any extra arguments.
      */
     template<class R, typename... A>
-    void parse_document_( genesis::utils::io::InputStream& input_stream, R& result, A... args ) const
+    void parse_document_( genesis::util::io::InputStream& input_stream, R& result, A... args ) const
     {
         Sequence seq;
         if( parsing_method_ == ParsingMethod::kDefault ) {
@@ -403,7 +403,7 @@ private:
     bool                    validate_labels_  = true;
     bool                    guess_abundances_ = false;
     bool                    use_validation_   = false;
-    genesis::utils::CharLookup<bool> lookup_;
+    genesis::util::CharLookup<bool> lookup_;
 
     // Internal reading buffer
     mutable std::string buffer_;

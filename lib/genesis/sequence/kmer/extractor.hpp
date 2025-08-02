@@ -32,7 +32,7 @@
  */
 
 #include <genesis/sequence/kmer/kmer.hpp>
-#include <genesis/utils/core/std.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <array>
 #include <cassert>

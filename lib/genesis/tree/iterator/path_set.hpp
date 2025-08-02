@@ -33,7 +33,7 @@
 
 #include <genesis/tree/tree.hpp>
 #include <genesis/tree/function/function.hpp>
-#include <genesis/utils/container/range.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <cassert>
 #include <iterator>
@@ -313,7 +313,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorPathSet< true >>
+genesis::util::container::Range< IteratorPathSet< true >>
 path_set( ElementType const& start, ElementType const& finish, ElementType const& lca )
 {
     return {
@@ -323,7 +323,7 @@ path_set( ElementType const& start, ElementType const& finish, ElementType const
 }
 
 template<typename ElementType>
-genesis::utils::containers::Range< IteratorPathSet< false >>
+genesis::util::container::Range< IteratorPathSet< false >>
 path_set( ElementType& start, ElementType& finish, ElementType& lca )
 {
     return {
