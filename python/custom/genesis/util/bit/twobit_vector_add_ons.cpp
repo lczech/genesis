@@ -86,10 +86,16 @@ void genesis_util_bit_twobit_vector_functions_add_ons(
             return IteratorSubstitutions(tv);
         },
         py::return_value_policy::move,
-        "Yield IteratorSubstitutions instances for each substitution. This is a more efficient "
-        "alternative to substitutions() if hash values of the TwobitVector in each iteration "
-        "need to be computed. Use .vector() on the iteration object to get the current "
-        "TwobitVector during the loop."
+        "Yield IteratorSubstitutions instances for each substitution.\n\n"
+        "Example:\n\n"
+        "    tv = bit.from_nucleic_acids(seq)\n"
+        "    for it in bit.iterate_substitutions(tv):\n"
+        "        pos  = it.position()\n"
+        "        hash = it.hash()\n"
+        "        val  = it.vector() # TwobitVector with a substitution compared to tv\n\n"
+        "This is a more efficient alternative to substitutions() if hash values "
+        "of the TwobitVector in each iteration need to be computed. Use .vector() "
+        "on the iteration object to get the current TwobitVector during the loop."
     );
 
     m.def(
@@ -99,10 +105,16 @@ void genesis_util_bit_twobit_vector_functions_add_ons(
             return IteratorDeletions(tv);
         },
         py::keep_alive<0, 1>(),
-        "Yield IteratorDeletions instances for each deletion. This is a more efficient "
-        "alternative to deletions() if hash values of the TwobitVector in each iteration "
-        "need to be computed. Use .vector() on the iteration object to get the current "
-        "TwobitVector during the loop."
+        "Yield IteratorDeletions instances for each deletion.\n\n"
+        "Example:\n\n"
+        "    tv = bit.from_nucleic_acids(seq)\n"
+        "    for it in bit.iterate_deletions(tv):\n"
+        "        pos  = it.position()\n"
+        "        hash = it.hash()\n"
+        "        val  = it.vector() # TwobitVector with a deletion compared to tv\n\n"
+        "This is a more efficient alternative to deletions() if hash values "
+        "of the TwobitVector in each iteration need to be computed. Use .vector() "
+        "on the iteration object to get the current TwobitVector during the loop."
     );
 
     m.def(
@@ -112,10 +124,16 @@ void genesis_util_bit_twobit_vector_functions_add_ons(
             return IteratorInsertions(tv);
         },
         py::keep_alive<0, 1>(),
-        "Yield IteratorInsertions instances for each insertion. This is a more efficient "
-        "alternative to insertions() if hash values of the TwobitVector in each iteration "
-        "need to be computed. Use .vector() on the iteration object to get the current "
-        "TwobitVector during the loop."
+        "Yield IteratorInsertions instances for each insertion.\n\n"
+        "Example:\n\n"
+        "    tv = bit.from_nucleic_acids(seq)\n"
+        "    for it in bit.iterate_insertions(tv):\n"
+        "        pos  = it.position()\n"
+        "        hash = it.hash()\n"
+        "        val  = it.vector() # TwobitVector with an insertion compared to tv\n\n"
+        "This is a more efficient alternative to insertions() if hash values "
+        "of the TwobitVector in each iteration need to be computed. Use .vector() "
+        "on the iteration object to get the current TwobitVector during the loop."
     );
 
     // ---------------------------------------------------------------------
@@ -136,10 +154,15 @@ void genesis_util_bit_twobit_vector_functions_add_ons(
             );
         },
         py::keep_alive<0, 1>(),
-        "Yield TwobitVector instances for each substitution. This is a simple iterator to "
-        "be used in a loop, where each iteration is the TwobitVector resulting from a "
-        "substitution. See also iterate_substitutions() for a more efficient alternative if hash "
-        "values of each yielded TwobitVector need to be computed."
+        "Yield TwobitVector instances for each substitution.\n\n"
+        "This is a simple iterator to be used in a loop, where each iteration "
+        "is the TwobitVector resulting from a substitution.\n\n"
+        "Example:\n\n"
+        "    tv = bit.from_nucleic_acids(seq)\n"
+        "    for val in substitutions(tv):\n"
+        "        # val is a TwobitVector representing a substitution compared to tv\n\n"
+        "See also iterate_substitutions() for a more efficient "
+        "alternative if hash values of each yielded TwobitVector need to be computed."
     );
 
     m.def(
@@ -153,10 +176,15 @@ void genesis_util_bit_twobit_vector_functions_add_ons(
             );
         },
         py::keep_alive<0, 1>(),
-        "Yield TwobitVector instances for each deletion. This is a simple iterator to be used "
-        "in a loop, where each iteration is the TwobitVector resulting from a deletion. "
-        "See also iterate_deletions() for a more efficient alternative if hash values of each "
-        "yielded TwobitVector need to be computed."
+        "Yield TwobitVector instances for each deletion.\n\n"
+        "This is a simple iterator to be used in a loop, where each iteration "
+        "is the TwobitVector resulting from a deletion.\n\n"
+        "Example:\n\n"
+        "    tv = bit.from_nucleic_acids(seq)\n"
+        "    for val in deletions(tv):\n"
+        "        # val is a TwobitVector representing a deletion compared to tv\n\n"
+        "See also iterate_deletions() for a more efficient alternative "
+        "if hash values of each yielded TwobitVector need to be computed."
     );
 
     m.def(
@@ -170,10 +198,15 @@ void genesis_util_bit_twobit_vector_functions_add_ons(
             );
         },
         py::keep_alive<0, 1>(),
-        "Yield TwobitVector instances for each insertion. This is a simple iterator to be used "
-        "in a loop, where each iteration is the TwobitVector resulting from a insertion. "
-        "See also iterate_insertions() for a more efficient alternative if hash values of each "
-        "yielded TwobitVector need to be computed."
+        "Yield TwobitVector instances for each insertion.\n\n"
+        "This is a simple iterator to be used in a loop, where each iteration "
+        "is the TwobitVector resulting from a insertion.\n\n"
+        "Example:\n\n"
+        "    tv = bit.from_nucleic_acids(seq)\n"
+        "    for val in insertions(tv):\n"
+        "        # val is a TwobitVector representing an insertion compared to tv\n\n"
+        "See also iterate_insertions() for a more efficient alternative "
+        "if hash values of each yielded TwobitVector need to be computed."
     );
 
 }
