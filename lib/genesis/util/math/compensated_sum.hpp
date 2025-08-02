@@ -66,17 +66,17 @@ struct NeumaierSummation{};
 struct KleinSummation{};
 
 /**
- * @brief Typedef shorthand for a Kahan sum.
+ * @brief Alias for a Kahan sum. See CompensatedSum for details.
  */
 using KahanSum = CompensatedSum<KahanSummation>;
 
 /**
- * @brief Typedef shorthand for a Kahan Babushka Neumaier sum.
+ * @brief Alias for a Kahan Babushka Neumaier sum. See CompensatedSum for details.
  */
 using NeumaierSum = CompensatedSum<NeumaierSummation>;
 
 /**
- * @brief Typedef shorthand for a Kahan Babushka Klein sum.
+ * @brief Alias for a Kahan Babushka Klein sum. See CompensatedSum for details.
  */
 using KleinSum = CompensatedSum<KleinSummation>;
 
@@ -96,9 +96,9 @@ using KleinSum = CompensatedSum<KleinSummation>;
  * Alternatively, we offer typedefs for all three of them, for simplicity.
  * The three currently implemented algorithms can be selected as follows:
  *
- *  - Standard Kahan summation: `CompensatedSum<KahanSummation>`, or KahanSum
- *  - Kahan Babushka Neumaier summation: `CompensatedSum<NeumaierSummation>`, or NeumaierSum
- *  - Kahan Babushka Klein summation: `CompensatedSum<KleinSummation>`, KleinSum
+ *  - Standard Kahan summation: `KahanSum`, as an alias for `CompensatedSum<KahanSummation>`
+ *  - Kahan Babushka Neumaier summation: `NeumaierSum`, as an alias for `CompensatedSum<NeumaierSummation>`
+ *  - Kahan Babushka Klein summation: `KleinSum`, as an alias for `CompensatedSum<KleinSummation>`
  *
  * Then, use add(), or simply `operator +=` and `operator -=` to add values to the summation,
  * and use get() or implicit conversion via `operator double` to obtain the compensated sum.

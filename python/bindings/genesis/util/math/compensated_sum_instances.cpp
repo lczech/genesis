@@ -25,8 +25,7 @@ void bind_genesis_util_math_compensated_sum_instances(
             genesis::util::math::CompensatedSum<genesis::util::math::KahanSummation>,
             std::shared_ptr<
                 genesis::util::math::CompensatedSum<genesis::util::math::KahanSummation>>>
-            cl( M( "genesis::util::math" ), "CompensatedSum_genesis_util_math_KahanSummation_t", ""
-            );
+            cl( M( "genesis::util::math" ), "KahanSum", "" );
         // function-signature:
         // genesis::util::math::CompensatedSum<genesis::util::math::KahanSummation>::CompensatedSum()()
         // file:genesis/util/math/compensated_sum.hpp line:117
@@ -180,9 +179,7 @@ void bind_genesis_util_math_compensated_sum_instances(
             genesis::util::math::CompensatedSum<genesis::util::math::NeumaierSummation>,
             std::shared_ptr<
                 genesis::util::math::CompensatedSum<genesis::util::math::NeumaierSummation>>>
-            cl( M( "genesis::util::math" ),
-                "CompensatedSum_genesis_util_math_NeumaierSummation_t",
-                "" );
+            cl( M( "genesis::util::math" ), "NeumaierSum", "" );
         // function-signature:
         // genesis::util::math::CompensatedSum<genesis::util::math::NeumaierSummation>::CompensatedSum()()
         // file:genesis/util/math/compensated_sum.hpp line:117
@@ -338,8 +335,7 @@ void bind_genesis_util_math_compensated_sum_instances(
             genesis::util::math::CompensatedSum<genesis::util::math::KleinSummation>,
             std::shared_ptr<
                 genesis::util::math::CompensatedSum<genesis::util::math::KleinSummation>>>
-            cl( M( "genesis::util::math" ), "CompensatedSum_genesis_util_math_KleinSummation_t", ""
-            );
+            cl( M( "genesis::util::math" ), "KleinSum", "" );
         // function-signature:
         // genesis::util::math::CompensatedSum<genesis::util::math::KleinSummation>::CompensatedSum()()
         // file:genesis/util/math/compensated_sum.hpp line:117
