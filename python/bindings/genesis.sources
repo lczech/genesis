@@ -43,4 +43,5 @@ genesis/util/tool/geodesy/geo_coordinate.cpp
 genesis/util/tool/hash/sha1.cpp
 genesis/util/tool/hash/sha256.cpp
 genesis/util/tool/timer.cpp
+genesis/util/container/bitpacked_vector_instances.cpp
 genesis/util/math/compensated_sum_instances.cpp

@@ -123,6 +123,9 @@ use_binder_output_filter = True
 # that we do not have any name clashes (or at least make them unlikely).
 allowed_custom_suffixes = ["_add_ons", "_instances", "_wrappers"]
 
+# Run clang-format on the generated files.
+format_generated_bindings = True
+
 # ================================================================================================
 #   Sync Directories
 # ================================================================================================
@@ -544,7 +547,8 @@ def generate_bindings():
 
     # Make the bindings code.
     make_bindings_code( temp_dir )
-    run_clang_format( temp_dir )
+    if format_generated_bindings:
+        run_clang_format( temp_dir )
     find_file_warn_terms_usage( temp_dir, file_warn_terms )
 
     # Remove the generated all includes file again.

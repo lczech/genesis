@@ -141,6 +141,9 @@ void bind_genesis_util_tool_hash_sha256(
 void bind_genesis_util_tool_timer(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
+void bind_genesis_util_container_bitpacked_vector_instances(
+    std::function< pybind11::module&( std::string const& namespace_ ) >& M
+);
 void bind_genesis_util_math_compensated_sum_instances(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
@@ -179,6 +182,7 @@ PYBIND11_MODULE( genesis, root_module )
         { "genesis", "util" },
         { "genesis::util", "bit" },
         { "genesis::util", "color" },
+        { "genesis::util", "container" },
         { "genesis::util", "core" },
         { "genesis::util", "io" },
         { "genesis::util", "math" },
@@ -237,5 +241,6 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_util_tool_hash_sha1( M );
     bind_genesis_util_tool_hash_sha256( M );
     bind_genesis_util_tool_timer( M );
+    bind_genesis_util_container_bitpacked_vector_instances( M );
     bind_genesis_util_math_compensated_sum_instances( M );
 }

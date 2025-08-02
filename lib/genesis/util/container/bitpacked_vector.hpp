@@ -36,6 +36,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -68,7 +69,7 @@ namespace container {
  *
  *   - `U`: The underlying uint type, `uint64_t` by default. Values are packed into a vector of this
  *     type, and extracted from there. Unless another uint type is being used as the external
- *     data type `T`, this can be kept at its default.
+ *     data type `T`, this can be kept at its default. Alternatively, use another `uint` type.
  *   - `T`: The external uint type that we want to set and get. This cannot have a wider bit width
  *     than `U`, but smaller if needed (although that does not do much, except for helping with
  *     the casting for downstream).
@@ -105,6 +106,11 @@ public:
         // Calculate the number of U integers needed to store the required number of elements
         size_t const vec_size = ( bit_width_ * size_ + STORAGE_BITS - 1 ) / STORAGE_BITS;
         data_.resize( vec_size, 0 );
+
+        // Efficiency caches
+        is_bit_aligned_ = std::is_same<T, U>::value && bit_width_ == STORAGE_BITS;
+        mask_ = ( U{1} << bit_width_ ) - 1;
+        assert( mask_ != 0 );
     }
 
     ~BitpackedVector() = default;
@@ -128,9 +134,9 @@ public:
             throw std::out_of_range( "Index out of bounds" );
         }
 
-        // If the type T is the same as the storage type, return the element directly for efficiency.
-        // No need for bit shifting in that case.
-        if( std::is_same<T, U>::value && bit_width_ == STORAGE_BITS ) {
+        // If the type T is the same as the storage type, return the element directly
+        // for efficiency. No need for bit shifting in that case.
+        if ( is_bit_aligned_ ) {
             return data_[index];
         }
 
@@ -141,12 +147,12 @@ public:
 
         // Mask to extract the value bits. As this is only executed if the used bit width is smaller
         // than that of the underlying type, the shift never overflows, which we assert.
-        U const mask  = ( U{1} << bit_width_ ) - 1;
-        U value = ( data_[data_index] >> bit_in_word ) & mask;
-        assert( mask != 0 );
+        U value = ( data_[data_index] >> bit_in_word ) & mask_;
 
-        // Handle values that span across the boundary of two storage units
+        // Handle values that span across the boundary of two storage units.
+        // This can only happen if the indexed entry is not in the last word.
         if( bit_in_word + bit_width_ > STORAGE_BITS ) {
+            assert( data_index + 1 < data_.size() );
             size_t const bit_in_next_word = ( bit_in_word + bit_width_ ) - STORAGE_BITS;
             assert( bit_in_next_word < bit_width_ );
             U const next_mask = (( U{1} << bit_in_next_word ) - 1 );
@@ -168,7 +174,7 @@ public:
         }
 
         // If the type T is the same as the storage type, set the element directly for efficiency.
-        if( std::is_same<T, U>::value && bit_width_ == STORAGE_BITS ) {
+        if ( is_bit_aligned_ ) {
             data_[index] = static_cast<U>(value);
             return;
         }
@@ -178,7 +184,7 @@ public:
         if( value >= ( U{1} << bit_width_ )) {
             throw std::invalid_argument(
                 "Value " + std::to_string( value ) + " out of bounds for " +
-                std::to_string( STORAGE_BITS ) + " bit storage"
+                std::to_string( bit_width_ ) + " bit storage"
             );
         }
 
@@ -189,19 +195,20 @@ public:
 
         // Mask to clear and set the value. As before, we only execute this when the bid width
         // is smaller that that of U, so that the shifting does not overflow.
-        U const mask = ( U{1} << bit_width_ ) - 1;
-        data_[data_index] &= ~( mask << bit_in_word );
-        data_[data_index] |= ( static_cast<U>(value) & mask ) << bit_in_word;
-        assert( mask != 0 );
-        assert(( static_cast<U>(value) & mask ) == static_cast<U>(value) );
+        data_[data_index] &= ~( mask_ << bit_in_word );
+        data_[data_index] |= ( static_cast<U>(value) & mask_ ) << bit_in_word;
+        assert( mask_ != 0 );
+        assert(( static_cast<U>(value) & mask_ ) == static_cast<U>(value) );
 
-        // Handle values that span across the boundary of two storage units
+        // Handle values that span across the boundary of two storage units.
+        // This can only happen if the indexed entry is not in the last word.
         if( bit_in_word + bit_width_ > STORAGE_BITS ) {
             size_t const bit_in_next_word = (bit_in_word + bit_width_) - STORAGE_BITS;
             U const next_mask = (( U{1} << bit_in_next_word ) - 1 );
             assert( next_mask != 0 );
             U const shifted_value = (static_cast<U>(value) >> (bit_width_ - bit_in_next_word));
 
+            assert( data_index + 1 < data_.size() );
             data_[data_index + 1] &= ~(( U{1} << bit_in_next_word ) - 1 );
             data_[data_index + 1] |= shifted_value & next_mask;
         }
@@ -242,6 +249,9 @@ private:
     size_t bit_width_;
     std::vector<U> data_;
 
+    // Caches
+    bool is_bit_aligned_;
+    U mask_;
 };
 
 } // namespace container

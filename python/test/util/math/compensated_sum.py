@@ -29,7 +29,7 @@ from genesis.genesis import util
 
 class TestGenesisutilMathCompensatedSum(unittest.TestCase):
     def test_kahan_sum(self):
-        s = util.math.CompensatedSum_genesis_util_math_KahanSummation_t()
+        s = util.math.KahanSum()
         for i in range(0, 100):
             s += 0.1
             # s.add(0.1)
@@ -37,7 +37,7 @@ class TestGenesisutilMathCompensatedSum(unittest.TestCase):
         self.assertEqual( float(s), 10.0 )
 
     def test_neumaier_sum(self):
-        s = util.math.CompensatedSum_genesis_util_math_NeumaierSummation_t()
+        s = util.math.NeumaierSum()
         for i in range(0, 100):
             s += 0.1
             # s.add(0.1)
@@ -45,7 +45,7 @@ class TestGenesisutilMathCompensatedSum(unittest.TestCase):
         self.assertEqual( float(s), 10.0 )
 
     def test_klein_sum(self):
-        s = util.math.CompensatedSum_genesis_util_math_KleinSummation_t()
+        s = util.math.KleinSum()
         for i in range(0, 100):
             s += 0.1
             # s.add(0.1)

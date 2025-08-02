@@ -464,7 +464,7 @@
 //   container
 // ---------------------------------------------------------------------
 
-// #include <genesis/util/container/bitpacked_vector.hpp>
+#include <genesis/util/container/bitpacked_vector.hpp>
 // #include <genesis/util/container/dataframe.hpp>
 // #include <genesis/util/container/dataframe/operator.hpp>
 // #include <genesis/util/container/dataframe/reader.hpp>
