@@ -28,8 +28,9 @@ import pathlib
 import re
 import shutil
 import subprocess
+import sysconfig
 from typing import List, Set, Union, Dict
-# from distutils.sysconfig import get_python_inc
+from distutils.sysconfig import get_python_inc
 
 # Change to the genesis main directory, so that this script can be called from anywhere.
 # All file paths below are then relative to the main directory.
@@ -40,13 +41,15 @@ print("In", os.getcwd())
 #   Settings
 # ================================================================================================
 
-# For ease of development, and to avoid hard-coded paths,
-# we assume binder to be symlinked from the python directory as `binder`.
+# For ease of development, and to avoid hard-coded paths, we assume the binder executable
+# to be symlinked from the python directory as `binder`.
 
-# Paths to binder, pybind, and python
+# Paths to binder, pybind, and python.
+# By default ('auto'), we determine the Python incldue dir based on system headers.
+# If that does not work, specify the path here directly, such as '/usr/include/python3.12'
 binder_executable = './python/binder'
-pybind_source     = './external/pybind11'
-# python_directory  = '/usr/include/python3.12'
+pybind_inc_dir    = './external/pybind11/include'
+python_inc_dir    = 'auto'
 
 # Other include directories. Those might depend on the submodule setup,
 # and hence is a bit brittle, but let's keep it for now.
@@ -56,14 +59,14 @@ other_includes = ['./build/generated/include']
 
 # Paths to genesis code
 genesis_source   = './lib'
-genesis_includes = ['./python/custom', './python', './lib']
+genesis_includes = ['./python/custom', './lib']
 
 # Do we want to generate the all_includes.hpp file?
 # We have deactivated this for now, as it does not seem to play nice with binder,
 # messing up the paths so that some binding files end up in "unknown".
 # Until we have figured out why, we instead add headers manually one by one,
 # so that we have control over what is breaking when.
-# When deactivate, we instead compare the retrieved list with the existing file,
+# When deactivated, we instead compare the retrieved list with the existing file,
 # and report any headers that are missing, so that they can be added manually.
 make_all_includes_file = False
 
@@ -188,6 +191,46 @@ def sync_dirs(src: str, dst: str) -> None:
             src=os.path.join(src, subdir),
             dst=os.path.join(dst, subdir)
         )
+
+# ================================================================================================
+#   Find Python INclude
+# ================================================================================================
+
+def find_python_include():
+    """
+    Return the path to the Python C-API headers (the directory containing Python.h)
+    for the current interpreter.
+    """
+    # 0) Use user-specified path if given
+    if python_inc_dir != 'auto':
+        return python_inc_dir
+
+    # 1) Try the stdlib sysconfig path
+    inc = sysconfig.get_path('include')
+    if os.path.isfile(os.path.join(inc, 'Python.h')):
+        return inc
+
+    # 2) Fallback to distutils
+    inc2 = get_python_inc()
+    if os.path.isfile(os.path.join(inc2, 'Python.h')):
+        return inc2
+
+    # 3) Last resort: shell out to python3-config if available
+    try:
+        import subprocess, shlex
+        out = subprocess.check_output(shlex.split('python3-config --includes'), text=True)
+        # e.g. "-I/usr/include/python3.12 -I/usr/include/python3.12"
+        for token in out.split():
+            if token.startswith('-I'):
+                candidate = token[2:]
+                if os.path.isfile(os.path.join(candidate, 'Python.h')):
+                    return candidate
+    except Exception:
+        pass
+
+    raise FileNotFoundError(
+        "Could not locate Python.h. Tried sysconfig, distutils, and python3-config."
+    )
 
 # ================================================================================================
 #   Collect Headers
@@ -493,9 +536,10 @@ def make_bindings_code(target_dir):
     for other_include in other_includes:
         command += [f'-I{other_include}']
 
-    # Add the basic includes for pybind last as well.
-    command += [f'-I{pybind_source}']
-    # command += [f'-I{python_directory}']
+    # Add the basic includes for pybind and python last as well.
+    py_inc_dir = find_python_include()
+    command += [f'-I{pybind_inc_dir}']
+    command += [f'-I{py_inc_dir}']
 
     # Execute binder!
     print('Binder command:', ' '.join(command))

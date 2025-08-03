@@ -23,13 +23,29 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-// We use this header as input to Binder, to pull in additonal headers
-// that instantiate templates as needed.
-// The headers here could be part of the all_includes header as well,
-// but keeping it separate seems a bit cleaner.
-// For even more order and modularity, we here simply pull in per-namespace
-// headers, so that we can keep the scope of each of them relatively small.
+// We use this header in other headers of our custom bindings code,
+// in places were generic pybind-related additional funcitonality is needed.
+// This way, we only need to define them once here.
 
-#include <genesis/util/container/bitpacked_vector_instances.hpp>
-#include <genesis/util/container/mru_cache_instances.hpp>
-#include <genesis/util/math/compensated_sum_instances.hpp>
+#include <pybind11/pybind11.h>
+
+// Provide a hash and equality for pybind11::object so it can be used as, e.g, a hash map key.
+namespace std
+{
+    template<> struct hash<pybind11::object>
+    {
+        size_t operator()(pybind11::object const &o) const noexcept
+        {
+            // defer to Python's __hash__
+            return (size_t) pybind11::hash(o);
+        }
+    };
+    template<> struct equal_to<pybind11::object>
+    {
+        bool operator()(pybind11::object const &a, pybind11::object const &b) const noexcept
+        {
+            // defer to Python's equality
+            return a.equal(b);
+        }
+    };
+}

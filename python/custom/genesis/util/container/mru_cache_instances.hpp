@@ -23,13 +23,20 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-// We use this header as input to Binder, to pull in additonal headers
-// that instantiate templates as needed.
-// The headers here could be part of the all_includes header as well,
-// but keeping it separate seems a bit cleaner.
-// For even more order and modularity, we here simply pull in per-namespace
-// headers, so that we can keep the scope of each of them relatively small.
+#include <genesis/util/container/mru_cache.hpp>
 
-#include <genesis/util/container/bitpacked_vector_instances.hpp>
-#include <genesis/util/container/mru_cache_instances.hpp>
-#include <genesis/util/math/compensated_sum_instances.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind_add_ons.hpp>
+
+namespace genesis {
+namespace util {
+namespace container {
+
+// Explicit instantiations for Python objects, so that any type works in Python.
+// Uses the pybind11::object hash and equal functions provided in pybind_add_ons.hpp
+
+template class MruCache<pybind11::object, pybind11::object>;
+
+} // namespace container
+} // namespace util
+} // namespace genesis
