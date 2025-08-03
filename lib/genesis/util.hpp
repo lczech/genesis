@@ -80,7 +80,6 @@
 #include <genesis/util/container/matrix/simple_reader.hpp>
 #include <genesis/util/container/matrix/writer.hpp>
 #include <genesis/util/container/mru_cache.hpp>
-#include <genesis/util/container/optional.hpp>
 #include <genesis/util/container/range.hpp>
 #include <genesis/util/container/transform_iterator.hpp>
 #include <genesis/util/core/algorithm.hpp>

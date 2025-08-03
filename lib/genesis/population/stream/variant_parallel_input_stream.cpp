@@ -705,7 +705,7 @@ void VariantParallelInputStream::Iterator::update_variants_()
 
         // If the iterator is already finished, we store an empty optional variant.
         if( ! iterator ) {
-            variants_[i] = genesis::util::container::nullopt;
+            variants_[i] = std::nullopt;
             continue;
         }
 
@@ -757,7 +757,7 @@ void VariantParallelInputStream::Iterator::update_variants_()
                 iterator->chromosome, iterator->position, current_locus_, parent_->sequence_dict_
             ));
 
-            variants_[i] = genesis::util::container::nullopt;
+            variants_[i] = std::nullopt;
         }
     }
 }
