@@ -127,12 +127,6 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Shortcut operator for add(), which allows an even more fluent interface.
-     */
-    self_type& operator << ( SvgObject const& object );
-    self_type& operator << ( SvgObject&&      object );
-
     bool empty() const
     {
         return content_.empty();

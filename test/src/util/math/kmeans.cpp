@@ -136,9 +136,9 @@ TEST( Math, Kmeans )
             }
         }
 
-        doc << SvgCircle(
+        doc.add( SvgCircle(
             data[i][0], data[i][1], 0.1, stroke, SvgFill( c )
-        );
+        ));
     }
 
     std::ostringstream out;

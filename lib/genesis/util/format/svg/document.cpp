@@ -170,16 +170,6 @@ SvgDocument& SvgDocument::add( SvgObject&& object )
     return *this;
 }
 
-SvgDocument& SvgDocument::operator <<( SvgObject const& object )
-{
-    return add( object );
-}
-
-SvgDocument& SvgDocument::operator <<( SvgObject&& object )
-{
-    return add( std::move( object ));
-}
-
 std::string SvgDocument::overflow_to_string( SvgDocument::Overflow value )
 {
     // switch( value ) {

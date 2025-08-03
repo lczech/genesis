@@ -117,11 +117,11 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_gradient_(
 
     // Make group
     SvgGroup group;
-    group << SvgRect(
+    group.add( SvgRect(
         0.0, 0.0, settings.width, settings.height,
         SvgStroke( genesis::util::color::Color( 0.0, 0.0, 0.0 ), settings.line_width ),
         SvgFill( gradient_id )
-    );
+    ));
 
     return { grad, group };
 }
@@ -191,19 +191,19 @@ static std::pair<SvgGradientLinear, SvgGroup> make_svg_color_bar_discrete_(
         }
 
         // Make the box.
-        group << SvgRect(
+        group.add( SvgRect(
             x, y, w, h,
             SvgStroke( SvgStroke::Type::kNone ),
             SvgFill( color )
-        );
+        ));
     }
 
     // Add a black line around the bar
-    group << SvgRect(
+    group.add( SvgRect(
         0.0, 0.0, settings.width, settings.height,
         SvgStroke( genesis::util::color::Color( 0.0, 0.0, 0.0 ), settings.line_width ),
         SvgFill( SvgFill::Type::kNone )
-    );
+    ));
 
     return { SvgGradientLinear(), group };
 }
@@ -284,8 +284,8 @@ static void make_svg_color_bar_tickmarks_(
                 genesis::util::color::Color( 0.0, 0.0, 0.0 ),
                 settings.line_width
             );
-            group << SvgLine( line1_p1, line1_p2, stroke );
-            group << SvgLine( line2_p1, line2_p2, stroke );
+            group.add( SvgLine( line1_p1, line1_p2, stroke ));
+            group.add( SvgLine( line2_p1, line2_p2, stroke ));
         }
         if( settings.with_labels ) {
             if( rel_pos == 1.0 && map.clip_over() ) {
@@ -306,7 +306,7 @@ static void make_svg_color_bar_tickmarks_(
             text_s.dominant_baseline = SvgText::DominantBaseline::kMiddle;
             // text_s.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
             // text_s.dy = "0.33em";
-            group << text_s;
+            group.add( text_s );
         }
     };
 
@@ -379,12 +379,12 @@ void make_svg_color_list_entry_(
     std::string const& label,
     SvgGroup& group
 ) {
-    group << SvgRect(
+    group.add( SvgRect(
         0.0, i * 15.0, 10.0, 10.0,
         SvgStroke( SvgStroke::Type::kNone ),
         SvgFill( color )
-    );
-    group << SvgText( label, SvgPoint( 20.0, i * 15.0 + 10.0 ));
+    ));
+    group.add( SvgText( label, SvgPoint( 20.0, i * 15.0 + 10.0 )));
 }
 
 SvgGroup make_svg_color_list(

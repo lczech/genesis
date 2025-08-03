@@ -141,16 +141,16 @@ genesis::util::format::SvgDocument CircularLayout::to_svg_document_() const
             auto const dist_start_y = prnt_data.distance * radius * sin( node_spreading );
 
             // Draw lines
-            tree_lines << SvgPath(
+            tree_lines.add( SvgPath(
                 { svg_arc( 0, 0, prnt_data.distance * radius, start_a, end_a ) },
                 spreading_stroke,
                 SvgFill( SvgFill::Type::kNone )
-            );
-            tree_lines << SvgLine(
+            ));
+            tree_lines.add( SvgLine(
                 dist_start_x, dist_start_y,
                 node_x, node_y,
                 distance_stroke
-            );
+            ));
 
             // If there is an edge shape, draw it to the middle of the edge
             if( ! edge_data.shape.empty() ) {
@@ -159,7 +159,7 @@ genesis::util::format::SvgDocument CircularLayout::to_svg_document_() const
 
                 auto es = edge_data.shape;
                 es.transform.append( SvgTransform::Translate( shape_x, shape_y ));
-                edge_shapes << std::move( es );
+                edge_shapes.add( std::move( es ));
             }
 
         } else {
@@ -181,12 +181,12 @@ genesis::util::format::SvgDocument CircularLayout::to_svg_document_() const
         if( align_labels() ) {
             label_dist = radius + extra_spacer();
 
-            taxa_lines << SvgLine(
+            taxa_lines.add( SvgLine(
                 node_x, node_y,
                 label_dist * cos( node_spreading ),
                 label_dist * sin( node_spreading ),
                 node_data.spacer_stroke
-            );
+            ));
         }
 
         // If the node has a name, print it.
@@ -222,7 +222,7 @@ genesis::util::format::SvgDocument CircularLayout::to_svg_document_() const
                 ));
             }
 
-            taxa_names << std::move( label );
+            taxa_names.add( std::move( label ));
             // max_text_len = std::max( max_text_len, node_data.name.size() );
         }
 
@@ -230,7 +230,7 @@ genesis::util::format::SvgDocument CircularLayout::to_svg_document_() const
         if( ! node_data.shape.empty() ) {
             auto ns = node_data.shape;
             ns.transform.append( SvgTransform::Translate( node_x, node_y ));
-            node_shapes << std::move( ns );
+            node_shapes.add( std::move( ns ));
         }
     }
 
@@ -243,18 +243,18 @@ genesis::util::format::SvgDocument CircularLayout::to_svg_document_() const
     // doc.margin = SvgMargin( marg );
 
     // We are sure that we won't use the groups again, so let's move them!
-    doc << std::move( tree_lines );
+    doc.add( std::move( tree_lines ));
     if( ! taxa_lines.empty() ) {
-        doc << std::move( taxa_lines );
+        doc.add( std::move( taxa_lines ));
     }
     if( ! taxa_names.empty() ) {
-        doc << std::move( taxa_names );
+        doc.add( std::move( taxa_names ));
     }
     if( ! edge_shapes.empty() ) {
-        doc << std::move( edge_shapes );
+        doc.add( std::move( edge_shapes ));
     }
     if( ! node_shapes.empty() ) {
-        doc << std::move( node_shapes );
+        doc.add( std::move( node_shapes ));
     }
     return doc;
 }

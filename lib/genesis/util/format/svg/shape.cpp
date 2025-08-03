@@ -342,11 +342,6 @@ SvgPolyline& SvgPolyline::add( SvgPoint p )
     return *this;
 }
 
-SvgPolyline& SvgPolyline::operator <<( SvgPoint p )
-{
-    return add( p );
-}
-
 SvgBox SvgPolyline::bounding_box() const
 {
     return svg_bounding_box( points, transform );
@@ -419,11 +414,6 @@ SvgPolygon& SvgPolygon::add( SvgPoint p )
     return *this;
 }
 
-SvgPolygon& SvgPolygon::operator <<( SvgPoint p )
-{
-    return add( p );
-}
-
 SvgBox SvgPolygon::bounding_box() const
 {
     return svg_bounding_box( points, transform );
@@ -485,15 +475,16 @@ SvgPath::SvgPath(
 //     Members
 // -------------------------------------------------------------
 
-SvgPath& SvgPath::add( std::string elem )
+SvgPath& SvgPath::add( std::string const& elem )
 {
     elements.push_back( elem );
     return *this;
 }
 
-SvgPath& SvgPath::operator <<( std::string elem )
+SvgPath& SvgPath::add( std::string&& elem )
 {
-    return add( elem );
+    elements.push_back( std::move( elem ));
+    return *this;
 }
 
 SvgBox SvgPath::bounding_box() const

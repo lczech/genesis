@@ -358,8 +358,6 @@ public:
     self_type& add( double x, double y );
     self_type& add( SvgPoint p );
 
-    self_type& operator <<( SvgPoint p );
-
     SvgBox bounding_box() const;
 
     void write(
@@ -427,8 +425,6 @@ public:
     self_type& add( double x, double y );
     self_type& add( SvgPoint p );
 
-    self_type& operator <<( SvgPoint p );
-
     SvgBox bounding_box() const;
 
     void write(
@@ -493,9 +489,8 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    self_type& add( std::string elem );
-
-    self_type& operator <<( std::string elem );
+    self_type& add( std::string const& elem );
+    self_type& add( std::string&& elem );
 
     /**
      * @brief Compute the bounding box of the path.

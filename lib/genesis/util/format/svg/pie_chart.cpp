@@ -106,11 +106,11 @@ SvgGroup make_svg_pie_chart(
         // We create a pie segment as a path, moving to the origin, then an arc with the
         // specified angles, then back to the origin. The svg_arc function takes care of that.
         assert( i < colors.size() );
-        result << SvgPath(
+        result.add( SvgPath(
             {{ svg_arc( 0, 0, radius, start_a, end_a, true ) }},
             SvgStroke( SvgStroke::Type::kNone ),
             SvgFill( colors[ i ] )
-        );
+        ));
     }
 
     return result;

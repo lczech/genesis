@@ -125,16 +125,6 @@ SvgGroup& SvgGroup::reverse()
     return *this;
 }
 
-SvgGroup& SvgGroup::operator <<( SvgObject const& object )
-{
-    return add( object );
-}
-
-SvgGroup& SvgGroup::operator <<( SvgObject&& object )
-{
-    return add( std::move( object ));
-}
-
 } // namespace format
 } // namespace util
 } // namespace genesis

@@ -62,43 +62,50 @@ TEST( Svg, Basics )
     auto line = SvgLine( 0, 0, 100, 100 );
     line.stroke.color = color_from_bytes(128, 192, 255);
     line.stroke.width = 3.0;
-    doc.add( line );
+    doc.add( std::move( line ));
 
     auto rect = SvgRect( 20, 20, 60, 60 );
     rect.stroke.color = color_from_bytes( 192, 128, 0 );
     rect.fill.color = color_from_bytes( 255, 192, 0 );
     rect.fill.color.a( 0.3 );
-    doc << rect;
+    doc.add( std::move( rect ));
 
     auto circle = SvgCircle( 80, 80, 10 );
     circle.stroke.color = color_from_bytes( 128, 255, 0 );
     circle.fill.color = color_from_bytes( 192, 255, 128);
     circle.fill.color.a( 0.5 );
-    doc << circle;
+    doc.add( std::move( circle ));
 
     auto ellipse = SvgEllipse( 80, 20, 20, 10 );
     ellipse.stroke.color = color_from_bytes( 192, 128, 0 );
     ellipse.fill.color = color_from_bytes( 255, 192, 128);
     ellipse.fill.color.a( 0.8 );
-    doc << ellipse;
+    doc.add( std::move( ellipse ));
 
     auto poly = SvgPolygon();
     poly.stroke.color = color_from_bytes( 255, 192, 0 );
     poly.fill.color = color_from_bytes( 255, 255, 0);
     poly.fill.color.a( 0.6 );
-    poly << SvgPoint( 40, 00 ) << SvgPoint( 50, 20 ) << SvgPoint( 70, 10 ) << SvgPoint( 60, 30 );
-    poly << SvgPoint( 80, 40 ) << SvgPoint( 60, 50 ) << SvgPoint( 70, 70 ) << SvgPoint( 50, 60 );
-    poly << SvgPoint( 40, 80 ) << SvgPoint( 30, 60 ) << SvgPoint( 10, 70 ) << SvgPoint( 20, 50 );
-    poly << SvgPoint( 00, 40 ) << SvgPoint( 20, 30 ) << SvgPoint( 10, 10 ) << SvgPoint( 30, 20 );
-    doc << poly;
+    poly.add( SvgPoint( 40, 00 )).add( SvgPoint( 50, 20 ));
+    poly.add( SvgPoint( 70, 10 )).add( SvgPoint( 60, 30 ));
+    poly.add( SvgPoint( 80, 40 )).add( SvgPoint( 60, 50 ));
+    poly.add( SvgPoint( 70, 70 )).add( SvgPoint( 50, 60 ));
+    poly.add( SvgPoint( 40, 80 )).add( SvgPoint( 30, 60 ));
+    poly.add( SvgPoint( 10, 70 )).add( SvgPoint( 20, 50 ));
+    poly.add( SvgPoint( 00, 40 )).add( SvgPoint( 20, 30 ));
+    poly.add( SvgPoint( 10, 10 )).add( SvgPoint( 30, 20 ));
+    doc.add( std::move( poly ));
 
     auto text = SvgText( "Hello World! ygp", SvgPoint( 20, 120 ), SvgFont( 15 ) );
     auto bb = text.bounding_box();
-    doc << SvgRect( bb.top_left, bb.size(), SvgStroke( color_from_bytes( 255, 128, 128 ) ), SvgFill( Color() ));
-    doc << text;
+    doc.add( SvgRect(
+        bb.top_left, bb.size(),
+        SvgStroke( color_from_bytes( 255, 128, 128 ) ), SvgFill( Color() )
+    ));
+    doc.add( text );
 
-    // doc << SvgLine( 20, 120, 20 + 12.0*10.0/2.0, 120 );
-    // doc << SvgLine( 20, 120, 20, 120 - 10.0/1.2 );
+    // doc.add( SvgLine( 20, 120, 20 + 12.0*10.0/2.0, 120 ));
+    // doc.add( SvgLine( 20, 120, 20, 120 - 10.0/1.2 ));
 
     doc.margin = SvgMargin( 10, 30 );
 
@@ -122,7 +129,7 @@ TEST( Svg, Gradient )
     auto rect = SvgRect( 0, 0, 10, 100 );
     rect.stroke.color = Color( 0, 0, 0 );
     rect.fill = SvgFill( "bpb" );
-    doc << rect;
+    doc.add( rect );
 
     doc.margin = SvgMargin( 10, 10 );
 
@@ -161,7 +168,7 @@ TEST( Svg, ColorBar )
 
     auto const pal_pair = make_svg_color_bar( pal, map, norm );
     doc.defs.push_back( pal_pair.first );
-    doc << pal_pair.second;
+    doc.add( pal_pair.second );
 
     std::ostringstream out;
     doc.write( out );
@@ -188,7 +195,7 @@ TEST( Svg, ColorBarBoundaryNorm )
 
     auto const pal_pair = make_svg_color_bar( pal, map, norm );
     doc.defs.push_back( pal_pair.first );
-    doc << pal_pair.second;
+    doc.add( pal_pair.second );
 
     std::ostringstream out;
     doc.write( out );
@@ -232,7 +239,7 @@ TEST( Svg, Matrix )
     // settings.label_template.font.size = 8.0;
 
     // Write to test file.
-    doc << make_svg_matrix( mat, settings, row_labels, col_labels );
+    doc.add( make_svg_matrix( mat, settings, row_labels, col_labels ));
     doc.margin.left += 20.0;
     doc.margin.top += 20.0;
 

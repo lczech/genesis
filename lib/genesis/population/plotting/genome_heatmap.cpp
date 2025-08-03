@@ -59,19 +59,19 @@ void GenomeHeatmap::add(
         switch( text_position_ ) {
             case TextPosition::kTop: {
                 txt.position = SvgPoint{ 0.0, current_y_ };
-                document_ << txt;
+                document_.add( txt );
                 current_y_ += text_template_.font.size + 5.0;
                 break;
             }
             case TextPosition::kLeft: {
                 txt.position = SvgPoint{ -100.0, current_y_ };
-                document_ << txt;
+                document_.add( txt );
                 break;
             }
             case TextPosition::kRight: {
                 auto const r = static_cast<double>( heatmap.cols() ) * h_scaling_;
                 txt.position = SvgPoint{ r + 10.0, current_y_ };
-                document_ << txt;
+                document_.add( txt );
                 break;
             }
             case TextPosition::kBottom: {
@@ -96,19 +96,19 @@ void GenomeHeatmap::add(
         }
     );
     img.rendering = SvgImage::ImageRendering::kPixelated;
-    document_ << std::move( img );
+    document_.add( std::move( img ));
 
     // If we have other objects at the same position provided, add them too, and move accordingly.
     if( color_bar.second ) {
         auto const xpos = 30.0 + static_cast<double>( heatmap.cols() ) * h_scaling_;
         color_bar.second.transform.append( SvgTransform::Translate( xpos, current_y_ ));
-        document_ << std::move( color_bar.second );
+        document_.add( std::move( color_bar.second ));
         document_.defs.push_back( color_bar.first );
     }
     if( y_axis ) {
         auto const ypos = current_y_ + static_cast<double>( heatmap.rows() ) * v_scaling_;
         y_axis.transform.append( SvgTransform::Translate( 0.0, ypos ));
-        document_ << std::move( y_axis );
+        document_.add( std::move( y_axis ));
     }
     if( x_axis ) {
         // We have added the other two extra groups to the doc first,
@@ -116,7 +116,7 @@ void GenomeHeatmap::add(
         auto const ypos = current_y_ + static_cast<double>( heatmap.rows() ) * v_scaling_;
         x_axis.transform.append( SvgTransform::Translate( 0.0, ypos ));
         current_y_ += x_axis.bounding_box().height();
-        document_ << std::move( x_axis );
+        document_.add( std::move( x_axis ));
     }
 
     // Move to below the added image
@@ -126,7 +126,7 @@ void GenomeHeatmap::add(
     if( ! label.empty() && text_position_ == TextPosition::kBottom ) {
         current_y_ += text_template_.font.size + 5.0;
         txt.position = SvgPoint{ 0.0, current_y_ };
-        document_ << txt;
+        document_.add( txt );
     }
     current_y_ += 20.0;
 }

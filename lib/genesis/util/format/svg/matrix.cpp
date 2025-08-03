@@ -88,14 +88,14 @@ SvgGroup make_svg_matrix(
                 h += settings.height_overlap;
             }
 
-            group << SvgRect(
+            group.add( SvgRect(
                 x, y, w, h,
                 SvgStroke( SvgStroke::Type::kNone ),
                 SvgFill( mat( r, c ))
-            );
+            ));
         }
     }
-    group << std::move( rct_gr );
+    group.add( std::move( rct_gr ));
 
     // Fill the row labels, if needed.
     if( ! row_labels.empty() ) {
@@ -109,9 +109,9 @@ SvgGroup make_svg_matrix(
             double const x = - settings.pixel_width / 2.0;
             double const y = ( i * settings.pixel_height ) + ( settings.pixel_height / 2.0 );
             label.transform.append( SvgTransform::Translate( x, y ));
-            row_gr << std::move( label );
+            row_gr.add( std::move( label ));
         }
-        group << std::move( row_gr );
+        group.add( std::move( row_gr ));
     }
 
     // Fill the col labels, if needed.
@@ -127,9 +127,9 @@ SvgGroup make_svg_matrix(
             double const y = - settings.pixel_height / 2.0;
             label.transform.append( SvgTransform::Translate( x, y ));
             label.transform.append( SvgTransform::Rotate( settings.column_label_rotation ));
-            col_gr << std::move( label );
+            col_gr.add( std::move( label ));
         }
-        group << std::move( col_gr );
+        group.add( std::move( col_gr ));
     }
 
     return group;

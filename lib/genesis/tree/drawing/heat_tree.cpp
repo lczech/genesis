@@ -244,7 +244,7 @@ void heat_tree_add_tree_color_scale_(
         if( ! svg_scale.first.empty() ) {
             svg_doc.defs.push_back( svg_scale.first );
         }
-        svg_doc << std::move( svg_scale.second );
+        svg_doc.add( std::move( svg_scale.second ));
     }
 
     // The height of the tree (plus some space) is what we use  as the top coordinate for the
@@ -275,7 +275,7 @@ void heat_tree_add_heat_matrix_svg_(
     ));
     auto const svg_matrix_left = svg_doc.bounding_box().width() + 20.0;
     auto const svg_matrix_width = svg_matrix.bounding_box().width();
-    svg_doc << std::move( svg_matrix );
+    svg_doc.add( std::move( svg_matrix ));
     svg_doc.margin.right += svg_matrix_width + 200;
 
     // Lastly, set the needed grid params, so that downstream functions can use them.
@@ -316,7 +316,7 @@ void heat_tree_add_heat_matrix_bmp_(
         }
     );
     img.rendering = SvgImage::ImageRendering::kPixelated;
-    svg_doc << std::move( img );
+    svg_doc.add( std::move( img ));
     svg_doc.margin.right += static_cast<double>( matrix.cols() ) * pixel_width + 200;
 
     // Lastly, set the needed grid params, so that downstream functions can use them.
@@ -353,7 +353,7 @@ void heat_tree_add_matrix_color_scale_(
         if( ! svg_scale.first.empty() ) {
             svg_doc.defs.push_back( svg_scale.first );
         }
-        svg_doc << std::move( svg_scale.second );
+        svg_doc.add( std::move( svg_scale.second ));
     }
 }
 

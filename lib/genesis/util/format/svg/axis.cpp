@@ -79,7 +79,7 @@ SvgGroup make_svg_axis(
     }
     auto axis_line = SvgLine( 0.0, 0.0, ax_end_x, ax_end_y );
     axis_line.stroke.line_cap = SvgStroke::LineCap::kSquare;
-    group << std::move( axis_line );
+    group.add( std::move( axis_line ));
 
     // Draw all axis ticks
     for( auto const& label : labels ) {
@@ -126,7 +126,7 @@ SvgGroup make_svg_axis(
         // Draw the lines and place the text
         auto tick_line = SvgLine( line_p1, line_p2 );
         tick_line.stroke.line_cap = SvgStroke::LineCap::kSquare;
-        group << std::move( tick_line );
+        group.add( std::move( tick_line ));
         auto label_text = SvgText( label.second );
         label_text.font.size = settings.label_text_size;
         label_text.transform.append( SvgTransform::Translate( text_p ));
@@ -142,7 +142,7 @@ SvgGroup make_svg_axis(
         // if( settings.position == SvgAxisSettings::Position::kBottom ) {
         //     label_text.transform.append( SvgTransform::Rotate( 90.0 ));
         // }
-        group << std::move( label_text );
+        group.add( std::move( label_text ));
     }
 
     // Move the group by the offset, and add the name if given. We always create the name,
@@ -195,7 +195,7 @@ SvgGroup make_svg_axis(
         }
     }
     if( ! name.empty() ) {
-        group << std::move( name_text );
+        group.add( std::move( name_text ));
     }
     return group;
 }
