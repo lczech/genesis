@@ -56,6 +56,10 @@ static_assert(
     std::is_same_v<unsigned int, uint32_t>,
     "Mismatching int types in BitpackedVector instantiation"
 );
+static_assert(
+    std::is_same_v<unsigned long, uint64_t>,
+    "Mismatching int types in BitpackedVector instantiation"
+);
 
 } // namespace container
 } // namespace util

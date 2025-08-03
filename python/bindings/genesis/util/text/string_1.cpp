@@ -118,12 +118,12 @@ void bind_genesis_util_text_string_1(
     // genesis::util::text::split_into_vector(const std::string &, const class
     // std::function<unsigned long (const std::string &, unsigned long)> &, const unsigned long,
     // const bool, class std::vector<std::string > &) file:genesis/util/text/string.hpp line:313
-    // function-signature: void
-    // genesis::util::text::split_into_vector<std::string,std::string>(const std::string &, const
-    // class std::function<unsigned long (const std::string &, unsigned long)> &, const unsigned
-    // long, const bool, class std::vector<std::string > &)(const std::string &, const class
-    // std::function<unsigned long (const std::string &, unsigned long)> &, const unsigned long,
-    // const bool, class std::vector<std::string > &) file:genesis/util/text/string.hpp line:313
+    // function-signature: void genesis::util::text::split_into_vector<std::string,
+    // std::string>(const std::string &, const class std::function<unsigned long (const std::string
+    // &, unsigned long)> &, const unsigned long, const bool, class std::vector<std::string >
+    // &)(const std::string &, const class std::function<unsigned long (const std::string &,
+    // unsigned long)> &, const unsigned long, const bool, class std::vector<std::string > &)
+    // file:genesis/util/text/string.hpp line:313
     M( "genesis::util::text" )
         .def(
             "split_into_vector",
@@ -143,14 +143,14 @@ void bind_genesis_util_text_string_1(
     // class std::function<unsigned long (const class std::basic_string_view<char> &, unsigned
     // long)> &, const unsigned long, const bool, class std::vector<class
     // std::basic_string_view<char> > &) file:genesis/util/text/string.hpp line:313
-    // function-signature: void
-    // genesis::util::text::split_into_vector<std::basic_string_view<char>,std::basic_string_view<char>>(const
-    // class std::basic_string_view<char> &, const class std::function<unsigned long (const class
-    // std::basic_string_view<char> &, unsigned long)> &, const unsigned long, const bool, class
-    // std::vector<class std::basic_string_view<char> > &)(const class std::basic_string_view<char>
-    // &, const class std::function<unsigned long (const class std::basic_string_view<char> &,
-    // unsigned long)> &, const unsigned long, const bool, class std::vector<class
-    // std::basic_string_view<char> > &) file:genesis/util/text/string.hpp line:313
+    // function-signature: void genesis::util::text::split_into_vector<std::basic_string_view<char>,
+    // std::basic_string_view<char>>(const class std::basic_string_view<char> &, const class
+    // std::function<unsigned long (const class std::basic_string_view<char> &, unsigned long)> &,
+    // const unsigned long, const bool, class std::vector<class std::basic_string_view<char> >
+    // &)(const class std::basic_string_view<char> &, const class std::function<unsigned long (const
+    // class std::basic_string_view<char> &, unsigned long)> &, const unsigned long, const bool,
+    // class std::vector<class std::basic_string_view<char> > &) file:genesis/util/text/string.hpp
+    // line:313
     M( "genesis::util::text" )
         .def(
             "split_into_vector",
@@ -170,11 +170,10 @@ void bind_genesis_util_text_string_1(
 
     // genesis::util::text::split_into_vector_at_delimiter(const std::string &, const std::string &,
     // const bool, class std::vector<std::string > &) file:genesis/util/text/string.hpp line:422
-    // function-signature: void
-    // genesis::util::text::split_into_vector_at_delimiter<std::string,std::string>(const
-    // std::string &, const std::string &, const bool, class std::vector<std::string > &)(const
-    // std::string &, const std::string &, const bool, class std::vector<std::string > &)
-    // file:genesis/util/text/string.hpp line:422
+    // function-signature: void genesis::util::text::split_into_vector_at_delimiter<std::string,
+    // std::string>(const std::string &, const std::string &, const bool, class
+    // std::vector<std::string > &)(const std::string &, const std::string &, const bool, class
+    // std::vector<std::string > &) file:genesis/util/text/string.hpp line:422
     M( "genesis::util::text" )
         .def(
             "split_into_vector_at_delimiter",
@@ -191,11 +190,11 @@ void bind_genesis_util_text_string_1(
     // genesis::util::text::split_into_vector_at_delimiter(const class std::basic_string_view<char>
     // &, const std::string &, const bool, class std::vector<class std::basic_string_view<char> > &)
     // file:genesis/util/text/string.hpp line:422 function-signature: void
-    // genesis::util::text::split_into_vector_at_delimiter<std::basic_string_view<char>,std::basic_string_view<char>>(const
-    // class std::basic_string_view<char> &, const std::string &, const bool, class
-    // std::vector<class std::basic_string_view<char> > &)(const class std::basic_string_view<char>
-    // &, const std::string &, const bool, class std::vector<class std::basic_string_view<char> > &)
-    // file:genesis/util/text/string.hpp line:422
+    // genesis::util::text::split_into_vector_at_delimiter<std::basic_string_view<char>,
+    // std::basic_string_view<char>>(const class std::basic_string_view<char> &, const std::string
+    // &, const bool, class std::vector<class std::basic_string_view<char> > &)(const class
+    // std::basic_string_view<char> &, const std::string &, const bool, class std::vector<class
+    // std::basic_string_view<char> > &) file:genesis/util/text/string.hpp line:422
     M( "genesis::util::text" )
         .def(
             "split_into_vector_at_delimiter",

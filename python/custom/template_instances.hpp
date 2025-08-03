@@ -1,3 +1,5 @@
+#pragma once
+
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2023-2025 Giannis Reppas and Lucas Czech
