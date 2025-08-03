@@ -153,50 +153,6 @@ const std::vector<Color> color_list_set3_ = {{
 }};
 
 // =================================================================================================
-//     Color Lists Functions
-// =================================================================================================
-
-std::vector<Color> const& color_list_accent()
-{
-    return color_list_accent_;
-}
-
-std::vector<Color> const& color_list_dark2()
-{
-    return color_list_dark2_;
-}
-
-std::vector<Color> const& color_list_paired()
-{
-    return color_list_paired_;
-}
-
-std::vector<Color> const& color_list_pastel1()
-{
-    return color_list_pastel1_;
-}
-
-std::vector<Color> const& color_list_pastel2()
-{
-    return color_list_pastel2_;
-}
-
-std::vector<Color> const& color_list_set1()
-{
-    return color_list_set1_;
-}
-
-std::vector<Color> const& color_list_set2()
-{
-    return color_list_set2_;
-}
-
-std::vector<Color> const& color_list_set3()
-{
-    return color_list_set3_;
-}
-
-// =================================================================================================
 //     Convenience Functions
 // =================================================================================================
 
@@ -259,7 +215,10 @@ std::vector<Color> const& color_list_qualitative( std::string const& palette )
         return color_list_set3_;
     }
 
-    throw std::invalid_argument( "Invalid ColorListQualitative name: '" + palette + "'." );
+    throw std::invalid_argument(
+        "Invalid ColorListQualitative name: '" + palette + "'. Use color_list_qualitative_names() "
+        "to get the list of available qualitative color palettes."
+    );
 }
 
 std::vector<std::string> color_list_qualitative_names()

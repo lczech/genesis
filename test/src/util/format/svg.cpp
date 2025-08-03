@@ -147,8 +147,8 @@ TEST( Svg, ColorBar )
     auto pal = SvgColorBarSettings();
 
     // Nice palette.
-    // pal.palette = ColorPalette( color_list_spectral() );
-    auto map = ColorMap( color_list_spectral() );
+    // pal.palette = ColorPalette( color_list_diverging( ColorListDiverging::kSpectral ) );
+    auto map = ColorMap( color_list_diverging( ColorListDiverging::kSpectral ) );
     auto norm = ColorNormalizationDiverging();
 
     // Even number of colors.
@@ -183,7 +183,7 @@ TEST( Svg, ColorBarBoundaryNorm )
     doc.overflow = SvgDocument::Overflow::kVisible;
 
     // Nice palette.
-    auto map = ColorMap( color_list_viridis() );
+    auto map = ColorMap( color_list_sequential( ColorListSequential::kViridis ) );
     auto norm = ColorNormalizationBoundary();
     norm.boundaries({ 3.0, 6.0, 8.0, 10.0 });
 

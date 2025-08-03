@@ -41,115 +41,112 @@ namespace util {
 namespace color {
 
 // =================================================================================================
-//     Color Lists
+//     Convenience Functions
 // =================================================================================================
 
 /**
- * @brief Color palette `brbg`.
- *
- * Provides a diverging color palette with brown low, white middle, and blue-green high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_brbg();
-
-/**
- * @brief Color palette `piyg`.
- *
- * Provides a diverging color palette with pink low, white middle, and yellow-green high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_piyg();
-
-/**
- * @brief Color palette `prgn`.
- *
- * Provides a diverging color palette with purple low, white middle, and green high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_prgn();
-
-/**
- * @brief Color palette `puor`.
- *
- * Provides a diverging color palette with orange low, white middle, and purple high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_puor();
-
-/**
- * @brief Color palette `rdbu`.
- *
- * Provides a diverging color palette with red low, white middle, and blue high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_rdbu();
-
-/**
- * @brief Color palette `rdgy`.
- *
- * Provides a diverging color palette with red low, white middle, and grey high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_rdgy();
-
-/**
- * @brief Color palette `rdylbu`.
- *
- * Provides a diverging color palette with red low, pale yellow middle, and blue high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_rdylbu();
-
-/**
- * @brief Color palette `rdylgn`.
- *
- * Provides a diverging color palette with red low, pale yellow middle, and green high.
- *
- * @copydetails color_list_spectral()
- */
-std::vector<Color> const& color_list_rdylgn();
-
-/**
-* @brief Color palette `spectral`.
+* @brief Divering color palettes.
 *
-* Provides a diverging rainbow color palette with red low, pale yellow middle, and blue high.
+* List of the diverging color palettes offered by color_list_diverging().
 *
-* This ColorBrewer color palette is adapted from https://github.com/axismaps/colorbrewer and
+* These color palette are adapted from ColorBrewer at https://github.com/axismaps/colorbrewer and
 * https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
 * The original ColorBrewer color specifications and designs were developed by Cynthia Brewer
 * (http://colorbrewer.org/), while their gnuplot equivalets are authored by Anna Schneider,
 * and published under the [Apache-2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
 * See also our @link supplement_acknowledgements_code_reuse_colorbrewer Acknowledgements@endlink.
+*
+* For further color palettes, see ColorListQualitative, ColorListSequential, and ColorListMisc
+* which offer the other types of ColorBrewer lists and some more.
 */
-std::vector<Color> const& color_list_spectral();
-
-// =================================================================================================
-//     Convenience Functions
-// =================================================================================================
-
 enum class ColorListDiverging
 {
+
+    /**
+     * @brief Color palette `brbg`.
+     *
+     * Provides a diverging color palette with brown low, white middle, and blue-green high.
+     */
     kBrbg,
+
+    /**
+     * @brief Color palette `piyg`.
+     *
+     * Provides a diverging color palette with pink low, white middle, and yellow-green high.
+     */
     kPiyg,
+
+    /**
+     * @brief Color palette `prgn`.
+     *
+     * Provides a diverging color palette with purple low, white middle, and green high.
+     */
     kPrgn,
+
+    /**
+     * @brief Color palette `puor`.
+     *
+     * Provides a diverging color palette with orange low, white middle, and purple high.
+     */
     kPuor,
+
+    /**
+     * @brief Color palette `rdbu`.
+     *
+     * Provides a diverging color palette with red low, white middle, and blue high.
+     */
     kRdbu,
+
+    /**
+     * @brief Color palette `rdgy`.
+     *
+     * Provides a diverging color palette with red low, white middle, and grey high.
+     */
     kRdgy,
+
+    /**
+     * @brief Color palette `rdylbu`.
+     *
+     * Provides a diverging color palette with red low, pale yellow middle, and blue high.
+     */
     kRdylbu,
+
+    /**
+     * @brief Color palette `rdylgn`.
+     *
+     * Provides a diverging color palette with red low, pale yellow middle, and green high.
+     */
     kRdylgn,
+
+    /**
+     * @brief Color palette `spectral`.
+     *
+     * Provides a diverging rainbow color palette with red low, pale yellow middle, and blue high.
+     */
     kSpectral
 };
 
+/**
+ * @brief Get a diverging color palette.
+ *
+ * See ColorListDiverging for the available ones.
+ */
 std::vector<Color> const& color_list_diverging( ColorListDiverging palette );
+
+/**
+ * @brief Get a diverging color palette by its name.
+ *
+ * The names used here are the same as in ColorListDiverging, but without the leading `k`,
+ * i.e., using their original name (case insensitive).
+ * For instance, ColorListDiverging::kSpectral can be obtained here simply as `"spectral"`.
+ */
 std::vector<Color> const& color_list_diverging( std::string const& palette );
 
+/**
+ * @brief Get the list of all available diverging color palettes as strings.
+ *
+ * See also ColorListDiverging for the corresponding enum.
+ */
 std::vector<std::string> color_list_diverging_names();
 
 } // namespace color

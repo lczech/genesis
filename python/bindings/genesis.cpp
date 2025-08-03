@@ -60,9 +60,6 @@ void bind_genesis_util_color_function(
 void bind_genesis_util_color_helper(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
-void bind_genesis_util_color_list_qualitative(
-    std::function< pybind11::module&( std::string const& namespace_ ) >& M
-);
 void bind_genesis_util_color_list_sequential(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 );
@@ -217,7 +214,6 @@ PYBIND11_MODULE( genesis, root_module )
     bind_genesis_util_color_color( M );
     bind_genesis_util_color_function( M );
     bind_genesis_util_color_helper( M );
-    bind_genesis_util_color_list_qualitative( M );
     bind_genesis_util_color_list_sequential( M );
     bind_genesis_util_color_name( M );
     bind_genesis_util_text_char( M );

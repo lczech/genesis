@@ -16,7 +16,6 @@ genesis/util/bit/twobit_vector/iterator_deletions.cpp
 genesis/util/color/color.cpp
 genesis/util/color/function.cpp
 genesis/util/color/helper.cpp
-genesis/util/color/list_qualitative.cpp
 genesis/util/color/list_sequential.cpp
 genesis/util/color/name.cpp
 genesis/util/text/char.cpp

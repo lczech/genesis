@@ -153,12 +153,14 @@ std::vector<genesis::util::color::Color> phylo_factor_single_factor_colors(
  */
 struct PhyloFactorCladeColors
 {
+    using Color = genesis::util::color::Color;
+
     /**
      * @brief Color for the "winning" edges of phylo factors.
      *
      * Default is black.
      */
-    genesis::util::color::Color factor_edges = genesis::util::color::Color( 0.0, 0.0, 0.0 );
+    Color factor_edges = Color( 0.0, 0.0, 0.0 );
 
     /**
      * @brief Color for the edges towards the root of the first phylo factor.
@@ -168,7 +170,7 @@ struct PhyloFactorCladeColors
      * the root) splits of each factor, this color can be considered the color for the
      * "remaining" part of the tree.
      */
-    genesis::util::color::Color base_edges = genesis::util::color::Color( 0.8, 0.8, 0.8 );
+    Color base_edges = Color( 0.8, 0.8, 0.8 );
 
     /**
      * @brief Colors for the sets of edges away from the root that have been split by the
@@ -176,7 +178,9 @@ struct PhyloFactorCladeColors
      *
      * That is, each factor gets a color of this list.
      */
-    std::vector<genesis::util::color::Color> clade_colors = genesis::util::color::color_list_set1();
+    std::vector<Color> clade_colors = genesis::util::color::color_list_qualitative(
+        genesis::util::color::ColorListQualitative::kSet1
+    );
 };
 
 /**

@@ -1401,130 +1401,6 @@ const std::vector<Color> color_list_viridis_ = {{
 }};
 
 // =================================================================================================
-//     Color Lists Functions
-// =================================================================================================
-
-std::vector<Color> const& color_list_bupubk()
-{
-    return color_list_bupubk_;
-}
-
-std::vector<Color> const& color_list_blues()
-{
-    return color_list_blues_;
-}
-
-std::vector<Color> const& color_list_bugn()
-{
-    return color_list_bugn_;
-}
-
-std::vector<Color> const& color_list_bupu()
-{
-    return color_list_bupu_;
-}
-
-std::vector<Color> const& color_list_gnbu()
-{
-    return color_list_gnbu_;
-}
-
-std::vector<Color> const& color_list_greens()
-{
-    return color_list_greens_;
-}
-
-std::vector<Color> const& color_list_greys()
-{
-    return color_list_greys_;
-}
-
-std::vector<Color> const& color_list_oranges()
-{
-    return color_list_oranges_;
-}
-
-std::vector<Color> const& color_list_orrd()
-{
-    return color_list_orrd_;
-}
-
-std::vector<Color> const& color_list_pubu()
-{
-    return color_list_pubu_;
-}
-
-std::vector<Color> const& color_list_pubugn()
-{
-    return color_list_pubugn_;
-}
-
-std::vector<Color> const& color_list_purd()
-{
-    return color_list_purd_;
-}
-
-std::vector<Color> const& color_list_purples()
-{
-    return color_list_purples_;
-}
-
-std::vector<Color> const& color_list_rdpu()
-{
-    return color_list_rdpu_;
-}
-
-std::vector<Color> const& color_list_reds()
-{
-    return color_list_reds_;
-}
-
-std::vector<Color> const& color_list_ylgn()
-{
-    return color_list_ylgn_;
-}
-
-std::vector<Color> const& color_list_ylgnbu()
-{
-    return color_list_ylgnbu_;
-}
-
-std::vector<Color> const& color_list_ylorbr()
-{
-    return color_list_ylorbr_;
-}
-
-std::vector<Color> const& color_list_ylorrd()
-{
-    return color_list_ylorrd_;
-}
-
-std::vector<Color> const& color_list_heat()
-{
-    return color_list_heat_;
-}
-
-std::vector<Color> const& color_list_magma()
-{
-    return  color_list_magma_;
-}
-
-std::vector<Color> const& color_list_inferno()
-{
-    return  color_list_inferno_;
-}
-
-std::vector<Color> const& color_list_plasma()
-{
-    return color_list_plasma_;
-}
-
-std::vector<Color> const& color_list_viridis()
-{
-    return color_list_viridis_;
-}
-
-// =================================================================================================
 //     Convenience Functions
 // =================================================================================================
 
@@ -1683,7 +1559,10 @@ std::vector<Color> const& color_list_sequential( std::string const& palette )
         return color_list_viridis_;
     }
 
-    throw std::invalid_argument( "Invalid ColorListSequential name: '" + palette + "'." );
+    throw std::invalid_argument(
+        "Invalid ColorListSequential name: '" + palette + "'. Use color_list_sequential_names() "
+        "to get the list of available sequential color palettes."
+    );
 }
 
 std::vector<std::string> color_list_sequential_names()

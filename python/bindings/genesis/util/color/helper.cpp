@@ -3,6 +3,8 @@
 #include <genesis/util/color/helper.hpp>
 #include <genesis/util/color/list_diverging.hpp>
 #include <genesis/util/color/list_misc.hpp>
+#include <genesis/util/color/list_qualitative.hpp>
+#include <genesis/util/color/list_sequential.hpp>
 #include <genesis/util/color/norm_boundary.hpp>
 #include <genesis/util/color/norm_diverging.hpp>
 #include <iterator>
@@ -70,148 +72,18 @@ void bind_genesis_util_color_helper(
             pybind11::arg( "num_ticks" )
         );
 
-    // genesis::util::color::color_list_brbg() file:genesis/util/color/list_diverging.hpp line:54
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_brbg()() file:genesis/util/color/list_diverging.hpp line:54
-    M( "genesis::util::color" )
-        .def(
-            "color_list_brbg",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_brbg,
-            "Color palette `brbg`.\n\n Provides a diverging color palette with brown low, white "
-            "middle, and blue-green high.\n\n \n \n\nC++: genesis::util::color::color_list_brbg() "
-            "--> const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_piyg() file:genesis/util/color/list_diverging.hpp line:63
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_piyg()() file:genesis/util/color/list_diverging.hpp line:63
-    M( "genesis::util::color" )
-        .def(
-            "color_list_piyg",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_piyg,
-            "Color palette `piyg`.\n\n Provides a diverging color palette with pink low, white "
-            "middle, and yellow-green high.\n\n \n \n\nC++: "
-            "genesis::util::color::color_list_piyg() --> const class std::vector<class "
-            "genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_prgn() file:genesis/util/color/list_diverging.hpp line:72
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_prgn()() file:genesis/util/color/list_diverging.hpp line:72
-    M( "genesis::util::color" )
-        .def(
-            "color_list_prgn",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_prgn,
-            "Color palette `prgn`.\n\n Provides a diverging color palette with purple low, white "
-            "middle, and green high.\n\n \n \n\nC++: genesis::util::color::color_list_prgn() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_puor() file:genesis/util/color/list_diverging.hpp line:81
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_puor()() file:genesis/util/color/list_diverging.hpp line:81
-    M( "genesis::util::color" )
-        .def(
-            "color_list_puor",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_puor,
-            "Color palette `puor`.\n\n Provides a diverging color palette with orange low, white "
-            "middle, and purple high.\n\n \n \n\nC++: genesis::util::color::color_list_puor() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_rdbu() file:genesis/util/color/list_diverging.hpp line:90
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_rdbu()() file:genesis/util/color/list_diverging.hpp line:90
-    M( "genesis::util::color" )
-        .def(
-            "color_list_rdbu",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_rdbu,
-            "Color palette `rdbu`.\n\n Provides a diverging color palette with red low, white "
-            "middle, and blue high.\n\n \n \n\nC++: genesis::util::color::color_list_rdbu() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_rdgy() file:genesis/util/color/list_diverging.hpp line:99
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_rdgy()() file:genesis/util/color/list_diverging.hpp line:99
-    M( "genesis::util::color" )
-        .def(
-            "color_list_rdgy",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_rdgy,
-            "Color palette `rdgy`.\n\n Provides a diverging color palette with red low, white "
-            "middle, and grey high.\n\n \n \n\nC++: genesis::util::color::color_list_rdgy() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_rdylbu() file:genesis/util/color/list_diverging.hpp line:108
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_rdylbu()() file:genesis/util/color/list_diverging.hpp
-    // line:108
-    M( "genesis::util::color" )
-        .def(
-            "color_list_rdylbu",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_rdylbu,
-            "Color palette `rdylbu`.\n\n Provides a diverging color palette with red low, pale "
-            "yellow middle, and blue high.\n\n \n \n\nC++: "
-            "genesis::util::color::color_list_rdylbu() --> const class std::vector<class "
-            "genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_rdylgn() file:genesis/util/color/list_diverging.hpp line:117
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_rdylgn()() file:genesis/util/color/list_diverging.hpp
-    // line:117
-    M( "genesis::util::color" )
-        .def(
-            "color_list_rdylgn",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_rdylgn,
-            "Color palette `rdylgn`.\n\n Provides a diverging color palette with red low, pale "
-            "yellow middle, and green high.\n\n \n \n\nC++: "
-            "genesis::util::color::color_list_rdylgn() --> const class std::vector<class "
-            "genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_spectral() file:genesis/util/color/list_diverging.hpp
-    // line:131 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_spectral()() file:genesis/util/color/list_diverging.hpp
-    // line:131
-    M( "genesis::util::color" )
-        .def(
-            "color_list_spectral",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_spectral,
-            "Color palette `spectral`.\n\n Provides a diverging rainbow color palette with red "
-            "low, pale yellow middle, and blue high.\n\n This ColorBrewer color palette is adapted "
-            "from https://github.com/axismaps/colorbrewer and\n "
-            "https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB "
-            "`double` values.\n The original ColorBrewer color specifications and designs were "
-            "developed by Cynthia Brewer\n (http://colorbrewer.org/), while their gnuplot "
-            "equivalets are authored by Anna Schneider,\n and published under the [Apache-2.0 "
-            "license](http://www.apache.org/licenses/LICENSE-2.0).\n See also our \n\n\n\nC++: "
-            "genesis::util::color::color_list_spectral() --> const class std::vector<class "
-            "genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::ColorListDiverging file:genesis/util/color/list_diverging.hpp line:137
+    // genesis::util::color::ColorListDiverging file:genesis/util/color/list_diverging.hpp line:62
     pybind11::enum_<genesis::util::color::ColorListDiverging>(
-        M( "genesis::util::color" ), "ColorListDiverging", ""
+        M( "genesis::util::color" ),
+        "ColorListDiverging",
+        "Divering color palettes.\n\n List of the diverging color palettes offered by "
+        "color_list_diverging().\n\n These color palette are adapted from ColorBrewer at "
+        "https://github.com/axismaps/colorbrewer and\n "
+        "https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` "
+        "values.\n The original ColorBrewer color specifications and designs were developed by "
+        "Cynthia Brewer\n (http://colorbrewer.org/), while their gnuplot equivalets are authored "
+        "by Anna Schneider,\n and published under the [Apache-2.0 "
+        "license](http://www.apache.org/licenses/LICENSE-2.0).\n See also our \n\n\n\n\n"
     )
         .value( "kBrbg", genesis::util::color::ColorListDiverging::kBrbg )
         .value( "kPiyg", genesis::util::color::ColorListDiverging::kPiyg )
@@ -226,11 +98,11 @@ void bind_genesis_util_color_helper(
     ;
 
     // genesis::util::color::color_list_diverging(enum genesis::util::color::ColorListDiverging)
-    // file:genesis/util/color/list_diverging.hpp line:150 function-signature: const class
+    // file:genesis/util/color/list_diverging.hpp line:134 function-signature: const class
     // std::vector<class genesis::util::color::Color> &
     // genesis::util::color::color_list_diverging(enum
     // genesis::util::color::ColorListDiverging)(enum genesis::util::color::ColorListDiverging)
-    // file:genesis/util/color/list_diverging.hpp line:150
+    // file:genesis/util/color/list_diverging.hpp line:134
     M( "genesis::util::color" )
         .def(
             "color_list_diverging",
@@ -238,7 +110,8 @@ void bind_genesis_util_color_helper(
                                           Color>& (*)( enum genesis::util::color::ColorListDiverging
             ) ) &
                 genesis::util::color::color_list_diverging,
-            "C++: genesis::util::color::color_list_diverging(enum "
+            "Get a diverging color palette.\n\n See ColorListDiverging for the available "
+            "ones.\n\nC++: genesis::util::color::color_list_diverging(enum "
             "genesis::util::color::ColorListDiverging) --> const class std::vector<class "
             "genesis::util::color::Color> &",
             pybind11::return_value_policy::reference,
@@ -246,32 +119,37 @@ void bind_genesis_util_color_helper(
         );
 
     // genesis::util::color::color_list_diverging(const std::string &)
-    // file:genesis/util/color/list_diverging.hpp line:151 function-signature: const class
+    // file:genesis/util/color/list_diverging.hpp line:143 function-signature: const class
     // std::vector<class genesis::util::color::Color> &
     // genesis::util::color::color_list_diverging(const std::string &)(const std::string &)
-    // file:genesis/util/color/list_diverging.hpp line:151
+    // file:genesis/util/color/list_diverging.hpp line:143
     M( "genesis::util::color" )
         .def(
             "color_list_diverging",
             ( const class std::vector<class genesis::util::color::Color>& (*)(const std::string&)) &
                 genesis::util::color::color_list_diverging,
-            "C++: genesis::util::color::color_list_diverging(const std::string &) --> const class "
+            "Get a diverging color palette by its name.\n\n The names used here are the same as in "
+            "ColorListDiverging, but without the leading `k`,\n i.e., using their original name "
+            "(case insensitive).\n For instance, ColorListDiverging::kSpectral can be obtained "
+            "here simply as `\"spectral\"`.\n\nC++: "
+            "genesis::util::color::color_list_diverging(const std::string &) --> const class "
             "std::vector<class genesis::util::color::Color> &",
             pybind11::return_value_policy::reference,
             pybind11::arg( "palette" )
         );
 
     // genesis::util::color::color_list_diverging_names() file:genesis/util/color/list_diverging.hpp
-    // line:153 function-signature: class std::vector<std::string >
+    // line:150 function-signature: class std::vector<std::string >
     // genesis::util::color::color_list_diverging_names()()
-    // file:genesis/util/color/list_diverging.hpp line:153
+    // file:genesis/util/color/list_diverging.hpp line:150
     M( "genesis::util::color" )
         .def(
             "color_list_diverging_names",
             ( class std::vector<std::string >( * )() ) &
                 genesis::util::color::color_list_diverging_names,
-            "C++: genesis::util::color::color_list_diverging_names() --> class "
-            "std::vector<std::string >"
+            "Get the list of all available diverging color palettes as strings.\n\n See also "
+            "ColorListDiverging for the corresponding enum.\n\nC++: "
+            "genesis::util::color::color_list_diverging_names() --> class std::vector<std::string >"
         );
 
     // genesis::util::color::color_list_nextstrain() file:genesis/util/color/list_misc.hpp line:65
@@ -372,4 +250,127 @@ void bind_genesis_util_color_helper(
                 genesis::util::color::color_list_misc_names,
             "C++: genesis::util::color::color_list_misc_names() --> class std::vector<std::string >"
         );
+
+    // genesis::util::color::ColorListQualitative file:genesis/util/color/list_qualitative.hpp
+    // line:62
+    pybind11::enum_<genesis::util::color::ColorListQualitative>(
+        M( "genesis::util::color" ),
+        "ColorListQualitative",
+        "Qualitative color palettes.\n\n List of the qualitative color palettes offered by "
+        "color_list_qualitative().\n\n These color palette are adapted from ColorBrewer at "
+        "https://github.com/axismaps/colorbrewer and\n "
+        "https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` "
+        "values.\n The original ColorBrewer color specifications and designs were developed by "
+        "Cynthia Brewer\n (http://colorbrewer.org/), while their gnuplot equivalets are authored "
+        "by Anna Schneider,\n and published under the [Apache-2.0 "
+        "license](http://www.apache.org/licenses/LICENSE-2.0).\n See also our \n\n\n\n\n"
+    )
+        .value( "kAccent", genesis::util::color::ColorListQualitative::kAccent )
+        .value( "kDark2", genesis::util::color::ColorListQualitative::kDark2 )
+        .value( "kPaired", genesis::util::color::ColorListQualitative::kPaired )
+        .value( "kPastel1", genesis::util::color::ColorListQualitative::kPastel1 )
+        .value( "kPastel2", genesis::util::color::ColorListQualitative::kPastel2 )
+        .value( "kSet1", genesis::util::color::ColorListQualitative::kSet1 )
+        .value( "kSet2", genesis::util::color::ColorListQualitative::kSet2 )
+        .value( "kSet3", genesis::util::color::ColorListQualitative::kSet3 );
+
+    ;
+
+    // genesis::util::color::color_list_qualitative(enum genesis::util::color::ColorListQualitative)
+    // file:genesis/util/color/list_qualitative.hpp line:131 function-signature: const class
+    // std::vector<class genesis::util::color::Color> &
+    // genesis::util::color::color_list_qualitative(enum
+    // genesis::util::color::ColorListQualitative)(enum genesis::util::color::ColorListQualitative)
+    // file:genesis/util/color/list_qualitative.hpp line:131
+    M( "genesis::util::color" )
+        .def(
+            "color_list_qualitative",
+            ( const class std::vector<
+                class genesis::util::color::Color>& (*)( enum genesis::util::color::
+                                                             ColorListQualitative ) ) &
+                genesis::util::color::color_list_qualitative,
+            "Get a qualitative color palette.\n\n See ColorListQualitative for the available "
+            "ones.\n\nC++: genesis::util::color::color_list_qualitative(enum "
+            "genesis::util::color::ColorListQualitative) --> const class std::vector<class "
+            "genesis::util::color::Color> &",
+            pybind11::return_value_policy::reference,
+            pybind11::arg( "palette" )
+        );
+
+    // genesis::util::color::color_list_qualitative(const std::string &)
+    // file:genesis/util/color/list_qualitative.hpp line:140 function-signature: const class
+    // std::vector<class genesis::util::color::Color> &
+    // genesis::util::color::color_list_qualitative(const std::string &)(const std::string &)
+    // file:genesis/util/color/list_qualitative.hpp line:140
+    M( "genesis::util::color" )
+        .def(
+            "color_list_qualitative",
+            ( const class std::vector<class genesis::util::color::Color>& (*)(const std::string&)) &
+                genesis::util::color::color_list_qualitative,
+            "Get a qualitative color palette by its name.\n\n The names used here are the same as "
+            "in ColorListQualitative, but without the leading `k`,\n i.e., using their original "
+            "name (case insensitive).\n For instance, ColorListQualitative::kAccent can be "
+            "obtained here simply as `\"accent\"`.\n\nC++: "
+            "genesis::util::color::color_list_qualitative(const std::string &) --> const class "
+            "std::vector<class genesis::util::color::Color> &",
+            pybind11::return_value_policy::reference,
+            pybind11::arg( "palette" )
+        );
+
+    // genesis::util::color::color_list_qualitative_names()
+    // file:genesis/util/color/list_qualitative.hpp line:147 function-signature: class
+    // std::vector<std::string > genesis::util::color::color_list_qualitative_names()()
+    // file:genesis/util/color/list_qualitative.hpp line:147
+    M( "genesis::util::color" )
+        .def(
+            "color_list_qualitative_names",
+            ( class std::vector<std::string >( * )() ) &
+                genesis::util::color::color_list_qualitative_names,
+            "Get the list of all available qualitative color palettes as strings.\n\n See also "
+            "ColorListQualitative for the corresponding enum.\n\nC++: "
+            "genesis::util::color::color_list_qualitative_names() --> class "
+            "std::vector<std::string >"
+        );
+
+    // genesis::util::color::ColorListSequential file:genesis/util/color/list_sequential.hpp line:69
+    pybind11::enum_<genesis::util::color::ColorListSequential>(
+        M( "genesis::util::color" ),
+        "ColorListSequential",
+        "Sequential color palettes.\n\n List of the sequential color palettes offered by "
+        "color_list_sequential().\n The available palettes come from difference sources, credited "
+        "below.\n\n Some color palettes are adapted from ColorBrewer at "
+        "https://github.com/axismaps/colorbrewer and\n "
+        "https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` "
+        "values.\n The original ColorBrewer color specifications and designs were developed by "
+        "Cynthia Brewer\n (http://colorbrewer.org/), while their gnuplot equivalets are authored "
+        "by Anna Schneider,\n and published under the [Apache-2.0 "
+        "license](http://www.apache.org/licenses/LICENSE-2.0).\n See also our "
+        "\n\n\n\n\n\n\n\n\n\n\n"
+    )
+        .value( "kBupubk", genesis::util::color::ColorListSequential::kBupubk )
+        .value( "kBlues", genesis::util::color::ColorListSequential::kBlues )
+        .value( "kBugn", genesis::util::color::ColorListSequential::kBugn )
+        .value( "kBupu", genesis::util::color::ColorListSequential::kBupu )
+        .value( "kGnbu", genesis::util::color::ColorListSequential::kGnbu )
+        .value( "kGreens", genesis::util::color::ColorListSequential::kGreens )
+        .value( "kGreys", genesis::util::color::ColorListSequential::kGreys )
+        .value( "kOranges", genesis::util::color::ColorListSequential::kOranges )
+        .value( "kOrrd", genesis::util::color::ColorListSequential::kOrrd )
+        .value( "kPubu", genesis::util::color::ColorListSequential::kPubu )
+        .value( "kPubugn", genesis::util::color::ColorListSequential::kPubugn )
+        .value( "kPurd", genesis::util::color::ColorListSequential::kPurd )
+        .value( "kPurples", genesis::util::color::ColorListSequential::kPurples )
+        .value( "kRdpu", genesis::util::color::ColorListSequential::kRdpu )
+        .value( "kReds", genesis::util::color::ColorListSequential::kReds )
+        .value( "kYlgn", genesis::util::color::ColorListSequential::kYlgn )
+        .value( "kYlgnbu", genesis::util::color::ColorListSequential::kYlgnbu )
+        .value( "kYlorbr", genesis::util::color::ColorListSequential::kYlorbr )
+        .value( "kYlorrd", genesis::util::color::ColorListSequential::kYlorrd )
+        .value( "kHeat", genesis::util::color::ColorListSequential::kHeat )
+        .value( "kMagma", genesis::util::color::ColorListSequential::kMagma )
+        .value( "kInferno", genesis::util::color::ColorListSequential::kInferno )
+        .value( "kPlasma", genesis::util::color::ColorListSequential::kPlasma )
+        .value( "kViridis", genesis::util::color::ColorListSequential::kViridis );
+
+    ;
 }

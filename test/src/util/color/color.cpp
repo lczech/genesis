@@ -168,7 +168,7 @@ TEST( Color, Names )
 
 TEST( Color, PaletteSpectral )
 {
-    auto map = ColorMap( color_list_spectral() );
+    auto map = ColorMap( color_list_diverging( ColorListDiverging::kSpectral ) );
     auto norm = ColorNormalizationDiverging( -1.0, 1.0 );
 
     compare_color( color_from_bytes( 158,   1,  66 ), map( norm, -1.0 ) );
@@ -185,7 +185,7 @@ TEST( Color, PaletteSpectral )
 
 // TEST( Color, Map )
 // {
-//     auto const c = apply_color_map( color_list_spectral(), 0.5 );
+//     auto const c = apply_color_map( color_list_diverging( ColorListDiverging::kSpectral ), 0.5 );
 // }
 
 TEST( Color, NormBoundary )

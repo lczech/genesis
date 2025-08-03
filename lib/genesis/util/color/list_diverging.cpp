@@ -195,55 +195,6 @@ const std::vector<Color> color_list_spectral_ = {{
 // }};
 
 // =================================================================================================
-//     Color Lists Functions
-// =================================================================================================
-
-std::vector<Color> const& color_list_brbg()
-{
-    return color_list_brbg_;
-}
-
-std::vector<Color> const& color_list_piyg()
-{
-    return color_list_piyg_;
-}
-
-std::vector<Color> const& color_list_prgn()
-{
-    return color_list_prgn_;
-}
-
-std::vector<Color> const& color_list_puor()
-{
-    return color_list_puor_;
-}
-
-std::vector<Color> const& color_list_rdbu()
-{
-    return color_list_rdbu_;
-}
-
-std::vector<Color> const& color_list_rdgy()
-{
-    return color_list_rdgy_;
-}
-
-std::vector<Color> const& color_list_rdylbu()
-{
-    return color_list_rdylbu_;
-}
-
-std::vector<Color> const& color_list_rdylgn()
-{
-    return color_list_rdylgn_;
-}
-
-std::vector<Color> const& color_list_spectral()
-{
-    return color_list_spectral_;
-}
-
-// =================================================================================================
 //     Convenience Functions
 // =================================================================================================
 
@@ -312,7 +263,10 @@ std::vector<Color> const& color_list_diverging( std::string const& palette )
         return color_list_spectral_;
     }
 
-    throw std::invalid_argument( "Invalid ColorListDiverging name: '" + palette + "'." );
+    throw std::invalid_argument(
+        "Invalid ColorListDiverging name: '" + palette + "'. Use color_list_diverging_names() "
+        "to get the list of available diverging color palettes."
+    );
 }
 
 std::vector<std::string> color_list_diverging_names()

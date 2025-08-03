@@ -24,240 +24,12 @@ void bind_genesis_util_color_list_sequential(
     std::function< pybind11::module&( std::string const& namespace_ ) >& M
 )
 {
-    // genesis::util::color::color_list_purd() file:genesis/util/color/list_sequential.hpp line:153
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_purd()() file:genesis/util/color/list_sequential.hpp
-    // line:153
-    M( "genesis::util::color" )
-        .def(
-            "color_list_purd",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_purd,
-            "Color palette `purd`.\n\n Provides a sequential purple-red color palette of "
-            "increasing saturation.\n\n \n \n\nC++: genesis::util::color::color_list_purd() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_purples() file:genesis/util/color/list_sequential.hpp
-    // line:162 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_purples()() file:genesis/util/color/list_sequential.hpp
-    // line:162
-    M( "genesis::util::color" )
-        .def(
-            "color_list_purples",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_purples,
-            "Color palette `purples`.\n\n Provides a sequential purple color palette of increasing "
-            "saturation.\n\n \n \n\nC++: genesis::util::color::color_list_purples() --> const "
-            "class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_rdpu() file:genesis/util/color/list_sequential.hpp line:171
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_rdpu()() file:genesis/util/color/list_sequential.hpp
-    // line:171
-    M( "genesis::util::color" )
-        .def(
-            "color_list_rdpu",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_rdpu,
-            "Color palette `rdpu`.\n\n Provides a sequential red-purple color palette of "
-            "increasing saturation.\n\n \n \n\nC++: genesis::util::color::color_list_rdpu() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_reds() file:genesis/util/color/list_sequential.hpp line:180
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_reds()() file:genesis/util/color/list_sequential.hpp
-    // line:180
-    M( "genesis::util::color" )
-        .def(
-            "color_list_reds",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_reds,
-            "Color palette `reds`.\n\n Provides a sequential red color palette of increasing "
-            "saturation.\n\n \n \n\nC++: genesis::util::color::color_list_reds() --> const class "
-            "std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_ylgn() file:genesis/util/color/list_sequential.hpp line:189
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_ylgn()() file:genesis/util/color/list_sequential.hpp
-    // line:189
-    M( "genesis::util::color" )
-        .def(
-            "color_list_ylgn",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_ylgn,
-            "Color palette `ylgn`.\n\n Provides a sequential yellow-green color palette of "
-            "increasing saturation.\n\n \n \n\nC++: genesis::util::color::color_list_ylgn() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_ylgnbu() file:genesis/util/color/list_sequential.hpp
-    // line:198 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_ylgnbu()() file:genesis/util/color/list_sequential.hpp
-    // line:198
-    M( "genesis::util::color" )
-        .def(
-            "color_list_ylgnbu",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_ylgnbu,
-            "Color palette `ylgnbu`.\n\n Provides a sequential yellow-green-blue color palette of "
-            "increasing saturation.\n\n \n \n\nC++: genesis::util::color::color_list_ylgnbu() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_ylorbr() file:genesis/util/color/list_sequential.hpp
-    // line:207 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_ylorbr()() file:genesis/util/color/list_sequential.hpp
-    // line:207
-    M( "genesis::util::color" )
-        .def(
-            "color_list_ylorbr",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_ylorbr,
-            "Color palette `ylorbr`.\n\n Provides a sequential yellow-orange-brown color palette "
-            "of increasing saturation.\n\n \n \n\nC++: genesis::util::color::color_list_ylorbr() "
-            "--> const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_ylorrd() file:genesis/util/color/list_sequential.hpp
-    // line:216 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_ylorrd()() file:genesis/util/color/list_sequential.hpp
-    // line:216
-    M( "genesis::util::color" )
-        .def(
-            "color_list_ylorrd",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_ylorrd,
-            "Color palette `ylorrd`.\n\n Provides a sequential yellow-orange-red color palette of "
-            "increasing saturation.\n\n \n \n\nC++: genesis::util::color::color_list_ylorrd() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_heat() file:genesis/util/color/list_sequential.hpp line:225
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_heat()() file:genesis/util/color/list_sequential.hpp
-    // line:225
-    M( "genesis::util::color" )
-        .def(
-            "color_list_heat",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_heat,
-            "Color palette `heat`.\n\n Provides a sequential heat color palette from white via "
-            "yellow to orange and red.\n\n \n \n\nC++: genesis::util::color::color_list_heat() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_magma() file:genesis/util/color/list_sequential.hpp line:232
-    // function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_magma()() file:genesis/util/color/list_sequential.hpp
-    // line:232
-    M( "genesis::util::color" )
-        .def(
-            "color_list_magma",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_magma,
-            "Color palette `magma`.\n\n \n \n\nC++: genesis::util::color::color_list_magma() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_inferno() file:genesis/util/color/list_sequential.hpp
-    // line:239 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_inferno()() file:genesis/util/color/list_sequential.hpp
-    // line:239
-    M( "genesis::util::color" )
-        .def(
-            "color_list_inferno",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_inferno,
-            "Color palette `inferno`.\n\n \n\nC++: genesis::util::color::color_list_inferno() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_plasma() file:genesis/util/color/list_sequential.hpp
-    // line:246 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_plasma()() file:genesis/util/color/list_sequential.hpp
-    // line:246
-    M( "genesis::util::color" )
-        .def(
-            "color_list_plasma",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_plasma,
-            "Color palette `plasma`.\n\n \n\nC++: genesis::util::color::color_list_plasma() --> "
-            "const class std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::color_list_viridis() file:genesis/util/color/list_sequential.hpp
-    // line:257 function-signature: const class std::vector<class genesis::util::color::Color> &
-    // genesis::util::color::color_list_viridis()() file:genesis/util/color/list_sequential.hpp
-    // line:257
-    M( "genesis::util::color" )
-        .def(
-            "color_list_viridis",
-            ( const class std::vector<class genesis::util::color::Color>& (*)() ) &
-                genesis::util::color::color_list_viridis,
-            "Color palette `viridis`.\n\n This Matplotlib color palette is adapted from "
-            "https://github.com/BIDS/colormap.\n New matplotlib colormaps by Nathaniel J. Smith, "
-            "Stefan van der Walt, and Eric Firing.\n The colormaps are released under the CC0 "
-            "license / public domain dedication.\n See "
-            "https://creativecommons.org/publicdomain/zero/1.0/ for the license. See also our\n "
-            "\n\n\n\nC++: genesis::util::color::color_list_viridis() --> const class "
-            "std::vector<class genesis::util::color::Color> &",
-            pybind11::return_value_policy::reference
-        );
-
-    // genesis::util::color::ColorListSequential file:genesis/util/color/list_sequential.hpp
-    // line:263
-    pybind11::enum_<genesis::util::color::ColorListSequential>(
-        M( "genesis::util::color" ), "ColorListSequential", ""
-    )
-        .value( "kBupubk", genesis::util::color::ColorListSequential::kBupubk )
-        .value( "kBlues", genesis::util::color::ColorListSequential::kBlues )
-        .value( "kBugn", genesis::util::color::ColorListSequential::kBugn )
-        .value( "kBupu", genesis::util::color::ColorListSequential::kBupu )
-        .value( "kGnbu", genesis::util::color::ColorListSequential::kGnbu )
-        .value( "kGreens", genesis::util::color::ColorListSequential::kGreens )
-        .value( "kGreys", genesis::util::color::ColorListSequential::kGreys )
-        .value( "kOranges", genesis::util::color::ColorListSequential::kOranges )
-        .value( "kOrrd", genesis::util::color::ColorListSequential::kOrrd )
-        .value( "kPubu", genesis::util::color::ColorListSequential::kPubu )
-        .value( "kPubugn", genesis::util::color::ColorListSequential::kPubugn )
-        .value( "kPurd", genesis::util::color::ColorListSequential::kPurd )
-        .value( "kPurples", genesis::util::color::ColorListSequential::kPurples )
-        .value( "kRdpu", genesis::util::color::ColorListSequential::kRdpu )
-        .value( "kReds", genesis::util::color::ColorListSequential::kReds )
-        .value( "kYlgn", genesis::util::color::ColorListSequential::kYlgn )
-        .value( "kYlgnbu", genesis::util::color::ColorListSequential::kYlgnbu )
-        .value( "kYlorbr", genesis::util::color::ColorListSequential::kYlorbr )
-        .value( "kYlorrd", genesis::util::color::ColorListSequential::kYlorrd )
-        .value( "kHeat", genesis::util::color::ColorListSequential::kHeat )
-        .value( "kMagma", genesis::util::color::ColorListSequential::kMagma )
-        .value( "kInferno", genesis::util::color::ColorListSequential::kInferno )
-        .value( "kPlasma", genesis::util::color::ColorListSequential::kPlasma )
-        .value( "kViridis", genesis::util::color::ColorListSequential::kViridis );
-
-    ;
-
     // genesis::util::color::color_list_sequential(enum genesis::util::color::ColorListSequential)
-    // file:genesis/util/color/list_sequential.hpp line:291 function-signature: const class
+    // file:genesis/util/color/list_sequential.hpp line:269 function-signature: const class
     // std::vector<class genesis::util::color::Color> &
     // genesis::util::color::color_list_sequential(enum
     // genesis::util::color::ColorListSequential)(enum genesis::util::color::ColorListSequential)
-    // file:genesis/util/color/list_sequential.hpp line:291
+    // file:genesis/util/color/list_sequential.hpp line:269
     M( "genesis::util::color" )
         .def(
             "color_list_sequential",
@@ -265,7 +37,8 @@ void bind_genesis_util_color_list_sequential(
                 class genesis::util::color::Color>& (*)( enum genesis::util::color::
                                                              ColorListSequential ) ) &
                 genesis::util::color::color_list_sequential,
-            "C++: genesis::util::color::color_list_sequential(enum "
+            "Get a sequential color palette.\n\n See ColorListSequential for the available "
+            "ones.\n\nC++: genesis::util::color::color_list_sequential(enum "
             "genesis::util::color::ColorListSequential) --> const class std::vector<class "
             "genesis::util::color::Color> &",
             pybind11::return_value_policy::reference,
@@ -273,32 +46,38 @@ void bind_genesis_util_color_list_sequential(
         );
 
     // genesis::util::color::color_list_sequential(const std::string &)
-    // file:genesis/util/color/list_sequential.hpp line:292 function-signature: const class
+    // file:genesis/util/color/list_sequential.hpp line:278 function-signature: const class
     // std::vector<class genesis::util::color::Color> &
     // genesis::util::color::color_list_sequential(const std::string &)(const std::string &)
-    // file:genesis/util/color/list_sequential.hpp line:292
+    // file:genesis/util/color/list_sequential.hpp line:278
     M( "genesis::util::color" )
         .def(
             "color_list_sequential",
             ( const class std::vector<class genesis::util::color::Color>& (*)(const std::string&)) &
                 genesis::util::color::color_list_sequential,
-            "C++: genesis::util::color::color_list_sequential(const std::string &) --> const class "
+            "Get a sequential color palette by its name.\n\n The names used here are the same as "
+            "in ColorListSequential, but without the leading `k`,\n i.e., using their original "
+            "name (case insensitive).\n For instance, ColorListSequential::kViridis can be "
+            "obtained here simply as `\"viridis\"`.\n\nC++: "
+            "genesis::util::color::color_list_sequential(const std::string &) --> const class "
             "std::vector<class genesis::util::color::Color> &",
             pybind11::return_value_policy::reference,
             pybind11::arg( "palette" )
         );
 
     // genesis::util::color::color_list_sequential_names()
-    // file:genesis/util/color/list_sequential.hpp line:294 function-signature: class
+    // file:genesis/util/color/list_sequential.hpp line:285 function-signature: class
     // std::vector<std::string > genesis::util::color::color_list_sequential_names()()
-    // file:genesis/util/color/list_sequential.hpp line:294
+    // file:genesis/util/color/list_sequential.hpp line:285
     M( "genesis::util::color" )
         .def(
             "color_list_sequential_names",
             ( class std::vector<std::string >( * )() ) &
                 genesis::util::color::color_list_sequential_names,
-            "C++: genesis::util::color::color_list_sequential_names() --> class "
-            "std::vector<std::string >"
+            "Get the list of all available sequential color palettes as strings.\n\n See also "
+            "ColorListSequential for the corresponding enum.\n\nC++: "
+            "genesis::util::color::color_list_sequential_names() --> class std::vector<std::string "
+            ">"
         );
 
     { // genesis::util::color::ColorMap file:genesis/util/color/map.hpp line:62

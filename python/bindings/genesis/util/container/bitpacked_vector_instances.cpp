@@ -45,7 +45,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // function-signature: genesis::util::container::BitpackedVector<unsigned
         // char>::BitpackedVector(const class genesis::util::container::BitpackedVector<uint8_t>
         // &)(const class genesis::util::container::BitpackedVector<uint8_t> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:118
+        // file:genesis/util/container/bitpacked_vector.hpp line:122
         cl.def( pybind11::init(
             []( genesis::util::container::BitpackedVector<unsigned char, unsigned char> const& o ) {
                 return new genesis::util::container::BitpackedVector<unsigned char, unsigned char>(
@@ -57,7 +57,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // genesis::util::container::BitpackedVector<unsigned char>::operator=(const class
         // genesis::util::container::BitpackedVector<uint8_t> &)(const class
         // genesis::util::container::BitpackedVector<uint8_t> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:121
+        // file:genesis/util/container/bitpacked_vector.hpp line:125
         cl.def(
             "assign",
             ( class genesis::util::container::BitpackedVector<uint8_t> &
@@ -74,7 +74,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: unsigned char genesis::util::container::BitpackedVector<unsigned
         // char>::get(unsigned long) const(unsigned long)
-        // file:genesis/util/container/bitpacked_vector.hpp line:131
+        // file:genesis/util/container/bitpacked_vector.hpp line:135
         cl.def(
             "get",
             ( unsigned char ( genesis::util::container::
@@ -88,7 +88,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: void genesis::util::container::BitpackedVector<unsigned
         // char>::set(unsigned long, unsigned char)(unsigned long, unsigned char)
-        // file:genesis/util/container/bitpacked_vector.hpp line:170
+        // file:genesis/util/container/bitpacked_vector.hpp line:175
         cl.def(
             "set",
             ( void( genesis::util::container::BitpackedVector<unsigned char, unsigned char>::* )(
@@ -102,7 +102,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
             pybind11::arg( "value" )
         );
         // function-signature: unsigned long genesis::util::container::BitpackedVector<unsigned
-        // char>::size() const() file:genesis/util/container/bitpacked_vector.hpp line:217
+        // char>::size() const() file:genesis/util/container/bitpacked_vector.hpp line:222
         cl.def(
             "size",
             ( unsigned long ( genesis::util::container::
@@ -112,7 +112,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
             "unsigned long"
         );
         // function-signature: unsigned long genesis::util::container::BitpackedVector<unsigned
-        // char>::bit_width() const() file:genesis/util/container/bitpacked_vector.hpp line:222
+        // char>::bit_width() const() file:genesis/util/container/bitpacked_vector.hpp line:227
         cl.def(
             "bit_width",
             ( unsigned long ( genesis::util::container::
@@ -123,7 +123,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: const class std::vector<unsigned char> &
         // genesis::util::container::BitpackedVector<unsigned char>::data() const()
-        // file:genesis/util/container/bitpacked_vector.hpp line:227
+        // file:genesis/util/container/bitpacked_vector.hpp line:232
         cl.def(
             "data",
             ( const class std::vector<unsigned char>& (genesis::util::container::BitpackedVector<
@@ -159,7 +159,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // function-signature: genesis::util::container::BitpackedVector<unsigned
         // short>::BitpackedVector(const class genesis::util::container::BitpackedVector<uint16_t>
         // &)(const class genesis::util::container::BitpackedVector<uint16_t> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:118
+        // file:genesis/util/container/bitpacked_vector.hpp line:122
         cl.def( pybind11::init( []( genesis::util::container::
                                         BitpackedVector<unsigned short, unsigned short> const& o ) {
             return new genesis::util::container::BitpackedVector<unsigned short, unsigned short>( o
@@ -169,7 +169,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // genesis::util::container::BitpackedVector<unsigned short>::operator=(const class
         // genesis::util::container::BitpackedVector<uint16_t> &)(const class
         // genesis::util::container::BitpackedVector<uint16_t> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:121
+        // file:genesis/util/container/bitpacked_vector.hpp line:125
         cl.def(
             "assign",
             ( class genesis::util::container::BitpackedVector<uint16_t> &
@@ -186,7 +186,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: unsigned short genesis::util::container::BitpackedVector<unsigned
         // short>::get(unsigned long) const(unsigned long)
-        // file:genesis/util/container/bitpacked_vector.hpp line:131
+        // file:genesis/util/container/bitpacked_vector.hpp line:135
         cl.def(
             "get",
             ( unsigned short ( genesis::util::container::BitpackedVector<
@@ -200,7 +200,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: void genesis::util::container::BitpackedVector<unsigned
         // short>::set(unsigned long, unsigned short)(unsigned long, unsigned short)
-        // file:genesis/util/container/bitpacked_vector.hpp line:170
+        // file:genesis/util/container/bitpacked_vector.hpp line:175
         cl.def(
             "set",
             ( void( genesis::util::container::BitpackedVector<unsigned short, unsigned short>::* )(
@@ -214,7 +214,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
             pybind11::arg( "value" )
         );
         // function-signature: unsigned long genesis::util::container::BitpackedVector<unsigned
-        // short>::size() const() file:genesis/util/container/bitpacked_vector.hpp line:217
+        // short>::size() const() file:genesis/util/container/bitpacked_vector.hpp line:222
         cl.def(
             "size",
             ( unsigned long ( genesis::util::container::
@@ -224,7 +224,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
             "unsigned long"
         );
         // function-signature: unsigned long genesis::util::container::BitpackedVector<unsigned
-        // short>::bit_width() const() file:genesis/util/container/bitpacked_vector.hpp line:222
+        // short>::bit_width() const() file:genesis/util/container/bitpacked_vector.hpp line:227
         cl.def(
             "bit_width",
             ( unsigned long ( genesis::util::container::
@@ -235,7 +235,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: const class std::vector<unsigned short> &
         // genesis::util::container::BitpackedVector<unsigned short>::data() const()
-        // file:genesis/util/container/bitpacked_vector.hpp line:227
+        // file:genesis/util/container/bitpacked_vector.hpp line:232
         cl.def(
             "data",
             ( const class std::vector<unsigned short>& (genesis::util::container::BitpackedVector<
@@ -270,7 +270,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // function-signature: genesis::util::container::BitpackedVector<unsigned
         // int>::BitpackedVector(const class genesis::util::container::BitpackedVector<uint32_t>
         // &)(const class genesis::util::container::BitpackedVector<uint32_t> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:118
+        // file:genesis/util/container/bitpacked_vector.hpp line:122
         cl.def( pybind11::init(
             []( genesis::util::container::BitpackedVector<unsigned int, unsigned int> const& o ) {
                 return new genesis::util::container::BitpackedVector<unsigned int, unsigned int>( o
@@ -281,7 +281,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // genesis::util::container::BitpackedVector<unsigned int>::operator=(const class
         // genesis::util::container::BitpackedVector<uint32_t> &)(const class
         // genesis::util::container::BitpackedVector<uint32_t> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:121
+        // file:genesis/util/container/bitpacked_vector.hpp line:125
         cl.def(
             "assign",
             ( class genesis::util::container::BitpackedVector<uint32_t> &
@@ -298,7 +298,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: unsigned int genesis::util::container::BitpackedVector<unsigned
         // int>::get(unsigned long) const(unsigned long)
-        // file:genesis/util/container/bitpacked_vector.hpp line:131
+        // file:genesis/util/container/bitpacked_vector.hpp line:135
         cl.def(
             "get",
             ( unsigned int ( genesis::util::container::
@@ -312,7 +312,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: void genesis::util::container::BitpackedVector<unsigned
         // int>::set(unsigned long, unsigned int)(unsigned long, unsigned int)
-        // file:genesis/util/container/bitpacked_vector.hpp line:170
+        // file:genesis/util/container/bitpacked_vector.hpp line:175
         cl.def(
             "set",
             ( void( genesis::util::container::BitpackedVector<unsigned int, unsigned int>::* )(
@@ -326,7 +326,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
             pybind11::arg( "value" )
         );
         // function-signature: unsigned long genesis::util::container::BitpackedVector<unsigned
-        // int>::size() const() file:genesis/util/container/bitpacked_vector.hpp line:217
+        // int>::size() const() file:genesis/util/container/bitpacked_vector.hpp line:222
         cl.def(
             "size",
             ( unsigned long ( genesis::util::container::
@@ -336,7 +336,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
             "unsigned long"
         );
         // function-signature: unsigned long genesis::util::container::BitpackedVector<unsigned
-        // int>::bit_width() const() file:genesis/util/container/bitpacked_vector.hpp line:222
+        // int>::bit_width() const() file:genesis/util/container/bitpacked_vector.hpp line:227
         cl.def(
             "bit_width",
             ( unsigned long ( genesis::util::container::
@@ -347,7 +347,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: const class std::vector<unsigned int> &
         // genesis::util::container::BitpackedVector<unsigned int>::data() const()
-        // file:genesis/util/container/bitpacked_vector.hpp line:227
+        // file:genesis/util/container/bitpacked_vector.hpp line:232
         cl.def(
             "data",
             ( const class std::vector<unsigned int>& (genesis::util::container::BitpackedVector<
@@ -383,7 +383,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // function-signature: genesis::util::container::BitpackedVector<>::BitpackedVector(const
         // class genesis::util::container::BitpackedVector<> &)(const class
         // genesis::util::container::BitpackedVector<> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:118
+        // file:genesis/util/container/bitpacked_vector.hpp line:122
         cl.def( pybind11::init(
             []( genesis::util::container::BitpackedVector<unsigned long, unsigned long> const& o ) {
                 return new genesis::util::container::BitpackedVector<unsigned long, unsigned long>(
@@ -395,7 +395,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         // genesis::util::container::BitpackedVector<>::operator=(const class
         // genesis::util::container::BitpackedVector<> &)(const class
         // genesis::util::container::BitpackedVector<> &)
-        // file:genesis/util/container/bitpacked_vector.hpp line:121
+        // file:genesis/util/container/bitpacked_vector.hpp line:125
         cl.def(
             "assign",
             ( class genesis::util::container::BitpackedVector<> &
@@ -411,7 +411,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: unsigned long
         // genesis::util::container::BitpackedVector<>::get(unsigned long) const(unsigned long)
-        // file:genesis/util/container/bitpacked_vector.hpp line:131
+        // file:genesis/util/container/bitpacked_vector.hpp line:135
         cl.def(
             "get",
             ( unsigned long ( genesis::util::container::
@@ -425,7 +425,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: void genesis::util::container::BitpackedVector<>::set(unsigned long,
         // unsigned long)(unsigned long, unsigned long)
-        // file:genesis/util/container/bitpacked_vector.hpp line:170
+        // file:genesis/util/container/bitpacked_vector.hpp line:175
         cl.def(
             "set",
             ( void( genesis::util::container::BitpackedVector<unsigned long, unsigned long>::* )(
@@ -439,7 +439,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
             pybind11::arg( "value" )
         );
         // function-signature: unsigned long genesis::util::container::BitpackedVector<>::size()
-        // const() file:genesis/util/container/bitpacked_vector.hpp line:217
+        // const() file:genesis/util/container/bitpacked_vector.hpp line:222
         cl.def(
             "size",
             ( unsigned long ( genesis::util::container::
@@ -449,7 +449,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: unsigned long
         // genesis::util::container::BitpackedVector<>::bit_width() const()
-        // file:genesis/util/container/bitpacked_vector.hpp line:222
+        // file:genesis/util/container/bitpacked_vector.hpp line:227
         cl.def(
             "bit_width",
             ( unsigned long ( genesis::util::container::
@@ -459,7 +459,7 @@ void bind_genesis_util_container_bitpacked_vector_instances(
         );
         // function-signature: const class std::vector<unsigned long> &
         // genesis::util::container::BitpackedVector<>::data() const()
-        // file:genesis/util/container/bitpacked_vector.hpp line:227
+        // file:genesis/util/container/bitpacked_vector.hpp line:232
         cl.def(
             "data",
             ( const class std::vector<unsigned long>& (genesis::util::container::BitpackedVector<
