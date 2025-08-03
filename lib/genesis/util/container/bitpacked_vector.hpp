@@ -107,10 +107,14 @@ public:
         size_t const vec_size = ( bit_width_ * size_ + STORAGE_BITS - 1 ) / STORAGE_BITS;
         data_.resize( vec_size, 0 );
 
-        // Efficiency caches
+        // Efficiency caches. The mask is only used if the underlying type does _not_
+        // have the same bit width as used for storage, i.e., when the bits are not aligned.
         is_bit_aligned_ = std::is_same<T, U>::value && bit_width_ == STORAGE_BITS;
-        mask_ = ( U{1} << bit_width_ ) - 1;
-        assert( mask_ != 0 );
+        if( ! is_bit_aligned_ ) {
+            assert( bit_width_ < STORAGE_BITS );
+            mask_ = ( U{1} << bit_width_ ) - 1;
+            assert( mask_ != 0 );
+        }
     }
 
     ~BitpackedVector() = default;
@@ -148,6 +152,7 @@ public:
         // Mask to extract the value bits. As this is only executed if the used bit width is smaller
         // than that of the underlying type, the shift never overflows, which we assert.
         U value = ( data_[data_index] >> bit_in_word ) & mask_;
+        assert( mask_ != 0 );
 
         // Handle values that span across the boundary of two storage units.
         // This can only happen if the indexed entry is not in the last word.
@@ -250,8 +255,8 @@ private:
     std::vector<U> data_;
 
     // Caches
-    bool is_bit_aligned_;
-    U mask_;
+    bool is_bit_aligned_ = false;
+    U mask_ = 0;
 };
 
 } // namespace container
