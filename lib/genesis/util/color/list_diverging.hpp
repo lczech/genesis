@@ -47,7 +47,8 @@ namespace color {
 /**
 * @brief Divering color palettes.
 *
-* List of the diverging color palettes offered by color_list_diverging().
+* List of the diverging color palettes offered by color_list_diverging(). A list of all color
+* palettes offered here by their name can also be obtained from color_list_diverging_names().
 *
 * These color palette are adapted from ColorBrewer at https://github.com/axismaps/colorbrewer and
 * https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
@@ -123,7 +124,23 @@ enum class ColorListDiverging
      *
      * Provides a diverging rainbow color palette with red low, pale yellow middle, and blue high.
      */
-    kSpectral
+    kSpectral,
+
+    /**
+     * @brief Color palette `Thermis Diverging`.
+     *
+     * This is a variation on our ColorListMisc::kThermisCyclic palette, which we originally
+     * developed for visualizing seasonal data throughout a year. This variant uses the uniform
+     * brightness of the palette throughout each half of its cyle to constructur a diverging color
+     * palette. To this end, the darkest color (dark blue) is left out, to arrive at an uneven
+     * number of entries, with bright yellow in the middle, and darker colors towards both ends.
+     * We flipped the palette compared to its original, to be more similar with other palettes here
+     * such as Spectral, hence going from red to yellow to blue.
+     *
+     * Lastly, we also offer two sequential palettes build from ColorListMisc::kThermisCyclic, see
+     * ColorListSequential::kThermisGreen and ColorListSequential::kThermisRed.
+     */
+    kThermisDiverging
 };
 
 /**
@@ -137,7 +154,9 @@ std::vector<Color> const& color_list_diverging( ColorListDiverging palette );
  * @brief Get a diverging color palette by its name.
  *
  * The names used here are the same as in ColorListDiverging, but without the leading `k`,
- * i.e., using their original name (case insensitive).
+ * i.e., using their original name (case insensitive and ignoring all non-alnum characters).
+ * A list of all color palettes offered here by their name can also be obtained from
+ * color_list_diverging_names().
  * For instance, ColorListDiverging::kSpectral can be obtained here simply as `"spectral"`.
  */
 std::vector<Color> const& color_list_diverging( std::string const& palette );
@@ -145,7 +164,8 @@ std::vector<Color> const& color_list_diverging( std::string const& palette );
 /**
  * @brief Get the list of all available diverging color palettes as strings.
  *
- * See also ColorListDiverging for the corresponding enum.
+ * See also ColorListDiverging for the corresponding enum. Use the color list names provided here
+ * as arguments for color_list_diverging( std::string const& ).
  */
 std::vector<std::string> color_list_diverging_names();
 

@@ -455,6 +455,25 @@ static const std::vector<Color> color_list_nextstrain_256_ = {{
 }};
 
 // =================================================================================================
+//     Thermis Color Lists
+// =================================================================================================
+
+static const std::vector<Color> color_list_thermis_cyclic_ = {{
+    Color::from_hex( "#003668" ),
+    Color::from_hex( "#00605d" ),
+    Color::from_hex( "#018A22" ),
+    Color::from_hex( "#64AC27" ),
+    Color::from_hex( "#A8CD32" ),
+    Color::from_hex( "#EEEC46" ),
+    Color::from_hex( "#FAB133" ),
+    Color::from_hex( "#F07840" ),
+    Color::from_hex( "#D04651" ),
+    Color::from_hex( "#9A2660" ),
+    Color::from_hex( "#561D5D" ),
+    Color::from_hex( "#001546" )
+}};
+
+// =================================================================================================
 //     Color Lists Functions
 // =================================================================================================
 
@@ -469,19 +488,19 @@ std::vector<Color> color_list_nextstrain( size_t n )
     }
 }
 
-std::vector<Color> const& color_list_nextstrain()
-{
-    return color_list_nextstrain_256_;
-}
-
 // =================================================================================================
 //     Convenience Functions
 // =================================================================================================
 
 std::vector<Color> const& color_list_misc( ColorListMisc palette )
 {
-    if( palette == ColorListMisc::kNextstrain ) {
-        return color_list_nextstrain_256_;
+    switch ( palette ) {
+        case ColorListMisc::kNextstrain: {
+            return color_list_nextstrain_256_;
+        }
+        case ColorListMisc::kThermisCyclic: {
+            return color_list_thermis_cyclic_;
+        }
     }
 
     throw std::invalid_argument( "Invalid ColorListMisc value." );
@@ -489,10 +508,14 @@ std::vector<Color> const& color_list_misc( ColorListMisc palette )
 
 std::vector<Color> const& color_list_misc( std::string const& palette )
 {
-    auto const p = genesis::util::text::to_lower_ascii( palette );
+    using namespace genesis::util::text;
+    auto const p = to_lower_ascii( remove_all_non_alnum( palette ));
 
     if( p == "nextstrain" ) {
         return color_list_nextstrain_256_;
+    }
+    if( p == "thermiscyclic" ) {
+        return color_list_thermis_cyclic_;
     }
 
     throw std::invalid_argument( "Invalid ColorListMisc name: '" + palette + "'." );
@@ -501,7 +524,8 @@ std::vector<Color> const& color_list_misc( std::string const& palette )
 std::vector<std::string> color_list_misc_names()
 {
     return {
-        "Nextstrain"
+        "Nextstrain",
+        "Thermis Cyclic"
     };
 }
 

@@ -195,37 +195,61 @@ const std::vector<Color> color_list_spectral_ = {{
 // }};
 
 // =================================================================================================
+//     Thermis Color Lists
+// =================================================================================================
+
+static const std::vector<Color> color_list_thermis_diverging_ = {{
+    // Color::from_hex( "#001546" )
+    Color::from_hex( "#561D5D" ),
+    Color::from_hex( "#9A2660" ),
+    Color::from_hex( "#D04651" ),
+    Color::from_hex( "#F07840" ),
+    Color::from_hex( "#FAB133" ),
+    Color::from_hex( "#EEEC46" ),
+    Color::from_hex( "#A8CD32" ),
+    Color::from_hex( "#64AC27" ),
+    Color::from_hex( "#018A22" ),
+    Color::from_hex( "#00605d" ),
+    Color::from_hex( "#003668" )
+}};
+
+// =================================================================================================
 //     Convenience Functions
 // =================================================================================================
 
 std::vector<Color> const& color_list_diverging( ColorListDiverging palette )
 {
-    if( palette == ColorListDiverging::kBrbg ) {
-        return color_list_brbg_;
-    }
-    if( palette == ColorListDiverging::kPiyg ) {
-        return color_list_piyg_;
-    }
-    if( palette == ColorListDiverging::kPrgn ) {
-        return color_list_prgn_;
-    }
-    if( palette == ColorListDiverging::kPuor ) {
-        return color_list_puor_;
-    }
-    if( palette == ColorListDiverging::kRdbu ) {
-        return color_list_rdbu_;
-    }
-    if( palette == ColorListDiverging::kRdgy ) {
-        return color_list_rdgy_;
-    }
-    if( palette == ColorListDiverging::kRdylbu ) {
-        return color_list_rdylbu_;
-    }
-    if( palette == ColorListDiverging::kRdylgn ) {
-        return color_list_rdylgn_;
-    }
-    if( palette == ColorListDiverging::kSpectral ) {
-        return color_list_spectral_;
+    switch ( palette ) {
+        case ColorListDiverging::kBrbg: {
+            return color_list_brbg_;
+        }
+        case ColorListDiverging::kPiyg: {
+            return color_list_piyg_;
+        }
+        case ColorListDiverging::kPrgn: {
+            return color_list_prgn_;
+        }
+        case ColorListDiverging::kPuor: {
+            return color_list_puor_;
+        }
+        case ColorListDiverging::kRdbu: {
+            return color_list_rdbu_;
+        }
+        case ColorListDiverging::kRdgy: {
+            return color_list_rdgy_;
+        }
+        case ColorListDiverging::kRdylbu: {
+            return color_list_rdylbu_;
+        }
+        case ColorListDiverging::kRdylgn: {
+            return color_list_rdylgn_;
+        }
+        case ColorListDiverging::kSpectral: {
+            return color_list_spectral_;
+        }
+        case ColorListDiverging::kThermisDiverging: {
+            return color_list_thermis_diverging_;
+        }
     }
 
     throw std::invalid_argument( "Invalid ColorListDiverging value." );
@@ -233,7 +257,8 @@ std::vector<Color> const& color_list_diverging( ColorListDiverging palette )
 
 std::vector<Color> const& color_list_diverging( std::string const& palette )
 {
-    auto const p = genesis::util::text::to_lower_ascii( palette );
+    using namespace genesis::util::text;
+    auto const p = to_lower_ascii( remove_all_non_alnum( palette ));
 
     if( p == "brbg" ) {
         return color_list_brbg_;
@@ -262,6 +287,9 @@ std::vector<Color> const& color_list_diverging( std::string const& palette )
     if( p == "spectral" ) {
         return color_list_spectral_;
     }
+    if( p == "thermisdiverging" ) {
+        return color_list_thermis_diverging_;
+    }
 
     throw std::invalid_argument(
         "Invalid ColorListDiverging name: '" + palette + "'. Use color_list_diverging_names() "
@@ -280,7 +308,8 @@ std::vector<std::string> color_list_diverging_names()
         "RdGy",
         "RdYlBu",
         "RdYlGn",
-        "Spectral"
+        "Spectral",
+        "Thermis Diverging"
     };
 }
 

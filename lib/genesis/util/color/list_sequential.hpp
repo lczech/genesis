@@ -47,7 +47,8 @@ namespace color {
 /**
  * @brief Sequential color palettes.
  *
- * List of the sequential color palettes offered by color_list_sequential().
+ * List of the sequential color palettes offered by color_list_sequential(). A list of all color
+* palettes offered here by their name can also be obtained from color_list_sequential_names().
  * The available palettes come from difference sources, credited below.
  *
  * Some color palettes are adapted from ColorBrewer at https://github.com/axismaps/colorbrewer and
@@ -258,7 +259,45 @@ enum class ColorListSequential
      *
      * It is part of the Matplotlib palettes.
      */
-    kViridis
+    kViridis,
+
+    /**
+     * @brief Color palette `Thermis Green`.
+     *
+     * This is a variation on our ColorListMisc::kThermisCyclic palette, which we originally
+     * developed for visualizing seasonal data throughout a year. This variant uses the uniform
+     * brightness of the palette throughout the first half of its cyle to constructur a sequential
+     * color palette. To this end, the second (red) half of the palette is left out, and the first
+     * half is reversed, hence going from bright yellow to dark blue.
+     *
+     * See ColorListSequential::kThermisRed for the other variant on this that uses the second half
+     * of the original cyle. We also offer a diverging palette build from
+     * ColorListMisc::kThermisCyclic, see ColorListDiverging::kThermisDiverging.
+     *
+     * Note that these two variants are similar to Inferno and Viridis, but unlike those, they
+     * start and end at exactly the same color (being derived form a cyclic palette), which might
+     * be desirable in some visualizations.
+     */
+    kThermisGreen,
+
+    /**
+     * @brief Color palette `Thermis Red`.
+     *
+     * This is a variation on our ColorListMisc::kThermisCyclic palette, which we originally
+     * developed for visualizing seasonal data throughout a year. This variant uses the uniform
+     * brightness of the palette throughout the second half of its cyle to constructur a sequential
+     * color palette. To this end, the first (green) half of the palette is left out, hence going
+     * from bright yellow to dark red.
+     *
+     * See ColorListSequential::kThermisGreen for the other variant on this that uses the first half
+     * of the original cyle. We also offer a diverging palette build from
+     * ColorListMisc::kThermisCyclic, see ColorListDiverging::kThermisDiverging.
+     *
+     * Note that these two variants are similar to Inferno and Viridis, but unlike those, they
+     * start and end at exactly the same color (being derived form a cyclic palette), which might
+     * be desirable in some visualizations.
+     */
+    kThermisRed
 };
 
 /**
@@ -272,7 +311,9 @@ std::vector<Color> const& color_list_sequential( ColorListSequential palette );
  * @brief Get a sequential color palette by its name.
  *
  * The names used here are the same as in ColorListSequential, but without the leading `k`,
- * i.e., using their original name (case insensitive).
+ * i.e., using their original name (case insensitive and ignoring all non-alnum characters).
+ * A list of all color palettes offered here by their name can also be obtained from
+ * color_list_sequential_names().
  * For instance, ColorListSequential::kViridis can be obtained here simply as `"viridis"`.
  */
 std::vector<Color> const& color_list_sequential( std::string const&  palette );
@@ -280,7 +321,8 @@ std::vector<Color> const& color_list_sequential( std::string const&  palette );
 /**
  * @brief Get the list of all available sequential color palettes as strings.
  *
- * See also ColorListSequential for the corresponding enum.
+ * See also ColorListSequential for the corresponding enum. Use the color list names provided here
+ * as arguments for color_list_sequential( std::string const& ).
  */
 std::vector<std::string> color_list_sequential_names();
 

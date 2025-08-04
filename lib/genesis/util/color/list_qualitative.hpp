@@ -47,7 +47,8 @@ namespace color {
 /**
  * @brief Qualitative color palettes.
  *
- * List of the qualitative color palettes offered by color_list_qualitative().
+ * List of the qualitative color palettes offered by color_list_qualitative(). A list of all color
+* palettes offered here by their name can also be obtained from color_list_qualitative_names().
  *
  * These color palette are adapted from ColorBrewer at https://github.com/axismaps/colorbrewer and
  * https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
@@ -134,7 +135,9 @@ std::vector<Color> const& color_list_qualitative( ColorListQualitative palette )
  * @brief Get a qualitative color palette by its name.
  *
  * The names used here are the same as in ColorListQualitative, but without the leading `k`,
- * i.e., using their original name (case insensitive).
+ * i.e., using their original name (case insensitive and ignoring all non-alnum characters).
+ * A list of all color palettes offered here by their name can also be obtained from
+ * color_list_qualitative_names().
  * For instance, ColorListQualitative::kAccent can be obtained here simply as `"accent"`.
  */
 std::vector<Color> const& color_list_qualitative( std::string const& palette );
@@ -142,7 +145,8 @@ std::vector<Color> const& color_list_qualitative( std::string const& palette );
 /**
  * @brief Get the list of all available qualitative color palettes as strings.
  *
- * See also ColorListQualitative for the corresponding enum.
+ * See also ColorListQualitative for the corresponding enum. Use the color list names provided here
+ * as arguments for color_list_qualitative( std::string const& ).
  */
 std::vector<std::string> color_list_qualitative_names();
 

@@ -158,29 +158,31 @@ const std::vector<Color> color_list_set3_ = {{
 
 std::vector<Color> const& color_list_qualitative( ColorListQualitative palette )
 {
-    if( palette == ColorListQualitative::kAccent ) {
-        return color_list_accent_;
-    }
-    if( palette == ColorListQualitative::kDark2 ) {
-        return color_list_dark2_;
-    }
-    if( palette == ColorListQualitative::kPaired ) {
-        return color_list_paired_;
-    }
-    if( palette == ColorListQualitative::kPastel1 ) {
-        return color_list_pastel1_;
-    }
-    if( palette == ColorListQualitative::kPastel2 ) {
-        return color_list_pastel1_;
-    }
-    if( palette == ColorListQualitative::kSet1 ) {
-        return color_list_set1_;
-    }
-    if( palette == ColorListQualitative::kSet2 ) {
-        return color_list_set2_;
-    }
-    if( palette == ColorListQualitative::kSet3 ) {
-        return color_list_set3_;
+    switch ( palette ) {
+        case ColorListQualitative::kAccent: {
+            return color_list_accent_;
+        }
+        case ColorListQualitative::kDark2: {
+            return color_list_dark2_;
+        }
+        case ColorListQualitative::kPaired: {
+            return color_list_paired_;
+        }
+        case ColorListQualitative::kPastel1: {
+            return color_list_pastel1_;
+        }
+        case ColorListQualitative::kPastel2: {
+            return color_list_pastel1_;
+        }
+        case ColorListQualitative::kSet1: {
+            return color_list_set1_;
+        }
+        case ColorListQualitative::kSet2: {
+            return color_list_set2_;
+        }
+        case ColorListQualitative::kSet3: {
+            return color_list_set3_;
+        }
     }
 
     throw std::invalid_argument( "Invalid ColorListQualitative value." );
@@ -188,7 +190,8 @@ std::vector<Color> const& color_list_qualitative( ColorListQualitative palette )
 
 std::vector<Color> const& color_list_qualitative( std::string const& palette )
 {
-    auto const p = genesis::util::text::to_lower_ascii( palette );
+    using namespace genesis::util::text;
+    auto const p = to_lower_ascii( remove_all_non_alnum( palette ));
 
     if( p == "accent" ) {
         return color_list_accent_;

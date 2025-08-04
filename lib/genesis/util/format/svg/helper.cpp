@@ -31,6 +31,7 @@
 #include <genesis/util/format/svg/helper.hpp>
 
 #include <genesis/util/format/svg/attribute.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <limits>
@@ -139,6 +140,22 @@ SvgBox svg_bounding_box(
         SvgPoint( min_x, min_y ),
         SvgPoint( max_x, max_y )
     };
+}
+
+// -------------------------------------------------------------
+//     sanitize_svg_id
+// -------------------------------------------------------------
+
+std::string sanitize_svg_id( std::string const& id )
+{
+    using namespace genesis::util::text;
+    return replace_all_chars_pred(
+        id,
+        [] ( char c ) {
+            return not is_alnum( c );
+        },
+        '_'
+    );
 }
 
 } // namespace format

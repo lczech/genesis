@@ -25,11 +25,11 @@ void bind_genesis_util_color_list_sequential(
 )
 {
     // genesis::util::color::color_list_sequential(enum genesis::util::color::ColorListSequential)
-    // file:genesis/util/color/list_sequential.hpp line:269 function-signature: const class
+    // file:genesis/util/color/list_sequential.hpp line:308 function-signature: const class
     // std::vector<class genesis::util::color::Color> &
     // genesis::util::color::color_list_sequential(enum
     // genesis::util::color::ColorListSequential)(enum genesis::util::color::ColorListSequential)
-    // file:genesis/util/color/list_sequential.hpp line:269
+    // file:genesis/util/color/list_sequential.hpp line:308
     M( "genesis::util::color" )
         .def(
             "color_list_sequential",
@@ -46,10 +46,10 @@ void bind_genesis_util_color_list_sequential(
         );
 
     // genesis::util::color::color_list_sequential(const std::string &)
-    // file:genesis/util/color/list_sequential.hpp line:278 function-signature: const class
+    // file:genesis/util/color/list_sequential.hpp line:319 function-signature: const class
     // std::vector<class genesis::util::color::Color> &
     // genesis::util::color::color_list_sequential(const std::string &)(const std::string &)
-    // file:genesis/util/color/list_sequential.hpp line:278
+    // file:genesis/util/color/list_sequential.hpp line:319
     M( "genesis::util::color" )
         .def(
             "color_list_sequential",
@@ -57,7 +57,9 @@ void bind_genesis_util_color_list_sequential(
                 genesis::util::color::color_list_sequential,
             "Get a sequential color palette by its name.\n\n The names used here are the same as "
             "in ColorListSequential, but without the leading `k`,\n i.e., using their original "
-            "name (case insensitive).\n For instance, ColorListSequential::kViridis can be "
+            "name (case insensitive and ignoring all non-alnum characters).\n A list of all color "
+            "palettes offered here by their name can also be obtained from\n "
+            "color_list_sequential_names().\n For instance, ColorListSequential::kViridis can be "
             "obtained here simply as `\"viridis\"`.\n\nC++: "
             "genesis::util::color::color_list_sequential(const std::string &) --> const class "
             "std::vector<class genesis::util::color::Color> &",
@@ -66,16 +68,17 @@ void bind_genesis_util_color_list_sequential(
         );
 
     // genesis::util::color::color_list_sequential_names()
-    // file:genesis/util/color/list_sequential.hpp line:285 function-signature: class
+    // file:genesis/util/color/list_sequential.hpp line:327 function-signature: class
     // std::vector<std::string > genesis::util::color::color_list_sequential_names()()
-    // file:genesis/util/color/list_sequential.hpp line:285
+    // file:genesis/util/color/list_sequential.hpp line:327
     M( "genesis::util::color" )
         .def(
             "color_list_sequential_names",
             ( class std::vector<std::string >( * )() ) &
                 genesis::util::color::color_list_sequential_names,
             "Get the list of all available sequential color palettes as strings.\n\n See also "
-            "ColorListSequential for the corresponding enum.\n\nC++: "
+            "ColorListSequential for the corresponding enum. Use the color list names provided "
+            "here\n as arguments for color_list_sequential( std::string const& ).\n\nC++: "
             "genesis::util::color::color_list_sequential_names() --> class std::vector<std::string "
             ">"
         );

@@ -284,6 +284,17 @@ SvgBox svg_bounding_box(
     SvgTransform const& transform
 );
 
+/**
+ * @brief Sanitize SVG IDs.
+ *
+ * When using an `id` for instance to refer to a gradient or other entity in the document, we might
+ * want to avoid spaces and other non-alum character, so that SVG viers can properly work with
+ * the resulting file. This function simply replaces all non-alnum character by underscores.
+ *
+ * Use this for instance on the `id` argument of make_svg_color_bar().
+ */
+std::string sanitize_svg_id( std::string const& id );
+
 // template< typename T >
 // std::string svg_style(
 //     std::string const& name,
