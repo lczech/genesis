@@ -468,11 +468,11 @@
 // #include <genesis/util/container/dataframe.hpp>
 // #include <genesis/util/container/dataframe/operator.hpp>
 // #include <genesis/util/container/dataframe/reader.hpp>
-// #include <genesis/util/container/deref_iterator.hpp>
-// #include <genesis/util/container/filter_iterator.hpp>
+#include <genesis/util/container/deref_iterator.hpp>
+#include <genesis/util/container/filter_iterator.hpp>
 // #include <genesis/util/container/function_cache.hpp>
 // #include <genesis/util/container/generic_input_stream.hpp>
-// #include <genesis/util/container/hash_tuple.hpp>
+#include <genesis/util/container/hash_tuple.hpp>
 // #include <genesis/util/container/interval_tree.hpp>
 // #include <genesis/util/container/interval_tree/function.hpp>
 // #include <genesis/util/container/interval_tree/fwd.hpp>
@@ -487,8 +487,8 @@
 // #include <genesis/util/container/matrix/simple_reader.hpp>
 // #include <genesis/util/container/matrix/writer.hpp>
 #include <genesis/util/container/mru_cache.hpp>
-// #include <genesis/util/container/range.hpp>
-// #include <genesis/util/container/transform_iterator.hpp>
+#include <genesis/util/container/range.hpp>
+#include <genesis/util/container/transform_iterator.hpp>
 
 // ---------------------------------------------------------------------
 //   core
