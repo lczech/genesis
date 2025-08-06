@@ -23,10 +23,11 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
+// Includes in `./python/custom`
 #include <genesis/util/container/mru_cache.hpp>
+#include <pybind_add_ons.hpp>
 
 #include <pybind11/pybind11.h>
-#include <pybind_add_ons.hpp>
 
 namespace genesis {
 namespace util {

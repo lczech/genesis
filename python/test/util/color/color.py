@@ -113,7 +113,7 @@ class TestGenesisutilColorColor(unittest.TestCase):
         with self.assertRaises(ValueError): color.color_from_name_web("boot polish")
 
     def test_palette_spectral(self):
-        cmap = color.ColorMap(color.color_list_spectral())
+        cmap = color.ColorMap(color.color_list_diverging("spectral"))
         norm = color.ColorNormalizationDiverging(-1.0, 1.0)
         checks = [
             (-1.0, (158, 1, 66)),

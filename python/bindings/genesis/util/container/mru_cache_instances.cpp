@@ -23,7 +23,7 @@ void bind_genesis_util_container_mru_cache_instances(
 )
 {
     { // genesis::util::container::MruCache file:genesis/util/container/mru_cache_instances.hpp
-      // line:38
+      // line:39
         pybind11::class_<
             genesis::util::container::MruCache<pybind11::object, pybind11::object>,
             std::shared_ptr<genesis::util::container::MruCache<pybind11::object, pybind11::object>>>

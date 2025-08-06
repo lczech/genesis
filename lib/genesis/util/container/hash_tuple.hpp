@@ -93,7 +93,6 @@ struct hash<std::tuple<TT...>>
     }
 };
 
-
 } // namespace container
 } // namespace util
 } // namespace genesis

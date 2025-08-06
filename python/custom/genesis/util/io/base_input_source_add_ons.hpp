@@ -23,8 +23,8 @@
     Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
-#include <pybind11/pybind11.h>
 #include <genesis/util/io/base_input_source.hpp>
+#include <pybind11/pybind11.h>
 
 void genesis_util_io_base_input_source_add_ons(
     pybind11::class_<

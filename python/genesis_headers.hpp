@@ -470,15 +470,15 @@
 // #include <genesis/util/container/dataframe/reader.hpp>
 #include <genesis/util/container/deref_iterator.hpp>
 #include <genesis/util/container/filter_iterator.hpp>
-// #include <genesis/util/container/function_cache.hpp>
+#include <genesis/util/container/function_cache.hpp>
 // #include <genesis/util/container/generic_input_stream.hpp>
 #include <genesis/util/container/hash_tuple.hpp>
-// #include <genesis/util/container/interval_tree.hpp>
-// #include <genesis/util/container/interval_tree/function.hpp>
-// #include <genesis/util/container/interval_tree/fwd.hpp>
-// #include <genesis/util/container/interval_tree/interval.hpp>
-// #include <genesis/util/container/interval_tree/iterator.hpp>
-// #include <genesis/util/container/interval_tree/node.hpp>
+#include <genesis/util/container/interval_tree.hpp>
+#include <genesis/util/container/interval_tree/function.hpp>
+#include <genesis/util/container/interval_tree/fwd.hpp>
+#include <genesis/util/container/interval_tree/interval.hpp>
+#include <genesis/util/container/interval_tree/iterator.hpp>
+#include <genesis/util/container/interval_tree/node.hpp>
 // #include <genesis/util/container/matrix.hpp>
 // #include <genesis/util/container/matrix/col.hpp>
 // #include <genesis/util/container/matrix/operator.hpp>
