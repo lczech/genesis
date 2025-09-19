@@ -479,13 +479,13 @@
 #include <genesis/util/container/interval_tree/interval.hpp>
 #include <genesis/util/container/interval_tree/iterator.hpp>
 #include <genesis/util/container/interval_tree/node.hpp>
-// #include <genesis/util/container/matrix.hpp>
-// #include <genesis/util/container/matrix/col.hpp>
-// #include <genesis/util/container/matrix/operator.hpp>
-// #include <genesis/util/container/matrix/reader.hpp>
-// #include <genesis/util/container/matrix/row.hpp>
-// #include <genesis/util/container/matrix/simple_reader.hpp>
-// #include <genesis/util/container/matrix/writer.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/container/matrix/col.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/container/matrix/reader.hpp>
+#include <genesis/util/container/matrix/row.hpp>
+#include <genesis/util/container/matrix/simple_reader.hpp>
+#include <genesis/util/container/matrix/writer.hpp>
 #include <genesis/util/container/mru_cache.hpp>
 #include <genesis/util/container/range.hpp>
 #include <genesis/util/container/transform_iterator.hpp>
