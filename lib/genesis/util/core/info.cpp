@@ -53,9 +53,11 @@
 #include <algorithm>
 #include <cassert>
 #include <cctype>
+#include <cerrno>
 #include <chrono>
 #include <climits>
 #include <cstdarg>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -63,6 +65,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -1593,67 +1596,19 @@ size_t info_process_current_file_count()
     //     Current Mem/CPU - Linux
     // -------------------------------------------------------------------------
 
-    size_t parse_proc_line_kb_( char* line )
-    {
-        // Helper function to parse "/proc/self/status", see
-        // https://stackoverflow.com/q/63166/4184258
-        // Adapted from there to add error checking.
-
-
-        // Check if the line is too short to contain " kB" and a value
-        auto length = strlen(line);
-        if( length < 5 ) {
-            return 0;
-        }
-
-        // Need to remove new line from end if present
-        if( line[length - 1] == '\n' ) {
-            line[length - 1] = '\0';
-            --length;
-        }
-
-        // Check that the string ends with " kB" (case-insensitive)
-        if( strncasecmp( &line[length - 3], " kB", 3 ) != 0 ) {
-            return 0;
-        }
-
-        // Null-terminate the string to remove the " kB"
-        line[length - 3] = '\0';
-
-        // Find the first digit in the string
-        char* p = line;
-        while( *p && !isdigit(*p) ) {
-            p++;
-        }
-
-        // Check if we found a digit, then convert the numeric part of the string to an integer
-        if( *p == '\0' ) {
-            return 0;
-        }
-        return atoi(p);
-    }
+    // -------------------------------------------------------
+    //     info_process_current_memory_usage
+    // -------------------------------------------------------
 
     size_t info_process_current_memory_usage()
     {
-        // https://stackoverflow.com/q/63166/4184258
-
-        //Note: this value is in KB!
-        FILE* file = fopen("/proc/self/status", "r");
-        size_t result = 0;
-        char line[128];
-        if( !file ) {
-            return 0;
-        }
-
-        while( fgets( line, 128, file ) != NULL ) {
-            if( strncmp( line, "VmRSS:", 6 ) == 0 ) {
-                result = parse_proc_line_kb_(line);
-                break;
-            }
-        }
-        fclose(file);
-        return result * 1024;
+        // We use the RSS as memory usage on Linux.
+        return info_process_current_memory_usage_rss();
     }
+
+    // -------------------------------------------------------
+    //     info_system_current_memory_usage
+    // -------------------------------------------------------
 
     std::unordered_map<std::string, size_t> get_proc_meminfo_lines_()
     {
@@ -1723,10 +1678,18 @@ size_t info_process_current_file_count()
         return info_system_current_memory_helper_( false );
     }
 
+    // -------------------------------------------------------
+    //     info_system_current_memory_available
+    // -------------------------------------------------------
+
     size_t info_system_current_memory_available()
     {
         return info_system_current_memory_helper_( true );
     }
+
+    // -------------------------------------------------------
+    //     info_process_current_cpu_usage
+    // -------------------------------------------------------
 
     size_t info_process_number_of_processors_()
     {
@@ -1795,6 +1758,10 @@ size_t info_process_current_file_count()
 
         return result;
     }
+
+    // -------------------------------------------------------
+    //     info_system_current_cpu_usage
+    // -------------------------------------------------------
 
     double info_system_current_cpu_usage( bool all_cores, bool percent )
     {
@@ -1905,6 +1872,314 @@ size_t info_process_current_file_count()
         (void) all_cores;
         (void) percent;
         return 0.0;
+    }
+
+#endif
+
+// =================================================================================================
+//     Specialized Memory Info for Linux
+// =================================================================================================
+
+#if defined(__linux__)
+
+    // -------------------------------------------------------
+    //     info_process_current_memory_usage_rss
+    // -------------------------------------------------------
+
+    size_t info_process_current_memory_usage_rss()
+    {
+        std::ifstream in("/proc/self/statm");
+        if (!in) return 0;
+
+        long pages_total = 0;
+        long pages_rss   = 0;
+        in >> pages_total >> pages_rss;
+
+        const long page_size = sysconf(_SC_PAGESIZE);
+        if (pages_rss <= 0 || page_size <= 0) return 0;
+
+        return static_cast<std::size_t>(pages_rss) * static_cast<std::size_t>(page_size);
+    }
+
+    // -------------------------------------------------------
+    //     info_process_current_memory_usage_pss
+    // -------------------------------------------------------
+
+    /**
+    * @brief Internal: read a kB-valued key from `/proc/self/smaps_rollup`.
+    *
+    * Example keys: "Pss:", "RssAnon:", "RssFile:", "RssShmem:".
+    *
+    * @return value in kB; negative on error or if key not found.
+    */
+    inline long read_smaps_rollup_kb_(const char* key)
+    {
+        std::ifstream in("/proc/self/smaps_rollup");
+        if (!in) return -1;
+
+        std::string line;
+        const std::string want(key);
+        while (std::getline(in, line)) {
+            if (line.rfind(want, 0) == 0) {
+                std::istringstream iss(line.substr(want.size()));
+                long kb = 0;
+                iss >> kb; // stops before "kB"
+                return kb;
+            }
+        }
+        return -1;
+    }
+
+    /**
+    * @brief Internal: sum kB values for a given key across `/proc/self/smaps`.
+    *
+    * Slow fallback for older kernels lacking `smaps_rollup`. Parses the entire
+    * mapping list and sums occurrences of the given key.
+    *
+    * @return total in kB; 0 if none found or on error.
+    */
+    inline long sum_smaps_kb_slow_(const char* key)
+    {
+        std::ifstream in("/proc/self/smaps");
+        if (!in) return 0;
+
+        std::string line;
+        const std::string want(key);
+        long total_kb = 0;
+        while (std::getline(in, line)) {
+            if (line.rfind(want, 0) == 0) {
+                std::istringstream iss(line.substr(want.size()));
+                long kb = 0;
+                iss >> kb;
+                total_kb += kb;
+            }
+        }
+        return total_kb;
+    }
+
+    size_t info_process_current_memory_usage_pss()
+    {
+        long kb = read_smaps_rollup_kb_("Pss:");
+        if (kb < 0) kb = sum_smaps_kb_slow_("Pss:");
+        return kb > 0 ? static_cast<std::size_t>(kb) * 1024u : 0u;
+    }
+
+    // -------------------------------------------------------
+    //     info_process_current_memory_usage_vmrss
+    // -------------------------------------------------------
+
+    /**
+    * @brief Parse a "/proc/self/status" memory line and return the numeric value in kilobytes (u64).
+    *
+    * Accepts lines like: "VmRSS:\t  123456 kB\n".
+    * Steps:
+    *  - Strips trailing newline (if present) *in-place*.
+    *  - Verifies the line ends with " kB" (case-insensitive).
+    *  - Temporarily truncates the " kB" suffix.
+    *  - Finds the first digit and parses an unsigned long long with strtoull.
+    *
+    * Returns 0 on any parse failure. On ERANGE overflow, returns UINT64_MAX.
+    * The input buffer may be modified (newline and " kB" removed).
+    *
+    * @param line Mutable C-string buffer containing one line from /proc/self/status.
+    * @return std::uint64_t Value in kilobytes; 0 on failure; UINT64_MAX on overflow.
+    */
+    std::uint64_t parse_proc_line_kb_u64_(char* line)
+    {
+        // Helper function to parse "/proc/self/status", see
+        // https://stackoverflow.com/q/63166/4184258
+        // Adapted from there to add error checking, as well as
+        // parses with strtoull (no 32-bit overflow),
+        // verifies the " kB" suffix, and
+        // guards against size_t overflow when scaling to bytes.
+
+        if (!line) return 0;
+
+        std::size_t length = std::strlen(line);
+        if (length < 5) return 0; // too short to contain " kB" and a value
+
+        // Strip trailing newline
+        if (line[length - 1] == '\n') {
+            line[--length] = '\0';
+        }
+        if (length < 4) return 0;
+
+        // Require " kB" suffix (case-insensitive)
+        if (strncasecmp(&line[length - 3], " kB", 3) != 0) {
+            return 0;
+        }
+
+        // Truncate the " kB"
+        line[length - 3] = '\0';
+
+        // Find first digit
+        char* p = line;
+        while (*p && !std::isdigit(static_cast<unsigned char>(*p))) ++p;
+        if (*p == '\0') return 0;
+
+        errno = 0;
+        unsigned long long v = std::strtoull(p, nullptr, 10);
+        if (errno == ERANGE) return std::numeric_limits<std::uint64_t>::max();
+
+        return static_cast<std::uint64_t>(v);
+    }
+
+    std::size_t info_process_current_memory_usage_vmrss()
+    {
+        // https://stackoverflow.com/q/63166/4184258
+
+        //Note: this value is in KB!
+        FILE* file = std::fopen("/proc/self/status", "r");
+        if (!file) return 0;
+
+        char line[256];
+        std::uint64_t kb = 0;
+        while (std::fgets(line, sizeof(line), file)) {
+            if (std::strncmp(line, "VmRSS:", 6) == 0) {
+                kb = parse_proc_line_kb_u64_(line);
+                break;
+            }
+        }
+        std::fclose(file);
+
+        if (kb == 0) return 0;
+        // Guard against size_t overflow on kB --> bytes
+        if (kb > std::numeric_limits<std::size_t>::max() / 1024ULL) {
+            return std::numeric_limits<std::size_t>::max();
+        }
+        return static_cast<std::size_t>(kb * 1024ULL);
+    }
+
+    // -------------------------------------------------------
+    //     info_process_current_memory_usage_rss_anon
+    // -------------------------------------------------------
+
+    size_t info_process_current_memory_usage_rss_anon()
+    {
+        long kb = read_smaps_rollup_kb_("RssAnon:");
+        if (kb < 0) {
+            // Fallback: sum over smaps
+            kb = sum_smaps_kb_slow_("RssAnon:");
+        }
+        return kb > 0 ? static_cast<std::size_t>(kb) * 1024u : 0u;
+    }
+
+    // -------------------------------------------------------
+    //     info_process_current_memory_usage_cgroup
+    // -------------------------------------------------------
+
+    /**
+    * @brief Internal: read cgroup v2 memory stats (unified hierarchy).
+    *
+    * Looks up the relative cgroup path from `/proc/self/cgroup` and reads
+    * `memory.current` and `memory.max` under `/sys/fs/cgroup/<path>`.
+    */
+    inline bool read_cgroup_v2_(InfoCgroupMemory& out)
+    {
+        std::ifstream cg("/proc/self/cgroup");
+        if (!cg) return false;
+
+        std::string line;
+        std::string rel_path;
+        while (std::getline(cg, line)) {
+            // v2 format: "0::<path>"
+            auto pos = line.find("::");
+            if (pos != std::string::npos) {
+                rel_path = line.substr(pos + 2); // may be "/" or deeper
+                break;
+            }
+        }
+
+        // Unified hierarchy is mounted at /sys/fs/cgroup
+        const std::string base = std::string("/sys/fs/cgroup") + (rel_path.empty() ? "" : rel_path);
+        std::ifstream cur(base + "/memory.current");
+        std::ifstream lim(base + "/memory.max");
+        if (!cur || !lim) return false;
+
+        std::uint64_t current = 0;
+        std::string limit_str;
+        cur >> current;
+        lim >> limit_str;
+
+        std::uint64_t limit = std::numeric_limits<std::uint64_t>::max();
+        if (limit_str != "max") {
+            std::istringstream iss(limit_str);
+            iss >> limit;
+        }
+
+        out.current_bytes = static_cast<std::size_t>(current);
+        out.limit_bytes   = static_cast<std::size_t>(limit);
+        return true;
+    }
+
+    /**
+    * @brief Internal: read cgroup v1 memory stats (legacy hierarchy).
+    *
+    * Finds the cgroup path for the "memory" controller in `/proc/self/cgroup`
+    * and reads `memory.usage_in_bytes` and `memory.limit_in_bytes` under
+    * `/sys/fs/cgroup/memory<path>`.
+    */
+    inline bool read_cgroup_v1_(InfoCgroupMemory& out)
+    {
+        std::ifstream cg("/proc/self/cgroup");
+        if (!cg) return false;
+
+        std::string line;
+        std::string rel_path;
+        while (std::getline(cg, line)) {
+            // v1 format: "<id>:<controllers>:<path>"
+            const auto first  = line.find(':');
+            const auto second = line.find(':', first + 1);
+            if (first == std::string::npos || second == std::string::npos) continue;
+
+            const std::string ctrls = line.substr(first + 1, second - (first + 1));
+            if (ctrls.find("memory") != std::string::npos) {
+                rel_path = line.substr(second + 1);
+                break;
+            }
+        }
+        if (rel_path.empty()) return false;
+
+        const std::string base = std::string("/sys/fs/cgroup/memory") + rel_path;
+        std::ifstream cur(base + "/memory.usage_in_bytes");
+        std::ifstream lim(base + "/memory.limit_in_bytes");
+        if (!cur || !lim) return false;
+
+        std::uint64_t current = 0, limit = 0;
+        cur >> current;
+        lim >> limit;
+
+        out.current_bytes = static_cast<std::size_t>(current);
+        out.limit_bytes   = static_cast<std::size_t>(limit);
+        return true;
+    }
+
+    InfoCgroupMemory info_process_current_memory_usage_cgroup()
+    {
+        InfoCgroupMemory m;
+        if (read_cgroup_v2_(m)) return m;
+        if (read_cgroup_v1_(m)) return m;
+        return m; // invalid
+    }
+
+    size_t info_process_current_memory_usage_cgroup_current()
+    {
+        auto const cg = info_process_current_memory_usage_cgroup();
+        return cg.current_bytes;
+    }
+
+    size_t info_process_current_memory_usage_cgroup_limit()
+    {
+        auto const cg = info_process_current_memory_usage_cgroup();
+        return cg.limit_bytes;
+    }
+
+    double info_process_current_memory_usage_cgroup_fraction()
+    {
+        auto const cg = info_process_current_memory_usage_cgroup();
+        if (cg.current_bytes == 0 && cg.limit_bytes == 0) return 0.0;
+        if (cg.limit_bytes == std::numeric_limits<std::size_t>::max() || cg.limit_bytes == 0) return 0.0;
+        return static_cast<double>(cg.current_bytes) / static_cast<double>(cg.limit_bytes);
     }
 
 #endif

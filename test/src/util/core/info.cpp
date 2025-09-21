@@ -135,6 +135,17 @@ TEST( Info, Usage )
     ASSERT_GT( info_total.size(), 20 );
     LOG_DBG << info_total;
     // LOG_DBG << guess_number_of_threads();
+
+    // Special tests for the linux specific memory functions
+    #if defined(__linux__)
+
+    EXPECT_GT( info_process_current_memory_usage_rss(), 0 );
+    EXPECT_GT( info_process_current_memory_usage_pss(), 0 );
+    EXPECT_GT( info_process_current_memory_usage_vmrss(), 0 );
+    EXPECT_GE( info_process_current_memory_usage_rss_anon(), 0 );
+    EXPECT_GE( info_process_current_memory_usage_cgroup_current(), 0 );
+
+    #endif
 }
 
 TEST( Info, FileCount )

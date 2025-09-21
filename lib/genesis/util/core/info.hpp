@@ -444,6 +444,131 @@ double info_process_current_cpu_usage( bool all_cores = true, bool percent = tru
 double info_system_current_cpu_usage( bool all_cores = true, bool percent = true );
 
 // =================================================================================================
+//     Specialized Memory Info for Linux
+// =================================================================================================
+
+#if defined(__linux__)
+
+/**
+ * @brief Get Resident Set Size (RSS) in bytes.
+ *
+ * Reads `/proc/self/statm` and returns the second field (RSS pages) times the
+ * system page size. This matches what tools like `top` show as **RES** and
+ * **counts shared/file-backed pages fully**.
+ *
+ * @return RSS in bytes; 0 on error.
+ *
+ * @see info_process_current_memory_usage() for the generic mem function.
+ * @see info_process_current_memory_usage_pss() for a “fairer” attribution of shared memory.
+ * @see info_process_current_memory_usage_vmrss().
+ */
+size_t info_process_current_memory_usage_rss();
+
+/**
+ * @brief Get Proportional Set Size (PSS) in bytes.
+ *
+ * PSS divides shared pages proportionally by the number of processes sharing
+ * them, yielding a more “fair” measure of memory *attributable* to this
+ * process than RSS. This is often closer to intuition when you use shared libs
+ * or file-backed mmaps.
+ *
+ * Implementation prefers `/proc/self/smaps_rollup` (fast). If absent, falls
+ * back to summing `Pss:` over `/proc/self/smaps` (slow).
+ *
+ * @return PSS in bytes; 0 on error.
+ */
+size_t info_process_current_memory_usage_pss();
+
+/**
+ * @brief Get this process' Resident Set Size (RSS) in bytes via /proc/self/status (VmRSS).
+ *
+ * Opens "/proc/self/status", finds the "VmRSS:" line, and uses this information.
+ * This corresponds to what `top` calls **RES** (counts shared/file-backed pages fully).
+ *
+ * @return size_t RSS in bytes; 0 if not available or on parse errors.
+ */
+size_t info_process_current_memory_usage_vmrss();
+
+/**
+ * @brief Get anonymous resident memory (RssAnon) in bytes.
+ *
+ * RssAnon is the resident portion of anonymous mappings (e.g., heap and
+ * stacks), excluding file-backed pages. Handy if you want to ignore code,
+ * shared libraries, and file cache.
+ *
+ * Uses `/proc/self/smaps_rollup` if available.
+ *
+ * @return RssAnon in bytes; 0 on error.
+ */
+size_t info_process_current_memory_usage_rss_anon();
+
+/**
+ * @brief Container for cgroup memory usage/limit (bytes).
+ *
+ * This contains the current usage and upper limit for the cgroup memory,
+ * which is for instance used in the Slurm workload manager.
+ *
+ * Slurm typically enforces memory via cgroups. When `current_bytes` reaches
+ * `limit_bytes`, the job will be OOM-killed regardless of RSS/RES.
+ *
+ * On cgroup v2, the limit can be “unlimited”; in that case `limit_bytes` is
+ * set to `std::numeric_limits<std::size_t>::max()`.
+ *
+ * @see info_process_current_memory_usage_cgroup()
+ * @see info_process_current_memory_usage_cgroup_current()
+ * @see info_process_current_memory_usage_cgroup_limit()
+ * @see info_process_current_memory_usage_cgroup_fraction()
+ */
+struct InfoCgroupMemory
+{
+    /**
+     * @brief memory.current (v2) or usage_in_bytes (v1)
+     */
+    std::size_t current_bytes = 0;
+
+    /**
+     * @brief memory.max (v2) or limit_in_bytes (v1) or SIZE_MAX if unlimited
+     */
+    std::size_t limit_bytes   = 0;
+};
+
+/**
+ * @brief Get cgroup memory usage and limit in bytes (v2 preferred, v1 fallback).
+ *
+ * This is the number Slurm typically kills on: when `current_bytes` reaches
+ * `limit_bytes`, your job is out-of-memory from the scheduler’s perspective.
+ *
+ * @return A filled InfoCgroupMemory with `valid=true` if any cgroup info was found.
+ */
+InfoCgroupMemory info_process_current_memory_usage_cgroup();
+
+/**
+ * @brief Get the cgroup memory current usage.
+ *
+ * @see InfoCgroupMemory and info_process_current_memory_usage_cgroup() for details.
+ * @see info_process_current_memory_usage_cgroup_limit() for the cgroup memory limit.
+ */
+size_t info_process_current_memory_usage_cgroup_current();
+
+/**
+ * @brief Get the cgroup memory usage limit.
+ *
+ * @see InfoCgroupMemory and info_process_current_memory_usage_cgroup() for details.
+ * @see info_process_current_memory_usage_cgroup_current() for the current cgroup memory.
+ */
+size_t info_process_current_memory_usage_cgroup_limit();
+
+/**
+ * @brief Convenience: compute cgroup usage fraction [0, 1].
+ *
+ * @see InfoCgroupMemory and info_process_current_memory_usage_cgroup() for details.
+ * @return usage fraction, or 0.0 if invalid or unlimited.
+ */
+double info_process_current_memory_usage_cgroup_fraction();
+
+#endif
+
+// =================================================================================================
 //     Total Resource Usage
 // =================================================================================================
 
