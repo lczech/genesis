@@ -98,7 +98,13 @@ else()
 endif()
 
 # The shared lib uses the object library.
-target_link_libraries (genesis_lib_shared PUBLIC genesis_lib_obj)
+target_link_libraries(
+    genesis_lib_shared PUBLIC
+    genesis_lib_obj
+    CLI11
+    moodycamel_concurrentqueue
+    parallel_hashmap
+)
 
 # Activate LTO if available. This needs to match the object library.
 if(GENESIS_HAS_LTO)
@@ -124,7 +130,13 @@ else()
 endif()
 
 # The static lib uses the object library.
-target_link_libraries (genesis_lib_static PUBLIC genesis_lib_obj)
+target_link_libraries(
+    genesis_lib_static PUBLIC
+    genesis_lib_obj
+    CLI11
+    moodycamel_concurrentqueue
+    parallel_hashmap
+)
 
 # Activate LTO if available. This needs to match the object library.
 if(GENESIS_HAS_LTO)

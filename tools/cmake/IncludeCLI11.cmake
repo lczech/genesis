@@ -42,5 +42,11 @@ endif()
 
 # Header only, so we just need to include the dir.
 include_directories("${CLI11_SOURCE}/include")
-
 # Include as: #include "CLI/CLI.hpp"
+
+# Make a target to link to, and to propagate the include dir
+add_library(CLI11 INTERFACE)
+target_include_directories(
+    CLI11 INTERFACE
+    $<BUILD_INTERFACE:${CLI11_SOURCE}/include>
+)

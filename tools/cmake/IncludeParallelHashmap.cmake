@@ -42,3 +42,10 @@ endif()
 
 # Header only, so we just need to include the dir.
 include_directories("${PARALLEL_HASHMAP_SOURCE}")
+
+# Make a target to link to, and to propagate the include dir
+add_library(parallel_hashmap INTERFACE)
+target_include_directories(
+    parallel_hashmap INTERFACE
+    $<BUILD_INTERFACE:${PARALLEL_HASHMAP_SOURCE}>
+)
