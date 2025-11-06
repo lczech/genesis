@@ -110,29 +110,58 @@ function get_submodule_tag() {
     return 0
 }
 
-function update_submodule_tag() {
-    local libname=${1}
-    local cmakedir=${2}
+# Usage:
+#   update_submodule_tag <libname> <cmake_dir> [--cache]
+#
+# Replaces the line with "#<VAR>_GIT_TAG#" by:
+#   SET( <VAR>_GIT_TAG "<tag>" ) #<VAR>_GIT_TAG#
+# or, with --cache:
+#   SET( <VAR>_GIT_TAG "<tag>" CACHE STRING "<libname> git tag to fetch" ) #<VAR>_GIT_TAG#
+#
+update_submodule_tag() {
+    local libname="$1"
+    local cmakedir="$2"
+    local flag="$3"
 
+    # Must set global $commit_tag
     if ! get_submodule_tag "$libname"; then
         echo "Error: could not retrieve tag for submodule '$libname'." >&2
-        exit 1
+        return 1
     fi
+
     echo "${libname} @ ${commit_tag}"
 
-    # Need to replace dashes in cmake variables
-    local varname=`echo ${libname} | sed 's/-/_/g'`
+    local varname
+    varname="$(echo "$libname" | sed 's/-/_/g')"
 
-    LINE="SET( ${varname}_GIT_TAG \"${commit_tag}\" ) #${varname}_GIT_TAG#"
-    sed -i "s/.*#${varname}_GIT_TAG#/${LINE}/g" ${cmakedir}/CMakeLists.txt
+    local cmakefile="${cmakedir%/}/CMakeLists.txt"
+    local anchor="#${varname}_GIT_TAG#"
+
+    if ! grep -q "$anchor" "$cmakefile"; then
+        echo "Error: anchor '$anchor' not found in $cmakefile" >&2
+        return 1
+    fi
+
+    local LINE
+    if [[ "$flag" == "--cache" ]]; then
+        LINE="SET( ${varname}_GIT_TAG \"${commit_tag}\" CACHE STRING \"${libname} git tag to fetch\" ) ${anchor}"
+    else
+        LINE="SET( ${varname}_GIT_TAG \"${commit_tag}\" ) ${anchor}"
+    fi
+
+    # GNU sed only (no BSD support needed)
+    sed -i "s|.*${anchor}|${LINE}|" "$cmakefile"
 }
+
+
 
 ####################################################################################################
 #    Submodule Dependencies
 ####################################################################################################
 
-# The update functions take the submodule name and the CMake subdirectory.
-update_submodule_tag "CLI11"            "."
+# The update functions take the submodule name and the CMake subdirectory,
+# as well as optionally
+update_submodule_tag "CLI11"            "."      "--cache"
 update_submodule_tag "concurrentqueue"  "."
 update_submodule_tag "htslib"           "."
 update_submodule_tag "parallel-hashmap" "."

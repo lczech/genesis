@@ -441,7 +441,12 @@ include( IncludeParallelHashmap )
 #     CLI11
 # ----------------------------------------------------------
 
-SET( CLI11_GIT_TAG "v2.5.0" ) #CLI11_GIT_TAG#
+# For CLI11, we offer to overwrite the tag externally,
+# such that when genesis is included as a library, the caller
+# can overwrite which CLI11 version to use. We are not depending
+# on it internally in genesis (as of now at least), and offer
+# it for convenience only, so this makes sense.
+SET( CLI11_GIT_TAG "v2.5.0" CACHE STRING "CLI11 git tag to fetch" ) #CLI11_GIT_TAG#
 include( IncludeCLI11 )
 
 # ================================================================================================

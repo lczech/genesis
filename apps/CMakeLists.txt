@@ -59,6 +59,7 @@ if( genesis_apps_sources )
         add_executable( ${app_name} ${app_src} )
 
         target_link_libraries( ${app_name} PUBLIC genesis_lib_shared )
+        target_link_libraries( ${app_name} PUBLIC CLI11 )
 
         # explicitly add OpenMP, compatible with Macos/brew installed OpenMP after Cmake 3.12
         if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")

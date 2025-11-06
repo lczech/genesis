@@ -23,6 +23,14 @@
 #   Setup CLI11
 # ------------------------------------------------------------------------------
 
+# If the target is alreday defined, we don't do anything
+if(TARGET CLI11)
+    return()
+endif()
+if(TARGET CLI11::CLI11)
+    return()
+endif()
+
 # Check if the submodule was initialized; otherwise fetch from GitHub
 message (STATUS "Looking for CLI11")
 set(CLI11_SUBMODULE_DIR ${PROJECT_SOURCE_DIR}/external/CLI11)
