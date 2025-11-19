@@ -32,8 +32,12 @@
  */
 
 #include "genesis/utils/bit/twobit_vector.hpp"
+#include "genesis/utils/math/common.hpp"
 
+#include <cassert>
+#include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -50,6 +54,57 @@ std::string to_nucleic_acids( TwobitVector const& vec );
 
 std::string bitstring( TwobitVector const& vec );
 std::string bitstring( TwobitVector::WordType const& vec );
+
+// =================================================================================================
+//     K-mer counts
+// =================================================================================================
+
+/**
+ * @brief Count the occurrences of k-mers in a TwobitVector.
+ *
+ * The function produces a vector of counts, in lexicograpical ordering of k-mers of the given size.
+ * The optional template parameter `T` can be used to change the int type used for counting.
+ */
+template<typename T = size_t>
+std::vector<T> kmer_occurrences( TwobitVector const& vec, size_t k )
+{
+    // Boundary check, just in case to spot accidental misuse. This would result in a humonguous
+    // table anyway, so, unlikely that anyway will come even close to this any time soon.
+    if( k > 32 ) {
+        throw std::invalid_argument(
+            "Cannot execute kmer_occurrences() with k > 32"
+        );
+    }
+    if( !is_valid_int_pow( 4, k )) {
+        throw std::invalid_argument(
+            "Cannot execute kmer_occurrences() with k == " + std::to_string( k ) +
+            " due to numerical overflow."
+        );
+    }
+
+    // Set up the resulting vector, with entries for each possible k-mer.
+    auto const res_size = int_pow( 4, k );
+    auto res = std::vector<T>( res_size, T{} );
+
+    // Iterate all k-mers of the given size with the vector, and accumulate their counts.
+    TwobitVector::WordType kmer = 0;
+    TwobitVector::WordType const mask = TwobitVector::ones_mask(k);
+    for( size_t i = 0; i < vec.size(); ++i ) {
+        // Shift the current value and remove first base.
+        // Then, add the next value at the now empty right-most position.
+        kmer <<= 2;
+        kmer &= mask;
+        kmer |= static_cast<TwobitVector::WordType>( vec.get( i ));
+
+        // Once we have filled up a complete kmer, we start accumulating counts.
+        // That is, in the first k-1 iterations, we have not completed a k-mer, so no counting yet.
+        if( i + 1 >= k ) {
+            assert( kmer < res_size );
+            ++res[kmer];
+        }
+    }
+    return res;
+}
 
 } // namespace utils
 } // namespace genesis

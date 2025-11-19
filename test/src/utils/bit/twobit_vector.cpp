@@ -30,10 +30,13 @@
 
 #include "src/common.hpp"
 
+#include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "genesis/utils/bit/twobit_vector.hpp"
@@ -305,7 +308,7 @@ TwobitVector::WordType test_substitution_iterator( std::vector< TwobitVector > c
 }
 
 // =================================================================================================
-//     Main Tests
+//     Main iterators tests
 // =================================================================================================
 
 TEST( TwobitVector, Deletion )
@@ -375,4 +378,168 @@ TEST( TwobitVector, Bitstring )
         "00 00 00 00 00 00 00 11 10 10 01 01 01 11 10 10\n";
 
     EXPECT_EQ( bits, bitstring( vec ));
+}
+
+// =================================================================================================
+//     K-mer counting
+// =================================================================================================
+
+using OccVec = std::vector<size_t>;
+
+TEST( TwobitVector, KmerOccurrences )
+{
+    // Homopolymers
+    {
+        std::string const seq  = "AAAA";
+        auto const vec = from_nucleic_acids( seq );
+
+        // 1-mers
+        auto const occ1 = kmer_occurrences( vec, 1 );
+        EXPECT_EQ( 4, occ1.size() );
+        EXPECT_EQ( OccVec({ 4, 0, 0, 0 }), occ1 );
+
+        // 2-mers
+        auto const occ2 = kmer_occurrences( vec, 2 );
+        EXPECT_EQ( 16, occ2.size() );
+        EXPECT_EQ( OccVec({ 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }), occ2 );
+    }
+
+    // Dimer repeats
+    {
+        std::string const seq  = "ACACAC";
+        auto const vec = from_nucleic_acids( seq );
+
+        // 1-mers
+        auto const occ1 = kmer_occurrences( vec, 1 );
+        EXPECT_EQ( 4, occ1.size() );
+        EXPECT_EQ( OccVec({ 3, 3, 0, 0 }), occ1 );
+
+        // 2-mers
+        auto const occ2 = kmer_occurrences( vec, 2 );
+        EXPECT_EQ( 16, occ2.size() );
+        EXPECT_EQ( OccVec({ 0, 3, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }), occ2 );
+    }
+}
+
+TEST( TwobitVector, KmerOccurrencesEmptySequence )
+{
+    // Empty sequence: all counts must be zero, but result vector still has size 4^k
+
+    std::string const seq = "";
+    auto const vec = from_nucleic_acids( seq );
+
+    // k = 1
+    auto const occ1 = kmer_occurrences( vec, 1 );
+    ASSERT_EQ( 4u, occ1.size() );
+    EXPECT_TRUE( std::all_of(
+        occ1.begin(), occ1.end(),
+        []( size_t x ){ return x == 0; }
+    ));
+
+    // k = 2
+    auto const occ2 = kmer_occurrences( vec, 2 );
+    ASSERT_EQ( 16u, occ2.size() );
+    EXPECT_TRUE( std::all_of(
+        occ2.begin(), occ2.end(),
+        []( size_t x ){ return x == 0; }
+    ));
+}
+
+TEST( TwobitVector, KmerOccurrencesSimpleACGT )
+{
+    // Simple mixed sequence "ACGT" to check that indexing of k-mers behaves as
+    // expected for 1-mers, 2-mers and full-length 4-mers.
+
+    std::string const seq = "ACGT";
+    auto const vec = from_nucleic_acids( seq );
+
+    // 1-mers: A, C, G, T -> each once
+    auto const occ1 = kmer_occurrences( vec, 1 );
+    ASSERT_EQ( 4u, occ1.size() );
+    EXPECT_EQ( OccVec({ 1, 1, 1, 1 }), occ1 );
+
+    // 2-mers: AC, CG, GT
+    //
+    // Encoding is: index = 4 * first + second, with A=0,C=1,G=2,T=3
+    //  AC -> 4*0 + 1 = 1
+    //  CG -> 4*1 + 2 = 6
+    //  GT -> 4*2 + 3 = 11
+    auto const occ2 = kmer_occurrences( vec, 2 );
+    ASSERT_EQ( 16u, occ2.size() );
+    OccVec exp2( 16, 0 );
+    exp2[1]  = 1;  // AC
+    exp2[6]  = 1;  // CG
+    exp2[11] = 1;  // GT
+    EXPECT_EQ( exp2, occ2 );
+
+    // 4-mers: only one k-mer, ACGT
+    //
+    // Streaming encoding:
+    // ((((0)*4+1)*4+2)*4+3) = 27
+    auto const occ4 = kmer_occurrences( vec, 4 );
+    ASSERT_EQ( 256u, occ4.size() );
+
+    size_t const total4 = std::accumulate(
+        occ4.begin(), occ4.end(), size_t{0}
+    );
+    EXPECT_EQ( 1u, total4 );          // exactly one 4-mer
+    EXPECT_EQ( 1u, occ4[27] );        // that 4-mer is ACGT at index 27
+}
+
+TEST( TwobitVector, KmerOccurrencesKLongerThanSequence )
+{
+    // k larger than sequence length: no k-mer is ever "complete", so all counts
+    // must stay zero, but the result size is still 4^k.
+
+    std::string const seq = "ACGT";
+    auto const vec = from_nucleic_acids( seq );
+
+    // length(seq) = 4, use k = 5 -> no k-mers
+    auto const occ5 = kmer_occurrences( vec, 5 );
+    ASSERT_EQ( 1024u, occ5.size() );  // 4^5
+    EXPECT_TRUE( std::all_of(
+        occ5.begin(), occ5.end(),
+        []( size_t x ){ return x == 0; }
+    ));
+}
+
+TEST( TwobitVector, KmerOccurrencesKEqualsSequenceLength )
+{
+    // k equal to sequence length: exactly one k-mer, total count must be 1.
+
+    std::string const seq = "AAAA";
+    auto const vec = from_nucleic_acids( seq );
+
+    auto const occ4 = kmer_occurrences( vec, 4 );
+    ASSERT_EQ( 256u, occ4.size() ); // 4^4
+
+    size_t const total = std::accumulate(
+        occ4.begin(), occ4.end(), size_t{0}
+    );
+    EXPECT_EQ( 1u, total );         // exactly one 4-mer in total
+
+    // For "AAAA", the index of AAAA is 0 (A=0), so the first entry must be 1
+    EXPECT_EQ( 1u, occ4[0] );
+}
+
+TEST( TwobitVector, KmerOccurrencesCustomCounterType )
+{
+    // Template parameter: use a smaller counter type, make sure it compiles and
+    // returns the correct type and values.
+
+    std::string const seq = "AAAA";
+    auto const vec = from_nucleic_acids( seq );
+
+    auto const occ = kmer_occurrences<uint16_t>( vec, 1 );
+
+    static_assert(
+        std::is_same<decltype(occ), const std::vector<uint16_t>>::value,
+        "kmer_occurrences<T> must return std::vector<T>"
+    );
+
+    ASSERT_EQ( 4u, occ.size() );
+    EXPECT_EQ( uint16_t{4}, occ[0] ); // four A's
+    EXPECT_EQ( uint16_t{0}, occ[1] );
+    EXPECT_EQ( uint16_t{0}, occ[2] );
+    EXPECT_EQ( uint16_t{0}, occ[3] );
 }
