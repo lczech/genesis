@@ -31,8 +31,11 @@
  * @ingroup utils
  */
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace genesis {
@@ -83,7 +86,14 @@ public:
     // -------------------------------------------------------------------------
 
     TwobitVector() = default;
-    TwobitVector( size_t size );
+
+    /**
+     * @brief Constructor that initializes the vector with `size` many zero values.
+     */
+    TwobitVector( size_t size )
+        : size_( size )
+        , data_( ( size / kValuesPerWord ) + ( size % kValuesPerWord == 0 ? 0 : 1 ), 0 )
+    {}
 
     ~TwobitVector() = default;
 
@@ -97,17 +107,89 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    size_t size() const;
-    size_t data_size() const;
+    /**
+     * @brief Return the size of the vector, that is, how many values (of type ValueType)
+     * it currently holds.
+     */
+    size_t size() const
+    {
+        return size_;
+    }
 
-    ValueType get( size_t index ) const;
+    /**
+     * @brief Return the number of words (of type WordType) that are used to store the values
+     * in the vector.
+     */
+    size_t data_size() const
+    {
+        assert(
+            ( size_ / kValuesPerWord ) + ( size_ % kValuesPerWord == 0 ? 0 : 1 ) == data_.size()
+        );
+        return data_.size();
+    }
 
-    ValueType operator [] ( size_t index ) const;
+    /**
+     * @brief Get the value at a position in the vector, including boundary check.
+     */
+    inline ValueType get( size_t index ) const
+    {
+        if( index >= size_ ) {
+            throw std::out_of_range( "Invalid index accessing TwobitVector::get()" );
+        }
+        return operator[]( index );
+    }
 
-    WordType const& data_at( size_t index ) const;
-    WordType&       data_at( size_t index );
+    /**
+     * @brief Get the value at a position in the vector, without boundary check.
+     */
+    inline ValueType operator [] ( size_t index ) const
+    {
+        // Boundary check in debug.
+        assert( index < size_ );
 
-    WordType hash() const;
+        // Get the two-bit value at index, still at its original position in the word.
+        auto segment = data_[ index / kValuesPerWord ] & bit_mask_[ index % kValuesPerWord ];
+
+        // Shift it to the right, so that we can cast it to a value type.
+        return static_cast< ValueType >( segment >> ( 2 * ( index % kValuesPerWord )));
+    }
+
+    /**
+     * @brief Return a single word of the vector.
+     *
+     * This is useful for external functions that want to directly work on the underlying bit
+     * representation.
+     */
+    WordType const& data_at( size_t index ) const
+    {
+        return data_.at( index );
+    }
+
+    /**
+     * @brief Return a single word of the vector.
+     *
+     * This is useful for external functions that want to directly work on the underlying bit
+     * representation.
+     */
+    WordType& data_at( size_t index )
+    {
+        return data_.at( index );
+    }
+
+    /**
+     * @brief Calculate a hash value of the vector, based on its size() and the xor of
+     * all its words.
+     *
+     * This is a simple function, but might just be enough for using it in a hashmap.
+     */
+    WordType hash() const
+    {
+        WordType result = static_cast< WordType >( size() );
+        for( auto s : data_ ) {
+            result ^= s;
+        }
+        return result;
+    }
 
     // -------------------------------------------------------------------------
     //     Operators
@@ -116,18 +198,115 @@ public:
     bool operator == ( TwobitVector const& other ) const;
     bool operator != ( TwobitVector const& other ) const;
 
+    /**
+     * @brief Validation function that checks some basic invariants.
+     *
+     * This is mainly useful in testing. The function checks whether the vector is correctly
+     * sized and contains zero padding at its end.
+     */
     bool validate() const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Set a value at a position in the vector.
+     */
     void set( size_t index, ValueType value );
 
+    /**
+     * @brief Insert a value at a position.
+     *
+     * The size() is increased by one.
+     */
     void insert_at( size_t index, ValueType value );
+
+    /**
+     * @brief Remove the value at a position.
+     *
+     * The size() is decreased by one.
+     */
     void remove_at( size_t index );
 
-    void clear();
+    /**
+     * @brief Clear the vector, so that it contains no data.
+     */
+    void clear()
+    {
+        size_ = 0;
+        data_.clear();
+    }
+
+    // -------------------------------------------------------------------------
+    //     Static Bitmask Access
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Access to the internal constant that holds an all-zero word.
+     */
+    static WordType all_0()
+    {
+        return all_0_;
+    }
+
+    /**
+     * @brief Access to the internal constant that holds an all-one word.
+     */
+    static WordType all_1()
+    {
+        return all_1_;
+    }
+
+    /**
+     * @brief Access to the internal bitmask that has two bits set to one for each value
+     * position in the word.
+     *
+     * The values are
+     *
+     *     bit_mask_[0]  == 00 00 ... 00 11
+     *     bit_mask_[1]  == 00 00 ... 11 00
+     *     ...
+     *     bit_mask_[31] == 11 00 ... 00 00
+     *
+     * This is useful for setting or unsetting single values in a word.
+     */
+    static WordType bit_mask( size_t i )
+    {
+        if( i >= kValuesPerWord ) {
+            throw std::invalid_argument(
+                "Invalid acces to TwobitVector::bit_mask() at " + std::to_string(i)
+            );
+        }
+        return bit_mask_[i];
+    }
+
+    /**
+     * @brief Access to the internal mask that holds as many consecutive all-one values
+     * as the position in the array tells.
+     *
+     * The element at position `i` in this mask contains `i` many all-one (two0bit) values,
+     * starting from the right. (An all-one value for two bit values is 11.)
+     *
+     *     ones_mask_[0]  == 00 00 ... 00 00
+     *     ones_mask_[1]  == 00 00 ... 00 11
+     *     ones_mask_[2]  == 00 00 ... 11 11
+     *     ...
+     *     ones_mask_[31] == 00 11 ... 11 11
+     *     ones_mask_[32] == 11 11 ... 11 11
+     *
+     * This mask is used for extracting remainders of words (all values left or right of a
+     * certain position).
+     */
+    static WordType ones_mask( size_t i )
+    {
+        if( i >= kValuesPerWord + 1 ) {
+            throw std::invalid_argument(
+                "Invalid acces to TwobitVector::ones_mask() at " + std::to_string(i)
+            );
+        }
+        return ones_mask_[i];
+    }
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -139,7 +318,7 @@ private:
     static const WordType all_1_;
 
     static const WordType bit_mask_[  kValuesPerWord ];
-    static const WordType ones_mask_[ kValuesPerWord ];
+    static const WordType ones_mask_[ kValuesPerWord + 1 ];
 
     size_t                size_ = 0;
     std::vector<WordType> data_;
