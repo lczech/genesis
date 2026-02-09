@@ -105,7 +105,7 @@ fi
 if [[ ${do_make} == 1 ]]; then
     echo -e "\e[34mDoxygen error output:\e[0m\n"
 
-    make > /dev/null
+    make --quiet
 fi
 
 # Transfer to server.
