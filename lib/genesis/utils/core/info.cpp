@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -500,7 +500,7 @@ std::string info_print_compiler()
 
 #endif
 
-#if defined(__linux__)
+#if defined(__linux__) && !(defined(_MSC_VER) || ((defined(__x86_64__) || defined(_M_X64)) && (defined(__GNUC__) || defined(__clang__))))
 
     static std::string get_cpu_info_linux_( std::string const& key )
     {
@@ -566,31 +566,103 @@ bool detect_OS_AVX512_()
 
 std::string get_vendor_string_()
 {
-    int32_t CPUInfo[4];
-    char name[13];
+    #if defined(__aarch64__) || defined(_M_ARM64)
 
-    get_cpuid_(CPUInfo, 0, 0);
-    memcpy(name + 0, &CPUInfo[1], 4);
-    memcpy(name + 4, &CPUInfo[3], 4);
-    memcpy(name + 8, &CPUInfo[2], 4);
-    name[12] = '\0';
+        char buf[512];
+        size_t size = sizeof(buf);
+        if (sysctlbyname("machdep.cpu.vendor", buf, &size, nullptr, 0) == 0) {
+            return std::string(buf, size - 1);
+        }
+        return "Unknown";
 
-    return name;
+    #else
+
+        // Vendor string (leaf 0)
+        std::array<std::uint32_t,4> regs{};
+        #if (defined(__x86_64__) || defined(_M_X64)) && (defined(__GNUC__) || defined(__clang__))
+            __cpuid(0, regs[0], regs[1], regs[2], regs[3]);
+        #elif defined(_MSC_VER)
+            int r[4]; __cpuid(r, 0);
+            regs = { (uint32_t)r[0], (uint32_t)r[1], (uint32_t)r[2], (uint32_t)r[3] };
+        #else
+            return "Unknown";
+        #endif
+
+        char vendor_str[13]{};
+        std::memcpy(vendor_str + 0, &regs[1], 4); // EBX
+        std::memcpy(vendor_str + 4, &regs[3], 4); // EDX
+        std::memcpy(vendor_str + 8, &regs[2], 4); // ECX
+        vendor_str[12] = '\0';
+
+        return vendor_str;
+
+    #endif
 }
 
 std::string get_cpu_model_()
 {
-    std::string model = "unknown CPU model";
-    #if defined(__linux__)
-        model = get_cpu_info_linux_("model name");
-    #elif defined(__APPLE__)
-        char str[256];
-        size_t len = 256;
-        if( sysctlbyname( "machdep.cpu.brand_string", &str, &len, NULL, 0 ) == 0 ) {
-            model = str;
+    #if defined(__APPLE__) || defined(__aarch64__) || defined(_M_ARM64)
+
+        char buf[512];
+        size_t size = sizeof(buf);
+        if (sysctlbyname("machdep.cpu.brand_string", buf, &size, nullptr, 0) == 0) {
+            return std::string(buf, size - 1);
         }
+        return "Unknown";
+
+    #elif defined(_MSC_VER) || ((defined(__x86_64__) || defined(_M_X64)) && (defined(__GNUC__) || defined(__clang__)))
+
+        // Brand string (0x80000002-0x80000004)
+        char brand[49]{};
+        std::uint32_t regs[4];
+
+        for (std::uint32_t i = 0; i < 3; ++i) {
+            std::uint32_t leaf = 0x80000002u + i;
+            #if (defined(__x86_64__) || defined(_M_X64)) && (defined(__GNUC__) || defined(__clang__))
+                __cpuid(leaf, regs[0], regs[1], regs[2], regs[3]);
+            #elif defined(_MSC_VER)
+                int r[4]; __cpuid(r, leaf);
+                regs[0] = (uint32_t)r[0];
+                regs[1] = (uint32_t)r[1];
+                regs[2] = (uint32_t)r[2];
+                regs[3] = (uint32_t)r[3];
+            #endif
+            std::memcpy(brand + 16*i +  0, &regs[0], 4);
+            std::memcpy(brand + 16*i +  4, &regs[1], 4);
+            std::memcpy(brand + 16*i +  8, &regs[2], 4);
+            std::memcpy(brand + 16*i + 12, &regs[3], 4);
+        }
+        brand[48] = '\0';
+
+        // Trim leading spaces in brand:
+        std::string brand_str = brand;
+        while (!brand_str.empty() && brand_str.front() == ' ') {
+            brand_str.erase(brand_str.begin());
+        }
+        return brand_str;
+
+    #elif defined(__linux__)
+        // Generic linux
+        return get_cpu_info_linux_("model name");
+    #else
+        // Nothing works
+        return "Unknown";
     #endif
-    return model;
+}
+
+std::string info_platform_arch_()
+{
+    #if defined(__x86_64__) || defined(_M_X64)
+        return "x86-64";
+    #elif defined(__i386__) || defined(_M_IX86)
+        return "x86-32";
+    #elif defined(__aarch64__) || defined(_M_ARM64)
+        return "ARM64";
+    #elif defined(__arm__) || defined(_M_ARM)
+        return "ARM32";
+    #else
+        return "Unknown";
+    #endif
 }
 
 #if defined(__linux__)
@@ -695,6 +767,7 @@ InfoHardware const& info_get_hardware()
         result.vendor_AMD = true;
     }
     result.cpu_model = get_cpu_model_();
+    result.cpu_arch = info_platform_arch_();
     result.physical_core_count = info_physical_core_count();
     result.with_hyperthreading = info_hyperthreads_enabled();
 
@@ -818,6 +891,7 @@ std::string info_print_hardware( bool full )
     ss << "CPU Vendor:" << "\n";
     ss << "    Vendor        = " << info_hardware.vendor_string << "\n";
     ss << "    CPU model     = " << info_hardware.cpu_model << "\n";
+    ss << "    Architecture  = " << info_hardware.cpu_arch << "\n";
     print_("    AMD           = ", info_hardware.vendor_AMD);
     print_("    Intel         = ", info_hardware.vendor_Intel);
     ss << "    Cores         = " << info_hardware.physical_core_count << "\n";

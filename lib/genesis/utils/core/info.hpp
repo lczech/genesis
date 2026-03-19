@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -166,6 +166,7 @@ struct InfoHardware
     bool vendor_Intel;
     std::string vendor_string;
     std::string cpu_model;
+    std::string cpu_arch;
     size_t physical_core_count;
     bool with_hyperthreading;
 
