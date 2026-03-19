@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,21 +33,25 @@
 #include "genesis/population/format/simple_pileup_input_stream.hpp"
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/function/genome_region.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/window/functions.hpp"
+#include "genesis/population/window/function.hpp"
 #include "genesis/population/window/queue_window_stream.hpp"
 #include "genesis/population/window/variant_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
-#include "genesis/utils/math/random.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
+#include "genesis/util/math/random.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <unordered_map>
 
 using namespace genesis::population;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Basic file based tests
@@ -741,7 +745,7 @@ TEST( WindowStream, QueueWindowFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     size_t const num_tests = 3000;
     for( size_t i = 0; i < num_tests; ++i ) {

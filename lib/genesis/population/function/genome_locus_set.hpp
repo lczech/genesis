@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <string>
 #include <utility>
@@ -83,7 +83,7 @@ genesis::sequence::SequenceDict reference_locus_set_to_dict( GenomeLocusSet cons
  * See https://vcftools.github.io/man_latest.html for details.
  */
 GenomeLocusSet read_mask_fasta(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     size_t mask_min = 0,
     bool   invert   = false
 );

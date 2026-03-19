@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,17 +32,19 @@
 
 #include <memory>
 
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/placement/formats/newick_reader.hpp"
-#include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
+#include "genesis/placement/format/newick_reader.hpp"
+#include "genesis/placement/function/function.hpp"
 #include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/operators.hpp"
+#include "genesis/placement/function/operator.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST(Sample, WithTree)
 {

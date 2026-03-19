@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
+#include <genesis/tree/attribute_tree/keyed_newick_reader.hpp>
 
-#include "genesis/utils/text/string.hpp"
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -229,7 +229,7 @@ KeyedAttributeTreeNewickReaderPlugin::PairList KeyedAttributeTreeNewickReaderPlu
 
     // Process all comments and see whether they have the desireed prefix.
     for( auto const& comment : element.comments ) {
-        if( ! utils::starts_with( comment, prefix_ ) ) {
+        if( ! genesis::util::text::starts_with( comment, prefix_ ) ) {
             continue;
         }
 
@@ -262,8 +262,8 @@ KeyedAttributeTreeNewickReaderPlugin::PairList KeyedAttributeTreeNewickReaderPlu
                 if( ass_pos != std::string::npos ) {
                     if( trim_ ) {
                         result.emplace_back(
-                            utils::trim( entry.substr( 0, ass_pos )),
-                            utils::trim( entry.substr( ass_pos + 1 ))
+                            genesis::util::text::trim( entry.substr( 0, ass_pos )),
+                            genesis::util::text::trim( entry.substr( ass_pos + 1 ))
                         );
                     } else {
                         result.emplace_back(

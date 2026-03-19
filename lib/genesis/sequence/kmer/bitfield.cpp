@@ -28,7 +28,7 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/bitfield.hpp"
+#include <genesis/sequence/kmer/bitfield.hpp>
 
 #include <cassert>
 #include <stdexcept>

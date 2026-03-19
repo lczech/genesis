@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/sam_variant_input_stream.hpp"
+#include <genesis/population/format/sam_variant_input_stream.hpp>
 
-#include "genesis/population/function/functions.hpp"
+#include <genesis/population/function/function.hpp>
 
 #include <cassert>
 #include <cstdint>

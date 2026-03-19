@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/functions/quality.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/sequence/function/quality.hpp"
+#include "genesis/util/math/random.hpp"
 
 #include <numeric>
 #include <string>
@@ -39,7 +39,10 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
 
 // Fixed strings of all chars in the correct ASCII order for all encodings
 std::string const sanger = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHI";
@@ -261,7 +264,7 @@ TEST( Sequence, QualityDecodingFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     size_t num_tests = 1000;
     for( size_t i = 0; i < num_tests; ++i ) {

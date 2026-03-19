@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,10 +35,10 @@
 #include <string>
 #include <vector>
 
-#include "genesis/placement/pquery/name.hpp"
-#include "genesis/placement/pquery/placement.hpp"
+#include <genesis/placement/pquery/name.hpp>
+#include <genesis/placement/pquery/placement.hpp>
 
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/util/container/range.hpp>
 
 namespace genesis {
 
@@ -134,14 +134,14 @@ public:
      *
      * This makes iterating placements via a range based for loop easy.
      */
-    utils::Range<iterator_placements>       placements();
+    genesis::util::container::Range<iterator_placements>       placements();
 
     /**
     * @brief Return a const Range iterator to the PqueryPlacement%s.
     *
     * This makes iterating placements via a range based for loop easy.
     */
-    utils::Range<const_iterator_placements> placements() const;
+    genesis::util::container::Range<const_iterator_placements> placements() const;
 
     std::vector<PqueryPlacement>& expose_placements();
 
@@ -234,14 +234,14 @@ public:
     *
     * This makes iterating placements via a range based for loop easy.
     */
-    utils::Range<iterator_names>       names();
+    genesis::util::container::Range<iterator_names>       names();
 
     /**
     * @brief Return a const Range iterator to the PqueryName%s.
     *
     * This makes iterating placements via a range based for loop easy.
     */
-    utils::Range<const_iterator_names> names() const;
+    genesis::util::container::Range<const_iterator_names> names() const;
 
     std::vector<PqueryName>& expose_names();
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/genome_region.hpp"
-#include "genesis/population/genome_region_list.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/genome_region.hpp>
+#include <genesis/population/genome_region_list.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -137,7 +137,7 @@ public:
      * @brief Read a `map`/`bim` input source, and return its content as a list of Feature structs.
      */
     std::vector<Feature> read(
-        std::shared_ptr< utils::BaseInputSource > source
+        std::shared_ptr< genesis::util::io::BaseInputSource > source
     ) const;
 
     /**
@@ -149,7 +149,7 @@ public:
      * are covered (filtered / to be considered) for downstream analyses.
      */
     GenomeLocusSet read_as_genome_locus_set(
-        std::shared_ptr< utils::BaseInputSource > source
+        std::shared_ptr< genesis::util::io::BaseInputSource > source
     ) const;
 
     /**
@@ -162,17 +162,17 @@ public:
      * See the `overlap` flag of GenomeRegionList::add( GenomeLocus const&, bool ) for details.
      */
     GenomeRegionList read_as_genome_region_list(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         bool merge = true
     ) const;
 
     /**
      * @brief Read a `map`/`bim` input source, and add its content to an existing GenomeRegionList.
      *
-     * @copydetails MapBimReader::read_as_genome_region_list( std::shared_ptr< genesis::utils::BaseInputSource >, bool ) const
+     * @copydetails MapBimReader::read_as_genome_region_list( std::shared_ptr< genesis::util::io::BaseInputSource >, bool ) const
      */
     void read_as_genome_region_list(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         GenomeRegionList& target,
         bool merge = true
     ) const;
@@ -203,7 +203,7 @@ private:
      * for every line, to do the actual storage and downstream steps after parsing.
      */
     void read_(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::function<void(Feature&&)> callback
     ) const;
 
@@ -215,7 +215,7 @@ private:
      * columns. We also use a @p buffer to avoid memory reallications in between lines.
      */
     size_t parse_line_(
-        utils::InputStream&       input_stream,
+        genesis::util::io::InputStream&       input_stream,
         Feature&                  feature,
         std::vector<std::string>& buffer
     ) const;

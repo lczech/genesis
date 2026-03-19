@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,16 +32,16 @@
 
 #include "genesis/population/stream/variant_input_stream.hpp"
 #include "genesis/population/stream/variant_parallel_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
 #include "genesis/population/function/genome_locus.hpp"
 #include "genesis/population/genome_region.hpp"
 #include "genesis/population/variant.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
-#include "genesis/utils/core/algorithm.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/random.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
+#include "genesis/util/core/algorithm.hpp"
+#include "genesis/util/math/common.hpp"
+#include "genesis/util/math/random.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -51,7 +51,11 @@
 #include <vector>
 
 using namespace genesis::population;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Simple Tests
@@ -546,7 +550,7 @@ TEST( ParallelInputStream, Random )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     // 0.5s runtime, our default for normal tests.
     size_t const max_tests = 1000;

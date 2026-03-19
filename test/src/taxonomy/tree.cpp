@@ -30,9 +30,9 @@
 
 #include "src/common.hpp"
 
-#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/functions/tree.hpp"
+#include "genesis/taxonomy/format/taxonomy_reader.hpp"
+#include "genesis/taxonomy/function/taxonomy.hpp"
+#include "genesis/taxonomy/function/tree.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxopath.hpp"
@@ -44,7 +44,9 @@
 
 using namespace genesis::taxonomy;
 using namespace genesis::tree;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST( Taxonomy, TreeBasic )
 {

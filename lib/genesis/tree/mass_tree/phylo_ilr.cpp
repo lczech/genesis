@@ -28,21 +28,21 @@
  * @ingroup tree
  */
 
- #include "genesis/tree/mass_tree/phylo_ilr.hpp"
+ #include <genesis/tree/mass_tree/phylo_ilr.hpp>
 
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/mass_tree/balances.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/mass_tree/balance.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
 
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -57,7 +57,7 @@ namespace tree {
 //     Phylogenetic ILR Tranform
 // =================================================================================================
 
-utils::Matrix<double> phylogenetic_ilr_transform(
+genesis::util::container::Matrix<double> phylogenetic_ilr_transform(
     BalanceData const& data,
     bool reverse_signs
 ) {
@@ -96,10 +96,10 @@ utils::Matrix<double> phylogenetic_ilr_transform(
     };
 
     // Prepare result matrix.
-    auto result = utils::Matrix<double>( data.edge_masses.rows(), data.tree.node_count(), 0.0 );
+    auto result = genesis::util::container::Matrix<double>( data.edge_masses.rows(), data.tree.node_count(), 0.0 );
 
     // Calculate balance for every node of the tree.
-    utils::parallel_for( 0, data.tree.node_count(), [&]( size_t node_idx )
+    genesis::util::threading::parallel_for( 0, data.tree.node_count(), [&]( size_t node_idx )
     {
         auto const& node = data.tree.node_at( node_idx );
         assert( node.index() == node_idx );
@@ -149,7 +149,7 @@ utils::Matrix<double> phylogenetic_ilr_transform(
     return result;
 }
 
-utils::Matrix<double> edge_balances(
+genesis::util::container::Matrix<double> edge_balances(
     BalanceData const& data,
     bool reverse_signs
 ) {
@@ -179,10 +179,10 @@ utils::Matrix<double> edge_balances(
     };
 
     // Prepare result matrix.
-    auto result = utils::Matrix<double>( data.edge_masses.rows(), data.tree.edge_count(), 0.0 );
+    auto result = genesis::util::container::Matrix<double>( data.edge_masses.rows(), data.tree.edge_count(), 0.0 );
 
     // Calculate balance for every node of the tree.
-    utils::parallel_for( 0, data.tree.edge_count(), [&]( size_t edge_idx )
+    genesis::util::threading::parallel_for( 0, data.tree.edge_count(), [&]( size_t edge_idx )
     {
         auto const& edge = data.tree.edge_at( edge_idx );
         assert( edge.index() == edge_idx );

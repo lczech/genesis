@@ -63,7 +63,9 @@ __pycache__/
 *~
 *.swp
 TODO
+TODO.md
 unused/
 apps/*.cpp
 apps/*.hpp
 apps/*/
+python/binder

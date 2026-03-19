@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/genome_locus_set.hpp"
+#include <genesis/population/function/genome_locus_set.hpp>
 
-#include "genesis/sequence/formats/fastx_input_stream.hpp"
-#include "genesis/sequence/formats/fasta_reader.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/sequence/format/fastx_input_stream.hpp>
+#include <genesis/sequence/format/fasta_reader.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <cassert>
 #include <cstring>
@@ -67,7 +67,7 @@ genesis::sequence::SequenceDict reference_locus_set_to_dict( GenomeLocusSet cons
 // =================================================================================================
 
 GenomeLocusSet read_mask_fasta(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     size_t mask_min,
     bool   invert
 ) {
@@ -90,7 +90,7 @@ GenomeLocusSet read_mask_fasta(
 
         // Make a bitvector of the correct size and fill it.
         // We use 1-based positions in the GenomeLocusSet, so we have to adjust for that.
-        auto bv = utils::Bitvector( seq.length() + 1 );
+        auto bv = genesis::util::bit::Bitvector( seq.length() + 1 );
         for( size_t i = 0; i < seq.length(); ++i ) {
             if( seq[i] < '0' || seq[i] > '9' ) {
                 throw std::runtime_error(

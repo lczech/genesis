@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/formats/svg/svg.hpp"
-#include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/map.hpp"
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/format/svg/svg.hpp>
+#include <genesis/util/io/output_target.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/map.hpp>
 
 #include <string>
 
@@ -112,9 +112,9 @@ public:
         return *this;
     }
 
-    void text_template( utils::SvgText const& tt );
-    utils::SvgText& text_template();
-    utils::SvgText const& text_template() const;
+    void text_template( genesis::util::format::SvgText const& tt );
+    genesis::util::format::SvgText& text_template();
+    genesis::util::format::SvgText const& text_template() const;
 
     // -------------------------------------------------------------------------
     //     Drawing
@@ -122,15 +122,15 @@ public:
 
     void add(
         std::string const& label,
-        utils::Matrix<utils::Color> const& heatmap,
-        utils::SvgGroup x_axis = utils::SvgGroup{},
-        utils::SvgGroup y_axis = utils::SvgGroup{},
-        std::pair<utils::SvgGradientLinear, utils::SvgGroup> color_bar = std::pair<utils::SvgGradientLinear, utils::SvgGroup>{}
+        genesis::util::container::Matrix<genesis::util::color::Color> const& heatmap,
+        genesis::util::format::SvgGroup x_axis = genesis::util::format::SvgGroup{},
+        genesis::util::format::SvgGroup y_axis = genesis::util::format::SvgGroup{},
+        std::pair<genesis::util::format::SvgGradientLinear, genesis::util::format::SvgGroup> color_bar = std::pair<genesis::util::format::SvgGradientLinear, genesis::util::format::SvgGroup>{}
     );
 
-    void write( std::shared_ptr<utils::BaseOutputTarget> target ) const;
+    void write( std::shared_ptr< genesis::util::io::BaseOutputTarget> target ) const;
 
-    utils::SvgDocument const& document() const
+    genesis::util::format::SvgDocument const& document() const
     {
         return document_;
     }
@@ -145,9 +145,9 @@ private:
     double v_scaling_ = 1.0;
 
     double current_y_ = 0.0;
-    utils::SvgDocument document_;
+    genesis::util::format::SvgDocument document_;
 
-    utils::SvgText text_template_ = utils::SvgText();
+    genesis::util::format::SvgText text_template_ = genesis::util::format::SvgText();
     TextPosition text_position_ = TextPosition::kTop;
 
 };

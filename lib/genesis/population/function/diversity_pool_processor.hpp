@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,16 +31,16 @@
  * @ingroup population
  */
 
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/diversity_pool_calculator.hpp"
-#include "genesis/population/function/window_average.hpp"
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/population/window/base_window.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/function/diversity_pool_calculator.hpp>
+#include <genesis/population/function/window_average.hpp>
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/population/window/base_window.hpp>
+#include <genesis/util/core/options.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/threading/thread_function.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -92,7 +92,7 @@ public:
      */
     DiversityPoolProcessor(
         WindowAveragePolicy window_average_policy,
-        std::shared_ptr<utils::ThreadPool> thread_pool = nullptr,
+        std::shared_ptr<genesis::util::threading::ThreadPool> thread_pool = nullptr,
         size_t threading_threshold = 4096
     )
         : avg_policy_( window_average_policy )
@@ -100,7 +100,7 @@ public:
         , threading_threshold_( threading_threshold )
         , is_default_constructed_( false )
     {
-        thread_pool_ = thread_pool ? thread_pool : utils::Options::get().global_thread_pool();
+        thread_pool_ = thread_pool ? thread_pool : genesis::util::core::Options::get().global_thread_pool();
     }
 
     ~DiversityPoolProcessor() = default;
@@ -118,7 +118,7 @@ public:
     /**
      * @brief Get the thread pool used for processing, if enough sample pairs are being processed.
      */
-    std::shared_ptr<utils::ThreadPool> thread_pool() const
+    std::shared_ptr<genesis::util::threading::ThreadPool> thread_pool() const
     {
         return thread_pool_;
     }
@@ -129,7 +129,7 @@ public:
      * See threading_threshold() for details on when we use the thread pool.
      * Shall not be changed after calling process().
      */
-    DiversityPoolProcessor& thread_pool( std::shared_ptr<utils::ThreadPool> value )
+    DiversityPoolProcessor& thread_pool( std::shared_ptr<genesis::util::threading::ThreadPool> value )
     {
         thread_pool_ = value;
         return *this;
@@ -331,7 +331,7 @@ private:
 
     // Thread pool to run the buffering in the background, and the size (number of sample pairs)
     // at which we start using the thread pool.
-    std::shared_ptr<utils::ThreadPool> thread_pool_;
+    std::shared_ptr<genesis::util::threading::ThreadPool> thread_pool_;
     size_t threading_threshold_ = 0;
 
     // We want to make sure to disallow default constructed instances.

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,8 +33,8 @@
 #include "genesis/tree/attribute_tree/tree.hpp"
 #include "genesis/tree/attribute_tree/indexed_newick_reader.hpp"
 #include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/function/function.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include <algorithm>
@@ -42,7 +42,8 @@
 #include <utility>
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::util::io;
 
 std::pair<size_t, size_t> count_attribute_tree_data( AttributeTree const& tree )
 {
@@ -96,7 +97,7 @@ TEST( AttributeTree, IndexedNewickReaderIndex )
         IndexedAttributeTreeNewickReader::Target::kEdge,    "bootstrap"
     );
 
-    auto tree = reader.read( utils::from_file( infile ));
+    auto tree = reader.read( from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 0, counts.first );
@@ -119,7 +120,7 @@ TEST( AttributeTree, IndexedNewickReaderCatchAll )
         IndexedAttributeTreeNewickReader::Target::kEdge,    "comment_"
     );
 
-    auto tree = reader.read( utils::from_file( infile ));
+    auto tree = reader.read( from_file( infile ));
 
     size_t node_attr_cnt = 0;
     for( auto const& node : tree.nodes() ) {
@@ -152,7 +153,7 @@ TEST( AttributeTree, KeyedNewickReaderKeys )
     reader.add_attribute( "bs",     KeyedAttributeTreeNewickReader::Target::kEdge );
     reader.add_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
 
-    auto tree = reader.read( utils::from_file( infile ));
+    auto tree = reader.read( from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 0, counts.first );
@@ -170,7 +171,7 @@ TEST( AttributeTree, KeyedNewickReaderCatchAll )
     KeyedAttributeTreeNewickReader reader;
     reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kEdge );
 
-    auto tree = reader.read( utils::from_file( infile ));
+    auto tree = reader.read( from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 0, counts.first );
@@ -191,7 +192,7 @@ TEST( AttributeTree, KeyedNewickReaderNHX )
     reader.add_nhx_attributes();
     // reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kNode );
 
-    auto tree = reader.read( utils::from_file( infile ));
+    auto tree = reader.read( from_file( infile ));
 
     auto counts = count_attribute_tree_data( tree );
     EXPECT_EQ( 25, counts.first );

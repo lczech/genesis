@@ -1,0 +1,219 @@
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2025 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
+*/
+
+/**
+ * @brief
+ *
+ * @file
+ * @ingroup taxonomy
+ */
+
+#include <genesis/taxonomy/format/taxonomy_reader.hpp>
+
+#include <genesis/taxonomy/function/taxopath.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxopath.hpp>
+
+#include <genesis/util/core/fs.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/text/string.hpp>
+
+#include <cassert>
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+namespace genesis {
+namespace taxonomy {
+
+// =================================================================================================
+//     Constructor and Rule of Five
+// =================================================================================================
+
+TaxonomyReader::TaxonomyReader()
+{
+    csv_reader_.separator_chars( "\t" );
+    csv_reader_.quotation_chars( "" );
+}
+
+// =================================================================================================
+//     Reading
+// =================================================================================================
+
+void TaxonomyReader::read( std::shared_ptr<genesis::util::io::BaseInputSource> source, Taxonomy& target ) const
+{
+    genesis::util::io::InputStream it( source );
+    parse_document( it, target );
+}
+
+Taxonomy TaxonomyReader::read( std::shared_ptr<genesis::util::io::BaseInputSource> source ) const
+{
+    Taxonomy result;
+    read( source, result );
+    return result;
+}
+
+// =================================================================================================
+//     Parsing
+// =================================================================================================
+
+void TaxonomyReader::parse_document(
+    genesis::util::io::InputStream& it,
+    Taxonomy&           tax
+) const {
+    while( it ) {
+        // Get line as name rank pair.
+        auto line = parse_line( it );
+
+        if( line.name == "" ) {
+            // Maybe here should be a warning instead of silent skipping...
+            continue;
+        }
+
+        // Parse the taxopath and add it to the taxonomy.
+        auto& taxon = add_from_taxopath(
+            tax,
+            taxopath_parser_.parse( line.name ),
+            expect_strict_order_
+        );
+
+        // Set the rank and ID.
+        taxon.rank( line.rank );
+        if( !line.id.empty() ) {
+            taxon.id( std::stoull( line.id ));
+        }
+    }
+}
+
+TaxonomyReader::Line TaxonomyReader::parse_line(
+    genesis::util::io::InputStream& it
+) const {
+    // Get the fields of the current line.
+    auto fields = csv_reader_.parse_line( it );
+
+    // Helper function to find the correct field for a property, or throw if invalid.
+    auto get_field = [&] ( int field_pos, std::string field_name ) {
+        // Check if field is actually "active".
+        if( field_pos < 0 ) {
+            return std::string();
+        }
+
+        // Cast so that array lookup does not complain.
+        assert( field_pos >= 0 );
+        auto pos = static_cast< size_t >( field_pos );
+
+        // Check for invalid position.
+        if( pos >= fields.size() ) {
+            throw std::out_of_range(
+                "Invalid position for taxonomy " + field_name + " field while reading. Expect "
+                + field_name + " at position " + std::to_string( pos ) + " (zero-based), "
+                + "but the line only contains " + std::to_string( fields.size() )
+                + " fields at line " + std::to_string( it.line() - 1 ) + "."
+            );
+        }
+
+        // Return result.
+        assert( pos < fields.size() );
+        return fields[ pos ];
+    };
+
+    // Read fields from line.
+    Line result;
+    result.name = get_field( name_field_position_, "name" );
+    result.rank = get_field( rank_field_position_, "rank" );
+    result.id   = get_field( id_field_position_,   "ID" );
+
+    return result;
+}
+
+// =================================================================================================
+//     Properties
+// =================================================================================================
+
+genesis::util::format::CsvReader& TaxonomyReader::csv_reader()
+{
+    return csv_reader_;
+}
+
+TaxopathParser& TaxonomyReader::taxopath_parser()
+{
+    return taxopath_parser_;
+}
+
+TaxonomyReader& TaxonomyReader::name_field_position( int value )
+{
+    // We could also use size_t instead of int here to avoid setting the value to sub-zero.
+    // However, now we have consistency with the rank field position, which is nicer.
+    if( value < 0 ) {
+        throw std::out_of_range(
+            "Cannot set TaxonomyReader::name_field_position to a value below zero."
+        );
+    }
+    name_field_position_ = value;
+    return *this;
+}
+
+int TaxonomyReader::name_field_position() const
+{
+    return name_field_position_;
+}
+
+TaxonomyReader& TaxonomyReader::rank_field_position( int value )
+{
+    rank_field_position_ = value;
+    return *this;
+}
+
+int TaxonomyReader::rank_field_position() const
+{
+    return rank_field_position_;
+}
+
+TaxonomyReader& TaxonomyReader::id_field_position( int value )
+{
+    id_field_position_ = value;
+    return *this;
+}
+
+int TaxonomyReader::id_field_position() const
+{
+    return id_field_position_;
+}
+
+TaxonomyReader& TaxonomyReader::expect_strict_order( bool value )
+{
+    expect_strict_order_ = value;
+    return *this;
+}
+
+bool TaxonomyReader::expect_strict_order() const
+{
+    return expect_strict_order_;
+}
+
+} // namespace taxonomy
+} // namespace genesis

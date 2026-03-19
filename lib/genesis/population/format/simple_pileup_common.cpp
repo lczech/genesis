@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,10 +28,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/simple_pileup_common.hpp"
+#include <genesis/population/format/simple_pileup_common.hpp>
 
-#include "genesis/population/function/functions.hpp"
-#include "genesis/population/format/simple_pileup_input_stream.hpp"
+#include <genesis/population/function/function.hpp>
+#include <genesis/population/format/simple_pileup_input_stream.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -103,7 +103,7 @@ SampleCounts convert_to_sample_counts(
             default: {
                 throw std::runtime_error(
                     "Malformed pileup sample: Invalid allele character " +
-                    utils::char_to_hex( sample.read_bases[i] )
+                    genesis::util::text::char_to_hex( sample.read_bases[i] )
                 );
             }
         }
@@ -151,7 +151,7 @@ Variant convert_to_variant(
     Variant result;
     result.chromosome     = record.chromosome;
     result.position       = record.position;
-    result.reference_base = utils::to_upper( record.reference_base );
+    result.reference_base = genesis::util::text::to_upper( record.reference_base );
 
     // Convert the individual samples
     result.samples.reserve( record.samples.size() );
@@ -168,7 +168,7 @@ Variant convert_to_variant(
     if( is_valid_base( result.reference_base )) {
         auto const sorted = sorted_sample_counts( result, true, SampleCountsFilterPolicy::kAll );
         if( sorted[1].count > 0 ) {
-            result.alternative_base = utils::to_upper( sorted[1].base );
+            result.alternative_base = genesis::util::text::to_upper( sorted[1].base );
         }
     }
 
@@ -176,7 +176,7 @@ Variant convert_to_variant(
 }
 
 genesis::sequence::QualityEncoding guess_pileup_quality_encoding(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     size_t max_lines
 ) {
     // Make a reader that uses quality scores.

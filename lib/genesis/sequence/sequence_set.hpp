@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/sequence.hpp"
+#include <genesis/sequence/sequence.hpp>
 
 #include <stdexcept>
 #include <vector>

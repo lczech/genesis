@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/gff_reader.hpp"
+#include <genesis/population/format/gff_reader.hpp>
 
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/char.hpp>
 
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/util/core/logging.hpp>
 
 #include <cassert>
 #include <cstring>
@@ -49,10 +49,10 @@ namespace population {
 // =================================================================================================
 
 std::vector<GffReader::Feature> GffReader::read(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     std::vector<GffReader::Feature> result;
-    utils::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     Feature feat;
     while( parse_line( it, feat ) ) {
         result.push_back( std::move( feat ));
@@ -61,10 +61,10 @@ std::vector<GffReader::Feature> GffReader::read(
 }
 
 GenomeLocusSet GffReader::read_as_genome_locus_set(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     GenomeLocusSet result;
-    utils::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     Feature feat;
     while( parse_line( it, feat ) ) {
         result.add( feat.seqname, feat.start, feat.end );
@@ -73,7 +73,7 @@ GenomeLocusSet GffReader::read_as_genome_locus_set(
 }
 
 GenomeRegionList GffReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     bool merge
 ) const {
     GenomeRegionList result;
@@ -82,11 +82,11 @@ GenomeRegionList GffReader::read_as_genome_region_list(
 }
 
 void GffReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     GenomeRegionList& target,
     bool merge
 ) const {
-    utils::InputStream it( source );
+    genesis::util::io::InputStream it( source );
     Feature feat;
     while( parse_line( it, feat ) ) {
         target.add( feat.seqname, feat.start, feat.end, merge );
@@ -98,9 +98,11 @@ void GffReader::read_as_genome_region_list(
 // =================================================================================================
 
 bool GffReader::parse_line(
-    utils::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     GffReader::Feature& feature
 ) const {
+    using namespace genesis::util::io;
+
     // Shorthand.
     auto& it = input_stream;
     if( !it ) {
@@ -131,27 +133,27 @@ bool GffReader::parse_line(
     // Read seqname, source, and feature.
     // We use \n as stopping criterion here as well, so that in case of an error,
     // we at least report the error in the correct line.
-    feature.seqname = utils::read_while( it, []( char c ){ return c != '\t' && c != '\n'; });
-    utils::read_char_or_throw( it, '\t' );
-    feature.source  = utils::read_while( it, []( char c ){ return c != '\t' && c != '\n'; });
-    utils::read_char_or_throw( it, '\t' );
-    feature.feature = utils::read_while( it, []( char c ){ return c != '\t' && c != '\n'; });
-    utils::read_char_or_throw( it, '\t' );
+    feature.seqname = read_while( it, []( char c ){ return c != '\t' && c != '\n'; });
+    read_char_or_throw( it, '\t' );
+    feature.source  = read_while( it, []( char c ){ return c != '\t' && c != '\n'; });
+    read_char_or_throw( it, '\t' );
+    feature.feature = read_while( it, []( char c ){ return c != '\t' && c != '\n'; });
+    read_char_or_throw( it, '\t' );
 
     // Read start and end
-    feature.start = utils::parse_unsigned_integer<size_t>( it );
-    utils::read_char_or_throw( it, '\t' );
-    feature.end   = utils::parse_unsigned_integer<size_t>( it );
-    utils::read_char_or_throw( it, '\t' );
+    feature.start = parse_unsigned_integer<size_t>( it );
+    read_char_or_throw( it, '\t' );
+    feature.end   = parse_unsigned_integer<size_t>( it );
+    read_char_or_throw( it, '\t' );
 
     // Read score, allowing for it to be empty
     if( it && *it == '.' ) {
         feature.score = std::numeric_limits<double>::quiet_NaN();
         ++it;
     } else {
-        feature.score = utils::parse_float<double>( it );
+        feature.score = parse_float<double>( it );
     }
-    utils::read_char_or_throw( it, '\t' );
+    read_char_or_throw( it, '\t' );
 
     // Read strand
     if( !it ) {
@@ -161,14 +163,14 @@ bool GffReader::parse_line(
     }
     feature.strand = *it;
     ++it;
-    utils::read_char_or_throw( it, '\t' );
+    read_char_or_throw( it, '\t' );
 
     // Read frame, allowing for it to be empty
     if( it && *it == '.' ) {
         feature.frame = -1;
         ++it;
     } else {
-        feature.frame = utils::parse_unsigned_integer<signed char>( it );
+        feature.frame = parse_unsigned_integer<signed char>( it );
     }
 
     // There might be no attributes, and the line might end early.
@@ -177,7 +179,7 @@ bool GffReader::parse_line(
         ++it;
         return true;
     }
-    utils::read_char_or_throw( it, '\t' );
+    read_char_or_throw( it, '\t' );
 
     // Read attributes. GFF2, GFF3, and GTF are slightly different, it seems... Bioinformatics...
     // We just read all of them into a single string.
@@ -190,11 +192,11 @@ bool GffReader::parse_line(
     // GTF: `gene_id "ENSG00000223972"; gene_name "DDX11L1";`
     // while( it && *it != '\n' ) {
     //     // Read key
-    //     utils::skip_while( it, ' ' );
-    //     std::string key = utils::read_while( it, []( char c ){
+    //     skip_while( it, ' ' );
+    //     std::string key = read_while( it, []( char c ){
     //         return c != '=' && c != ' ' && c != '\n';
     //     });
-    //     utils::read_char_or_throw( it, []( char c ){ return c == '=' || c == ' '; });
+    //     read_char_or_throw( it, []( char c ){ return c == '=' || c == ' '; });
     //     if( !it || *it == '\n' ) {
     //         throw std::runtime_error(
     //             std::string("In ") + it.source_name() +
@@ -206,9 +208,9 @@ bool GffReader::parse_line(
     //     std::string value;
     //     assert( it );
     //     if( *it == '"' ) {
-    //         value = utils::parse_quoted_string( it );
+    //         value = parse_quoted_string( it );
     //     } else {
-    //         value = utils::read_while( it, []( char c ){ return c != ';' && c != '\n'; });
+    //         value = read_while( it, []( char c ){ return c != ';' && c != '\n'; });
     //     }
     //
     //     // Store key value pair
@@ -218,7 +220,7 @@ bool GffReader::parse_line(
     //     if( it && *it == ';' ) {
     //         ++it;
     //     }
-    //     utils::skip_while( it, ' ' );
+    //     skip_while( it, ' ' );
     // }
     // assert( !it || *it == '\n' );
     // ++it;

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/kmer.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/sequence/kmer/kmer.hpp>
+#include <genesis/util/math/common.hpp>
 
 #include <cassert>
 #include <cstdint>
@@ -175,6 +175,8 @@ inline size_t number_of_kmers( uint8_t k, uint8_t alphabet_size = 4 )
  */
 inline size_t number_of_canonical_kmers( uint8_t k )
 {
+    using namespace genesis::util::math;
+
     // We need distinct approaches for even and odd values, due to palindromes.
     // It might be easier to just have a hard coded table... but this way is more approachable.
     if( k == 0 || k > 32 ) {
@@ -184,11 +186,11 @@ inline size_t number_of_canonical_kmers( uint8_t k )
         // We use base 2 here, and instead of dividing the result by 2 in the end, we subtract 1
         // from the exponent, in order to avoid overflowing for the case k=32.
         // The original (overflowing) equation from the paper is commented out below for reference.
-        return utils::int_pow( 2, 2 * k - 1 ) + utils::int_pow( 2, 2 * k / 2 - 1 );
-        // return ( utils::int_pow( 4, k ) + utils::int_pow( 4, k / 2 )) / 2;
+        return int_pow( 2, 2 * k - 1 ) + int_pow( 2, 2 * k / 2 - 1 );
+        // return ( int_pow( 4, k ) + int_pow( 4, k / 2 )) / 2;
     } else {
         // Odd numbers. No overflow for the valid range.
-        return utils::int_pow( 4, k ) / 2;
+        return int_pow( 4, k ) / 2;
     }
     return 0;
 }
@@ -208,7 +210,7 @@ inline size_t number_of_palindromes( uint8_t k )
         // No palindromes for odd k
         return 0;
     }
-    return utils::int_pow( 4, k / 2 );
+    return genesis::util::math::int_pow( 4, k / 2 );
 }
 
 // =================================================================================================

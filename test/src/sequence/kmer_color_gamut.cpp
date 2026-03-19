@@ -31,26 +31,26 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/kmer/canonical_encoding.hpp"
-#include "genesis/sequence/kmer/color_gamut_functions.hpp"
+#include "genesis/sequence/kmer/color_gamut_function.hpp"
 #include "genesis/sequence/kmer/color_gamut.hpp"
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/kmer.hpp"
-#include "genesis/taxonomy/functions/kmer_data.hpp"
-#include "genesis/taxonomy/functions/kmer_grouping.hpp"
-#include "genesis/taxonomy/functions/kmer.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/printers/nested.hpp"
+#include "genesis/taxonomy/function/kmer_data.hpp"
+#include "genesis/taxonomy/function/kmer_grouping.hpp"
+#include "genesis/taxonomy/function/kmer.hpp"
+#include "genesis/taxonomy/function/taxonomy.hpp"
+#include "genesis/taxonomy/printer/nested.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/random.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/container/matrix.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
+#include "genesis/util/bit/bitvector.hpp"
+#include "genesis/util/bit/bitvector/function.hpp"
+#include "genesis/util/bit/bitvector/operator.hpp"
+#include "genesis/util/math/common.hpp"
+#include "genesis/util/math/random.hpp"
+#include "genesis/util/text/string.hpp"
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -68,7 +68,13 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::bit;
+using namespace genesis::util::container;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Functionality Tests
@@ -562,7 +568,7 @@ void kmer_color_gamut_concurrency_test_(
 TEST( KmerColorGamut, Concurrency )
 {
     // Deactivate logging output for regular tests.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     // Random seed. Report it, so that in an error case, we can reproduce.
     auto const seed = ::time(nullptr);

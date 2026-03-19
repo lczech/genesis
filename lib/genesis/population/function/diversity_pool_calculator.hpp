@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/function/diversity_pool_functions.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/utils/math/compensated_sum.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/function/diversity_pool_function.hpp>
+#include <genesis/population/function/function.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/util/math/compensated_sum.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -84,13 +84,13 @@ namespace population {
  * There are multiple ways that this filtering can be applied. Typically for example, we want
  * to process a VariantInputStream, which allows us to use input from a variety of input
  * file formats, all converted into Variant%s at each position in the genome. This internally
- * is a genesis::utils::GenericInputStream, which offers to add
- * @link genesis::utils::GenericInputStream::add_transform_filter() add_transform_filter()@endlink
+ * is a genesis::util::container::GenericInputStream, which offers to add
+ * @link genesis::util::container::GenericInputStream::add_transform_filter() add_transform_filter()@endlink
  * functions for this purpose. The make_sample_counts_filter_numerical_tagging() is a convenience
  * function that creates such a filter/transform function given a SampleCountsFilter settings
  * instance.
  *
- * Alternaively, genesis::utils::make_filter_range() can be used to achieve the same effect,
+ * Alternaively, genesis::util::make_filter_range() can be used to achieve the same effect,
  * but requiring a bit more manual "wiring" of the components first. This however has the advantage
  * that SampleCountsFilterStats can be provided, e.g., per window of the analysis, to capture the
  * number of sites that pass read depth filters etc. These numbers can then be used for
@@ -348,8 +348,8 @@ private:
     bool enable_tajima_d_        = true;
 
     // Data Accumulation
-    utils::NeumaierSum theta_pi_sum_;
-    utils::NeumaierSum theta_watterson_sum_;
+    genesis::util::math::NeumaierSum theta_pi_sum_;
+    genesis::util::math::NeumaierSum theta_watterson_sum_;
     SampleCountsFilterStats filter_stats_;
 
     // Find the minimum empirical read depth that we see in the processed data.

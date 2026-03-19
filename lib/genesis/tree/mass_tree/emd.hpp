@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,11 +41,13 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
+namespace util {
+namespace container {
 
     template<typename T>
     class Matrix;
 
+}
 }
 
 namespace tree {
@@ -117,11 +119,11 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double p
 /**
  * @brief Calculate the pairwise earth mover's distance for all @link MassTree MassTrees@endlink.
  *
- * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
+ * The result is a pairwise distance @link genesis::util::container::Matrix Matrix@endlink using the indices of the
  * given `vector`. See earth_movers_distance( MassTree const&, MassTree const&, double ) for details
  * on the calculation.
  */
-utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double p = 1.0 );
+genesis::util::container::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double p = 1.0 );
 
 /**
  * @brief Calculate the earth mover's distance of masses on a given Tree.

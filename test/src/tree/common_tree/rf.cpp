@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,15 +33,17 @@
 #include <string>
 
 #include "genesis/tree/bipartition/rf.hpp"
-#include "genesis/tree/common_tree/distances.hpp"
+#include "genesis/tree/common_tree/distance.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/function.hpp"
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::util::container;
+using namespace genesis::util::io;
 
 TEST(CommonTree, RFDistance)
 {
@@ -52,7 +54,7 @@ TEST(CommonTree, RFDistance)
     // for( size_t i = 0; i < 10; ++i ) {
     //     // Read and process tree.
     //     std::string infile = environment->data_dir + "tree/random-tree-" + std::to_string(i) + ".newick";
-    //     Tree tree = CommonTreeNewickReader().read( utils::from_file( infile ));
+    //     Tree tree = CommonTreeNewickReader().read( from_file( infile ));
     //
     //     // Basic checks.
     //     EXPECT_EQ( 10, leaf_node_count( tree ));
@@ -64,7 +66,7 @@ TEST(CommonTree, RFDistance)
 
     TreeSet trees;
     std::string const infile = environment->data_dir + "tree/random-trees.newick";
-    CommonTreeNewickReader().read( utils::from_file( infile ), trees );
+    CommonTreeNewickReader().read( from_file( infile ), trees );
     EXPECT_EQ( 10, trees.size() );
 
     auto const rf_mat = rf_distance_absolute( trees );
@@ -75,7 +77,7 @@ TEST(CommonTree, RFDistance)
     // }
     // LOG_BOLD << rf_mat;
 
-    auto const rf_mat_exp = utils::Matrix<size_t>( 10, 10, {
+    auto const rf_mat_exp = Matrix<size_t>( 10, 10, {
         0, 14, 14, 12, 14, 14, 14, 10, 14, 10,
         14, 0, 14, 14, 14, 14, 14, 14, 14, 14,
         14, 14, 0, 14, 12, 14, 10, 14, 14, 14,

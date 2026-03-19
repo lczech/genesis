@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/variant_input_stream.hpp"
+#include <genesis/population/function/variant_input_stream.hpp>
 
-#include "genesis/population/function/subsample.hpp"
+#include <genesis/population/function/subsample.hpp>
 
 #include <cassert>
 #include <stdexcept>

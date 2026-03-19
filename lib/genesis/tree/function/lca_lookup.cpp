@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/function/lca_lookup.hpp"
+#include <genesis/tree/function/lca_lookup.hpp>
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/node.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/iterator/eulertour.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/node.hpp>
+#include <genesis/tree/function/distance.hpp>
+#include <genesis/tree/iterator/eulertour.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -92,7 +92,7 @@ void LcaLookup::init_( Tree const& tree )
     // Store root, so that tree can be re-rooted outside of this class.
     root_idx_ = tree.root_node().index();
 
-    using RmqIntType = utils::RangeMinimumQuery::IntType;
+    using RmqIntType = genesis::util::math::RangeMinimumQuery::IntType;
 
     // Init vectors.
     std::vector<RmqIntType> eulertour_levels;
@@ -117,7 +117,7 @@ void LcaLookup::init_( Tree const& tree )
             eulertour_first_occurrence_[ node_idx ] = eulertour_order_.size() - 1;
         }
     }
-    eulertour_rmq_ = utils::RangeMinimumQuery( eulertour_levels );
+    eulertour_rmq_ = genesis::util::math::RangeMinimumQuery( eulertour_levels );
 }
 
 size_t LcaLookup::eulertour_query_( size_t i, size_t j ) const

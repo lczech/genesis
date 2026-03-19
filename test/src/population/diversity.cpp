@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,24 +34,28 @@
 #include "genesis/population/format/simple_pileup_input_stream.hpp"
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/function/diversity_pool_calculator.hpp"
-#include "genesis/population/function/diversity_pool_functions.hpp"
+#include "genesis/population/function/diversity_pool_function.hpp"
 #include "genesis/population/function/diversity_pool_processor.hpp"
 #include "genesis/population/filter/sample_counts_filter_numerical.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
 #include "genesis/population/window/interval_window_stream.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/filter_iterator.hpp"
-#include "genesis/utils/containers/transform_iterator.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/util/container/filter_iterator.hpp"
+#include "genesis/util/container/transform_iterator.hpp"
+#include "genesis/util/math/random.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::container;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
 
 TEST( Population, StatisticsNBase )
 {
@@ -224,7 +228,7 @@ TEST( Population, DiversityMeasuresGenerator )
         (void) variant_count;
 
         // Make a filter that only allows samples that are SNPs and have the needed coverage.
-        auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts const& sample ){
+        auto covered_snps_range = make_filter_range( [&]( SampleCounts const& sample ){
             auto copy = sample;
             return apply_sample_counts_filter_numerical( copy, filter );
 
@@ -435,8 +439,8 @@ TEST( Population, DiversityMeasuresIterator )
         // Also, count how many SNPs there are in total, and how many sites have the needed coverage.
         SampleCountsFilterStats stats;
         size_t variant_count = 0;
-        // auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts const& sample ){
-        auto covered_snps_range = genesis::utils::make_filter_range( [&]( SampleCounts& sample ){
+        // auto covered_snps_range = make_filter_range( [&]( SampleCounts const& sample ){
+        auto covered_snps_range = make_filter_range( [&]( SampleCounts& sample ){
             ++variant_count;
             // auto copy = sample;
             // return apply_sample_counts_filter_numerical( copy, filter, stats );
@@ -567,7 +571,7 @@ TEST( Diversity, RandomFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     size_t num_tests = 5000;
     for( size_t i = 0; i < num_tests; ++i ) {

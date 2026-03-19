@@ -28,8 +28,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/color_gamut.hpp"
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/sequence/kmer/color_gamut.hpp>
+#include <genesis/util/core/logging.hpp>
 
 // The KmerColorGamut class is only available from C++17 onwards.
 #if GENESIS_CPP_STD >= GENESIS_CPP_STD_17
@@ -51,7 +51,7 @@ namespace sequence {
 //     add_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::add_color( utils::Bitvector&& elements, bool ignore_duplicates )
+size_t KmerColorGamut::add_color( genesis::util::bit::Bitvector&& elements, bool ignore_duplicates )
 {
     // Obtain write lock. Usually not needed here, as this function is meant to be called
     // before starting any concurrent access, but maybe there is a use case where the caller
@@ -74,7 +74,7 @@ size_t KmerColorGamut::add_color( utils::Bitvector&& elements, bool ignore_dupli
             "Cannot add color with bitvector of size that does not match the element count"
         );
     }
-    if( (!ignore_duplicates) && utils::pop_count( elements ) < 2 ) {
+    if( (!ignore_duplicates) && genesis::util::bit::pop_count( elements ) < 2 ) {
         throw std::invalid_argument(
             "Cannot add color with bitvector representing the empty color or primary colors "
             "(i.e., zero or single bit set)"
@@ -82,7 +82,7 @@ size_t KmerColorGamut::add_color( utils::Bitvector&& elements, bool ignore_dupli
     }
 
     // Check if the color already exists.
-    auto const hash = utils::bitvector_hash( elements );
+    auto const hash = genesis::util::bit::bitvector_hash( elements );
     if( find_existing_color_( elements, hash ) > 0 ) {
         if( ignore_duplicates ) {
             return 0;
@@ -121,7 +121,7 @@ size_t KmerColorGamut::add_merged_color( size_t index_1, size_t index_2, bool ig
 //     find_existing_color
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::find_existing_color( utils::Bitvector const& target_elements ) const
+size_t KmerColorGamut::find_existing_color( genesis::util::bit::Bitvector const& target_elements ) const
 {
     std::shared_lock read_lock( color_mutex_, std::defer_lock );
     if( ! gamut_started_.load( std::memory_order_acquire )) {
@@ -133,7 +133,7 @@ size_t KmerColorGamut::find_existing_color( utils::Bitvector const& target_eleme
             " in Color Gamut that has " + std::to_string( element_count_ ) + " elements"
         );
     }
-    auto const target_hash = utils::bitvector_hash( target_elements );
+    auto const target_hash = genesis::util::bit::bitvector_hash( target_elements );
     return find_existing_color_( target_elements, target_hash );
 }
 
@@ -141,7 +141,7 @@ size_t KmerColorGamut::find_existing_color( utils::Bitvector const& target_eleme
 //     find_minimal_superset
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::find_minimal_superset( utils::Bitvector const& target_elements ) const
+size_t KmerColorGamut::find_minimal_superset( genesis::util::bit::Bitvector const& target_elements ) const
 {
     std::shared_lock read_lock( color_mutex_, std::defer_lock );
     if( ! gamut_started_.load( std::memory_order_acquire )) {
@@ -271,7 +271,7 @@ size_t KmerColorGamut::get_joined_color_index(
 //     precompute_gamut
 // -------------------------------------------------------------------------
 
-void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread_pool )
+void KmerColorGamut::precompute_gamut( std::shared_ptr<genesis::util::threading::ThreadPool> thread_pool )
 {
     // We can only init the gamut once there will be no more colors added.
     if( max_color_count_ == 0 || colors_.size() < max_color_count_ ) {
@@ -284,7 +284,7 @@ void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread
     // during the gamut computation here, as this loop is only accessing each cell once.
     init_gamut_();
     if( thread_pool ) {
-        utils::parallel_for(
+        genesis::util::threading::parallel_for(
             0, element_count_,
             [this]( size_t element_idx )
             {
@@ -303,7 +303,7 @@ void KmerColorGamut::precompute_gamut( std::shared_ptr<utils::ThreadPool> thread
             },
             thread_pool
         );
-        // utils::parallel_for(
+        // genesis::util::threading::parallel_for(
         //     0, colors_.size(),
         //     [this]( size_t color_index )
         //     {
@@ -350,7 +350,7 @@ void KmerColorGamut::init_primary_colors_()
     // into believing it's a real color.
     // Hence, internally, we need to offset all actual primary colors by 1.
     auto empty = Bitvector( element_count_ );
-    auto const empty_hash = utils::bitvector_hash( empty );
+    auto const empty_hash = genesis::util::bit::bitvector_hash( empty );
     add_color_( std::move( empty ), empty_hash );
     assert( colors_.size() == 1 );
 
@@ -359,7 +359,7 @@ void KmerColorGamut::init_primary_colors_()
     for( size_t i = 0; i < element_count_; ++i ) {
         auto elements = Bitvector( element_count_ );
         elements.set( i );
-        auto const hash = utils::bitvector_hash( elements );
+        auto const hash = genesis::util::bit::bitvector_hash( elements );
         add_color_( std::move( elements ), hash );
     }
     assert( colors_.size() == 1 + element_count_ );
@@ -520,14 +520,14 @@ void KmerColorGamut::populate_target_color_(
     if( target_elements.empty() ) {
         target_elements = existing_color.elements;
         target_elements.set( additive_element_index );
-        target_hash = utils::bitvector_hash( target_elements );
+        target_hash = genesis::util::bit::bitvector_hash( target_elements );
     } else {
         // We have already computed the target bitvector and its hash.
         // Let's assert that they are correct (the last two can be deactivated later).
         assert( target_elements.size() == element_count_ );
         assert(( target_elements | existing_color.elements ) == target_elements );
         assert( target_elements.get( additive_element_index ));
-        assert( target_hash == utils::bitvector_hash( target_elements ));
+        assert( target_hash == genesis::util::bit::bitvector_hash( target_elements ));
     }
 }
 
@@ -535,11 +535,11 @@ void KmerColorGamut::populate_target_color_(
 //     find_existing_color_
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::find_existing_color_( utils::Bitvector const& target, size_t hash ) const
+size_t KmerColorGamut::find_existing_color_( genesis::util::bit::Bitvector const& target, size_t hash ) const
 {
     // Sanity checks.
     assert( target.size() == element_count_ );
-    assert( hash == utils::bitvector_hash( target ));
+    assert( hash == genesis::util::bit::bitvector_hash( target ));
     assert( colors_.size() == lookup_.size() );
 
     // There might be more than one color with the same hash, hence we need to
@@ -564,7 +564,7 @@ size_t KmerColorGamut::find_existing_color_( utils::Bitvector const& target, siz
 //     add_color_
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::add_color_( utils::Bitvector&& elements, size_t hash )
+size_t KmerColorGamut::add_color_( genesis::util::bit::Bitvector&& elements, size_t hash )
 {
     // Sanity checks.
     assert( colors_.size() == lookup_.size() );
@@ -580,7 +580,7 @@ size_t KmerColorGamut::add_color_( utils::Bitvector&& elements, size_t hash )
     // In the init, we explicitly check for duplicates. During our internal executing however,
     // we assume that our algorithm never wants to add a color that already exists. Assert that.
     assert( elements.size() == element_count_ );
-    assert( hash == utils::bitvector_hash( elements ));
+    assert( hash == genesis::util::bit::bitvector_hash( elements ));
     assert( find_existing_color_( elements, hash ) == 0 );
 
     // Get the index at which the color will be placed in the list,
@@ -619,7 +619,7 @@ void KmerColorGamut::init_gamut_()
     // Set up the vector guard for accessing the gamut. We use the square root of the number
     // of total entries in the gamut matrix to get a large enough number of buckets for the
     // guards to avoid collision. Probably overkill, and super ad-hoc, but let's see if it works.
-    gamut_guard_ = utils::ConcurrentVectorGuard( std::sqrt( colors_.size() * element_count_ ));
+    gamut_guard_ = genesis::util::threading::ConcurrentVectorGuard( std::sqrt( colors_.size() * element_count_ ));
 
     // For each color, we create a row where the columns correspond to each of the elements being set.
     // Wherever the original color (of the row) already has the bit set anyway, the color is
@@ -627,7 +627,7 @@ void KmerColorGamut::init_gamut_()
     // set in addition to our original color, or, if that does not exist in the color list,
     // we instead use the minimal (w.r.t. pop count) superset color instead as an imaginary color.
     // We only compute these on-demand, as likely not all of them will be needed.
-    gamut_ = utils::Matrix<size_t>( colors_.size(), element_count_, 0 );
+    gamut_ = genesis::util::container::Matrix<size_t>( colors_.size(), element_count_, 0 );
 
     // Now we have set up the gamut, so we can activate the fast path.
     // This function here is only called while holding the write mutex,
@@ -669,7 +669,7 @@ size_t KmerColorGamut::get_gamut_entry_(
 
     // If the entry is already in the gamut, we just return that.
     {
-        utils::ConcurrentVectorGuard::LockGuard lock;
+        genesis::util::threading::ConcurrentVectorGuard::LockGuard lock;
         if( needs_locking ) {
             lock = gamut_guard_.get_lock_guard( cell_index );
         }
@@ -740,7 +740,7 @@ size_t KmerColorGamut::set_gamut_entry_(
 ) {
     // We re-aquire the lock for the current gamut cell.
     auto const cell_index = gamut_.index( existing_color_index, additive_element_index );
-    utils::ConcurrentVectorGuard::LockGuard lock;
+    genesis::util::threading::ConcurrentVectorGuard::LockGuard lock;
     if( needs_locking ) {
         lock = gamut_guard_.get_lock_guard( cell_index );
     }
@@ -783,7 +783,7 @@ size_t KmerColorGamut::set_gamut_entry_(
 //     find_minimal_superset_
 // -------------------------------------------------------------------------
 
-size_t KmerColorGamut::find_minimal_superset_( utils::Bitvector const& target_elements ) const
+size_t KmerColorGamut::find_minimal_superset_( genesis::util::bit::Bitvector const& target_elements ) const
 {
     // Sanity check.
     assert( target_elements.size() == element_count_ );
@@ -796,7 +796,7 @@ size_t KmerColorGamut::find_minimal_superset_( utils::Bitvector const& target_el
     // We are searching for a strict superset that has minimal pop count.
     // We cannot be better than having exactly one element more set than the target,
     // so we can use that as an early stop criterion.
-    size_t const target_pop_count = utils::pop_count( target_elements );
+    size_t const target_pop_count = genesis::util::bit::pop_count( target_elements );
 
     // TODO Add an optional early stop condition here that only searches through the initial set
     // of secondary colors created with the add functions, in case that this here is too slow.
@@ -807,12 +807,12 @@ size_t KmerColorGamut::find_minimal_superset_( utils::Bitvector const& target_el
     // to iterate all colors, which is slow - hence, the frozen table caches these for re-use.
     for( size_t i = 1 + element_count_; i < colors_.size(); ++i ) {
         // If the color is not a superset of what we need, we skip it.
-        if( ! utils::is_superset( colors_[i].elements, target_elements )) {
+        if( ! genesis::util::bit::is_superset( colors_[i].elements, target_elements )) {
             continue;
         }
 
         // See if this is a new minimal hit; if so, update it.
-        auto const popcnt = utils::pop_count( colors_[i].elements );
+        auto const popcnt = genesis::util::bit::pop_count( colors_[i].elements );
         if( popcnt < min_pop_count ) {
             min_index = i;
             min_pop_count = popcnt;
@@ -830,7 +830,7 @@ size_t KmerColorGamut::find_minimal_superset_( utils::Bitvector const& target_el
     // Otherwise, we have found a secondary color that is a superset of our target.
     // We leave it up to the caller though to decide in case of no fitting color.
     assert( min_index == 0 || min_pop_count <= element_count_ );
-    assert( min_index == 0 || min_pop_count >= utils::pop_count( target_elements ));
+    assert( min_index == 0 || min_pop_count >= genesis::util::bit::pop_count( target_elements ));
     assert( min_index == 0 || colors_[min_index].elements != target_elements );
     assert( min_index == 0 || is_strict_superset( colors_[min_index].elements, target_elements ));
     return min_index;

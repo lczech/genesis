@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,24 +33,27 @@
 #include <string>
 #include <vector>
 
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/common_tree/newick_writer.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
-#include "genesis/tree/formats/newick/writer.hpp"
-#include "genesis/tree/formats/table/reader.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
+#include "genesis/tree/format/newick/writer.hpp"
+#include "genesis/tree/format/table/reader.hpp"
+#include "genesis/tree/function/function.hpp"
+#include "genesis/tree/function/operator.hpp"
 #include "genesis/tree/printer/compact.hpp"
 #include "genesis/tree/printer/compact.hpp"
 #include "genesis/tree/printer/detailed.hpp"
 #include "genesis/tree/printer/table.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/util/math/random.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
 
 TEST( TreeTable, Reading )
 {
@@ -155,7 +158,7 @@ TreeTableTestData test_create_random_tree_name_data_()
     LOG_DBG << newick;
 
     // Turn it into a pair of parent child lists.
-    auto const tree = CommonTreeNewickReader().read( utils::from_string( newick ));
+    auto const tree = CommonTreeNewickReader().read( from_string( newick ));
     return tree_to_table_to_test_data_( tree );
 }
 
@@ -189,7 +192,7 @@ TEST( TreeTable, Random )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     size_t num_tests = 500;
     for( size_t i = 0; i < num_tests; ++i ) {

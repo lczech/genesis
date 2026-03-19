@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,18 +30,21 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/functions/functions.hpp"
+#include "genesis/sequence/function/code.hpp"
+#include "genesis/sequence/function/function.hpp"
 #include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/formats/phylip_reader.hpp"
-#include "genesis/sequence/formats/phylip_writer.hpp"
+#include "genesis/sequence/format/phylip_reader.hpp"
+#include "genesis/sequence/format/phylip_writer.hpp"
 
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <string>
 
 using namespace genesis::sequence;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Read
@@ -250,6 +253,6 @@ TEST( Sequence, PhylipWriter )
     EXPECT_EQ( 5, sset.size() );
 
     std::string target;
-    PhylipWriter().label_length(10).write( sset, genesis::utils::to_string( target ) );
+    PhylipWriter().label_length(10).write( sset, genesis::util::io::to_string( target ) );
     EXPECT_EQ( 6, count_substring_occurrences( target, "\n" ));
 }

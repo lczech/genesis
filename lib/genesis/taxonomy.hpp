@@ -33,33 +33,33 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/taxonomy/accession_lookup.hpp"
-#include "genesis/taxonomy/formats/accession_lookup_reader.hpp"
-#include "genesis/taxonomy/formats/json_reader.hpp"
-#include "genesis/taxonomy/formats/json_writer.hpp"
-#include "genesis/taxonomy/formats/ncbi.hpp"
-#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
-#include "genesis/taxonomy/formats/taxonomy_writer.hpp"
-#include "genesis/taxonomy/formats/taxopath_generator.hpp"
-#include "genesis/taxonomy/formats/taxopath_parser.hpp"
-#include "genesis/taxonomy/functions/entropy_data.hpp"
-#include "genesis/taxonomy/functions/entropy.hpp"
-#include "genesis/taxonomy/functions/kmer_data.hpp"
-#include "genesis/taxonomy/functions/kmer_grouping.hpp"
-#include "genesis/taxonomy/functions/kmer.hpp"
-#include "genesis/taxonomy/functions/kmer_partitioning.hpp"
-#include "genesis/taxonomy/functions/operators.hpp"
-#include "genesis/taxonomy/functions/ranks.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/functions/taxopath.hpp"
-#include "genesis/taxonomy/functions/tree.hpp"
-#include "genesis/taxonomy/iterator/levelorder.hpp"
-#include "genesis/taxonomy/iterator/postorder.hpp"
-#include "genesis/taxonomy/iterator/preorder.hpp"
-#include "genesis/taxonomy/printers/nested.hpp"
-#include "genesis/taxonomy/taxon_data.hpp"
-#include "genesis/taxonomy/taxon.hpp"
-#include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/taxopath.hpp"
+#include <genesis/taxonomy/accession_lookup.hpp>
+#include <genesis/taxonomy/format/accession_lookup_reader.hpp>
+#include <genesis/taxonomy/format/json_reader.hpp>
+#include <genesis/taxonomy/format/json_writer.hpp>
+#include <genesis/taxonomy/format/ncbi.hpp>
+#include <genesis/taxonomy/format/taxonomy_reader.hpp>
+#include <genesis/taxonomy/format/taxonomy_writer.hpp>
+#include <genesis/taxonomy/format/taxopath_generator.hpp>
+#include <genesis/taxonomy/format/taxopath_parser.hpp>
+#include <genesis/taxonomy/function/entropy_data.hpp>
+#include <genesis/taxonomy/function/entropy.hpp>
+#include <genesis/taxonomy/function/kmer_data.hpp>
+#include <genesis/taxonomy/function/kmer_grouping.hpp>
+#include <genesis/taxonomy/function/kmer.hpp>
+#include <genesis/taxonomy/function/kmer_partitioning.hpp>
+#include <genesis/taxonomy/function/operator.hpp>
+#include <genesis/taxonomy/function/ranks.hpp>
+#include <genesis/taxonomy/function/taxonomy.hpp>
+#include <genesis/taxonomy/function/taxopath.hpp>
+#include <genesis/taxonomy/function/tree.hpp>
+#include <genesis/taxonomy/iterator/levelorder.hpp>
+#include <genesis/taxonomy/iterator/postorder.hpp>
+#include <genesis/taxonomy/iterator/preorder.hpp>
+#include <genesis/taxonomy/printer/nested.hpp>
+#include <genesis/taxonomy/taxon_data.hpp>
+#include <genesis/taxonomy/taxon.hpp>
+#include <genesis/taxonomy/taxonomy.hpp>
+#include <genesis/taxonomy/taxopath.hpp>
 
 #endif // include guard

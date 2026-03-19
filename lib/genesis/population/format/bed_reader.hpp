@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,12 +31,12 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/genome_region_list.hpp"
-#include "genesis/population/genome_region.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/genome_region_list.hpp>
+#include <genesis/population/genome_region.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <functional>
 #include <memory>
@@ -142,7 +142,7 @@ public:
      * @brief Read a BED input source, and return its content as a list of Feature structs.
      */
     std::vector<Feature> read(
-        std::shared_ptr< utils::BaseInputSource > source
+        std::shared_ptr< genesis::util::io::BaseInputSource > source
     ) const;
 
     /**
@@ -158,7 +158,7 @@ public:
      * are covered (filtered / to be considered) for downstream analyses.
      */
     GenomeLocusSet read_as_genome_locus_set(
-        std::shared_ptr< utils::BaseInputSource > source
+        std::shared_ptr< genesis::util::io::BaseInputSource > source
     ) const;
 
     /**
@@ -168,7 +168,7 @@ public:
      * this is used to set the lengths of the Bitvector%s in the resulting GenomeLocusSet.
      */
     GenomeLocusSet read_as_genome_locus_set(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         sequence::SequenceDict const& sequence_dict
     ) const;
 
@@ -179,7 +179,7 @@ public:
      * it is used; otherwise, the overload without sequence dictionary is used.
      */
     GenomeLocusSet read_as_genome_locus_set(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::shared_ptr< sequence::SequenceDict > sequence_dict
     ) const;
 
@@ -195,17 +195,17 @@ public:
      * See the `overlap` flag of GenomeRegionList::add( GenomeLocus const&, bool ) for details.
      */
     GenomeRegionList read_as_genome_region_list(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         bool merge = false
     ) const;
 
     /**
      * @brief Read a BED input source, and add its content to an existing GenomeRegionList.
      *
-     * @copydetails BedReader::read_as_genome_region_list( std::shared_ptr< genesis::utils::BaseInputSource >, bool ) const
+     * @copydetails BedReader::read_as_genome_region_list( std::shared_ptr< genesis::util::io::BaseInputSource >, bool ) const
      */
     void read_as_genome_region_list(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         GenomeRegionList& target,
         bool merge = false
     ) const;
@@ -221,7 +221,7 @@ private:
      * for every line, to do the actual storage and downstream steps after parsing.
      */
     void read_(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::function<void(Feature&&)> callback
     ) const;
 
@@ -233,7 +233,7 @@ private:
      * columns.
      */
     size_t parse_line_(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Feature&            feature
     ) const;
 
@@ -244,12 +244,12 @@ private:
      * or file was reached (false). If true, it also increments the @p found_columns counter,
      * which is used by parse_line_().
      */
-    bool next_field_( utils::InputStream& input_stream, size_t& found_columns ) const;
+    bool next_field_( genesis::util::io::InputStream& input_stream, size_t& found_columns ) const;
 
     /**
      * @brief Parse a single string value, delimited from the next column by tabs or spaces.
      */
-    std::string parse_string_( utils::InputStream& input_stream ) const;
+    std::string parse_string_( genesis::util::io::InputStream& input_stream ) const;
 
 };
 

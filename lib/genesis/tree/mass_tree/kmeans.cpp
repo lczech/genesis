@@ -28,16 +28,16 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/kmeans.hpp"
+#include <genesis/tree/mass_tree/kmeans.hpp>
 
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
-#include "genesis/utils/core/options.hpp"
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
+#include <genesis/util/core/options.hpp>
 
 #include <cassert>
 #include <stdexcept>
@@ -121,10 +121,10 @@ void MassTreeKmeans::update_centroids(
     assert( data.size() == assignments.size() );
 
     // We use a bit of a different scheme when parallelizing.
-    if( utils::Options::get().has_global_thread_pool() ) {
+    if( genesis::util::core::Options::get().has_global_thread_pool() ) {
 
         // Parallelize over centroids
-        utils::parallel_for( 0, k, [&]( size_t c )
+        genesis::util::threading::parallel_for( 0, k, [&]( size_t c )
         {
             // Thread-local data.
             auto& centroid = centroids[ c ];
@@ -148,7 +148,7 @@ void MassTreeKmeans::update_centroids(
 
             // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
             // of the double equality check, but we have to live with it.
-            assert( utils::almost_equal_relative(
+            assert( genesis::util::math::almost_equal_relative(
                 count, mass_tree_sum_of_masses( centroid ), 0.00001
             ));
             (void) count;
@@ -184,7 +184,7 @@ void MassTreeKmeans::update_centroids(
 
             // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
             // of the double equality check, but we have to live with it.
-            assert( utils::almost_equal_relative(
+            assert( genesis::util::math::almost_equal_relative(
                 counts[ c ], mass_tree_sum_of_masses( centroids[ c ] ), 0.00001
             ));
 

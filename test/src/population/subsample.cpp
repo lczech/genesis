@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,12 +33,14 @@
 #include "genesis/population/sample_counts.hpp"
 #include "genesis/population/variant.hpp"
 #include "genesis/population/function/subsample.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/population/function/function.hpp"
+#include "genesis/util/math/random.hpp"
 
 using namespace genesis::population;
 using namespace genesis::sequence;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::math;
 
 template<typename Transformer>
 void test_sample_counts_subsampling_(

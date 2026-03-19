@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,21 +28,21 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/cog.hpp"
+#include <genesis/placement/function/cog.hpp>
 
-#include "genesis/placement/function/functions.hpp"
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/operators.hpp"
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/function/function.hpp>
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/placement/function/operator.hpp>
+#include <genesis/placement/sample.hpp>
 
-#include "genesis/tree/common_tree/distances.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/node_links.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/common_tree/distance.hpp>
+#include <genesis/tree/function/distance.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/iterator/node_links.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/util/core/logging.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -72,7 +72,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     };
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
+    LOG_SCOPE_LEVEL(genesis::util::core::Logging::kInfo)
 
     // Store a balance value per link, so that each element contains the mass and its torque that
     // lies downwards the tree in the direction of this link.
@@ -612,7 +612,7 @@ double center_of_gravity_distance (
     }
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
+    LOG_SCOPE_LEVEL(genesis::util::core::Logging::kInfo)
 
     auto cog_a = center_of_gravity(smp_a, with_pendant_length);
     auto cog_b = center_of_gravity(smp_b, with_pendant_length);

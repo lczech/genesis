@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/util/container/generic_input_stream.hpp>
 
 #include <string>
 #include <vector>
@@ -50,7 +50,7 @@ namespace population {
  *
  * This is used by VariantInputStream, see there for details.
  *
- * The utils::GenericInputStream allows us to store some extra data. When traversing a file as a
+ * The genesis::util::container::GenericInputStream allows us to store some extra data. When traversing a file as a
  * list of Variant%s, one per genomic position, we can use this extra field to store information
  * such as the file name and the individual sample names.
  *
@@ -100,12 +100,12 @@ struct VariantInputStreamData
  *
  * The stream furthermore offers a data field of type VariantInputStreamData, which gets
  * filled with basic data about the input file and sample names (if available in the file format).
- * Use the @link utils::GenericInputStream::data() data()@endlink function to access this data
+ * Use the @link genesis::util::container::GenericInputStream::data() data()@endlink function to access this data
  * while iterating.
  *
- * @see @link genesis::utils::GenericInputStream GenericInputStream@endlink for usage and details.
+ * @see @link genesis::util::container::GenericInputStream GenericInputStream@endlink for usage and details.
  */
-using VariantInputStream = utils::GenericInputStream<Variant, VariantInputStreamData>;
+using VariantInputStream = genesis::util::container::GenericInputStream<Variant, VariantInputStreamData>;
 
 } // namespace population
 } // namespace genesis

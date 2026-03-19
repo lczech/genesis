@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/variant.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/variant.hpp>
 
 namespace genesis {
 namespace population {
@@ -112,7 +112,7 @@ void rescale_counts(
  * SampleCounts::g_count, SampleCounts::t_count, SampleCounts::n_count, and SampleCounts::d_count) exceeds
  * the given @p max_depth, the counts are resampled _with_ replacement so that their sum is the
  * given @p max_depth. This uses
- * @link ::genesis::utils::multinomial_distribution() multinomial_distribution()@endlink
+ * @link ::genesis::util::multinomial_distribution() multinomial_distribution()@endlink
  * for the sampling. If the count sum is below, nothing is done.
  *
  * @see resample_counts()
@@ -175,7 +175,7 @@ void resample_counts(
  * SampleCounts::g_count, SampleCounts::t_count, SampleCounts::n_count, and SampleCounts::d_count) exceeds
  * the given @p max_depth, the counts are resampled _without_ replacement so that their sum is
  * the given @p max_depth. This uses
- * @link ::genesis::utils::multivariate_hypergeometric_distribution() multivariate_hypergeometric_distribution()@endlink
+ * @link ::genesis::util::multivariate_hypergeometric_distribution() multivariate_hypergeometric_distribution()@endlink
  * for the sampling. If the count sum is below, nothing is done.
  *
  * @see subscale_counts()

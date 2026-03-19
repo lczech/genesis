@@ -28,14 +28,14 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/squash_clustering.hpp"
+#include <genesis/tree/mass_tree/squash_clustering.hpp>
 
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -77,7 +77,7 @@ void SquashClustering::init_( std::vector<MassTree>&& trees )
         clusters_[i].distances.resize( i );
 
         // Calculate the distances.
-        utils::parallel_for( 0, i, [&]( size_t k )
+        genesis::util::threading::parallel_for( 0, i, [&]( size_t k )
         {
             auto const dist = earth_movers_distance( clusters_[i].tree, clusters_[k].tree, p_ );
             clusters_[i].distances[k] = dist;
@@ -167,7 +167,7 @@ void SquashClustering::merge_clusters_( size_t i, size_t j )
     // Calculate distances to still active clusters, which also includes the two clusters that
     // we are about to merge. We will deactivate them after the loop. This way, we also compute
     // their distances in parallel, maximizing throughput!
-    utils::parallel_for(
+    genesis::util::threading::parallel_for(
         0,
         clusters_.size() - 1,
         [&]( size_t k )

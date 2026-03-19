@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,26 +32,29 @@
 
 #include <memory>
 
-#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
 #include "genesis/placement/function/epca.hpp"
-#include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/function/function.hpp"
 #include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/masses.hpp"
-#include "genesis/placement/function/measures.hpp"
+#include "genesis/placement/function/mass.hpp"
+#include "genesis/placement/function/measure.hpp"
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/placement/sample.hpp"
 
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/formats/csv/reader.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/math/matrix.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/tree/function/function.hpp"
+#include "genesis/util/core/fs.hpp"
+#include "genesis/util/format/csv/reader.hpp"
+#include "genesis/util/container/matrix.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
+#include "genesis/util/math/matrix.hpp"
+#include "genesis/util/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::math;
+using namespace genesis::util::io;
 
 TEST( SampleMeasures, ImbalanceVector )
 {
@@ -67,8 +70,8 @@ TEST( SampleMeasures, ImbalanceVector )
     auto const edge_weight_vec = placement_mass_per_edges_with_multiplicities( smp );
     ASSERT_EQ( imbalance_vec.size(), edge_weight_vec.size() );
 
-    // LOG_DBG << "imb " << utils::join( imbalance_vec, " " );
-    // LOG_DBG << "wgt " << utils::join( edge_weight_vec, " " );
+    // LOG_DBG << "imb " << genesis::util::join( imbalance_vec, " " );
+    // LOG_DBG << "wgt " << genesis::util::join( edge_weight_vec, " " );
 
     // Get indicator which edge is on which side.
     auto const edge_side_mat = edge_sides( smp.tree() );
@@ -82,12 +85,12 @@ TEST( SampleMeasures, ImbalanceVector )
         }
     }
 
-    auto const combined2 = utils::matrix_multiplication( edge_side_mat, edge_weight_vec );
+    auto const combined2 = matrix_multiplication( edge_side_mat, edge_weight_vec );
 
     EXPECT_EQ( imbalance_vec, combined );
     EXPECT_EQ( combined2, combined );
 
-    // LOG_DBG << "comb " << utils::join( combined, " " );
+    // LOG_DBG << "comb " << genesis::util::join( combined, " " );
 }
 
 /*
@@ -112,9 +115,9 @@ TEST( SampleMeasures, EdgePCA )
     // set.add(smp_rhs);
 
     std::string indir = "/home/lucas/Projects/bacterial_vaginosis/03_epa_magny/orig_queries_jplace/";
-    auto files = utils::dir_list_files( indir, false, ".*\\.jplace" );
+    auto files = genesis::util::dir_list_files( indir, false, ".*\\.jplace" );
 
-    // auto imbalance_matrix = utils::Matrix<double>();
+    // auto imbalance_matrix = Matrix<double>();
 
     LOG_DBG << "reading " << files.size() << " files";
     SampleSet set;
@@ -127,7 +130,7 @@ TEST( SampleMeasures, EdgePCA )
         set.add(smp);
 
         // if( imbalance_matrix.rows() == 0 ) {
-        //     imbalance_matrix = utils::Matrix<double>( files.size(), smp.tree().edge_count() );
+        //     imbalance_matrix = Matrix<double>( files.size(), smp.tree().edge_count() );
         //
         //     LOG_INFO << "tree edge count " << smp.tree().edge_count();
         //     LOG_INFO << "tree leaf count " << tree::leaf_node_count( smp.tree() );
@@ -146,14 +149,14 @@ TEST( SampleMeasures, EdgePCA )
 
     // LOG_DBG << "filtering matrix";
     //
-    // utils::file_write(
-    //     utils::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance_unfiltered.csv"
+    // file_write(
+    //     genesis::util::io::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance_unfiltered.csv"
     // );
     //
     // epca_filter_constant_columns( imbalance_matrix );
     //
-    // utils::file_write(
-    //     utils::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance_filtered.csv"
+    // file_write(
+    //     genesis::util::io::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance_filtered.csv"
     // );
 
     LOG_DBG << "running pca";
@@ -176,8 +179,8 @@ TEST( SampleMeasures, EdgePCA )
 
     epca( set );
 
-    // auto pca = utils::principal_component_analysis( imbalance_matrix, 3, utils::PcaStandardization::kCovariance );
-    // // auto pca = utils::principal_component_analysis( imbalance_matrix, 5 );
+    // auto pca = genesis::util::principal_component_analysis( imbalance_matrix, 3, genesis::util::PcaStandardization::kCovariance );
+    // // auto pca = genesis::util::principal_component_analysis( imbalance_matrix, 5 );
     //
     // printf("\nEigenvalues:\n");
     // for( auto val : pca.eigenvalues ) {
@@ -204,7 +207,7 @@ TEST( SampleMeasures, EdgePCA )
     // }
     // printf("... %u rows in total\n", static_cast<unsigned int>(pca.projection.rows()));
     //
-    // utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
+    // file_write( genesis::util::io::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
 
 }
 
@@ -213,18 +216,18 @@ TEST( SampleMeasures, EdgePCA )
 
 TEST( SampleMeasures, GuppyPCA )
 {
-    auto        reader = utils::CsvReader();
+    auto        reader = genesis::util::CsvReader();
     std::string infile = "/home/lucas/tmp/bv_epca/orig_queries_jplace_.edgediff.csv";
     auto        table  = reader.from_file( infile );
-    auto data = utils::Matrix<double>( table.size(), table[0].size() -1 );
+    auto data = Matrix<double>( table.size(), table[0].size() -1 );
     for( size_t i = 0; i < table.size(); ++i ) {
         for( size_t j = 1; j < table[0].size(); ++j ) {
             data( i, j ) = stod( table[i][j] );
         }
     }
 
-    auto pca = utils::principal_component_analysis( data, 5, utils::PcaStandardization::kCovariance );
-    // auto pca = utils::principal_component_analysis( imbalance_matrix, 5 );
+    auto pca = genesis::util::principal_component_analysis( data, 5, genesis::util::PcaStandardization::kCovariance );
+    // auto pca = genesis::util::principal_component_analysis( imbalance_matrix, 5 );
 
     printf("\nEigenvalues:\n");
     for( auto val : pca.eigenvalues ) {
@@ -251,7 +254,7 @@ TEST( SampleMeasures, GuppyPCA )
     }
     printf("... %u rows in total\n", static_cast<unsigned int>(pca.projection.rows()));
 
-    utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/myguppy.proj" );
+    file_write( genesis::util::io::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/myguppy.proj" );
 }
 
 //*/

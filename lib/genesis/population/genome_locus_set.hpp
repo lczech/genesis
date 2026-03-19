@@ -39,12 +39,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/genome_region.hpp"
-#include "genesis/population/genome_region_list.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/genome_region.hpp>
+#include <genesis/population/genome_region_list.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
 
 namespace genesis {
 namespace population {
@@ -58,8 +58,8 @@ namespace population {
  *
  * The data structure stores a list of genome positions/coordinates, and allows fast querying,
  * that is, whether a certain position on a chromosome is stored here. Internally, we use a
- * @link genesis::utils::Bitvector Bitvector@endlink for each chromosome, marking its positions
- * as set or not set.
+ * @link genesis::util::bit::Bitvector Bitvector@endlink for each chromosome, marking its
+ * positions as set or not set.
  *
  * Positions are 1-based. We also offer the special case to add a whole chromosome, in which case
  * the is_covered() function will return `true` for all positions on that chromosome (without
@@ -82,21 +82,25 @@ public:
     // -------------------------------------------------------------------------
 
     using key_type    = std::string;
-    using mapped_type = utils::Bitvector;
-    using value_type  = std::pair<std::string const, utils::Bitvector>;
+    using mapped_type = genesis::util::bit::Bitvector;
+    using value_type  = std::pair<std::string const, genesis::util::bit::Bitvector>;
 
     using reference       = value_type&;
     using const_reference = value_type const&;
 
-    using iterator       = typename std::unordered_map<std::string, utils::Bitvector>::iterator;
-    using const_iterator = typename std::unordered_map<std::string, utils::Bitvector>::const_iterator;
+    using iterator       = typename std::unordered_map<
+        std::string, genesis::util::bit::Bitvector
+    >::iterator;
+    using const_iterator = typename std::unordered_map<
+        std::string, genesis::util::bit::Bitvector
+    >::const_iterator;
 
     /**
      * @brief Position value to indicate that next_covered did not find any covered position.
      */
     static const size_t npos = std::numeric_limits<size_t>::max();
     static_assert(
-        npos == utils::Bitvector::npos,
+        npos == genesis::util::bit::Bitvector::npos,
         "Differing definitions of GenomeLocusSet::npos and Bitvector::npos"
     );
 
@@ -221,12 +225,12 @@ public:
      * This assumes that the data of the Bitvector has been assembled according to the
      * specifications of this class, i.e., respecting the special role of the 0th bit.
      */
-    void add( std::string const& chromosome, utils::Bitvector const& values );
+    void add( std::string const& chromosome, genesis::util::bit::Bitvector const& values );
 
     /**
-     * @copydoc add( std::string const&, utils::Bitvector const& )
+     * @copydoc add( std::string const&, genesis::util::bit::Bitvector const& )
      */
-    void add( std::string const& chromosome, utils::Bitvector&& values );
+    void add( std::string const& chromosome, genesis::util::bit::Bitvector&& values );
 
     // -------------------------------------------
     //         Clear
@@ -294,7 +298,7 @@ public:
      * the whole chromosome is covered, and all other bits correspond to 1-based positions.
      * This can for instance be used in combination with chromosome_positions().
      */
-    static bool is_covered( utils::Bitvector const& bitvector, size_t position )
+    static bool is_covered( genesis::util::bit::Bitvector const& bitvector, size_t position )
     {
         // Boundary check.
         if( bitvector.empty() ) {
@@ -399,9 +403,9 @@ public:
      *
      * @see next_covered( std::string const& chromosome, size_t start_position ) const
      *
-     * @copydetails is_covered( utils::Bitvector const&, size_t )
+     * @copydetails is_covered( genesis::util::bit::Bitvector const&, size_t )
      */
-    static size_t next_covered( utils::Bitvector const& bitvector, size_t start_position )
+    static size_t next_covered( genesis::util::bit::Bitvector const& bitvector, size_t start_position )
     {
         // Boundary check.
         if( bitvector.empty() ) {
@@ -530,23 +534,25 @@ public:
 
     /**
      * @brief For a given chromosome, return the
-     * @link genesis::utils::Bitvector Bitvector@endlink that stores its positions.
+     * @link genesis::util::bit::Bitvector Bitvector@endlink that stores its positions.
      */
-    utils::Bitvector const& chromosome_positions( std::string const& chromosome ) const
-    {
+    genesis::util::bit::Bitvector const& chromosome_positions(
+        std::string const& chromosome
+    ) const {
         return locus_map_.at( chromosome );
     }
 
     /**
      * @brief For a given chromosome, return the
-     * @link genesis::utils::Bitvector Bitvector@endlink that stores its positions.
+     * @link genesis::util::bit::Bitvector Bitvector@endlink that stores its positions.
      *
      * Note that this exposes the underlying container, and hence has to be used with caution.
      * In particular position 0 is considered special: Any chromosome for which we have stored an
      * interval that covers 0 is considered to be fully covered for all its positions.
      */
-    utils::Bitvector& chromosome_positions( std::string const& chromosome )
-    {
+    genesis::util::bit::Bitvector& chromosome_positions(
+        std::string const& chromosome
+    ) {
         return locus_map_.at( chromosome );
     }
 
@@ -559,7 +565,7 @@ private:
     // Map from chromosome names to bitvectors representing which positions are in (true)
     // and out (false). Note that position 0 is special; if set, it means that we consider
     // the whole chromosome as covered.
-    std::unordered_map<std::string, utils::Bitvector> locus_map_;
+    std::unordered_map<std::string, genesis::util::bit::Bitvector> locus_map_;
 
 };
 

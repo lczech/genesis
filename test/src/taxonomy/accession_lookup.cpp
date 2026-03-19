@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,11 +33,12 @@
 #include "genesis/taxonomy/accession_lookup.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
+#include "genesis/taxonomy/format/taxonomy_reader.hpp"
+#include "genesis/taxonomy/function/taxonomy.hpp"
 
 using namespace genesis;
 using namespace genesis::taxonomy;
+using namespace genesis::util::io;
 
 TEST( Taxonomy, AccessionLookup )
 {
@@ -46,7 +47,7 @@ TEST( Taxonomy, AccessionLookup )
 
     // Read the test taxonomy
     std::string const infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.clean";
-    auto tax = TaxonomyReader().read( utils::from_file( infile ));
+    auto tax = TaxonomyReader().read( from_file( infile ));
 
     // Get some taxon from the taxonomy
     auto* taxon = find_taxon_by_name( tax, "Acidilobus" );

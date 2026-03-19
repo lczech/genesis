@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/variant.hpp"
+#include <genesis/population/variant.hpp>
 
-#include "genesis/sequence/reference_genome.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include <genesis/sequence/reference_genome.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <functional>
 #include <limits>
@@ -171,7 +171,7 @@ public:
         Iterator() = default;
         Iterator( FrequencyTableInputStream const* parent )
             : parent_( parent )
-            , input_stream_(    std::make_shared<utils::InputStream>( parent_->input_source_ ))
+            , input_stream_(    std::make_shared<genesis::util::io::InputStream>( parent_->input_source_ ))
             , sample_data_(     std::make_shared<std::vector<SampleData>>() )
             , current_variant_( std::make_shared<Variant>() )
         {
@@ -328,7 +328,7 @@ public:
         bool is_ignored_sample_( std::string const& samplename ) const;
         static bool parse_if_missing_(
             FrequencyTableInputStream const* parent,
-            genesis::utils::InputStream& input_stream
+            genesis::util::io::InputStream& input_stream
         );
 
         // ---------------------------------------------
@@ -391,7 +391,7 @@ public:
         FrequencyTableInputStream const* parent_ = nullptr;
 
         // Data stream to read from.
-        std::shared_ptr<utils::InputStream> input_stream_;
+        std::shared_ptr<genesis::util::io::InputStream> input_stream_;
 
         // We keep information about the header, and which samples there are.
         // This also stores which sample has which index, so that we can access them in the Variant.
@@ -402,7 +402,7 @@ public:
         // for each column that is set up in the beginning. This avoids checking types
         // of columns for each row over and over again - we simply need to call all processors
         // in order, across the input file line.
-        std::vector<std::function<void(genesis::utils::InputStream&)>> column_processors_;
+        std::vector<std::function<void(genesis::util::io::InputStream&)>> column_processors_;
 
         // We use a set of sample data objects to buffer values in, using a pointer to keep its
         // address stable (as iterators might be copied or moved implicitly while setting up
@@ -434,7 +434,7 @@ public:
      * @brief Create an instance that reads from an @p input_source.
      */
     explicit FrequencyTableInputStream(
-        std::shared_ptr<utils::BaseInputSource> input_source
+        std::shared_ptr<genesis::util::io::BaseInputSource> input_source
     )
         // Call the other constuctor, to avoid code duplication.
         : FrequencyTableInputStream( input_source, std::unordered_set<std::string>{}, false )
@@ -448,7 +448,7 @@ public:
      * if @p inverse_sample_names is set to `true` - instead all <i>but</i> those samples.
      */
     FrequencyTableInputStream(
-        std::shared_ptr<utils::BaseInputSource> input_source,
+        std::shared_ptr<genesis::util::io::BaseInputSource> input_source,
         std::unordered_set<std::string> const& sample_names_filter,
         bool inverse_sample_names_filter = false
     )
@@ -483,7 +483,7 @@ public:
     //     Basic Input Settings
     // -------------------------------------------------------------------------
 
-    std::shared_ptr<utils::BaseInputSource> input_source() const
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source() const
     {
         return input_source_;
     }
@@ -494,7 +494,7 @@ public:
      * This overwrites the source if it was already given in the constructor.
      * Shall not be called after iteration has been started.
      */
-    self_type& input_source( std::shared_ptr<utils::BaseInputSource> value )
+    self_type& input_source( std::shared_ptr<genesis::util::io::BaseInputSource> value )
     {
         input_source_ = value;
         return *this;
@@ -904,7 +904,7 @@ public:
 private:
 
     // Input data.
-    std::shared_ptr<utils::BaseInputSource> input_source_;
+    std::shared_ptr<genesis::util::io::BaseInputSource> input_source_;
     std::unordered_set<std::string> sample_names_filter_;
     bool inverse_sample_names_filter_ = false;
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/kmer.hpp"
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/sequence/kmer/kmer.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <array>
 #include <cassert>
@@ -275,7 +275,7 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-inline utils::Range<MicrovariantScanner> iterate_microvariants(
+inline genesis::util::container::Range<MicrovariantScanner> iterate_microvariants(
     Kmer const& kmer, bool include_original = true
 ) {
     return {

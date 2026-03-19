@@ -33,11 +33,11 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/placement.hpp"
-#include "genesis/population.hpp"
-#include "genesis/sequence.hpp"
-#include "genesis/taxonomy.hpp"
-#include "genesis/tree.hpp"
-#include "genesis/utils.hpp"
+#include <genesis/placement.hpp>
+#include <genesis/population.hpp>
+#include <genesis/sequence.hpp>
+#include <genesis/taxonomy.hpp>
+#include <genesis/tree.hpp>
+#include <genesis/util.hpp>
 
 #endif // include guard

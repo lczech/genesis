@@ -144,14 +144,14 @@ endif()
 
 # Extract Genesis version from version source file.
 file(
-    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/util/core/version.hpp" GENESIS_VERSION_LINE
     REGEX "^.*#GENESIS_VERSION#.*$"
 )
 if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(v.*)\".*" )
     set(GENESIS_VERSION "${CMAKE_MATCH_1}")
 endif()
 file(
-    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/util/core/version.hpp" GENESIS_VERSION_LINE
     REGEX "^.*#GENESIS_VERSION_NAME#.*$"
 )
 if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(.*)\".*" )
@@ -197,7 +197,7 @@ set( GENESIS_CPP_STANDARD "auto" CACHE STRING
 option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications." ${GENESIS_IS_MASTER_PROJECT})
 
 # Currently, the Python module and tests are deactivated by default.
-option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."                   OFF)
+option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."                   ON)
 option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."                     OFF)
 
 # If available, use external dependencies.
@@ -266,7 +266,8 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 # Get the C++ version to use.
 # Call the function to determine the C++ standard version (either auto-detected or user-specified).
 # This sets `CMAKE_CXX_STANDARD` to the value to be used for compilation.
-include(DetectCppVersion)
+set (CMAKE_CXX_STANDARD 17)
+include(DetectCppStandard)
 detect_and_set_cpp_standard()
 
 # ================================================================================================

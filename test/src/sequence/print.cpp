@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,18 +30,20 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/functions/functions.hpp"
-#include "genesis/sequence/printers/bitmap.hpp"
-#include "genesis/sequence/printers/simple.hpp"
+#include "genesis/sequence/function/code.hpp"
+#include "genesis/sequence/function/function.hpp"
+#include "genesis/sequence/printer/bitmap.hpp"
+#include "genesis/sequence/printer/simple.hpp"
 #include "genesis/sequence/sequence_set.hpp"
-#include "genesis/sequence/formats/fasta_reader.hpp"
-#include "genesis/sequence/formats/phylip_reader.hpp"
+#include "genesis/sequence/format/fasta_reader.hpp"
+#include "genesis/sequence/format/phylip_reader.hpp"
 
 #include <string>
 
 using namespace genesis::sequence;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST( Sequence, PrinterSimple )
 {

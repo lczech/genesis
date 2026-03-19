@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,14 +36,14 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree/node.hpp"
-#include "genesis/tree/tree/edge.hpp"
-#include "genesis/tree/tree/link.hpp"
-#include "genesis/tree/tree/node_data.hpp"
-#include "genesis/tree/tree/edge_data.hpp"
+#include <genesis/tree/tree/node.hpp>
+#include <genesis/tree/tree/edge.hpp>
+#include <genesis/tree/tree/link.hpp>
+#include <genesis/tree/tree/node_data.hpp>
+#include <genesis/tree/tree/edge_data.hpp>
 
-#include "genesis/utils/containers/range.hpp"
-#include "genesis/utils/containers/deref_iterator.hpp"
+#include <genesis/util/container/range.hpp>
+#include <genesis/util/container/deref_iterator.hpp>
 
 #include <cassert>
 #include <memory>
@@ -124,14 +124,14 @@ public:
      */
     using EdgeContainerType  = ContainerType< TreeEdge >;
 
-    using      IteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::iterator >;
-    using ConstIteratorLinks = utils::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
+    using      IteratorLinks = genesis::util::container::DereferenceIterator< ContainerType<TreeLink>::iterator >;
+    using ConstIteratorLinks = genesis::util::container::DereferenceIterator< ContainerType<TreeLink>::const_iterator >;
 
-    using      IteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::iterator >;
-    using ConstIteratorNodes = utils::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
+    using      IteratorNodes = genesis::util::container::DereferenceIterator< ContainerType<TreeNode>::iterator >;
+    using ConstIteratorNodes = genesis::util::container::DereferenceIterator< ContainerType<TreeNode>::const_iterator >;
 
-    using      IteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
-    using ConstIteratorEdges = utils::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
+    using      IteratorEdges = genesis::util::container::DereferenceIterator< ContainerType<TreeEdge>::iterator >;
+    using ConstIteratorEdges = genesis::util::container::DereferenceIterator< ContainerType<TreeEdge>::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Construction and Rule of Five
@@ -381,12 +381,12 @@ public:
         return links_.cend();
     }
 
-    utils::Range<IteratorLinks> links()
+    genesis::util::container::Range<IteratorLinks> links()
     {
         return { links_ };
     }
 
-    utils::Range<ConstIteratorLinks> links() const
+    genesis::util::container::Range<ConstIteratorLinks> links() const
     {
         return { links_ };
     }
@@ -415,12 +415,12 @@ public:
         return nodes_.cend();
     }
 
-    utils::Range<IteratorNodes> nodes()
+    genesis::util::container::Range<IteratorNodes> nodes()
     {
         return { nodes_ };
     }
 
-    utils::Range<ConstIteratorNodes> nodes() const
+    genesis::util::container::Range<ConstIteratorNodes> nodes() const
     {
         return { nodes_ };
     }
@@ -449,12 +449,12 @@ public:
         return edges_.cend();
     }
 
-    utils::Range<IteratorEdges> edges()
+    genesis::util::container::Range<IteratorEdges> edges()
     {
         return { edges_ };
     }
 
-    utils::Range<ConstIteratorEdges> edges() const
+    genesis::util::container::Range<ConstIteratorEdges> edges() const
     {
         return { edges_ };
     }

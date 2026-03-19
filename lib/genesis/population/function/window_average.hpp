@@ -31,18 +31,18 @@
  * @ingroup population
  */
 
-#include "genesis/population/filter/filter_stats.hpp"
-#include "genesis/population/filter/filter_status.hpp"
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/population/window/base_window.hpp"
-#include "genesis/population/window/window_view.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
-#include "genesis/utils/bit/bitvector/operators.hpp"
+#include <genesis/population/filter/filter_stats.hpp>
+#include <genesis/population/filter/filter_status.hpp>
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/population/window/base_window.hpp>
+#include <genesis/population/window/window_view.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
+#include <genesis/util/bit/bitvector/operator.hpp>
 
 #include <cassert>
 #include <limits>

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,18 +32,20 @@
 
 #include <string>
 
-#include "genesis/tree/common_tree/distances.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/distance.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/function/distance.hpp"
+#include "genesis/tree/function/function.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include "genesis/util/container/matrix.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
 
 using namespace genesis;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::util::container;
+using namespace genesis::util::io;
 
 TEST(CommonTree, Distances)
 {
@@ -52,7 +54,7 @@ TEST(CommonTree, Distances)
 
     // Read and process tree.
     std::string infile = environment->data_dir + "tree/distances.newick";
-    Tree tree =  CommonTreeNewickReader().read( utils::from_file( infile ));
+    Tree tree =  CommonTreeNewickReader().read( from_file( infile ));
 
     // Basic checks.
     EXPECT_EQ(7, leaf_node_count(tree));
@@ -61,7 +63,7 @@ TEST(CommonTree, Distances)
     EXPECT_TRUE( is_bifurcating( tree ));
     EXPECT_TRUE( validate_topology( tree ));
 
-    utils::Matrix<double> exp (12, 12, {
+    Matrix<double> exp (12, 12, {
         0,	1536,	1280,	1664,	1856,	1824,	1552,	1032,	1044,	1050,	1049,	1040.5,
         1536,	0,	768,	1152,	1344,	1312,	1040,	2568,	2580,	2586,	2585,	2576.5,
         1280,	768,	0,	384,	576,	544,	272,	2312,	2324,	2330,	2329,	2320.5,
@@ -87,9 +89,9 @@ TEST( CommonTree, PatristicDistances )
 
     // Read and process tree.
     std::string const infile = environment->data_dir + "tree/distances.newick";
-    Tree const tree =  CommonTreeNewickReader().read( utils::from_file( infile ));
+    Tree const tree =  CommonTreeNewickReader().read( from_file( infile ));
 
-    utils::Matrix<double> exp (13, 13, {
+    Matrix<double> exp (13, 13, {
         0, 2048, 3072, 2560, 2816, 2944, 2880, 2592, 16, 24, 28, 26, 17,
         2048, 0, 1024, 512, 768, 896, 832, 544, 2064, 2072, 2076, 2074, 2065,
         3072, 1024, 0, 1536, 1792, 1920, 1856, 1568, 3088, 3096, 3100, 3098, 3089,

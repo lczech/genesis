@@ -28,18 +28,18 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/emd.hpp"
+#include <genesis/tree/mass_tree/emd.hpp>
 
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/threading/thread_pool.hpp"
-#include "genesis/utils/threading/thread_functions.hpp"
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -178,7 +178,7 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double c
     return work;
 }
 
-utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double const p )
+genesis::util::container::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double const p )
 {
     // Check.
     if( p <= 0.0 ) {
@@ -188,18 +188,18 @@ utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees,
     }
 
     // Init result matrix.
-    auto result = utils::Matrix<double>( trees.size(), trees.size(), 0.0 );
+    auto result = genesis::util::container::Matrix<double>( trees.size(), trees.size(), 0.0 );
 
     // We only need to calculate the upper triangle. Get the number of indices needed
     // to describe this triangle.
-    size_t const max_k = utils::triangular_size( trees.size() );
+    size_t const max_k = genesis::util::container::triangular_size( trees.size() );
 
     // Use dynamic parallelization, as trees might be of different size
     // (in terms of number of mass points).
-    utils::parallel_for( 0, max_k, [&]( size_t k )
+    genesis::util::threading::parallel_for( 0, max_k, [&]( size_t k )
     {
         // For the given linear index, get the actual position in the Matrix.
-        auto const ij = utils::triangular_indices( k, trees.size() );
+        auto const ij = genesis::util::container::triangular_indices( k, trees.size() );
         auto const i = ij.first;
         auto const j = ij.second;
 

@@ -20,54 +20,6 @@
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 # ------------------------------------------------------------------------------
-#   Extra Warnings
-# ------------------------------------------------------------------------------
-
-# Apple osx clang >= 9.3, some other versions of clang, as well as new gcc versions >= 9
-# spam a lot of warnings in googletest about implicitly-declared types being deprecated.
-# Let's silence them, as we are not interested in warnings about googletest.
-# That's something they have to fix!
-# Also, we have to use the double cmake version comparison here, as old osx cmake versions
-# do not yet have VERSION_GREATER_EQUAL, and crash otherwise...
-SET( GTEST_NO_WARN_DEPRECATED_COPY OFF )
-IF(
-    (
-        #APPLE AND
-        (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND
-        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
-        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3"))
-    ) OR (
-        (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
-        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
-        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
-    ) OR (
-        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND
-        NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13"
-    )
-)
-    message (STATUS "Deactivate -Wdeprecated-copy for building googletest.")
-    SET( GTEST_NO_WARN_DEPRECATED_COPY ON )
-ENDIF()
-# message (STATUS "GTEST_NO_WARN_DEPRECATED_COPY: ${GTEST_NO_WARN_DEPRECATED_COPY}")
-
-# Without any optimization, and with recent gcc, gtest causes some errors:
-# error: 'dummy' may be used uninitialized [-Werror=maybe-uninitialized]
-# Let's stop that from messing with our build - not our problem to fix!
-SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED OFF )
-if(
-    "${CMAKE_CXX_FLAGS}" MATCHES "-O0" OR
-    "${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "-O0" OR
-    (
-        (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
-        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
-        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
-    )
-)
-    message (STATUS "Deactivate -Wmaybe-uninitialized for building gtest.")
-    SET( GTEST_NO_WARN_MAYBE_UNINITIALIZED ON )
-endif()
-
-# ------------------------------------------------------------------------------
 #   Setup googletest
 # ------------------------------------------------------------------------------
 
@@ -115,33 +67,75 @@ else()
     # SET( GTEST_BOTH_LIBRARIES gtest_main gtest )
     # SET( GTEST_LIBRARIES gtest )
 
-    # if(GTEST_NO_WARN_DEPRECATED_COPY)
-    #     target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
-    #     target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
-    #     # target_compile_options(gmock      PRIVATE "-Wno-deprecated-copy")
-    #     # target_compile_options(gmock_main PRIVATE "-Wno-deprecated-copy")
-    # endif()
-    # if(GTEST_NO_WARN_MAYBE_UNINITIALIZED)
-    #     target_compile_options(gtest      PRIVATE "-Wno-uninitialized")
-    #     target_compile_options(gtest_main PRIVATE "-Wno-uninitialized")
-    # endif()
-
     message (STATUS "Finished downloading googletest")
 endif()
 
 # message (STATUS "Found googletest: ${GTEST_LIBRARIES}")
 message (STATUS "Found googletest")
-message (STATUS "${ColorBlue}Building tests${ColorEnd}")
 
 # We include the GTest dirs as SYSTEM, as they are currently producing ugly warnings that spam
 # our build output unnecessarily.
 include_directories( SYSTEM ${GTEST_INCLUDE_DIRS} )
 
 # ------------------------------------------------------------------------------
-#   Build Options
+#   Googletest Warnings
 # ------------------------------------------------------------------------------
 
-set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/test)
+# Apple osx clang >= 9.3, some other versions of clang, as well as new gcc versions >= 9
+# spam a lot of warnings in googletest about implicitly-declared types being deprecated.
+# Let's silence them, as we are not interested in warnings about googletest.
+# That's something they have to fix!
+# Also, we have to use the double cmake version comparison here, as old osx cmake versions
+# do not yet have VERSION_GREATER_EQUAL, and crash otherwise...
+IF(
+    (
+        #APPLE AND
+        (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9.3") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9.3"))
+    ) OR (
+        (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
+    ) OR (
+        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND
+        NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13"
+    )
+)
+    message (STATUS "Silencing -Wdeprecated-copy for building googletest.")
+
+    target_compile_options(gtest      PRIVATE "-Wno-deprecated-copy")
+    target_compile_options(gtest_main PRIVATE "-Wno-deprecated-copy")
+ENDIF()
+
+# Without any optimization, and with recent gcc, gtest causes some errors:
+# error: 'dummy' may be used uninitialized [-Werror=maybe-uninitialized]
+# Let's stop that from messing with our build - not our problem to fix!
+if(
+    "${CMAKE_CXX_FLAGS}" MATCHES "-O0" OR
+    "${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "-O0" OR
+    (
+        (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND
+        ((CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "9") OR
+        (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "9"))
+    )
+)
+    message (STATUS "Silencing -Wmaybe-uninitialized for building googletest.")
+
+    target_compile_options(gtest      PRIVATE "-Wno-uninitialized")
+    target_compile_options(gtest_main PRIVATE "-Wno-uninitialized")
+endif()
+
+# Furthermore, with recent clang versions, we get a `-Wdeprecated-declarations` on googletest.
+if(
+    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "18.0"
+)
+    message (STATUS "Silencing -Wdeprecated-declarations for building googletest.")
+
+    target_compile_options(gtest      PRIVATE -Wno-error=deprecated-declarations)
+    target_compile_options(gtest_main PRIVATE -Wno-error=deprecated-declarations)
+endif()
 
 # ------------------------------------------------------------------------------
 #   Sources
@@ -161,15 +155,10 @@ include_directories (${PROJECT_SOURCE_DIR}/test)
 #   Build Tests
 # ------------------------------------------------------------------------------
 
+set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/test)
+
 add_executable        (genesis_tests ${genesis_test_sources})
 set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
-
-if(GTEST_NO_WARN_DEPRECATED_COPY)
-    target_compile_options(genesis_tests PRIVATE "-Wno-deprecated-copy")
-endif()
-if(GTEST_NO_WARN_MAYBE_UNINITIALIZED)
-    target_compile_options(genesis_tests PRIVATE "-Wno-uninitialized")
-endif()
 
 target_link_libraries(genesis_tests PUBLIC genesis_lib_shared)
 target_link_libraries(genesis_tests PRIVATE GTest::gtest_main)
@@ -195,3 +184,6 @@ ENDIF()
 # Need to specify the whole path here. For some reason, cmake does not
 # extract it from the executable name here...
 add_test (genesis_tests ${PROJECT_SOURCE_DIR}/bin/test/genesis_tests)
+
+# Final user message to signal the end of processing this file
+message (STATUS "${ColorBlue}Building tests${ColorEnd}")
