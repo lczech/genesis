@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@
 
 #include <climits>
 #include <vector>
+#include <limits>
+#include <utility>
 
 using namespace genesis::util;
 using namespace genesis::util::core;
@@ -45,27 +47,35 @@ using namespace genesis::util::container;
 
 TEST( BitpackedVector, Basics )
 {
+    // DefaultConstructed
+    {
+        BitpackedVector<uint64_t, uint8_t> bpvec;
+        EXPECT_EQ( bpvec.size(), 0 );
+        EXPECT_EQ( bpvec.bit_width(), 0 );
+        EXPECT_TRUE( bpvec.data().empty() );
+    }
+
     // Test Direct Access (Same Type and Full Bit Width)
     // DirectAccessUnsigned64Bit
     {
         BitpackedVector<uint64_t, uint64_t> bpvec(10, 64);
 
-        bpvec.set(0, 1234567890123456789ULL);
-        bpvec.set(1, 9876543210987654321ULL);
+        bpvec.set_at(0, 1234567890123456789ULL);
+        bpvec.set_at(1, 9876543210987654321ULL);
 
-        EXPECT_EQ(bpvec.get(0), 1234567890123456789ULL);
-        EXPECT_EQ(bpvec.get(1), 9876543210987654321ULL);
+        EXPECT_EQ(bpvec.at(0), 1234567890123456789ULL);
+        EXPECT_EQ(bpvec.at(1), 9876543210987654321ULL);
     }
 
     // DirectAccessUnsigned32Bit
     {
         BitpackedVector<uint32_t, uint32_t> bpvec(10, 32);
 
-        bpvec.set(0, 1234567890U);
-        bpvec.set(1, 987654321U);
+        bpvec.set_at(0, 1234567890U);
+        bpvec.set_at(1, 987654321U);
 
-        EXPECT_EQ(bpvec.get(0), 1234567890U);
-        EXPECT_EQ(bpvec.get(1), 987654321U);
+        EXPECT_EQ(bpvec.at(0), 1234567890U);
+        EXPECT_EQ(bpvec.at(1), 987654321U);
     }
 
     // Test Bit-Packed Access (Smaller Bit Widths)
@@ -73,26 +83,26 @@ TEST( BitpackedVector, Basics )
     {
         BitpackedVector<uint64_t, uint8_t> bpvec(10, 7);
 
-        bpvec.set(0, 15);  // 15 = 0001111 in binary
-        bpvec.set(1, 100); // 100 = 1100100 in binary
-        bpvec.set(2, 7);   // 7  = 0000111 in binary
+        bpvec.set_at(0, 15);  // 15 = 0001111 in binary
+        bpvec.set_at(1, 100); // 100 = 1100100 in binary
+        bpvec.set_at(2, 7);   // 7  = 0000111 in binary
 
-        EXPECT_EQ(bpvec.get(0), 15);
-        EXPECT_EQ(bpvec.get(1), 100);
-        EXPECT_EQ(bpvec.get(2), 7);
+        EXPECT_EQ(bpvec.at(0), 15);
+        EXPECT_EQ(bpvec.at(1), 100);
+        EXPECT_EQ(bpvec.at(2), 7);
     }
 
     // BitPackedUnsigned16Bit
     {
         BitpackedVector<uint64_t, uint16_t> bpvec(10, 16);
 
-        bpvec.set(0, 65535); // Maximum 16-bit unsigned value
-        bpvec.set(1, 32768); // 32768 = 1000000000000000 in binary
-        bpvec.set(2, 12345); // Random 16-bit number
+        bpvec.set_at(0, 65535); // Maximum 16-bit unsigned value
+        bpvec.set_at(1, 32768); // 32768 = 1000000000000000 in binary
+        bpvec.set_at(2, 12345); // Random 16-bit number
 
-        EXPECT_EQ(bpvec.get(0), 65535);
-        EXPECT_EQ(bpvec.get(1), 32768);
-        EXPECT_EQ(bpvec.get(2), 12345);
+        EXPECT_EQ(bpvec.at(0), 65535);
+        EXPECT_EQ(bpvec.at(1), 32768);
+        EXPECT_EQ(bpvec.at(2), 12345);
     }
 
     // Test Edge Cases
@@ -100,15 +110,15 @@ TEST( BitpackedVector, Basics )
     // MinimumBitValue
     {
         BitpackedVector<uint64_t, uint8_t> bpvec(10, 7);
-        bpvec.set(0, 0); // Minimum value for 7 bits
-        EXPECT_EQ(bpvec.get(0), 0);
+        bpvec.set_at(0, 0); // Minimum value for 7 bits
+        EXPECT_EQ(bpvec.at(0), 0);
     }
 
     // MaximumBitValue
     {
         BitpackedVector<uint64_t, uint8_t> bpvec(10, 7);
-        bpvec.set(0, 127); // Maximum value for 7 bits (01111111 in binary)
-        EXPECT_EQ(bpvec.get(0), 127);
+        bpvec.set_at(0, 127); // Maximum value for 7 bits (01111111 in binary)
+        EXPECT_EQ(bpvec.at(0), 127);
     }
 
     // OutOfBoundsIndex
@@ -116,13 +126,13 @@ TEST( BitpackedVector, Basics )
         BitpackedVector<uint64_t, uint8_t> bpvec(10, 7);
 
         // Set and get within bounds
-        bpvec.set(0, 10);
-        EXPECT_EQ(bpvec.get(0), 10);
+        bpvec.set_at(0, 10);
+        EXPECT_EQ(bpvec.at(0), 10);
 
         // Attempt to set out of bounds should throw
-        EXPECT_THROW(bpvec.set(10, 20), std::out_of_range);
+        EXPECT_THROW(bpvec.set_at(10, 20), std::out_of_range);
         // Attempt to get out of bounds should throw
-        EXPECT_THROW(bpvec.get(10), std::out_of_range);
+        EXPECT_THROW((void) bpvec.at(10), std::out_of_range);
     }
 
     // Contructor out of range
@@ -142,14 +152,14 @@ TEST( BitpackedVector, Basics )
     {
         // Attempt to set a value that is out of the 7-bit range
         BitpackedVector<uint64_t, uint8_t> bpvec(10, 7);
-        EXPECT_THROW(bpvec.set(0, 200), std::invalid_argument);
+        EXPECT_THROW(bpvec.set_at(0, 200), std::invalid_argument);
     }
 
     // ValueOutOfRange
     {
         // Attempt to set a value that is out of the 16-bit range
         // BitpackedVector<uint64_t, uint16_t> bpvec_16(10, 16);
-        // EXPECT_THROW(bpvec_16.set(0, 70000), std::invalid_argument);
+        // EXPECT_THROW(bpvec_16.set_at(0, 70000), std::invalid_argument);
         // Doesn't compile, as the compiler already catches the overflow on T
     }
 
@@ -158,11 +168,11 @@ TEST( BitpackedVector, Basics )
     {
         BitpackedVector<uint64_t, uint32_t> bpvec(10, 32);
 
-        bpvec.set(0, 1234567890U);
-        bpvec.set(1, 987654321U);
+        bpvec.set_at(0, 1234567890U);
+        bpvec.set_at(1, 987654321U);
 
-        EXPECT_EQ(bpvec.get(0), 1234567890U);
-        EXPECT_EQ(bpvec.get(1), 987654321U);
+        EXPECT_EQ(bpvec.at(0), 1234567890U);
+        EXPECT_EQ(bpvec.at(1), 987654321U);
     }
 
     // Test Performance with Maximum Size
@@ -173,13 +183,77 @@ TEST( BitpackedVector, Basics )
 
         // Set values in a loop
         for( size_t i = 0; i < large_size; ++i ) {
-            bpvec.set( i, static_cast<uint8_t>(i % 256) );
+            bpvec.set_at( i, static_cast<uint8_t>(i % 256) );
         }
 
         // Validate values in a loop
         for( size_t i = 0; i < large_size; ++i ) {
-            EXPECT_EQ( bpvec.get(i), static_cast<uint8_t>(i % 256) );
+            EXPECT_EQ( bpvec.at(i), static_cast<uint8_t>(i % 256) );
         }
+    }
+
+    // Constructor Rejects Width Larger Than Value Type
+    {
+        EXPECT_THROW(( BitpackedVector<uint64_t, uint8_t>( 10, 9 )),  std::invalid_argument );
+        EXPECT_THROW(( BitpackedVector<uint64_t, uint16_t>( 10, 17 )), std::invalid_argument );
+        EXPECT_THROW(( BitpackedVector<uint32_t, uint8_t>( 10, 9 )),  std::invalid_argument );
+    }
+}
+
+namespace
+{
+
+template<typename U>
+U bit_mask_( size_t bits )
+{
+    constexpr size_t U_BITS = std::numeric_limits<U>::digits;
+    EXPECT_GT( bits, 0 );
+    EXPECT_LE( bits, U_BITS );
+    return bits == U_BITS ? ~U{0} : (( U{1} << bits ) - 1 );
+}
+
+template<typename U, typename T>
+void test_bitpacked_vector_all_widths_()
+{
+    size_t const n = 100000;
+    constexpr size_t T_BITS = std::numeric_limits<T>::digits;
+
+    for( size_t bit_width = 1; bit_width <= T_BITS; ++bit_width ) {
+        BitpackedVector<U, T> bpvec( n, bit_width );
+        U const mask = bit_mask_<U>( bit_width );
+
+        for( size_t i = 0; i < n; ++i ) {
+            U value = static_cast<U>(( i * 1315423911u ) + ( i >> 3 ));
+            value &= mask;
+            bpvec.set_unchecked( i, static_cast<T>( value ));
+        }
+
+        for( size_t i = 0; i < n; ++i ) {
+            U expected = static_cast<U>(( i * 1315423911u ) + ( i >> 3 ));
+            expected &= mask;
+
+            EXPECT_EQ( bpvec.at( i ), static_cast<T>( expected ));
+            EXPECT_EQ( bpvec[i],    static_cast<T>( expected ));
+        }
+    }
+}
+
+template<typename U, typename T>
+void test_bitpacked_vector_copy_move_()
+{
+    BitpackedVector<U, T> original( 1024, std::numeric_limits<T>::digits );
+    for( size_t i = 0; i < original.size(); ++i ) {
+        original.set_unchecked( i, static_cast<T>( i ));
+    }
+
+    auto copy = original;
+    for( size_t i = 0; i < original.size(); ++i ) {
+        EXPECT_EQ( copy.at( i ), original.at( i ));
+    }
+
+    auto moved = std::move( copy );
+    for( size_t i = 0; i < original.size(); ++i ) {
+        EXPECT_EQ( moved.at( i ), original.at( i ));
     }
 }
 
@@ -198,20 +272,79 @@ void test_bitpacked_vector_range_()
 
         // Set values in a loop
         for( size_t i = 0; i < n; ++i) {
-            bpvec.set( i, static_cast<T>( i % limit_value ));
+            bpvec.set_at( i, static_cast<T>( i % limit_value ));
         }
 
         // Validate values in a loop
         for( size_t i = 0; i < n; ++i ) {
-            EXPECT_EQ( bpvec.get(i), static_cast<T>( i % limit_value ));
+            EXPECT_EQ( bpvec.at(i), static_cast<T>( i % limit_value ));
         }
     }
 }
 
+} // anonymous namespace
+
 TEST( BitpackedVector, FullRange )
 {
-    test_bitpacked_vector_range_<uint8_t, uint8_t>();
-    test_bitpacked_vector_range_<uint64_t, uint8_t>();
+    {
+        test_bitpacked_vector_range_<uint8_t, uint8_t>();
+        test_bitpacked_vector_range_<uint64_t, uint8_t>();
+    }
+
+    // FullRangeAllWidths
+    {
+        test_bitpacked_vector_all_widths_<uint8_t,  uint8_t>();
+        test_bitpacked_vector_all_widths_<uint64_t, uint8_t>();
+        test_bitpacked_vector_all_widths_<uint64_t, uint16_t>();
+        test_bitpacked_vector_all_widths_<uint64_t, uint32_t>();
+    }
+}
+
+TEST( BitpackedVector, Boundaries )
+{
+    // OverwriteAcrossWordBoundaryKeepsNeighborsIntact
+    {
+        BitpackedVector<uint64_t, uint8_t> bpvec( 32, 7 );
+
+        // index 9 starts at bit 63 and therefore spans two uint64_t words.
+        bpvec.set_at( 8, 11 );
+        bpvec.set_at( 9, 22 );
+        bpvec.set_at( 10, 33 );
+
+        EXPECT_EQ( bpvec.at( 8 ), 11 );
+        EXPECT_EQ( bpvec.at( 9 ), 22 );
+        EXPECT_EQ( bpvec.at( 10 ), 33 );
+
+        bpvec.set_at( 9, 99 );
+        EXPECT_EQ( bpvec.at( 8 ), 11 );
+        EXPECT_EQ( bpvec.at( 9 ), 99 );
+        EXPECT_EQ( bpvec.at( 10 ), 33 );
+
+        bpvec.set_at( 9, 1 );
+        EXPECT_EQ( bpvec.at( 8 ), 11 );
+        EXPECT_EQ( bpvec.at( 9 ), 1 );
+        EXPECT_EQ( bpvec.at( 10 ), 33 );
+    }
+
+    // CheckedAndUncheckedAccessAgree
+    {
+        BitpackedVector<uint64_t, uint16_t> bpvec( 4096, 13 );
+
+        for( size_t i = 0; i < bpvec.size(); ++i ) {
+            bpvec.set_unchecked( i, static_cast<uint16_t>(( i * 17u ) & 0x1FFFu ));
+        }
+
+        for( size_t i = 0; i < bpvec.size(); ++i ) {
+            EXPECT_EQ( bpvec.at( i ), bpvec[i] );
+        }
+    }
+
+    // Copy and Move
+    {
+        test_bitpacked_vector_copy_move_<uint8_t,  uint8_t>();
+        test_bitpacked_vector_copy_move_<uint64_t, uint16_t>();
+        test_bitpacked_vector_copy_move_<uint64_t, uint32_t>();
+    }
 }
 
 // =================================================================================================
@@ -234,30 +367,57 @@ void test_bitpacked_vector_performance_( size_t bit_width )
     // Set values in a loop
     LOG_TIME << "start";
     for( size_t i = 0; i < bpvec.size(); ++i) {
-        bpvec.set( i, static_cast<T>( i % limit_value ));
+        bpvec.set_at( i, static_cast<T>( i % limit_value ));
     }
     LOG_TIME << "set";
 
     // Validate values in a loop
     for( size_t i = 0; i < bpvec.size(); ++i ) {
-        EXPECT_EQ( bpvec.get(i), static_cast<T>( i % limit_value ));
+        EXPECT_EQ( bpvec.at(i), static_cast<T>( i % limit_value ));
     }
     LOG_TIME << "get";
+}
+
+template<typename U, typename T>
+void test_bitpacked_vector_performance_unchecked_( size_t bit_width )
+{
+    BitpackedVector<U, T> bpvec( bitpacked_vector_performance_n_, bit_width );
+    LOG_DBG << "data size: " << bpvec.data().size();
+
+    U const mask = bit_mask_<U>( bit_width );
+
+    LOG_TIME << "start";
+    for( size_t i = 0; i < bpvec.size(); ++i ) {
+        U value = static_cast<U>(( i * 1315423911u ) + ( i >> 3 ));
+        value &= mask;
+        bpvec.set_unchecked( i, static_cast<T>( value ));
+    }
+    LOG_TIME << "set_unchecked";
+
+    for( size_t i = 0; i < bpvec.size(); ++i ) {
+        U expected = static_cast<U>(( i * 1315423911u ) + ( i >> 3 ));
+        expected &= mask;
+        EXPECT_EQ( bpvec[i], static_cast<T>( expected ));
+    }
+    LOG_TIME << "get_unchecked";
 }
 
 TEST( BitpackedVector, PerformancePackedMismatch )
 {
     test_bitpacked_vector_performance_<uint64_t, uint8_t>( 7 );
+    test_bitpacked_vector_performance_unchecked_<uint64_t, uint8_t>( 7 );
 }
 
 TEST( BitpackedVector, PerformancePackedContained )
 {
     test_bitpacked_vector_performance_<uint64_t, uint8_t>( 8 );
+    test_bitpacked_vector_performance_unchecked_<uint64_t, uint8_t>( 8 );
 }
 
 TEST( BitpackedVector, PerformancePackedExact )
 {
     test_bitpacked_vector_performance_<uint8_t, uint8_t>( 8 );
+    test_bitpacked_vector_performance_unchecked_<uint8_t, uint8_t>( 8 );
 }
 
 TEST( BitpackedVector, PerformanceStandardOperator )
