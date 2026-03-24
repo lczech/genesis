@@ -31,6 +31,6 @@
 // headers, so that we can keep the scope of each of them relatively small.
 
 #include <genesis/util/container/bitpacked_vector_instances.hpp>
-#include <genesis/util/container/matrix_instances.hpp>
+// #include <genesis/util/container/matrix_instances.hpp>
 #include <genesis/util/container/mru_cache_instances.hpp>
 #include <genesis/util/math/compensated_sum_instances.hpp>
