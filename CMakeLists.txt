@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2025 Lucas Czech
+# Copyright (C) 2014-2026 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -197,7 +197,7 @@ set( GENESIS_CPP_STANDARD "auto" CACHE STRING
 option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications." ${GENESIS_IS_MASTER_PROJECT})
 
 # Currently, the Python module and tests are deactivated by default.
-option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."                   ON)
+option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."                   OFF)
 option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."                     OFF)
 
 # If available, use external dependencies.
