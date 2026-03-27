@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -260,7 +260,7 @@ private:
 private:
 
     std::future<T> future_;
-    ThreadPool* thread_pool_;
+    ThreadPool* thread_pool_ = nullptr;
 
 };
 
@@ -509,7 +509,12 @@ public:
         // We first increment the unfinished counter, and only decrementing it once the task has
         // been fully processed. Thus, the counter always tells us if there is still work going on.
         ++unfinished_tasks_;
-        task_queue_.enqueue( std::move( wrapped_task ));
+        try{
+            task_queue_.enqueue( std::move( wrapped_task ));
+        } catch(...) {
+            --unfinished_tasks_;
+            throw;
+        }
 
         // The task is submitted. Return its future for the caller to be able to wait for it.
         return future_result;
@@ -579,7 +584,12 @@ public:
         // be dangerous if the threads survive the lifetime of the pool, but given that their exit
         // condition is only called from the pool destructor, this should never be able to happen.
         ++unfinished_tasks_;
-        task_queue_.enqueue( std::move( wrapped_task ));
+        try{
+            task_queue_.enqueue( std::move( wrapped_task ));
+        } catch(...) {
+            --unfinished_tasks_;
+            throw;
+        }
     }
 
     /**
@@ -596,6 +606,11 @@ public:
         // Instead, we here just want to process a task if there is one, or return otherwise.
         WrappedTask task;
         if( task_queue_.try_dequeue( task )) {
+            if( task.stop ) {
+                // Put it back so the intended worker receives it
+                task_queue_.enqueue( std::move( task ));
+                return false;
+            }
             task.function();
             return true;
         }
@@ -664,10 +679,23 @@ private:
     {
         // Create the desired number of workers.
         worker_pool_.reserve( num_threads );
-        for( size_t i = 0; i < num_threads; ++i ) {
-            worker_pool_.emplace_back(
-                &worker_, this
-            );
+        try{
+            for( size_t i = 0; i < num_threads; ++i ) {
+                worker_pool_.emplace_back(
+                    &worker_, this
+                );
+            }
+        } catch(...) {
+            // Handle any exceptions that may have occurred during initialization.
+            for( size_t i = 0; i < worker_pool_.size(); ++i ) {
+                task_queue_.enqueue( WrappedTask( true ));
+            }
+            for( std::thread& worker : worker_pool_ ) {
+                if( worker.joinable() ) {
+                    worker.join();
+                }
+            }
+            throw;
         }
     }
 
