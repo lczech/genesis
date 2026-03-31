@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2025 Lucas Czech
+# Copyright (C) 2014-2026 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -88,8 +88,10 @@ endif()
 # ------------------------------------------------------------------------------
 
 # Build the shared library, unless explicitly requested not to.
-# add_library           (genesis_lib_shared SHARED $<TARGET_OBJECTS:genesis_lib_obj>)
-add_library           (genesis_lib_shared SHARED)
+# add_library(genesis_lib_shared SHARED $<TARGET_OBJECTS:genesis_lib_obj>)
+add_library(genesis_lib_shared SHARED)
+add_library(genesis::genesis_shared ALIAS genesis_lib_shared)
+
 set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 if (GENESIS_BUILD_SHARED_LIB)
     message (STATUS "${ColorBlue}Building shared lib${ColorEnd}")
@@ -120,8 +122,10 @@ set( GENESIS_LIBRARY genesis_lib_shared PARENT_SCOPE )
 # ------------------------------------------------------------------------------
 
 # Build the static library, unless explicitly requested not to.
-# add_library           (genesis_lib_static STATIC $<TARGET_OBJECTS:genesis_lib_obj>)
-add_library           (genesis_lib_static STATIC)
+# add_library(genesis_lib_static STATIC $<TARGET_OBJECTS:genesis_lib_obj>)
+add_library(genesis_lib_static STATIC)
+add_library(genesis::genesis_static ALIAS genesis_lib_static)
+
 set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
 if (GENESIS_BUILD_STATIC_LIB)
     message (STATUS "${ColorBlue}Building static lib${ColorEnd}")
