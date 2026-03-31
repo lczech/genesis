@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -103,6 +103,7 @@ public:
         , vec_( vector )
         , pos_( 0 )
         , cnt_( 0 )
+        , hash_( 0 )
     {
         // Insert a 0 (=A) value at the first position, and do a first hash calculation.
         // Later iterations will just update all of this.
@@ -260,13 +261,13 @@ private:
     TwobitVector vec_;
 
     // The position where currently a value is inserted.
-    size_t pos_;
+    size_t pos_ = 0;
 
     // A counter for the possible insertion values (0-3).
-    size_t cnt_;
+    size_t cnt_ = 0;
 
     // The hash value of the current vector.
-    TwobitVector::WordType hash_;
+    TwobitVector::WordType hash_ = 0;
 
 };
 
