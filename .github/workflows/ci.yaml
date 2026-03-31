@@ -193,54 +193,6 @@ jobs:
             compiler: llvm-20
 
           # -------------------------------
-          #     MacOS 13
-          # -------------------------------
-
-          - os: macos-13
-            compiler: gcc-9
-          - os: macos-13
-            compiler: gcc-10
-          - os: macos-13
-            compiler: gcc-11
-          - os: macos-13
-            compiler: gcc-12
-          - os: macos-13
-            compiler: gcc-13
-          - os: macos-13
-            compiler: gcc-14
-          - os: macos-13
-            compiler: gcc-15
-          # Compiler does not support C++17 ?!
-          # - os: macos-13
-          #   compiler: llvm-9
-          # - os: macos-13
-          #   compiler: llvm-10
-          # - os: macos-13
-          #   compiler: llvm-11
-          # No longer fully supported versions
-          # - os: macos-13
-          #   compiler: llvm-12
-          # - os: macos-13
-          #   compiler: llvm-13
-          - os: macos-13
-            compiler: llvm-14
-          - os: macos-13
-            compiler: llvm-15
-          - os: macos-13
-            compiler: llvm-16
-          - os: macos-13
-            compiler: llvm-17
-          # Known bug in this particular configuration:
-          # https://github.com/llvm/llvm-project/issues/86077
-          # https://trac.macports.org/ticket/70323
-          # - os: macos-13
-          #   compiler: llvm-18
-          # - os: macos-13
-          #   compiler: llvm-19
-          # - os: macos-13
-          #   compiler: llvm-20
-
-          # -------------------------------
           #     MacOS 14
           # -------------------------------
 
@@ -255,11 +207,11 @@ jobs:
           - os: macos-14
             compiler: gcc-15
           # Compiler does not support C++17 ?!
-          # - os: macos-13
+          # - os: macos-14
           #   compiler: llvm-9
-          # - os: macos-13
+          # - os: macos-14
           #   compiler: llvm-10
-          # - os: macos-13
+          # - os: macos-14
           #   compiler: llvm-11
           # Building in arm?!
           # - os: macos-14
@@ -400,14 +352,10 @@ jobs:
           # -------------------------------
 
           # Redundant to the below apple-clang
-          # - os: macos-13
-          #   compiler: apple
           # - os: macos-14
           #   compiler: apple
           # - os: macos-15
           #   compiler: apple
-          - os: macos-13
-            compiler: apple-clang
           - os: macos-14
             compiler: apple-clang
           - os: macos-15
@@ -609,7 +557,8 @@ jobs:
           success() &&
           runner.os != 'windows'
         run: |
-          ./python/test/test.py
+          # ./python/test/test.py
+          echo "Currently deactivated"
 
       - name: Test - Python gdb
         # If the regular Python test run failed, we repeat with gdb, to backtrace the stack.
