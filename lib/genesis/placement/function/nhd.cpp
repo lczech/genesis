@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -28,31 +28,29 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/nhd.hpp"
+#include <genesis/placement/function/nhd.hpp>
 
-#include "genesis/placement/function/functions.hpp"
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/masses.hpp"
-#include "genesis/placement/function/operators.hpp"
-#include "genesis/placement/pquery/plain.hpp"
-#include "genesis/placement/sample_set.hpp"
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/function/function.hpp>
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/placement/function/mass.hpp>
+#include <genesis/placement/function/operator.hpp>
+#include <genesis/placement/pquery/plain.hpp>
+#include <genesis/placement/sample_set.hpp>
+#include <genesis/placement/sample.hpp>
 
-#include "genesis/tree/common_tree/distances.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/functions.hpp"
+#include <genesis/tree/common_tree/distance.hpp>
+#include <genesis/tree/function/distance.hpp>
+#include <genesis/tree/function/function.hpp>
 
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/containers/matrix/operators.hpp"
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/container/matrix/operator.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -70,8 +68,8 @@ namespace placement {
  */
 static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
     tree::Tree const& tree,
-    utils::Matrix<double> const& node_distances,
-    utils::Matrix<signed char> const& node_sides,
+    genesis::util::container::Matrix<double> const& node_distances,
+    genesis::util::container::Matrix<signed char> const& node_sides,
     size_t const  histogram_bins
 ) {
     auto const node_count = tree.node_count();
@@ -91,9 +89,7 @@ static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
     histogram_set.histograms.resize( node_count );
 
     // Make histograms that have enough room on both sides.
-    #pragma omp parallel for
-    for( size_t node_idx = 0; node_idx < node_count; ++node_idx ) {
-
+    genesis::util::threading::parallel_for( 0, node_count, [&]( size_t node_idx ){
         // Find furthest nodes on root and non-root sides.
         // For now, we use both positive values, and later reverse the sign of the min entry.
         double min = 0.0;
@@ -130,7 +126,7 @@ static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
         histogram_set.histograms[ node_idx ].min  = -min;
         histogram_set.histograms[ node_idx ].max  = max;
         histogram_set.histograms[ node_idx ].bins = std::vector<double>( histogram_bins, 0.0 );
-    }
+    });
 
     return histogram_set;
 }
@@ -144,8 +140,8 @@ static NodeDistanceHistogramSet make_empty_node_distance_histogram_set_ (
  */
 static void fill_node_distance_histogram_set_ (
     Sample const& sample,
-    utils::Matrix<double> const& node_distances,
-    utils::Matrix<signed char> const& node_sides,
+    genesis::util::container::Matrix<double> const& node_distances,
+    genesis::util::container::Matrix<signed char> const& node_sides,
     NodeDistanceHistogramSet& histogram_set
 ) {
     // Basic checks.
@@ -251,8 +247,8 @@ static void fill_node_distance_histogram_set_ (
 
 NodeDistanceHistogramSet node_distance_histogram_set (
     Sample const& sample,
-    utils::Matrix<double> const& node_distances,
-    utils::Matrix<signed char> const& node_sides,
+    genesis::util::container::Matrix<double> const& node_distances,
+    genesis::util::container::Matrix<signed char> const& node_sides,
     size_t const  histogram_bins
 ) {
     // Make the histograms, fill them, return them.
@@ -314,52 +310,44 @@ double node_histogram_distance (
     return dist;
 }
 
-utils::Matrix<double> node_histogram_distance(
+genesis::util::container::Matrix<double> node_histogram_distance(
     std::vector<NodeDistanceHistogramSet> const& histogram_sets
 ) {
     // Init distance matrix.
     auto const set_size = histogram_sets.size();
-    auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
+    auto result = genesis::util::container::Matrix<double>( set_size, set_size, 0.0 );
 
-    // Parallel specialized code.
-    #ifdef GENESIS_OPENMP
+    // We only need to calculate the upper triangle. Get the number of indices needed
+    // to describe this triangle.
+    size_t const max_k = genesis::util::container::triangular_size( set_size );
 
-        // We only need to calculate the upper triangle. Get the number of indices needed
-        // to describe this triangle.
-        size_t const max_k = utils::triangular_size( set_size );
+    // Calculate distance matrix for every pair of samples.
+    genesis::util::threading::parallel_for( 0, max_k, [&]( size_t k ) {
 
-        // Calculate distance matrix for every pair of samples.
-        #pragma omp parallel for
-        for( size_t k = 0; k < max_k; ++k ) {
+        // For the given linear index, get the actual position in the Matrix.
+        auto const ij = genesis::util::container::triangular_indices( k, set_size );
+        auto const i = ij.first;
+        auto const j = ij.second;
 
-            // For the given linear index, get the actual position in the Matrix.
-            auto const ij = utils::triangular_indices( k, set_size );
-            auto const i = ij.first;
-            auto const j = ij.second;
-
-            // Calculate and store distance.
-            auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
-            result(i, j) = dist;
-            result(j, i) = dist;
-        }
+        // Calculate and store distance.
+        auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
+        result(i, j) = dist;
+        result(j, i) = dist;
+    });
 
     // If no threads are available at all, use serial version.
-    #else
-
-        // Calculate distance matrix for every pair of samples.
-        for( size_t i = 0; i < set_size; ++i ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < set_size; ++j ) {
-
-                // Calculate and store distance.
-                auto const dist = node_histogram_distance( histogram_sets[ i ], histogram_sets[ j ] );
-                result(i, j) = dist;
-                result(j, i) = dist;
-            }
-        }
-
-    #endif
+    // Calculate distance matrix for every pair of samples.
+    // for( size_t i = 0; i < set_size; ++i ) {
+    //     // The result is symmetric - we only calculate the upper triangle.
+    //     for( size_t j = i + 1; j < set_size; ++j ) {
+    //         // Calculate and store distance.
+    //         auto const dist = node_histogram_distance(
+    //             histogram_sets[ i ], histogram_sets[ j ]
+    //         );
+    //         result(i, j) = dist;
+    //         result(j, i) = dist;
+    //     }
+    // }
 
     return result;
 }
@@ -441,9 +429,7 @@ static std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
     auto result = std::vector<NodeDistanceHistogramSet>( set_size, empty_hist );
 
     // Calculate the histograms for all samples.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < set_size; ++i ) {
-
+    genesis::util::threading::parallel_for( 0, set_size, [&]( size_t i ) {
         // Check compatibility.
         // It suffices to check adjacent pairs of samples, as compatibility is transitive.
         if( i > 0 ) {
@@ -459,12 +445,12 @@ static std::vector<NodeDistanceHistogramSet> node_distance_histogram_set(
             sample_set[ i ], node_distances, node_sides, result[ i ]
         );
         assert( result[ i ].histograms.size() == sample_set[ i ].tree().node_count() );
-    }
+    }, nullptr, set_size );
 
     return result;
 }
 
-utils::Matrix<double> node_histogram_distance (
+genesis::util::container::Matrix<double> node_histogram_distance (
     SampleSet const& sample_set,
     size_t const     histogram_bins
 ) {

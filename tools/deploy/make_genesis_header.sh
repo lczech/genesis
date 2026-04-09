@@ -21,18 +21,18 @@
 # University of Copenhagen, Globe Institute, Section for GeoGenetics
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
-####################################################################################################
+###################################################################################################
 #    Init
-####################################################################################################
+###################################################################################################
 
 # Change to top level of git repo and then to /lib
 # This ensures that the script can be called from any directory.
 cd `git rev-parse --show-toplevel`
 cd lib/genesis/
 
-####################################################################################################
+###################################################################################################
 #    Prepare Header and Footer Text
-####################################################################################################
+###################################################################################################
 
 read -d '' HEADER_TEXT <<"EOF"
 #ifndef REPLACE_GUARD
@@ -75,9 +75,9 @@ read -d '' FOOTER_TEXT <<"EOF"
 #endif // include guard
 EOF
 
-####################################################################################################
+###################################################################################################
 #    Update the generell (all-including) header file genesis.hpp
-####################################################################################################
+###################################################################################################
 
 # Start from scratch
 rm -f genesis.hpp
@@ -97,12 +97,12 @@ for d in `ls -v -d */`
 do
     # Simple verison: Just include the module headers
     d=${d%/}
-    echo "#include \"genesis/${d}.hpp\"" >> genesis.hpp
+    echo "#include <genesis/${d}.hpp>" >> genesis.hpp
 
     # Full version: Include each header by itself
     # for f in `find ${d} -name "*.hpp" | sort`
     # do
-    #     echo "#include \"genesis/${f}\"" >> genesis.hpp
+    #     echo "#include <genesis/${f}>" >> genesis.hpp
     # done
     # echo "" >> genesis.hpp
 done
@@ -111,9 +111,9 @@ done
 echo "" >> genesis.hpp
 echo "${FOOTER_TEXT}" >> genesis.hpp
 
-####################################################################################################
+###################################################################################################
 #    Update the header files for the modules
-####################################################################################################
+###################################################################################################
 
 # Walk directories
 for d in `ls -v -d */`
@@ -141,7 +141,7 @@ do
         git ls-files --error-unmatch "${f}" &> /dev/null
         RESULT=$?
         if [ $RESULT -eq 0 ]; then
-            echo "#include \"genesis/${f}\"" >> ${d}.hpp
+            echo "#include <genesis/${f}>" >> ${d}.hpp
         fi
     done
     echo "" >> ${d}.hpp

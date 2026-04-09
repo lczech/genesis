@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,10 +33,10 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_common.hpp"
-#include "genesis/population/format/vcf_format_iterator.hpp"
-#include "genesis/population/format/vcf_header.hpp"
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/population/format/vcf_common.hpp>
+#include <genesis/population/format/vcf_format_iterator.hpp>
+#include <genesis/population/format/vcf_header.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <cstdint>
 #include <string>
@@ -602,7 +602,7 @@ public:
      *
      * @copydetails get_format_string()
      */
-    genesis::utils::Range<VcfFormatIteratorGenotype> get_format_genotype() const;
+    genesis::util::container::Range<VcfFormatIteratorGenotype> get_format_genotype() const;
 
     /**
      * @brief Get the begin iterator over the samples that accesses a certain FORMAT @p id as a
@@ -635,7 +635,7 @@ public:
      * and see the other `begin_format_*()`, `end_format_*()`, and `get_format_*()`
      * functions for the equivalents for other FORMAT data types.
      */
-    genesis::utils::Range<VcfFormatIteratorString> get_format_string( std::string const& id ) const;
+    genesis::util::container::Range<VcfFormatIteratorString> get_format_string( std::string const& id ) const;
 
     /**
      * @brief Get the begin iterator over the samples that accesses a certain FORMAT @p id as an
@@ -659,7 +659,7 @@ public:
      *
      * @copydetails get_format_string()
      */
-    genesis::utils::Range<VcfFormatIteratorInt> get_format_int( std::string const& id ) const;
+    genesis::util::container::Range<VcfFormatIteratorInt> get_format_int( std::string const& id ) const;
 
     /**
      * @brief Get the begin iterator over the samples that accesses a certain FORMAT @p id as a
@@ -683,7 +683,7 @@ public:
      *
      * @copydetails get_format_string()
      */
-    genesis::utils::Range<VcfFormatIteratorFloat> get_format_float( std::string const& id ) const;
+    genesis::util::container::Range<VcfFormatIteratorFloat> get_format_float( std::string const& id ) const;
 
     // -------------------------------------------------------------------------
     //     Modifiers

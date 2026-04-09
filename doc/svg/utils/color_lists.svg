@@ -1,56 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="284.444"
-   height="1390"
+   width="334.444"
+   height="1593.4"
+   background-color="#ffffffff"
    version="1.1"
-   id="svg3013"
+   id="svg3630"
    sodipodi:docname="color_lists.svg"
-   inkscape:export-filename="/home/lucas/Dropbox/GitHub/genesis/doc/png/utils/color_lists.png"
-   inkscape:export-xdpi="96.187653"
-   inkscape:export-ydpi="96.187653"
-   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
-  <metadata
-     id="metadata3017">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
+     id="namedview3632"
      pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
      inkscape:pageopacity="1"
-     inkscape:pageshadow="2"
-     inkscape:window-width="1864"
-     inkscape:window-height="1052"
-     id="namedview3015"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="0.67913669"
-     inkscape:cx="-133.06076"
-     inkscape:cy="892.0467"
-     inkscape:window-x="56"
-     inkscape:window-y="28"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg3013" />
-  <!-- Created with genesis v0.20.0 (http://genesis-lib.org) on 2019-02-16 at 22:44:59 -->
+     inkscape:zoom="1.4395973"
+     inkscape:cx="195.19347"
+     inkscape:cy="1403.5175"
+     inkscape:window-width="1690"
+     inkscape:window-height="1371"
+     inkscape:window-x="20"
+     inkscape:window-y="20"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg3630" />
+  <!-- Created with genesis v0.34.0 (http://genesis-lib.org) on 2025-08-04 at 04:12:14 -->
   <defs
-     id="defs2625">
+     id="defs2678">
     <linearGradient
        id="BuPuBk"
        x1="0%"
@@ -6224,6 +6206,92 @@
          id="stop2415" />
     </linearGradient>
     <linearGradient
+       id="Thermis_Green"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="0%"
+       spreadMethod="pad">
+      <stop
+         offset="0%"
+         stop-color="#eeec46"
+         stop-opacity="1"
+         id="stop2418" />
+      <stop
+         offset="16.6667%"
+         stop-color="#a8cd32"
+         stop-opacity="1"
+         id="stop2420" />
+      <stop
+         offset="33.3333%"
+         stop-color="#64ac27"
+         stop-opacity="1"
+         id="stop2422" />
+      <stop
+         offset="50%"
+         stop-color="#018a22"
+         stop-opacity="1"
+         id="stop2424" />
+      <stop
+         offset="66.6667%"
+         stop-color="#00605d"
+         stop-opacity="1"
+         id="stop2426" />
+      <stop
+         offset="83.3333%"
+         stop-color="#003668"
+         stop-opacity="1"
+         id="stop2428" />
+      <stop
+         offset="100%"
+         stop-color="#001546"
+         stop-opacity="1"
+         id="stop2430" />
+    </linearGradient>
+    <linearGradient
+       id="Thermis_Red"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="0%"
+       spreadMethod="pad">
+      <stop
+         offset="0%"
+         stop-color="#eeec46"
+         stop-opacity="1"
+         id="stop2433" />
+      <stop
+         offset="16.6667%"
+         stop-color="#fab133"
+         stop-opacity="1"
+         id="stop2435" />
+      <stop
+         offset="33.3333%"
+         stop-color="#f07840"
+         stop-opacity="1"
+         id="stop2437" />
+      <stop
+         offset="50%"
+         stop-color="#d04651"
+         stop-opacity="1"
+         id="stop2439" />
+      <stop
+         offset="66.6667%"
+         stop-color="#9a2660"
+         stop-opacity="1"
+         id="stop2441" />
+      <stop
+         offset="83.3333%"
+         stop-color="#561d5d"
+         stop-opacity="1"
+         id="stop2443" />
+      <stop
+         offset="100%"
+         stop-color="#001546"
+         stop-opacity="1"
+         id="stop2445" />
+    </linearGradient>
+    <linearGradient
        id="BrBg"
        x1="0%"
        y1="0%"
@@ -6234,57 +6302,57 @@
          offset="0%"
          stop-color="#543005"
          stop-opacity="1"
-         id="stop2418" />
+         id="stop2448" />
       <stop
          offset="10%"
          stop-color="#8c510a"
          stop-opacity="1"
-         id="stop2420" />
+         id="stop2450" />
       <stop
          offset="20%"
          stop-color="#bf812d"
          stop-opacity="1"
-         id="stop2422" />
+         id="stop2452" />
       <stop
          offset="30%"
          stop-color="#dfc27d"
          stop-opacity="1"
-         id="stop2424" />
+         id="stop2454" />
       <stop
          offset="40%"
          stop-color="#f6e8c3"
          stop-opacity="1"
-         id="stop2426" />
+         id="stop2456" />
       <stop
          offset="50%"
          stop-color="#f5f5f5"
          stop-opacity="1"
-         id="stop2428" />
+         id="stop2458" />
       <stop
          offset="60%"
          stop-color="#c7eae5"
          stop-opacity="1"
-         id="stop2430" />
+         id="stop2460" />
       <stop
          offset="70%"
          stop-color="#80cdc1"
          stop-opacity="1"
-         id="stop2432" />
+         id="stop2462" />
       <stop
          offset="80%"
          stop-color="#35978f"
          stop-opacity="1"
-         id="stop2434" />
+         id="stop2464" />
       <stop
          offset="90%"
          stop-color="#01665e"
          stop-opacity="1"
-         id="stop2436" />
+         id="stop2466" />
       <stop
          offset="100%"
          stop-color="#003c30"
          stop-opacity="1"
-         id="stop2438" />
+         id="stop2468" />
     </linearGradient>
     <linearGradient
        id="PiYg"
@@ -6297,57 +6365,57 @@
          offset="0%"
          stop-color="#8e0152"
          stop-opacity="1"
-         id="stop2441" />
+         id="stop2471" />
       <stop
          offset="10%"
          stop-color="#c51b7d"
          stop-opacity="1"
-         id="stop2443" />
+         id="stop2473" />
       <stop
          offset="20%"
          stop-color="#de77ae"
          stop-opacity="1"
-         id="stop2445" />
+         id="stop2475" />
       <stop
          offset="30%"
          stop-color="#f1b6da"
          stop-opacity="1"
-         id="stop2447" />
+         id="stop2477" />
       <stop
          offset="40%"
          stop-color="#fde0ef"
          stop-opacity="1"
-         id="stop2449" />
+         id="stop2479" />
       <stop
          offset="50%"
          stop-color="#f7f7f7"
          stop-opacity="1"
-         id="stop2451" />
+         id="stop2481" />
       <stop
          offset="60%"
          stop-color="#e6f5d0"
          stop-opacity="1"
-         id="stop2453" />
+         id="stop2483" />
       <stop
          offset="70%"
          stop-color="#b8e186"
          stop-opacity="1"
-         id="stop2455" />
+         id="stop2485" />
       <stop
          offset="80%"
          stop-color="#7fbc41"
          stop-opacity="1"
-         id="stop2457" />
+         id="stop2487" />
       <stop
          offset="90%"
          stop-color="#4d9221"
          stop-opacity="1"
-         id="stop2459" />
+         id="stop2489" />
       <stop
          offset="100%"
          stop-color="#276419"
          stop-opacity="1"
-         id="stop2461" />
+         id="stop2491" />
     </linearGradient>
     <linearGradient
        id="PrGn"
@@ -6360,57 +6428,57 @@
          offset="0%"
          stop-color="#40004b"
          stop-opacity="1"
-         id="stop2464" />
+         id="stop2494" />
       <stop
          offset="10%"
          stop-color="#762a83"
          stop-opacity="1"
-         id="stop2466" />
+         id="stop2496" />
       <stop
          offset="20%"
          stop-color="#9970ab"
          stop-opacity="1"
-         id="stop2468" />
+         id="stop2498" />
       <stop
          offset="30%"
          stop-color="#c2a5cf"
          stop-opacity="1"
-         id="stop2470" />
+         id="stop2500" />
       <stop
          offset="40%"
          stop-color="#e7d4e8"
          stop-opacity="1"
-         id="stop2472" />
+         id="stop2502" />
       <stop
          offset="50%"
          stop-color="#f7f7f7"
          stop-opacity="1"
-         id="stop2474" />
+         id="stop2504" />
       <stop
          offset="60%"
          stop-color="#d9f0d3"
          stop-opacity="1"
-         id="stop2476" />
+         id="stop2506" />
       <stop
          offset="70%"
          stop-color="#a6dba0"
          stop-opacity="1"
-         id="stop2478" />
+         id="stop2508" />
       <stop
          offset="80%"
          stop-color="#5aae61"
          stop-opacity="1"
-         id="stop2480" />
+         id="stop2510" />
       <stop
          offset="90%"
          stop-color="#1b7837"
          stop-opacity="1"
-         id="stop2482" />
+         id="stop2512" />
       <stop
          offset="100%"
          stop-color="#00441b"
          stop-opacity="1"
-         id="stop2484" />
+         id="stop2514" />
     </linearGradient>
     <linearGradient
        id="PuOr"
@@ -6423,57 +6491,57 @@
          offset="0%"
          stop-color="#7f3b08"
          stop-opacity="1"
-         id="stop2487" />
+         id="stop2517" />
       <stop
          offset="10%"
          stop-color="#b35806"
          stop-opacity="1"
-         id="stop2489" />
+         id="stop2519" />
       <stop
          offset="20%"
          stop-color="#e08214"
          stop-opacity="1"
-         id="stop2491" />
+         id="stop2521" />
       <stop
          offset="30%"
          stop-color="#fdb863"
          stop-opacity="1"
-         id="stop2493" />
+         id="stop2523" />
       <stop
          offset="40%"
          stop-color="#fee0b6"
          stop-opacity="1"
-         id="stop2495" />
+         id="stop2525" />
       <stop
          offset="50%"
          stop-color="#f7f7f7"
          stop-opacity="1"
-         id="stop2497" />
+         id="stop2527" />
       <stop
          offset="60%"
          stop-color="#d8daeb"
          stop-opacity="1"
-         id="stop2499" />
+         id="stop2529" />
       <stop
          offset="70%"
          stop-color="#b2abd2"
          stop-opacity="1"
-         id="stop2501" />
+         id="stop2531" />
       <stop
          offset="80%"
          stop-color="#8073ac"
          stop-opacity="1"
-         id="stop2503" />
+         id="stop2533" />
       <stop
          offset="90%"
          stop-color="#542788"
          stop-opacity="1"
-         id="stop2505" />
+         id="stop2535" />
       <stop
          offset="100%"
          stop-color="#2d004b"
          stop-opacity="1"
-         id="stop2507" />
+         id="stop2537" />
     </linearGradient>
     <linearGradient
        id="RdBu"
@@ -6486,57 +6554,57 @@
          offset="0%"
          stop-color="#67001f"
          stop-opacity="1"
-         id="stop2510" />
+         id="stop2540" />
       <stop
          offset="10%"
          stop-color="#b2182b"
          stop-opacity="1"
-         id="stop2512" />
+         id="stop2542" />
       <stop
          offset="20%"
          stop-color="#d6604d"
          stop-opacity="1"
-         id="stop2514" />
+         id="stop2544" />
       <stop
          offset="30%"
          stop-color="#f4a582"
          stop-opacity="1"
-         id="stop2516" />
+         id="stop2546" />
       <stop
          offset="40%"
          stop-color="#fddbc7"
          stop-opacity="1"
-         id="stop2518" />
+         id="stop2548" />
       <stop
          offset="50%"
          stop-color="#f7f7f7"
          stop-opacity="1"
-         id="stop2520" />
+         id="stop2550" />
       <stop
          offset="60%"
          stop-color="#d1e5f0"
          stop-opacity="1"
-         id="stop2522" />
+         id="stop2552" />
       <stop
          offset="70%"
          stop-color="#92c5de"
          stop-opacity="1"
-         id="stop2524" />
+         id="stop2554" />
       <stop
          offset="80%"
          stop-color="#4393c3"
          stop-opacity="1"
-         id="stop2526" />
+         id="stop2556" />
       <stop
          offset="90%"
          stop-color="#2166ac"
          stop-opacity="1"
-         id="stop2528" />
+         id="stop2558" />
       <stop
          offset="100%"
          stop-color="#053061"
          stop-opacity="1"
-         id="stop2530" />
+         id="stop2560" />
     </linearGradient>
     <linearGradient
        id="RdGy"
@@ -6549,57 +6617,57 @@
          offset="0%"
          stop-color="#67001f"
          stop-opacity="1"
-         id="stop2533" />
+         id="stop2563" />
       <stop
          offset="10%"
          stop-color="#b2182b"
          stop-opacity="1"
-         id="stop2535" />
+         id="stop2565" />
       <stop
          offset="20%"
          stop-color="#d6604d"
          stop-opacity="1"
-         id="stop2537" />
+         id="stop2567" />
       <stop
          offset="30%"
          stop-color="#f4a582"
          stop-opacity="1"
-         id="stop2539" />
+         id="stop2569" />
       <stop
          offset="40%"
          stop-color="#fddbc7"
          stop-opacity="1"
-         id="stop2541" />
+         id="stop2571" />
       <stop
          offset="50%"
          stop-color="#ffffff"
          stop-opacity="1"
-         id="stop2543" />
+         id="stop2573" />
       <stop
          offset="60%"
          stop-color="#e0e0e0"
          stop-opacity="1"
-         id="stop2545" />
+         id="stop2575" />
       <stop
          offset="70%"
          stop-color="#bababa"
          stop-opacity="1"
-         id="stop2547" />
+         id="stop2577" />
       <stop
          offset="80%"
          stop-color="#878787"
          stop-opacity="1"
-         id="stop2549" />
+         id="stop2579" />
       <stop
          offset="90%"
          stop-color="#4d4d4d"
          stop-opacity="1"
-         id="stop2551" />
+         id="stop2581" />
       <stop
          offset="100%"
          stop-color="#1a1a1a"
          stop-opacity="1"
-         id="stop2553" />
+         id="stop2583" />
     </linearGradient>
     <linearGradient
        id="RdYlBu"
@@ -6612,57 +6680,57 @@
          offset="0%"
          stop-color="#a50026"
          stop-opacity="1"
-         id="stop2556" />
+         id="stop2586" />
       <stop
          offset="10%"
          stop-color="#d73027"
          stop-opacity="1"
-         id="stop2558" />
+         id="stop2588" />
       <stop
          offset="20%"
          stop-color="#f46d43"
          stop-opacity="1"
-         id="stop2560" />
+         id="stop2590" />
       <stop
          offset="30%"
          stop-color="#fdae61"
          stop-opacity="1"
-         id="stop2562" />
+         id="stop2592" />
       <stop
          offset="40%"
          stop-color="#fee090"
          stop-opacity="1"
-         id="stop2564" />
+         id="stop2594" />
       <stop
          offset="50%"
          stop-color="#ffffbf"
          stop-opacity="1"
-         id="stop2566" />
+         id="stop2596" />
       <stop
          offset="60%"
          stop-color="#e0f3f8"
          stop-opacity="1"
-         id="stop2568" />
+         id="stop2598" />
       <stop
          offset="70%"
          stop-color="#abd9e9"
          stop-opacity="1"
-         id="stop2570" />
+         id="stop2600" />
       <stop
          offset="80%"
          stop-color="#74add1"
          stop-opacity="1"
-         id="stop2572" />
+         id="stop2602" />
       <stop
          offset="90%"
          stop-color="#4575b4"
          stop-opacity="1"
-         id="stop2574" />
+         id="stop2604" />
       <stop
          offset="100%"
          stop-color="#313695"
          stop-opacity="1"
-         id="stop2576" />
+         id="stop2606" />
     </linearGradient>
     <linearGradient
        id="RdYlGn"
@@ -6675,57 +6743,57 @@
          offset="0%"
          stop-color="#a50026"
          stop-opacity="1"
-         id="stop2579" />
+         id="stop2609" />
       <stop
          offset="10%"
          stop-color="#d73027"
          stop-opacity="1"
-         id="stop2581" />
+         id="stop2611" />
       <stop
          offset="20%"
          stop-color="#f46d43"
          stop-opacity="1"
-         id="stop2583" />
+         id="stop2613" />
       <stop
          offset="30%"
          stop-color="#fdae61"
          stop-opacity="1"
-         id="stop2585" />
+         id="stop2615" />
       <stop
          offset="40%"
          stop-color="#fee08b"
          stop-opacity="1"
-         id="stop2587" />
+         id="stop2617" />
       <stop
          offset="50%"
          stop-color="#ffffbf"
          stop-opacity="1"
-         id="stop2589" />
+         id="stop2619" />
       <stop
          offset="60%"
          stop-color="#d9ef8b"
          stop-opacity="1"
-         id="stop2591" />
+         id="stop2621" />
       <stop
          offset="70%"
          stop-color="#a6d96a"
          stop-opacity="1"
-         id="stop2593" />
+         id="stop2623" />
       <stop
          offset="80%"
          stop-color="#66bd63"
          stop-opacity="1"
-         id="stop2595" />
+         id="stop2625" />
       <stop
          offset="90%"
          stop-color="#1a9850"
          stop-opacity="1"
-         id="stop2597" />
+         id="stop2627" />
       <stop
          offset="100%"
          stop-color="#006837"
          stop-opacity="1"
-         id="stop2599" />
+         id="stop2629" />
     </linearGradient>
     <linearGradient
        id="Spectral"
@@ -6738,62 +6806,125 @@
          offset="0%"
          stop-color="#9e0142"
          stop-opacity="1"
-         id="stop2602" />
+         id="stop2632" />
       <stop
          offset="10%"
          stop-color="#d53e4f"
          stop-opacity="1"
-         id="stop2604" />
+         id="stop2634" />
       <stop
          offset="20%"
          stop-color="#f46d43"
          stop-opacity="1"
-         id="stop2606" />
+         id="stop2636" />
       <stop
          offset="30%"
          stop-color="#fdae61"
          stop-opacity="1"
-         id="stop2608" />
+         id="stop2638" />
       <stop
          offset="40%"
          stop-color="#fee08b"
          stop-opacity="1"
-         id="stop2610" />
+         id="stop2640" />
       <stop
          offset="50%"
          stop-color="#ffffbf"
          stop-opacity="1"
-         id="stop2612" />
+         id="stop2642" />
       <stop
          offset="60%"
          stop-color="#e6f598"
          stop-opacity="1"
-         id="stop2614" />
+         id="stop2644" />
       <stop
          offset="70%"
          stop-color="#abdda4"
          stop-opacity="1"
-         id="stop2616" />
+         id="stop2646" />
       <stop
          offset="80%"
          stop-color="#66c2a5"
          stop-opacity="1"
-         id="stop2618" />
+         id="stop2648" />
       <stop
          offset="90%"
          stop-color="#3288bd"
          stop-opacity="1"
-         id="stop2620" />
+         id="stop2650" />
       <stop
          offset="100%"
          stop-color="#5e4fa2"
          stop-opacity="1"
-         id="stop2622" />
+         id="stop2652" />
+    </linearGradient>
+    <linearGradient
+       id="Thermis_Diverging"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="0%"
+       spreadMethod="pad">
+      <stop
+         offset="0%"
+         stop-color="#561d5d"
+         stop-opacity="1"
+         id="stop2655" />
+      <stop
+         offset="10%"
+         stop-color="#9a2660"
+         stop-opacity="1"
+         id="stop2657" />
+      <stop
+         offset="20%"
+         stop-color="#d04651"
+         stop-opacity="1"
+         id="stop2659" />
+      <stop
+         offset="30%"
+         stop-color="#f07840"
+         stop-opacity="1"
+         id="stop2661" />
+      <stop
+         offset="40%"
+         stop-color="#fab133"
+         stop-opacity="1"
+         id="stop2663" />
+      <stop
+         offset="50%"
+         stop-color="#eeec46"
+         stop-opacity="1"
+         id="stop2665" />
+      <stop
+         offset="60%"
+         stop-color="#a8cd32"
+         stop-opacity="1"
+         id="stop2667" />
+      <stop
+         offset="70%"
+         stop-color="#64ac27"
+         stop-opacity="1"
+         id="stop2669" />
+      <stop
+         offset="80%"
+         stop-color="#018a22"
+         stop-opacity="1"
+         id="stop2671" />
+      <stop
+         offset="90%"
+         stop-color="#00605d"
+         stop-opacity="1"
+         id="stop2673" />
+      <stop
+         offset="100%"
+         stop-color="#003668"
+         stop-opacity="1"
+         id="stop2675" />
     </linearGradient>
   </defs>
   <g
-     transform="translate( 10, 10)"
-     id="g3011">
+     transform="translate( 10, 3.4)"
+     id="g3628">
     <text
        x="10"
        y="15"
@@ -6801,10 +6932,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2627">Sequential</text>
+       id="text2680">Sequential</text>
     <g
        transform="translate( 0, 30 )"
-       id="g2631">
+       id="g2684">
       <rect
          x="0"
          y="0"
@@ -6814,7 +6945,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#BuPuBk)"
-         id="rect2629" />
+         id="rect2682" />
     </g>
     <text
        x="220"
@@ -6823,10 +6954,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2633">BuPuBk</text>
+       id="text2686">BuPuBk</text>
     <g
        transform="translate( 0, 60 )"
-       id="g2637">
+       id="g2690">
       <rect
          x="0"
          y="0"
@@ -6836,7 +6967,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Blues)"
-         id="rect2635" />
+         id="rect2688" />
     </g>
     <text
        x="220"
@@ -6845,10 +6976,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2639">Blues</text>
+       id="text2692">Blues</text>
     <g
        transform="translate( 0, 90 )"
-       id="g2643">
+       id="g2696">
       <rect
          x="0"
          y="0"
@@ -6858,7 +6989,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#BuGn)"
-         id="rect2641" />
+         id="rect2694" />
     </g>
     <text
        x="220"
@@ -6867,10 +6998,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2645">BuGn</text>
+       id="text2698">BuGn</text>
     <g
        transform="translate( 0, 120 )"
-       id="g2649">
+       id="g2702">
       <rect
          x="0"
          y="0"
@@ -6880,7 +7011,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#BuPu)"
-         id="rect2647" />
+         id="rect2700" />
     </g>
     <text
        x="220"
@@ -6889,10 +7020,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2651">BuPu</text>
+       id="text2704">BuPu</text>
     <g
        transform="translate( 0, 150 )"
-       id="g2655">
+       id="g2708">
       <rect
          x="0"
          y="0"
@@ -6902,7 +7033,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#GnBu)"
-         id="rect2653" />
+         id="rect2706" />
     </g>
     <text
        x="220"
@@ -6911,10 +7042,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2657">GnBu</text>
+       id="text2710">GnBu</text>
     <g
        transform="translate( 0, 180 )"
-       id="g2661">
+       id="g2714">
       <rect
          x="0"
          y="0"
@@ -6924,7 +7055,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Greens)"
-         id="rect2659" />
+         id="rect2712" />
     </g>
     <text
        x="220"
@@ -6933,10 +7064,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2663">Greens</text>
+       id="text2716">Greens</text>
     <g
        transform="translate( 0, 210 )"
-       id="g2667">
+       id="g2720">
       <rect
          x="0"
          y="0"
@@ -6946,7 +7077,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Greys)"
-         id="rect2665" />
+         id="rect2718" />
     </g>
     <text
        x="220"
@@ -6955,10 +7086,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2669">Greys</text>
+       id="text2722">Greys</text>
     <g
        transform="translate( 0, 240 )"
-       id="g2673">
+       id="g2726">
       <rect
          x="0"
          y="0"
@@ -6968,7 +7099,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Oranges)"
-         id="rect2671" />
+         id="rect2724" />
     </g>
     <text
        x="220"
@@ -6977,10 +7108,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2675">Oranges</text>
+       id="text2728">Oranges</text>
     <g
        transform="translate( 0, 270 )"
-       id="g2679">
+       id="g2732">
       <rect
          x="0"
          y="0"
@@ -6990,7 +7121,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#OrRd)"
-         id="rect2677" />
+         id="rect2730" />
     </g>
     <text
        x="220"
@@ -6999,10 +7130,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2681">OrRd</text>
+       id="text2734">OrRd</text>
     <g
        transform="translate( 0, 300 )"
-       id="g2685">
+       id="g2738">
       <rect
          x="0"
          y="0"
@@ -7012,7 +7143,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#PuBu)"
-         id="rect2683" />
+         id="rect2736" />
     </g>
     <text
        x="220"
@@ -7021,10 +7152,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2687">PuBu</text>
+       id="text2740">PuBu</text>
     <g
        transform="translate( 0, 330 )"
-       id="g2691">
+       id="g2744">
       <rect
          x="0"
          y="0"
@@ -7034,7 +7165,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#PuBuGn)"
-         id="rect2689" />
+         id="rect2742" />
     </g>
     <text
        x="220"
@@ -7043,10 +7174,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2693">PuBuGn</text>
+       id="text2746">PuBuGn</text>
     <g
        transform="translate( 0, 360 )"
-       id="g2697">
+       id="g2750">
       <rect
          x="0"
          y="0"
@@ -7056,7 +7187,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#PuRd)"
-         id="rect2695" />
+         id="rect2748" />
     </g>
     <text
        x="220"
@@ -7065,10 +7196,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2699">PuRd</text>
+       id="text2752">PuRd</text>
     <g
        transform="translate( 0, 390 )"
-       id="g2703">
+       id="g2756">
       <rect
          x="0"
          y="0"
@@ -7078,7 +7209,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Purples)"
-         id="rect2701" />
+         id="rect2754" />
     </g>
     <text
        x="220"
@@ -7087,10 +7218,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2705">Purples</text>
+       id="text2758">Purples</text>
     <g
        transform="translate( 0, 420 )"
-       id="g2709">
+       id="g2762">
       <rect
          x="0"
          y="0"
@@ -7100,7 +7231,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#RdPu)"
-         id="rect2707" />
+         id="rect2760" />
     </g>
     <text
        x="220"
@@ -7109,10 +7240,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2711">RdPu</text>
+       id="text2764">RdPu</text>
     <g
        transform="translate( 0, 450 )"
-       id="g2715">
+       id="g2768">
       <rect
          x="0"
          y="0"
@@ -7122,7 +7253,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Reds)"
-         id="rect2713" />
+         id="rect2766" />
     </g>
     <text
        x="220"
@@ -7131,10 +7262,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2717">Reds</text>
+       id="text2770">Reds</text>
     <g
        transform="translate( 0, 480 )"
-       id="g2721">
+       id="g2774">
       <rect
          x="0"
          y="0"
@@ -7144,7 +7275,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#YlGn)"
-         id="rect2719" />
+         id="rect2772" />
     </g>
     <text
        x="220"
@@ -7153,10 +7284,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2723">YlGn</text>
+       id="text2776">YlGn</text>
     <g
        transform="translate( 0, 510 )"
-       id="g2727">
+       id="g2780">
       <rect
          x="0"
          y="0"
@@ -7166,7 +7297,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#YlGnBu)"
-         id="rect2725" />
+         id="rect2778" />
     </g>
     <text
        x="220"
@@ -7175,10 +7306,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2729">YlGnBu</text>
+       id="text2782">YlGnBu</text>
     <g
        transform="translate( 0, 540 )"
-       id="g2733">
+       id="g2786">
       <rect
          x="0"
          y="0"
@@ -7188,7 +7319,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#YlOrBr)"
-         id="rect2731" />
+         id="rect2784" />
     </g>
     <text
        x="220"
@@ -7197,10 +7328,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2735">YlOrBr</text>
+       id="text2788">YlOrBr</text>
     <g
        transform="translate( 0, 570 )"
-       id="g2739">
+       id="g2792">
       <rect
          x="0"
          y="0"
@@ -7210,7 +7341,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#YlOrRd)"
-         id="rect2737" />
+         id="rect2790" />
     </g>
     <text
        x="220"
@@ -7219,10 +7350,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2741">YlOrRd</text>
+       id="text2794">YlOrRd</text>
     <g
        transform="translate( 0, 600 )"
-       id="g2745">
+       id="g2798">
       <rect
          x="0"
          y="0"
@@ -7232,7 +7363,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Heat)"
-         id="rect2743" />
+         id="rect2796" />
     </g>
     <text
        x="220"
@@ -7241,10 +7372,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2747">Heat</text>
+       id="text2800">Heat</text>
     <g
        transform="translate( 0, 630 )"
-       id="g2751">
+       id="g2804">
       <rect
          x="0"
          y="0"
@@ -7254,7 +7385,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Magma)"
-         id="rect2749" />
+         id="rect2802" />
     </g>
     <text
        x="220"
@@ -7263,10 +7394,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2753">Magma</text>
+       id="text2806">Magma</text>
     <g
        transform="translate( 0, 660 )"
-       id="g2757">
+       id="g2810">
       <rect
          x="0"
          y="0"
@@ -7276,7 +7407,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Inferno)"
-         id="rect2755" />
+         id="rect2808" />
     </g>
     <text
        x="220"
@@ -7285,10 +7416,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2759">Inferno</text>
+       id="text2812">Inferno</text>
     <g
        transform="translate( 0, 690 )"
-       id="g2763">
+       id="g2816">
       <rect
          x="0"
          y="0"
@@ -7298,7 +7429,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Plasma)"
-         id="rect2761" />
+         id="rect2814" />
     </g>
     <text
        x="220"
@@ -7307,10 +7438,10 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2765">Plasma</text>
+       id="text2818">Plasma</text>
     <g
        transform="translate( 0, 720 )"
-       id="g2769">
+       id="g2822">
       <rect
          x="0"
          y="0"
@@ -7320,7 +7451,7 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Viridis)"
-         id="rect2767" />
+         id="rect2820" />
     </g>
     <text
        x="220"
@@ -7329,18 +7460,62 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2771">Viridis</text>
+       id="text2824">Viridis</text>
+    <g
+       transform="translate( 0, 750 )"
+       id="g2828">
+      <rect
+         x="0"
+         y="0"
+         width="200"
+         height="20"
+         stroke="#000000"
+         stroke-opacity="1"
+         stroke-width="1"
+         fill="url(#Thermis_Green)"
+         id="rect2826" />
+    </g>
     <text
-       x="10"
+       x="220"
+       y="765"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text2830">Thermis Green</text>
+    <g
+       transform="translate( 0, 780 )"
+       id="g2834">
+      <rect
+         x="0"
+         y="0"
+         width="200"
+         height="20"
+         stroke="#000000"
+         stroke-opacity="1"
+         stroke-width="1"
+         fill="url(#Thermis_Red)"
+         id="rect2832" />
+    </g>
+    <text
+       x="220"
        y="795"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2773">Diverging</text>
+       id="text2836">Thermis Red</text>
+    <text
+       x="10"
+       y="855"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text2838">Diverging</text>
     <g
-       transform="translate( 0, 810 )"
-       id="g2777">
+       transform="translate( 0, 870 )"
+       id="g2842">
       <rect
          x="0"
          y="0"
@@ -7350,19 +7525,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#BrBg)"
-         id="rect2775" />
+         id="rect2840" />
     </g>
     <text
        x="220"
-       y="825"
+       y="885"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2779">BrBg</text>
+       id="text2844">BrBg</text>
     <g
-       transform="translate( 0, 840 )"
-       id="g2783">
+       transform="translate( 0, 900 )"
+       id="g2848">
       <rect
          x="0"
          y="0"
@@ -7372,19 +7547,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#PiYg)"
-         id="rect2781" />
+         id="rect2846" />
     </g>
     <text
        x="220"
-       y="855"
+       y="915"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2785">PiYg</text>
+       id="text2850">PiYg</text>
     <g
-       transform="translate( 0, 870 )"
-       id="g2789">
+       transform="translate( 0, 930 )"
+       id="g2854">
       <rect
          x="0"
          y="0"
@@ -7394,19 +7569,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#PrGn)"
-         id="rect2787" />
+         id="rect2852" />
     </g>
     <text
        x="220"
-       y="885"
+       y="945"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2791">PrGn</text>
+       id="text2856">PrGn</text>
     <g
-       transform="translate( 0, 900 )"
-       id="g2795">
+       transform="translate( 0, 960 )"
+       id="g2860">
       <rect
          x="0"
          y="0"
@@ -7416,19 +7591,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#PuOr)"
-         id="rect2793" />
+         id="rect2858" />
     </g>
     <text
        x="220"
-       y="915"
+       y="975"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2797">PuOr</text>
+       id="text2862">PuOr</text>
     <g
-       transform="translate( 0, 930 )"
-       id="g2801">
+       transform="translate( 0, 990 )"
+       id="g2866">
       <rect
          x="0"
          y="0"
@@ -7438,19 +7613,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#RdBu)"
-         id="rect2799" />
+         id="rect2864" />
     </g>
     <text
        x="220"
-       y="945"
+       y="1005"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2803">RdBu</text>
+       id="text2868">RdBu</text>
     <g
-       transform="translate( 0, 960 )"
-       id="g2807">
+       transform="translate( 0, 1020 )"
+       id="g2872">
       <rect
          x="0"
          y="0"
@@ -7460,19 +7635,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#RdGy)"
-         id="rect2805" />
+         id="rect2870" />
     </g>
     <text
        x="220"
-       y="975"
+       y="1035"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2809">RdGy</text>
+       id="text2874">RdGy</text>
     <g
-       transform="translate( 0, 990 )"
-       id="g2813">
+       transform="translate( 0, 1050 )"
+       id="g2878">
       <rect
          x="0"
          y="0"
@@ -7482,19 +7657,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#RdYlBu)"
-         id="rect2811" />
+         id="rect2876" />
     </g>
     <text
        x="220"
-       y="1005"
+       y="1065"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2815">RdYlBu</text>
+       id="text2880">RdYlBu</text>
     <g
-       transform="translate( 0, 1020 )"
-       id="g2819">
+       transform="translate( 0, 1080 )"
+       id="g2884">
       <rect
          x="0"
          y="0"
@@ -7504,19 +7679,19 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#RdYlGn)"
-         id="rect2817" />
+         id="rect2882" />
     </g>
     <text
        x="220"
-       y="1035"
+       y="1095"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2821">RdYlGn</text>
+       id="text2886">RdYlGn</text>
     <g
-       transform="translate( 0, 1050 )"
-       id="g2825">
+       transform="translate( 0, 1110 )"
+       id="g2890">
       <rect
          x="0"
          y="0"
@@ -7526,106 +7701,30 @@
          stroke-opacity="1"
          stroke-width="1"
          fill="url(#Spectral)"
-         id="rect2823" />
+         id="rect2888" />
     </g>
     <text
        x="220"
-       y="1065"
-       font-size="10"
-       font-family="Verdana"
-       fill="#000000"
-       fill-opacity="1"
-       id="text2827">Spectral</text>
-    <text
-       x="10"
        y="1125"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2829">Qualitative</text>
-    <rect
-       x="0"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#7fc97f"
-       fill-opacity="1"
-       id="rect2831" />
-    <rect
-       x="25"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#beaed4"
-       fill-opacity="1"
-       id="rect2833" />
-    <rect
-       x="50"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#fdc086"
-       fill-opacity="1"
-       id="rect2835" />
-    <rect
-       x="75"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#ffff99"
-       fill-opacity="1"
-       id="rect2837" />
-    <rect
-       x="100"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#386cb0"
-       fill-opacity="1"
-       id="rect2839" />
-    <rect
-       x="125"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#f0027f"
-       fill-opacity="1"
-       id="rect2841" />
-    <rect
-       x="150"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#bf5b17"
-       fill-opacity="1"
-       id="rect2843" />
-    <rect
-       x="175"
-       y="1140"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#666666"
-       fill-opacity="1"
-       id="rect2845" />
-    <rect
-       x="0"
-       y="1140"
-       width="200"
-       height="20"
-       stroke="#000000"
-       stroke-opacity="1"
-       stroke-width="1"
-       fill="none"
-       id="rect2847" />
+       id="text2892">Spectral</text>
+    <g
+       transform="translate( 0, 1140 )"
+       id="g2896">
+      <rect
+         x="0"
+         y="0"
+         width="200"
+         height="20"
+         stroke="#000000"
+         stroke-opacity="1"
+         stroke-width="1"
+         fill="url(#Thermis_Diverging)"
+         id="rect2894" />
+    </g>
     <text
        x="220"
        y="1155"
@@ -7633,304 +7732,87 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2849">Accent</text>
-    <rect
-       x="0"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#1b9e77"
-       fill-opacity="1"
-       id="rect2851" />
-    <rect
-       x="25"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#d95f02"
-       fill-opacity="1"
-       id="rect2853" />
-    <rect
-       x="50"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#7570b3"
-       fill-opacity="1"
-       id="rect2855" />
-    <rect
-       x="75"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#e7298a"
-       fill-opacity="1"
-       id="rect2857" />
-    <rect
-       x="100"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#66a61e"
-       fill-opacity="1"
-       id="rect2859" />
-    <rect
-       x="125"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#e6ab02"
-       fill-opacity="1"
-       id="rect2861" />
-    <rect
-       x="150"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#a6761d"
-       fill-opacity="1"
-       id="rect2863" />
-    <rect
-       x="175"
-       y="1170"
-       width="25"
-       height="20"
-       stroke="none"
-       fill="#666666"
-       fill-opacity="1"
-       id="rect2865" />
-    <rect
-       x="0"
-       y="1170"
-       width="200"
-       height="20"
-       stroke="#000000"
-       stroke-opacity="1"
-       stroke-width="1"
-       fill="none"
-       id="rect2867" />
+       id="text2898">Thermis Diverging</text>
     <text
-       x="220"
-       y="1185"
-       font-size="10"
-       font-family="Verdana"
-       fill="#000000"
-       fill-opacity="1"
-       id="text2869">Dark2</text>
-    <rect
-       x="0"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#a6cee3"
-       fill-opacity="1"
-       id="rect2871" />
-    <rect
-       x="16.6667"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#1f78b4"
-       fill-opacity="1"
-       id="rect2873" />
-    <rect
-       x="33.3333"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#b2df8a"
-       fill-opacity="1"
-       id="rect2875" />
-    <rect
-       x="50"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#33a02c"
-       fill-opacity="1"
-       id="rect2877" />
-    <rect
-       x="66.6667"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#fb9a99"
-       fill-opacity="1"
-       id="rect2879" />
-    <rect
-       x="83.3333"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#e31a1c"
-       fill-opacity="1"
-       id="rect2881" />
-    <rect
-       x="100"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#fdbf6f"
-       fill-opacity="1"
-       id="rect2883" />
-    <rect
-       x="116.667"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#ff7f00"
-       fill-opacity="1"
-       id="rect2885" />
-    <rect
-       x="133.333"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#cab2d6"
-       fill-opacity="1"
-       id="rect2887" />
-    <rect
-       x="150"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#6a3d9a"
-       fill-opacity="1"
-       id="rect2889" />
-    <rect
-       x="166.667"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#ffff99"
-       fill-opacity="1"
-       id="rect2891" />
-    <rect
-       x="183.333"
-       y="1200"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#b15928"
-       fill-opacity="1"
-       id="rect2893" />
-    <rect
-       x="0"
-       y="1200"
-       width="200"
-       height="20"
-       stroke="#000000"
-       stroke-opacity="1"
-       stroke-width="1"
-       fill="none"
-       id="rect2895" />
-    <text
-       x="220"
+       x="10"
        y="1215"
        font-size="10"
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2897">Paired</text>
+       id="text2900">Qualitative</text>
     <rect
        x="0"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#fbb4ae"
+       fill="#7fc97f"
        fill-opacity="1"
-       id="rect2899" />
+       id="rect2902" />
     <rect
-       x="22.2222"
+       x="25"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#b3cde3"
+       fill="#beaed4"
        fill-opacity="1"
-       id="rect2901" />
+       id="rect2904" />
     <rect
-       x="44.4444"
+       x="50"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#ccebc5"
+       fill="#fdc086"
        fill-opacity="1"
-       id="rect2903" />
+       id="rect2906" />
     <rect
-       x="66.6667"
+       x="75"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#decbe4"
+       fill="#ffff99"
        fill-opacity="1"
-       id="rect2905" />
+       id="rect2908" />
     <rect
-       x="88.8889"
+       x="100"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#fed9a6"
+       fill="#386cb0"
        fill-opacity="1"
-       id="rect2907" />
+       id="rect2910" />
     <rect
-       x="111.111"
+       x="125"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#ffffcc"
+       fill="#f0027f"
        fill-opacity="1"
-       id="rect2909" />
+       id="rect2912" />
     <rect
-       x="133.333"
+       x="150"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#e5d8bd"
+       fill="#bf5b17"
        fill-opacity="1"
-       id="rect2911" />
+       id="rect2914" />
     <rect
-       x="155.556"
+       x="175"
        y="1230"
-       width="22.2222"
+       width="25"
        height="20"
        stroke="none"
-       fill="#fddaec"
+       fill="#666666"
        fill-opacity="1"
-       id="rect2913" />
-    <rect
-       x="177.778"
-       y="1230"
-       width="22.2222"
-       height="20"
-       stroke="none"
-       fill="#f2f2f2"
-       fill-opacity="1"
-       id="rect2915" />
+       id="rect2916" />
     <rect
        x="0"
        y="1230"
@@ -7940,7 +7822,7 @@
        stroke-opacity="1"
        stroke-width="1"
        fill="none"
-       id="rect2917" />
+       id="rect2918" />
     <text
        x="220"
        y="1245"
@@ -7948,79 +7830,79 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2919">Pastel1</text>
+       id="text2920">Accent</text>
     <rect
        x="0"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#b3e2cd"
+       fill="#1b9e77"
        fill-opacity="1"
-       id="rect2921" />
+       id="rect2922" />
     <rect
        x="25"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#fdcdac"
+       fill="#d95f02"
        fill-opacity="1"
-       id="rect2923" />
+       id="rect2924" />
     <rect
        x="50"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#cdb5e8"
+       fill="#7570b3"
        fill-opacity="1"
-       id="rect2925" />
+       id="rect2926" />
     <rect
        x="75"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#f4cae4"
+       fill="#e7298a"
        fill-opacity="1"
-       id="rect2927" />
+       id="rect2928" />
     <rect
        x="100"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#d6f5c9"
+       fill="#66a61e"
        fill-opacity="1"
-       id="rect2929" />
+       id="rect2930" />
     <rect
        x="125"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#fff2ae"
+       fill="#e6ab02"
        fill-opacity="1"
-       id="rect2931" />
+       id="rect2932" />
     <rect
        x="150"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#f1e2cc"
+       fill="#a6761d"
        fill-opacity="1"
-       id="rect2933" />
+       id="rect2934" />
     <rect
        x="175"
        y="1260"
        width="25"
        height="20"
        stroke="none"
-       fill="#cccccc"
+       fill="#666666"
        fill-opacity="1"
-       id="rect2935" />
+       id="rect2936" />
     <rect
        x="0"
        y="1260"
@@ -8030,7 +7912,7 @@
        stroke-opacity="1"
        stroke-width="1"
        fill="none"
-       id="rect2937" />
+       id="rect2938" />
     <text
        x="220"
        y="1275"
@@ -8038,88 +7920,115 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2939">Pastel2</text>
+       id="text2940">Dark2</text>
     <rect
        x="0"
        y="1290"
-       width="22.2222"
+       width="16.6667"
        height="20"
        stroke="none"
-       fill="#e41a1c"
+       fill="#a6cee3"
        fill-opacity="1"
-       id="rect2941" />
+       id="rect2942" />
     <rect
-       x="22.2222"
+       x="16.6667"
        y="1290"
-       width="22.2222"
+       width="16.6667"
        height="20"
        stroke="none"
-       fill="#377eb8"
+       fill="#1f78b4"
        fill-opacity="1"
-       id="rect2943" />
+       id="rect2944" />
     <rect
-       x="44.4444"
+       x="33.3333"
        y="1290"
-       width="22.2222"
+       width="16.6667"
        height="20"
        stroke="none"
-       fill="#4daf4a"
+       fill="#b2df8a"
        fill-opacity="1"
-       id="rect2945" />
+       id="rect2946" />
+    <rect
+       x="50"
+       y="1290"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#33a02c"
+       fill-opacity="1"
+       id="rect2948" />
     <rect
        x="66.6667"
        y="1290"
-       width="22.2222"
+       width="16.6667"
        height="20"
        stroke="none"
-       fill="#984ea3"
+       fill="#fb9a99"
        fill-opacity="1"
-       id="rect2947" />
+       id="rect2950" />
     <rect
-       x="88.8889"
+       x="83.3333"
        y="1290"
-       width="22.2222"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#e31a1c"
+       fill-opacity="1"
+       id="rect2952" />
+    <rect
+       x="100"
+       y="1290"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#fdbf6f"
+       fill-opacity="1"
+       id="rect2954" />
+    <rect
+       x="116.667"
+       y="1290"
+       width="16.6667"
        height="20"
        stroke="none"
        fill="#ff7f00"
        fill-opacity="1"
-       id="rect2949" />
-    <rect
-       x="111.111"
-       y="1290"
-       width="22.2222"
-       height="20"
-       stroke="none"
-       fill="#ffff33"
-       fill-opacity="1"
-       id="rect2951" />
+       id="rect2956" />
     <rect
        x="133.333"
        y="1290"
-       width="22.2222"
+       width="16.6667"
        height="20"
        stroke="none"
-       fill="#a65628"
+       fill="#cab2d6"
        fill-opacity="1"
-       id="rect2953" />
+       id="rect2958" />
     <rect
-       x="155.556"
+       x="150"
        y="1290"
-       width="22.2222"
+       width="16.6667"
        height="20"
        stroke="none"
-       fill="#f781bf"
+       fill="#6a3d9a"
        fill-opacity="1"
-       id="rect2955" />
+       id="rect2960" />
     <rect
-       x="177.778"
+       x="166.667"
        y="1290"
-       width="22.2222"
+       width="16.6667"
        height="20"
        stroke="none"
-       fill="#999999"
+       fill="#ffff99"
        fill-opacity="1"
-       id="rect2957" />
+       id="rect2962" />
+    <rect
+       x="183.333"
+       y="1290"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#b15928"
+       fill-opacity="1"
+       id="rect2964" />
     <rect
        x="0"
        y="1290"
@@ -8129,7 +8038,7 @@
        stroke-opacity="1"
        stroke-width="1"
        fill="none"
-       id="rect2959" />
+       id="rect2966" />
     <text
        x="220"
        y="1305"
@@ -8137,79 +8046,88 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2961">Set1</text>
+       id="text2968">Paired</text>
     <rect
        x="0"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#66c2a5"
+       fill="#fbb4ae"
        fill-opacity="1"
-       id="rect2963" />
+       id="rect2970" />
     <rect
-       x="25"
+       x="22.2222"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#fc8d62"
+       fill="#b3cde3"
        fill-opacity="1"
-       id="rect2965" />
+       id="rect2972" />
     <rect
-       x="50"
+       x="44.4444"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#8da0cb"
+       fill="#ccebc5"
        fill-opacity="1"
-       id="rect2967" />
+       id="rect2974" />
     <rect
-       x="75"
+       x="66.6667"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#e78ac3"
+       fill="#decbe4"
        fill-opacity="1"
-       id="rect2969" />
+       id="rect2976" />
     <rect
-       x="100"
+       x="88.8889"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#a6d854"
+       fill="#fed9a6"
        fill-opacity="1"
-       id="rect2971" />
+       id="rect2978" />
     <rect
-       x="125"
+       x="111.111"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#ffd92f"
+       fill="#ffffcc"
        fill-opacity="1"
-       id="rect2973" />
+       id="rect2980" />
     <rect
-       x="150"
+       x="133.333"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#e5c494"
+       fill="#e5d8bd"
        fill-opacity="1"
-       id="rect2975" />
+       id="rect2982" />
     <rect
-       x="175"
+       x="155.556"
        y="1320"
-       width="25"
+       width="22.2222"
        height="20"
        stroke="none"
-       fill="#b3b3b3"
+       fill="#fddaec"
        fill-opacity="1"
-       id="rect2977" />
+       id="rect2984" />
+    <rect
+       x="177.778"
+       y="1320"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#f2f2f2"
+       fill-opacity="1"
+       id="rect2986" />
     <rect
        x="0"
        y="1320"
@@ -8219,7 +8137,7 @@
        stroke-opacity="1"
        stroke-width="1"
        fill="none"
-       id="rect2979" />
+       id="rect2988" />
     <text
        x="220"
        y="1335"
@@ -8227,115 +8145,79 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text2981">Set2</text>
+       id="text2990">Pastel1</text>
     <rect
        x="0"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#8dd3c7"
+       fill="#b3e2cd"
        fill-opacity="1"
-       id="rect2983" />
+       id="rect2992" />
     <rect
-       x="16.6667"
+       x="25"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#ffffb3"
+       fill="#fdcdac"
        fill-opacity="1"
-       id="rect2985" />
-    <rect
-       x="33.3333"
-       y="1350"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#bebada"
-       fill-opacity="1"
-       id="rect2987" />
+       id="rect2994" />
     <rect
        x="50"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#fb8072"
+       fill="#cdb5e8"
        fill-opacity="1"
-       id="rect2989" />
+       id="rect2996" />
     <rect
-       x="66.6667"
+       x="75"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#80b1d3"
+       fill="#f4cae4"
        fill-opacity="1"
-       id="rect2991" />
-    <rect
-       x="83.3333"
-       y="1350"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#fdb462"
-       fill-opacity="1"
-       id="rect2993" />
+       id="rect2998" />
     <rect
        x="100"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#b3de69"
+       fill="#d6f5c9"
        fill-opacity="1"
-       id="rect2995" />
+       id="rect3000" />
     <rect
-       x="116.667"
+       x="125"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#fccde5"
+       fill="#fff2ae"
        fill-opacity="1"
-       id="rect2997" />
-    <rect
-       x="133.333"
-       y="1350"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#d9d9d9"
-       fill-opacity="1"
-       id="rect2999" />
+       id="rect3002" />
     <rect
        x="150"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#bc80bd"
+       fill="#f1e2cc"
        fill-opacity="1"
-       id="rect3001" />
+       id="rect3004" />
     <rect
-       x="166.667"
+       x="175"
        y="1350"
-       width="16.6667"
+       width="25"
        height="20"
        stroke="none"
-       fill="#ccebc5"
+       fill="#cccccc"
        fill-opacity="1"
-       id="rect3003" />
-    <rect
-       x="183.333"
-       y="1350"
-       width="16.6667"
-       height="20"
-       stroke="none"
-       fill="#ffed6f"
-       fill-opacity="1"
-       id="rect3005" />
+       id="rect3006" />
     <rect
        x="0"
        y="1350"
@@ -8345,7 +8227,7 @@
        stroke-opacity="1"
        stroke-width="1"
        fill="none"
-       id="rect3007" />
+       id="rect3008" />
     <text
        x="220"
        y="1365"
@@ -8353,6 +8235,2777 @@
        font-family="Verdana"
        fill="#000000"
        fill-opacity="1"
-       id="text3009">Set3</text>
+       id="text3010">Pastel2</text>
+    <rect
+       x="0"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#e41a1c"
+       fill-opacity="1"
+       id="rect3012" />
+    <rect
+       x="22.2222"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#377eb8"
+       fill-opacity="1"
+       id="rect3014" />
+    <rect
+       x="44.4444"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#4daf4a"
+       fill-opacity="1"
+       id="rect3016" />
+    <rect
+       x="66.6667"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#984ea3"
+       fill-opacity="1"
+       id="rect3018" />
+    <rect
+       x="88.8889"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#ff7f00"
+       fill-opacity="1"
+       id="rect3020" />
+    <rect
+       x="111.111"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#ffff33"
+       fill-opacity="1"
+       id="rect3022" />
+    <rect
+       x="133.333"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#a65628"
+       fill-opacity="1"
+       id="rect3024" />
+    <rect
+       x="155.556"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#f781bf"
+       fill-opacity="1"
+       id="rect3026" />
+    <rect
+       x="177.778"
+       y="1380"
+       width="22.2222"
+       height="20"
+       stroke="none"
+       fill="#999999"
+       fill-opacity="1"
+       id="rect3028" />
+    <rect
+       x="0"
+       y="1380"
+       width="200"
+       height="20"
+       stroke="#000000"
+       stroke-opacity="1"
+       stroke-width="1"
+       fill="none"
+       id="rect3030" />
+    <text
+       x="220"
+       y="1395"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text3032">Set1</text>
+    <rect
+       x="0"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#66c2a5"
+       fill-opacity="1"
+       id="rect3034" />
+    <rect
+       x="25"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#fc8d62"
+       fill-opacity="1"
+       id="rect3036" />
+    <rect
+       x="50"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#8da0cb"
+       fill-opacity="1"
+       id="rect3038" />
+    <rect
+       x="75"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#e78ac3"
+       fill-opacity="1"
+       id="rect3040" />
+    <rect
+       x="100"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#a6d854"
+       fill-opacity="1"
+       id="rect3042" />
+    <rect
+       x="125"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#ffd92f"
+       fill-opacity="1"
+       id="rect3044" />
+    <rect
+       x="150"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#e5c494"
+       fill-opacity="1"
+       id="rect3046" />
+    <rect
+       x="175"
+       y="1410"
+       width="25"
+       height="20"
+       stroke="none"
+       fill="#b3b3b3"
+       fill-opacity="1"
+       id="rect3048" />
+    <rect
+       x="0"
+       y="1410"
+       width="200"
+       height="20"
+       stroke="#000000"
+       stroke-opacity="1"
+       stroke-width="1"
+       fill="none"
+       id="rect3050" />
+    <text
+       x="220"
+       y="1425"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text3052">Set2</text>
+    <rect
+       x="0"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#8dd3c7"
+       fill-opacity="1"
+       id="rect3054" />
+    <rect
+       x="16.6667"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#ffffb3"
+       fill-opacity="1"
+       id="rect3056" />
+    <rect
+       x="33.3333"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#bebada"
+       fill-opacity="1"
+       id="rect3058" />
+    <rect
+       x="50"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#fb8072"
+       fill-opacity="1"
+       id="rect3060" />
+    <rect
+       x="66.6667"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#80b1d3"
+       fill-opacity="1"
+       id="rect3062" />
+    <rect
+       x="83.3333"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#fdb462"
+       fill-opacity="1"
+       id="rect3064" />
+    <rect
+       x="100"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#b3de69"
+       fill-opacity="1"
+       id="rect3066" />
+    <rect
+       x="116.667"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#fccde5"
+       fill-opacity="1"
+       id="rect3068" />
+    <rect
+       x="133.333"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#d9d9d9"
+       fill-opacity="1"
+       id="rect3070" />
+    <rect
+       x="150"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#bc80bd"
+       fill-opacity="1"
+       id="rect3072" />
+    <rect
+       x="166.667"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#ccebc5"
+       fill-opacity="1"
+       id="rect3074" />
+    <rect
+       x="183.333"
+       y="1440"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#ffed6f"
+       fill-opacity="1"
+       id="rect3076" />
+    <rect
+       x="0"
+       y="1440"
+       width="200"
+       height="20"
+       stroke="#000000"
+       stroke-opacity="1"
+       stroke-width="1"
+       fill="none"
+       id="rect3078" />
+    <text
+       x="220"
+       y="1455"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text3080">Set3</text>
+    <text
+       x="10"
+       y="1515"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text3082">Miscellaneous</text>
+    <rect
+       x="0"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5e1d9c"
+       fill-opacity="1"
+       id="rect3084" />
+    <rect
+       x="0.78125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5c1d9e"
+       fill-opacity="1"
+       id="rect3086" />
+    <rect
+       x="1.5625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#591da0"
+       fill-opacity="1"
+       id="rect3088" />
+    <rect
+       x="2.34375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#571ea2"
+       fill-opacity="1"
+       id="rect3090" />
+    <rect
+       x="3.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#541ea4"
+       fill-opacity="1"
+       id="rect3092" />
+    <rect
+       x="3.90625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#521ea6"
+       fill-opacity="1"
+       id="rect3094" />
+    <rect
+       x="4.6875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4f1ea8"
+       fill-opacity="1"
+       id="rect3096" />
+    <rect
+       x="5.46875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4e20aa"
+       fill-opacity="1"
+       id="rect3098" />
+    <rect
+       x="6.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4e21ac"
+       fill-opacity="1"
+       id="rect3100" />
+    <rect
+       x="7.03125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4d23ad"
+       fill-opacity="1"
+       id="rect3102" />
+    <rect
+       x="7.8125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4c24af"
+       fill-opacity="1"
+       id="rect3104" />
+    <rect
+       x="8.59375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4b26b0"
+       fill-opacity="1"
+       id="rect3106" />
+    <rect
+       x="9.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4a28b2"
+       fill-opacity="1"
+       id="rect3108" />
+    <rect
+       x="10.1562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4929b4"
+       fill-opacity="1"
+       id="rect3110" />
+    <rect
+       x="10.9375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#482bb5"
+       fill-opacity="1"
+       id="rect3112" />
+    <rect
+       x="11.7188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#472db7"
+       fill-opacity="1"
+       id="rect3114" />
+    <rect
+       x="12.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#462eb8"
+       fill-opacity="1"
+       id="rect3116" />
+    <rect
+       x="13.2812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4530ba"
+       fill-opacity="1"
+       id="rect3118" />
+    <rect
+       x="14.0625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4432bb"
+       fill-opacity="1"
+       id="rect3120" />
+    <rect
+       x="14.8438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4333bd"
+       fill-opacity="1"
+       id="rect3122" />
+    <rect
+       x="15.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4335bf"
+       fill-opacity="1"
+       id="rect3124" />
+    <rect
+       x="16.4062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4236c0"
+       fill-opacity="1"
+       id="rect3126" />
+    <rect
+       x="17.1875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4138c2"
+       fill-opacity="1"
+       id="rect3128" />
+    <rect
+       x="17.9688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#403ac3"
+       fill-opacity="1"
+       id="rect3130" />
+    <rect
+       x="18.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#403cc4"
+       fill-opacity="1"
+       id="rect3132" />
+    <rect
+       x="19.5312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#403ec5"
+       fill-opacity="1"
+       id="rect3134" />
+    <rect
+       x="20.3125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4040c5"
+       fill-opacity="1"
+       id="rect3136" />
+    <rect
+       x="21.0938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4042c6"
+       fill-opacity="1"
+       id="rect3138" />
+    <rect
+       x="21.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f44c7"
+       fill-opacity="1"
+       id="rect3140" />
+    <rect
+       x="22.6562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f46c8"
+       fill-opacity="1"
+       id="rect3142" />
+    <rect
+       x="23.4375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f48c8"
+       fill-opacity="1"
+       id="rect3144" />
+    <rect
+       x="24.2188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f4ac9"
+       fill-opacity="1"
+       id="rect3146" />
+    <rect
+       x="25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f4cca"
+       fill-opacity="1"
+       id="rect3148" />
+    <rect
+       x="25.7812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f4fca"
+       fill-opacity="1"
+       id="rect3150" />
+    <rect
+       x="26.5625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f51cb"
+       fill-opacity="1"
+       id="rect3152" />
+    <rect
+       x="27.3438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f53cc"
+       fill-opacity="1"
+       id="rect3154" />
+    <rect
+       x="28.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f55cd"
+       fill-opacity="1"
+       id="rect3156" />
+    <rect
+       x="28.9062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f57cd"
+       fill-opacity="1"
+       id="rect3158" />
+    <rect
+       x="29.6875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3e59ce"
+       fill-opacity="1"
+       id="rect3160" />
+    <rect
+       x="30.4688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3e5bcf"
+       fill-opacity="1"
+       id="rect3162" />
+    <rect
+       x="31.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3e5dcf"
+       fill-opacity="1"
+       id="rect3164" />
+    <rect
+       x="32.0312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f5fcf"
+       fill-opacity="1"
+       id="rect3166" />
+    <rect
+       x="32.8125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f61cf"
+       fill-opacity="1"
+       id="rect3168" />
+    <rect
+       x="33.5938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#3f63ce"
+       fill-opacity="1"
+       id="rect3170" />
+    <rect
+       x="34.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4065ce"
+       fill-opacity="1"
+       id="rect3172" />
+    <rect
+       x="35.1562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4066ce"
+       fill-opacity="1"
+       id="rect3174" />
+    <rect
+       x="35.9375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4068ce"
+       fill-opacity="1"
+       id="rect3176" />
+    <rect
+       x="36.7188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#416ace"
+       fill-opacity="1"
+       id="rect3178" />
+    <rect
+       x="37.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#416ccd"
+       fill-opacity="1"
+       id="rect3180" />
+    <rect
+       x="38.2812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#416ecd"
+       fill-opacity="1"
+       id="rect3182" />
+    <rect
+       x="39.0625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4270cd"
+       fill-opacity="1"
+       id="rect3184" />
+    <rect
+       x="39.8438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4272cd"
+       fill-opacity="1"
+       id="rect3186" />
+    <rect
+       x="40.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4274cd"
+       fill-opacity="1"
+       id="rect3188" />
+    <rect
+       x="41.4062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4376cc"
+       fill-opacity="1"
+       id="rect3190" />
+    <rect
+       x="42.1875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4378cc"
+       fill-opacity="1"
+       id="rect3192" />
+    <rect
+       x="42.9688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4379cc"
+       fill-opacity="1"
+       id="rect3194" />
+    <rect
+       x="43.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#447bcc"
+       fill-opacity="1"
+       id="rect3196" />
+    <rect
+       x="44.5312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#447dcb"
+       fill-opacity="1"
+       id="rect3198" />
+    <rect
+       x="45.3125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#457fca"
+       fill-opacity="1"
+       id="rect3200" />
+    <rect
+       x="46.0938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4580c9"
+       fill-opacity="1"
+       id="rect3202" />
+    <rect
+       x="46.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4681c8"
+       fill-opacity="1"
+       id="rect3204" />
+    <rect
+       x="47.6562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4782c7"
+       fill-opacity="1"
+       id="rect3206" />
+    <rect
+       x="48.4375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4784c6"
+       fill-opacity="1"
+       id="rect3208" />
+    <rect
+       x="49.2188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4885c5"
+       fill-opacity="1"
+       id="rect3210" />
+    <rect
+       x="50"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4887c4"
+       fill-opacity="1"
+       id="rect3212" />
+    <rect
+       x="50.7812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4988c3"
+       fill-opacity="1"
+       id="rect3214" />
+    <rect
+       x="51.5625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4a8ac2"
+       fill-opacity="1"
+       id="rect3216" />
+    <rect
+       x="52.3438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4a8bc1"
+       fill-opacity="1"
+       id="rect3218" />
+    <rect
+       x="53.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4b8dc1"
+       fill-opacity="1"
+       id="rect3220" />
+    <rect
+       x="53.9062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4c8ec0"
+       fill-opacity="1"
+       id="rect3222" />
+    <rect
+       x="54.6875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4c90bf"
+       fill-opacity="1"
+       id="rect3224" />
+    <rect
+       x="55.4688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4d91be"
+       fill-opacity="1"
+       id="rect3226" />
+    <rect
+       x="56.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4d93bd"
+       fill-opacity="1"
+       id="rect3228" />
+    <rect
+       x="57.0312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4e94bc"
+       fill-opacity="1"
+       id="rect3230" />
+    <rect
+       x="57.8125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#4f95ba"
+       fill-opacity="1"
+       id="rect3232" />
+    <rect
+       x="58.5938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5096b9"
+       fill-opacity="1"
+       id="rect3234" />
+    <rect
+       x="59.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5097b8"
+       fill-opacity="1"
+       id="rect3236" />
+    <rect
+       x="60.1562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5198b6"
+       fill-opacity="1"
+       id="rect3238" />
+    <rect
+       x="60.9375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#529ab5"
+       fill-opacity="1"
+       id="rect3240" />
+    <rect
+       x="61.7188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#539bb3"
+       fill-opacity="1"
+       id="rect3242" />
+    <rect
+       x="62.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#549cb2"
+       fill-opacity="1"
+       id="rect3244" />
+    <rect
+       x="63.2812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#559db0"
+       fill-opacity="1"
+       id="rect3246" />
+    <rect
+       x="64.0625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#559eaf"
+       fill-opacity="1"
+       id="rect3248" />
+    <rect
+       x="64.8438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#569fae"
+       fill-opacity="1"
+       id="rect3250" />
+    <rect
+       x="65.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#57a0ac"
+       fill-opacity="1"
+       id="rect3252" />
+    <rect
+       x="66.4062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#58a1ab"
+       fill-opacity="1"
+       id="rect3254" />
+    <rect
+       x="67.1875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#59a2a9"
+       fill-opacity="1"
+       id="rect3256" />
+    <rect
+       x="67.9688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#59a3a8"
+       fill-opacity="1"
+       id="rect3258" />
+    <rect
+       x="68.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5aa4a6"
+       fill-opacity="1"
+       id="rect3260" />
+    <rect
+       x="69.5312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5ba5a5"
+       fill-opacity="1"
+       id="rect3262" />
+    <rect
+       x="70.3125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5ca6a4"
+       fill-opacity="1"
+       id="rect3264" />
+    <rect
+       x="71.0938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5da7a2"
+       fill-opacity="1"
+       id="rect3266" />
+    <rect
+       x="71.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5ea8a0"
+       fill-opacity="1"
+       id="rect3268" />
+    <rect
+       x="72.6562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#5fa89f"
+       fill-opacity="1"
+       id="rect3270" />
+    <rect
+       x="73.4375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#60a99d"
+       fill-opacity="1"
+       id="rect3272" />
+    <rect
+       x="74.2188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#61aa9c"
+       fill-opacity="1"
+       id="rect3274" />
+    <rect
+       x="75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#62aa9a"
+       fill-opacity="1"
+       id="rect3276" />
+    <rect
+       x="75.7812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#63ab98"
+       fill-opacity="1"
+       id="rect3278" />
+    <rect
+       x="76.5625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#64ac97"
+       fill-opacity="1"
+       id="rect3280" />
+    <rect
+       x="77.3438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#65ad95"
+       fill-opacity="1"
+       id="rect3282" />
+    <rect
+       x="78.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#67ad94"
+       fill-opacity="1"
+       id="rect3284" />
+    <rect
+       x="78.9062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#68ae92"
+       fill-opacity="1"
+       id="rect3286" />
+    <rect
+       x="79.6875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#69af90"
+       fill-opacity="1"
+       id="rect3288" />
+    <rect
+       x="80.4688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#6aaf8f"
+       fill-opacity="1"
+       id="rect3290" />
+    <rect
+       x="81.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#6bb08d"
+       fill-opacity="1"
+       id="rect3292" />
+    <rect
+       x="82.0312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#6cb18c"
+       fill-opacity="1"
+       id="rect3294" />
+    <rect
+       x="82.8125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#6db18a"
+       fill-opacity="1"
+       id="rect3296" />
+    <rect
+       x="83.5938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#6eb288"
+       fill-opacity="1"
+       id="rect3298" />
+    <rect
+       x="84.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#6fb387"
+       fill-opacity="1"
+       id="rect3300" />
+    <rect
+       x="85.1562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#71b385"
+       fill-opacity="1"
+       id="rect3302" />
+    <rect
+       x="85.9375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#72b384"
+       fill-opacity="1"
+       id="rect3304" />
+    <rect
+       x="86.7188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#73b482"
+       fill-opacity="1"
+       id="rect3306" />
+    <rect
+       x="87.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#74b481"
+       fill-opacity="1"
+       id="rect3308" />
+    <rect
+       x="88.2812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#76b580"
+       fill-opacity="1"
+       id="rect3310" />
+    <rect
+       x="89.0625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#77b57f"
+       fill-opacity="1"
+       id="rect3312" />
+    <rect
+       x="89.8438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#78b67d"
+       fill-opacity="1"
+       id="rect3314" />
+    <rect
+       x="90.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#79b67c"
+       fill-opacity="1"
+       id="rect3316" />
+    <rect
+       x="91.4062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#7bb67a"
+       fill-opacity="1"
+       id="rect3318" />
+    <rect
+       x="92.1875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#7cb779"
+       fill-opacity="1"
+       id="rect3320" />
+    <rect
+       x="92.9688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#7db777"
+       fill-opacity="1"
+       id="rect3322" />
+    <rect
+       x="93.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#7fb876"
+       fill-opacity="1"
+       id="rect3324" />
+    <rect
+       x="94.5312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#80b874"
+       fill-opacity="1"
+       id="rect3326" />
+    <rect
+       x="95.3125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#80b973"
+       fill-opacity="1"
+       id="rect3328" />
+    <rect
+       x="96.0938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#81b971"
+       fill-opacity="1"
+       id="rect3330" />
+    <rect
+       x="96.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#83b970"
+       fill-opacity="1"
+       id="rect3332" />
+    <rect
+       x="97.6562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#84b96e"
+       fill-opacity="1"
+       id="rect3334" />
+    <rect
+       x="98.4375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#86ba6d"
+       fill-opacity="1"
+       id="rect3336" />
+    <rect
+       x="99.2188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#87ba6c"
+       fill-opacity="1"
+       id="rect3338" />
+    <rect
+       x="100"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#88ba6b"
+       fill-opacity="1"
+       id="rect3340" />
+    <rect
+       x="100.781"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#8aba69"
+       fill-opacity="1"
+       id="rect3342" />
+    <rect
+       x="101.562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#8bba68"
+       fill-opacity="1"
+       id="rect3344" />
+    <rect
+       x="102.344"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#8dbb67"
+       fill-opacity="1"
+       id="rect3346" />
+    <rect
+       x="103.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#8ebb66"
+       fill-opacity="1"
+       id="rect3348" />
+    <rect
+       x="103.906"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#90bb64"
+       fill-opacity="1"
+       id="rect3350" />
+    <rect
+       x="104.688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#91bb63"
+       fill-opacity="1"
+       id="rect3352" />
+    <rect
+       x="105.469"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#92bc62"
+       fill-opacity="1"
+       id="rect3354" />
+    <rect
+       x="106.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#94bc61"
+       fill-opacity="1"
+       id="rect3356" />
+    <rect
+       x="107.031"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#95bc5f"
+       fill-opacity="1"
+       id="rect3358" />
+    <rect
+       x="107.812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#97bc5e"
+       fill-opacity="1"
+       id="rect3360" />
+    <rect
+       x="108.594"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#98bc5d"
+       fill-opacity="1"
+       id="rect3362" />
+    <rect
+       x="109.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#9abd5c"
+       fill-opacity="1"
+       id="rect3364" />
+    <rect
+       x="110.156"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#9bbd5b"
+       fill-opacity="1"
+       id="rect3366" />
+    <rect
+       x="110.938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#9dbd5a"
+       fill-opacity="1"
+       id="rect3368" />
+    <rect
+       x="111.719"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#9ebd59"
+       fill-opacity="1"
+       id="rect3370" />
+    <rect
+       x="112.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#a0bd58"
+       fill-opacity="1"
+       id="rect3372" />
+    <rect
+       x="113.281"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#a1bd57"
+       fill-opacity="1"
+       id="rect3374" />
+    <rect
+       x="114.062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#a2bd56"
+       fill-opacity="1"
+       id="rect3376" />
+    <rect
+       x="114.844"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#a4bd55"
+       fill-opacity="1"
+       id="rect3378" />
+    <rect
+       x="115.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#a5bd54"
+       fill-opacity="1"
+       id="rect3380" />
+    <rect
+       x="116.406"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#a7bc54"
+       fill-opacity="1"
+       id="rect3382" />
+    <rect
+       x="117.188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#a8bc53"
+       fill-opacity="1"
+       id="rect3384" />
+    <rect
+       x="117.969"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#aabc52"
+       fill-opacity="1"
+       id="rect3386" />
+    <rect
+       x="118.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#abbc51"
+       fill-opacity="1"
+       id="rect3388" />
+    <rect
+       x="119.531"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#adbc50"
+       fill-opacity="1"
+       id="rect3390" />
+    <rect
+       x="120.312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#aebc4f"
+       fill-opacity="1"
+       id="rect3392" />
+    <rect
+       x="121.094"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#b0bc4e"
+       fill-opacity="1"
+       id="rect3394" />
+    <rect
+       x="121.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#b1bc4d"
+       fill-opacity="1"
+       id="rect3396" />
+    <rect
+       x="122.656"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#b3bc4c"
+       fill-opacity="1"
+       id="rect3398" />
+    <rect
+       x="123.438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#b4bc4c"
+       fill-opacity="1"
+       id="rect3400" />
+    <rect
+       x="124.219"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#b5bc4b"
+       fill-opacity="1"
+       id="rect3402" />
+    <rect
+       x="125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#b7bb4b"
+       fill-opacity="1"
+       id="rect3404" />
+    <rect
+       x="125.781"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#b8bb4a"
+       fill-opacity="1"
+       id="rect3406" />
+    <rect
+       x="126.562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#babb49"
+       fill-opacity="1"
+       id="rect3408" />
+    <rect
+       x="127.344"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#bbba49"
+       fill-opacity="1"
+       id="rect3410" />
+    <rect
+       x="128.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#bcba48"
+       fill-opacity="1"
+       id="rect3412" />
+    <rect
+       x="128.906"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#beba48"
+       fill-opacity="1"
+       id="rect3414" />
+    <rect
+       x="129.688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#bfb947"
+       fill-opacity="1"
+       id="rect3416" />
+    <rect
+       x="130.469"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#c0b946"
+       fill-opacity="1"
+       id="rect3418" />
+    <rect
+       x="131.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#c2b946"
+       fill-opacity="1"
+       id="rect3420" />
+    <rect
+       x="132.031"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#c3b845"
+       fill-opacity="1"
+       id="rect3422" />
+    <rect
+       x="132.812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#c4b845"
+       fill-opacity="1"
+       id="rect3424" />
+    <rect
+       x="133.594"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#c6b844"
+       fill-opacity="1"
+       id="rect3426" />
+    <rect
+       x="134.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#c7b744"
+       fill-opacity="1"
+       id="rect3428" />
+    <rect
+       x="135.156"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#c9b743"
+       fill-opacity="1"
+       id="rect3430" />
+    <rect
+       x="135.938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#cab742"
+       fill-opacity="1"
+       id="rect3432" />
+    <rect
+       x="136.719"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#cbb642"
+       fill-opacity="1"
+       id="rect3434" />
+    <rect
+       x="137.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#ccb542"
+       fill-opacity="1"
+       id="rect3436" />
+    <rect
+       x="138.281"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#cdb441"
+       fill-opacity="1"
+       id="rect3438" />
+    <rect
+       x="139.062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#ceb441"
+       fill-opacity="1"
+       id="rect3440" />
+    <rect
+       x="139.844"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#cfb341"
+       fill-opacity="1"
+       id="rect3442" />
+    <rect
+       x="140.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d0b240"
+       fill-opacity="1"
+       id="rect3444" />
+    <rect
+       x="141.406"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d1b140"
+       fill-opacity="1"
+       id="rect3446" />
+    <rect
+       x="142.188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d2b13f"
+       fill-opacity="1"
+       id="rect3448" />
+    <rect
+       x="142.969"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d3b03f"
+       fill-opacity="1"
+       id="rect3450" />
+    <rect
+       x="143.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d4af3f"
+       fill-opacity="1"
+       id="rect3452" />
+    <rect
+       x="144.531"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d5ae3e"
+       fill-opacity="1"
+       id="rect3454" />
+    <rect
+       x="145.312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d6ae3e"
+       fill-opacity="1"
+       id="rect3456" />
+    <rect
+       x="146.094"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d7ad3e"
+       fill-opacity="1"
+       id="rect3458" />
+    <rect
+       x="146.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#d8ac3d"
+       fill-opacity="1"
+       id="rect3460" />
+    <rect
+       x="147.656"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#daab3d"
+       fill-opacity="1"
+       id="rect3462" />
+    <rect
+       x="148.438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dbaa3d"
+       fill-opacity="1"
+       id="rect3464" />
+    <rect
+       x="149.219"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dba93c"
+       fill-opacity="1"
+       id="rect3466" />
+    <rect
+       x="150"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dca83c"
+       fill-opacity="1"
+       id="rect3468" />
+    <rect
+       x="150.781"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dda73c"
+       fill-opacity="1"
+       id="rect3470" />
+    <rect
+       x="151.562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dda53b"
+       fill-opacity="1"
+       id="rect3472" />
+    <rect
+       x="152.344"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dea43b"
+       fill-opacity="1"
+       id="rect3474" />
+    <rect
+       x="153.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dea33b"
+       fill-opacity="1"
+       id="rect3476" />
+    <rect
+       x="153.906"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dfa13a"
+       fill-opacity="1"
+       id="rect3478" />
+    <rect
+       x="154.688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dfa03a"
+       fill-opacity="1"
+       id="rect3480" />
+    <rect
+       x="155.469"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e09f3a"
+       fill-opacity="1"
+       id="rect3482" />
+    <rect
+       x="156.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e19d39"
+       fill-opacity="1"
+       id="rect3484" />
+    <rect
+       x="157.031"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e19c39"
+       fill-opacity="1"
+       id="rect3486" />
+    <rect
+       x="157.812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e29b39"
+       fill-opacity="1"
+       id="rect3488" />
+    <rect
+       x="158.594"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e29939"
+       fill-opacity="1"
+       id="rect3490" />
+    <rect
+       x="159.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e39838"
+       fill-opacity="1"
+       id="rect3492" />
+    <rect
+       x="160.156"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e39738"
+       fill-opacity="1"
+       id="rect3494" />
+    <rect
+       x="160.938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e49538"
+       fill-opacity="1"
+       id="rect3496" />
+    <rect
+       x="161.719"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e59437"
+       fill-opacity="1"
+       id="rect3498" />
+    <rect
+       x="162.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e59237"
+       fill-opacity="1"
+       id="rect3500" />
+    <rect
+       x="163.281"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e59037"
+       fill-opacity="1"
+       id="rect3502" />
+    <rect
+       x="164.062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58e36"
+       fill-opacity="1"
+       id="rect3504" />
+    <rect
+       x="164.844"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58c36"
+       fill-opacity="1"
+       id="rect3506" />
+    <rect
+       x="165.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58b35"
+       fill-opacity="1"
+       id="rect3508" />
+    <rect
+       x="166.406"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58935"
+       fill-opacity="1"
+       id="rect3510" />
+    <rect
+       x="167.188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58735"
+       fill-opacity="1"
+       id="rect3512" />
+    <rect
+       x="167.969"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58534"
+       fill-opacity="1"
+       id="rect3514" />
+    <rect
+       x="168.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58334"
+       fill-opacity="1"
+       id="rect3516" />
+    <rect
+       x="169.531"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58134"
+       fill-opacity="1"
+       id="rect3518" />
+    <rect
+       x="170.312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e58033"
+       fill-opacity="1"
+       id="rect3520" />
+    <rect
+       x="171.094"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e57e33"
+       fill-opacity="1"
+       id="rect3522" />
+    <rect
+       x="171.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e57c33"
+       fill-opacity="1"
+       id="rect3524" />
+    <rect
+       x="172.656"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e57a32"
+       fill-opacity="1"
+       id="rect3526" />
+    <rect
+       x="173.438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e57832"
+       fill-opacity="1"
+       id="rect3528" />
+    <rect
+       x="174.219"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e57631"
+       fill-opacity="1"
+       id="rect3530" />
+    <rect
+       x="175"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e57431"
+       fill-opacity="1"
+       id="rect3532" />
+    <rect
+       x="175.781"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e57231"
+       fill-opacity="1"
+       id="rect3534" />
+    <rect
+       x="176.562"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e56f30"
+       fill-opacity="1"
+       id="rect3536" />
+    <rect
+       x="177.344"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e46d30"
+       fill-opacity="1"
+       id="rect3538" />
+    <rect
+       x="178.125"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e46a2f"
+       fill-opacity="1"
+       id="rect3540" />
+    <rect
+       x="178.906"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e3682f"
+       fill-opacity="1"
+       id="rect3542" />
+    <rect
+       x="179.688"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e3652e"
+       fill-opacity="1"
+       id="rect3544" />
+    <rect
+       x="180.469"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e3632e"
+       fill-opacity="1"
+       id="rect3546" />
+    <rect
+       x="181.25"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e2612d"
+       fill-opacity="1"
+       id="rect3548" />
+    <rect
+       x="182.031"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e25e2d"
+       fill-opacity="1"
+       id="rect3550" />
+    <rect
+       x="182.812"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e25c2c"
+       fill-opacity="1"
+       id="rect3552" />
+    <rect
+       x="183.594"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e1592c"
+       fill-opacity="1"
+       id="rect3554" />
+    <rect
+       x="184.375"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e1572b"
+       fill-opacity="1"
+       id="rect3556" />
+    <rect
+       x="185.156"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e0542b"
+       fill-opacity="1"
+       id="rect3558" />
+    <rect
+       x="185.938"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e0522a"
+       fill-opacity="1"
+       id="rect3560" />
+    <rect
+       x="186.719"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#e04f2a"
+       fill-opacity="1"
+       id="rect3562" />
+    <rect
+       x="187.5"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#df4d29"
+       fill-opacity="1"
+       id="rect3564" />
+    <rect
+       x="188.281"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#df4b29"
+       fill-opacity="1"
+       id="rect3566" />
+    <rect
+       x="189.062"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#df4828"
+       fill-opacity="1"
+       id="rect3568" />
+    <rect
+       x="189.844"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#de4628"
+       fill-opacity="1"
+       id="rect3570" />
+    <rect
+       x="190.625"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#de4328"
+       fill-opacity="1"
+       id="rect3572" />
+    <rect
+       x="191.406"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#de4127"
+       fill-opacity="1"
+       id="rect3574" />
+    <rect
+       x="192.188"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dd3e27"
+       fill-opacity="1"
+       id="rect3576" />
+    <rect
+       x="192.969"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dd3c26"
+       fill-opacity="1"
+       id="rect3578" />
+    <rect
+       x="193.75"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dd3926"
+       fill-opacity="1"
+       id="rect3580" />
+    <rect
+       x="194.531"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dc3725"
+       fill-opacity="1"
+       id="rect3582" />
+    <rect
+       x="195.312"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dc3425"
+       fill-opacity="1"
+       id="rect3584" />
+    <rect
+       x="196.094"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#dc3225"
+       fill-opacity="1"
+       id="rect3586" />
+    <rect
+       x="196.875"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#db2f24"
+       fill-opacity="1"
+       id="rect3588" />
+    <rect
+       x="197.656"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#db2d24"
+       fill-opacity="1"
+       id="rect3590" />
+    <rect
+       x="198.438"
+       y="1530"
+       width="1.78125"
+       height="20"
+       stroke="none"
+       fill="#db2b23"
+       fill-opacity="1"
+       id="rect3592" />
+    <rect
+       x="199.219"
+       y="1530"
+       width="0.78125"
+       height="20"
+       stroke="none"
+       fill="#da2823"
+       fill-opacity="1"
+       id="rect3594" />
+    <rect
+       x="0"
+       y="1530"
+       width="200"
+       height="20"
+       stroke="#000000"
+       stroke-opacity="1"
+       stroke-width="1"
+       fill="none"
+       id="rect3596" />
+    <text
+       x="220"
+       y="1545"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text3598">Nextstrain</text>
+    <rect
+       x="0"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#003668"
+       fill-opacity="1"
+       id="rect3600" />
+    <rect
+       x="16.6667"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#00605d"
+       fill-opacity="1"
+       id="rect3602" />
+    <rect
+       x="33.3333"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#018a22"
+       fill-opacity="1"
+       id="rect3604" />
+    <rect
+       x="50"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#64ac27"
+       fill-opacity="1"
+       id="rect3606" />
+    <rect
+       x="66.6667"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#a8cd32"
+       fill-opacity="1"
+       id="rect3608" />
+    <rect
+       x="83.3333"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#eeec46"
+       fill-opacity="1"
+       id="rect3610" />
+    <rect
+       x="100"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#fab133"
+       fill-opacity="1"
+       id="rect3612" />
+    <rect
+       x="116.667"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#f07840"
+       fill-opacity="1"
+       id="rect3614" />
+    <rect
+       x="133.333"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#d04651"
+       fill-opacity="1"
+       id="rect3616" />
+    <rect
+       x="150"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#9a2660"
+       fill-opacity="1"
+       id="rect3618" />
+    <rect
+       x="166.667"
+       y="1560"
+       width="17.6667"
+       height="20"
+       stroke="none"
+       fill="#561d5d"
+       fill-opacity="1"
+       id="rect3620" />
+    <rect
+       x="183.333"
+       y="1560"
+       width="16.6667"
+       height="20"
+       stroke="none"
+       fill="#001546"
+       fill-opacity="1"
+       id="rect3622" />
+    <rect
+       x="0"
+       y="1560"
+       width="200"
+       height="20"
+       stroke="#000000"
+       stroke-opacity="1"
+       stroke-width="1"
+       fill="none"
+       id="rect3624" />
+    <text
+       x="220"
+       y="1575"
+       font-size="10"
+       font-family="Verdana"
+       fill="#000000"
+       fill-opacity="1"
+       id="text3626">Thermis Cyclic</text>
   </g>
 </svg>

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech, Pierre Barbera and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,21 +35,22 @@
 #include "genesis/placement/function/manipulation.hpp"
 
 #include "genesis/placement/sample.hpp"
-#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
 #include "genesis/placement/function/helper.hpp"
 
 #include "genesis/tree/function/manipulation.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 using namespace genesis;
-using namespace placement;
-using namespace tree;
+using namespace genesis::placement;
+using namespace genesis::tree;
+using namespace genesis::util::io;
 
 // =================================================================================================
 //     Reroot
@@ -65,7 +66,7 @@ static void TestPlacementReroot(
 
     // Input data.
     std::string infile = environment->data_dir + "placement/unrooted.jplace";
-    Sample sample = JplaceReader().read( utils::from_file( infile ));
+    Sample sample = JplaceReader().read( from_file( infile ));
     auto& tree = sample.tree();
     EXPECT_TRUE( has_correct_edge_nums( tree ));
 
@@ -88,7 +89,7 @@ static void TestPlacementReroot(
     }
 
     // Check if the edge_nums reordering outcome is correct.
-    EXPECT_EQ( check_string, utils::trim( result )) << " with start edge " << reroot_edge_id;
+    EXPECT_EQ( check_string, genesis::util::text::trim( result )) << " with start edge " << reroot_edge_id;
 
     // check if proximal lengths were adjusted correctly
     size_t i = 0;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,12 +31,13 @@
 #include "src/common.hpp"
 
 #include "genesis/sequence/reference_genome.hpp"
-#include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/format/fasta_reader.hpp"
 
 #include <string>
 
 using namespace genesis;
 using namespace genesis::sequence;
+using namespace genesis::util::io;
 
 TEST( ReferenceGenome, Basics )
 {
@@ -45,7 +46,7 @@ TEST( ReferenceGenome, Basics )
 
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    auto const rg = FastaReader().read_reference_genome( utils::from_file(infile) );
+    auto const rg = FastaReader().read_reference_genome( from_file(infile) );
 
     EXPECT_EQ( 10, rg.size() );
     EXPECT_TRUE( rg.contains( "Di106BGTue" ));

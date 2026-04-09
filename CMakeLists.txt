@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2025 Lucas Czech
+# Copyright (C) 2014-2026 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,12 +19,15 @@
 # University of Copenhagen, Globe Institute, Section for GeoGenetics
 # Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   CMake Init
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
-# This is a hand-wavy minimum requirement... but well, "works for me".
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.14)
+
+# Export the commands to build/compile_commands.json
+# Mostly useful for VS Code to find paths etc
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Fun with colors!
 if (NOT WIN32)
@@ -62,6 +65,7 @@ set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 # Set the new policy, mostly to silence the warning.
 cmake_policy(SET CMP0135 NEW)
 include(ExternalProject)
+include(FetchContent)
 
 # Include our own extra CMake functionality.
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/tools/cmake" )
@@ -81,12 +85,12 @@ if( NOT ( CMAKE_VERSION VERSION_LESS 3.0 ))
     cmake_policy(SET CMP0028 NEW)
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Project Definitions and Variables
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Set the project. We currently need "C" only because of the endianness test below...
-project ( genesis CXX C )
+project ( genesis LANGUAGES CXX C )
 
 # Set the file that needs to be used for `include_directories()`.
 set( GENESIS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" )
@@ -134,20 +138,20 @@ else()
     message (STATUS "Building Genesis stand-alone")
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Genesis Version
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Extract Genesis version from version source file.
 file(
-    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/util/core/version.hpp" GENESIS_VERSION_LINE
     REGEX "^.*#GENESIS_VERSION#.*$"
 )
 if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(v.*)\".*" )
     set(GENESIS_VERSION "${CMAKE_MATCH_1}")
 endif()
 file(
-    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/util/core/version.hpp" GENESIS_VERSION_LINE
     REGEX "^.*#GENESIS_VERSION_NAME#.*$"
 )
 if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(.*)\".*" )
@@ -174,9 +178,9 @@ if(GIT_FOUND)
     ENDIF()
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Build Options
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Options for which library version to build. Default: Build shared for stand-alone version,
 # and build static when being used as a library.
@@ -197,8 +201,8 @@ option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."          
 option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."                     OFF)
 
 # If available, use external dependencies.
+option (GENESIS_USE_OPENMP          "Use OpenMP."                                        OFF)
 option (GENESIS_USE_ZLIB            "Use zlib."                                          ON)
-option (GENESIS_USE_OPENMP          "Use OpenMP."                                        ON)
 option (GENESIS_USE_AVX             "Use AVX/AVX2."                                      ON)
 
 # Additional dependencies: htslib
@@ -221,9 +225,9 @@ set_property( CACHE GENESIS_UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
 # Set whether to try to use LTO, if available.
 option( GENESIS_USE_LTO "Use LTO/IPO (link time optimization), if available." ON )
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Build Type
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # The build type is determined by the standard cmake variable CMAKE_BUILD_TYPE.
 # Thus, if you want to change the build type when using genesis as a dependency,
@@ -262,12 +266,13 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 # Get the C++ version to use.
 # Call the function to determine the C++ standard version (either auto-detected or user-specified).
 # This sets `CMAKE_CXX_STANDARD` to the value to be used for compilation.
-include(DetectCppVersion)
+set (CMAKE_CXX_STANDARD 17)
+include(DetectCppStandard)
 detect_and_set_cpp_standard()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Compiler and Linker Options
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 if (MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
     # MinGW/MSVC do not support much. Also, the above string comparison in the condition does
@@ -345,9 +350,9 @@ if (APPLE)
    set(CMAKE_MACOSX_RPATH ON)
 endif (APPLE)
 
-# --------------------------------------------------------------------------------------------------
-#   External Dependencies
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
+#   System Libraries and Compiler Features
+# ================================================================================================
 
 # ----------------------------------------------------------
 #     zlib
@@ -355,7 +360,7 @@ endif (APPLE)
 
 IF(GENESIS_USE_ZLIB)
     # Included from modules dir tools/cmake
-    include( IncludeZlib )
+    include( DetectZlib )
 ENDIF()
 
 # ----------------------------------------------------------
@@ -364,7 +369,7 @@ ENDIF()
 
 IF(GENESIS_USE_OPENMP)
     # Included from modules dir tools/cmake
-    include( IncludeOpenMP )
+    include( DetectOpenMP )
 ENDIF()
 
 # ----------------------------------------------------------
@@ -373,28 +378,26 @@ ENDIF()
 
 IF(GENESIS_USE_AVX)
     # Included from modules dir tools/cmake
-    include( IncludeAVX )
+    include( DetectAVX )
 ENDIF()
+
+# ================================================================================================
+#   External Dependencies
+# ================================================================================================
 
 # ----------------------------------------------------------
 #     htslib
 # ----------------------------------------------------------
 
+# Store the git tag that we want to check out for htslib.
+# SET( htslib_GIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_GIT_HASH#
+SET( htslib_GIT_TAG "1.22" ) #htslib_GIT_TAG#
+
 if(GENESIS_USE_HTSLIB)
-
-    # Store the commit hash that we want to check out for htslib.
-    # SET( htslib_COMMIT_HASH "bd133acf51498431a5c7dfd8aa06ce17ec6d3b96" ) #htslib_COMMIT_HASH#
-
-    # Instead of the above git-hash-based download, we use a direct download of a release archive file,
-    # because htslib now requires some generated files as well that are not part of the repository...
-    # Why are external dependencies always such a mess?
-    SET( GENESIS_HTSLIB_VERSION "1.16" ) #GENESIS_HTSLIB_VERSION#
-
     # Included from modules dir tools/cmake
     # htslib needs pthreads to be linked, so we include this here as well
-    include( IncludePthreads )
+    include( DetectPthreads )
     include( IncludeHtslib )
-
 endif()
 
 # ----------------------------------------------------------
@@ -405,7 +408,7 @@ endif()
 # if(GENESIS_USE_SAMTOOLS)
 #
 #     # Store the commit hash that we want to check out for samtools.
-#     # SET( samtools_COMMIT_HASH "bcd9f35cefdd8b92044d2259506aff39f0a6baf9" ) #samtools_COMMIT_HASH#
+#     # SET( samtools_GIT_HASH "bcd9f35cefdd8b92044d2259506aff39f0a6baf9" ) #samtools_GIT_HASH#
 #
 #     # Same as above for htslib, we here also use a direct download instead of git,
 #     # because of their generated files and so on... Arghghgh.
@@ -421,9 +424,35 @@ endif()
 #
 # endif()
 
-# --------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------
+#     concurrentqueue
+# ----------------------------------------------------------
+
+SET( concurrentqueue_GIT_TAG "v1.0.4" ) #concurrentqueue_GIT_TAG#
+include( IncludeConcurrentQueue )
+
+# ----------------------------------------------------------
+#     parallel-hashmap
+# ----------------------------------------------------------
+
+SET( parallel_hashmap_GIT_TAG "v2.0.0" ) #parallel_hashmap_GIT_TAG#
+include( IncludeParallelHashmap )
+
+# ----------------------------------------------------------
+#     CLI11
+# ----------------------------------------------------------
+
+# For CLI11, we offer to overwrite the tag externally,
+# such that when genesis is included as a library, the caller
+# can overwrite which CLI11 version to use. We are not depending
+# on it internally in genesis (as of now at least), and offer
+# it for convenience only, so this makes sense.
+SET( CLI11_GIT_TAG "v2.5.0" CACHE STRING "CLI11 git tag to fetch" ) #CLI11_GIT_TAG#
+include( IncludeCLI11 )
+
+# ================================================================================================
 #   Sub-Scripts
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # The applications, the python module and the tests all prefer the shared lib,
 # so we need to build it if one of those is activated.
@@ -449,13 +478,12 @@ endif()
 if (GENESIS_BUILD_TESTS)
     # Need to enable testing here, otherwise `./build/make test` will not work.
     enable_testing()
-
     add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Export to parent scope
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # We want this for nicer naming.
 set( GENESIS_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_LIBRARY} )
@@ -503,9 +531,9 @@ IF( GENESIS_HAS_PARENT_DIR )
 
 ENDIF()
 
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 #   Final user output
-# --------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Cmake debug output, useful for user support as well. First, strip/trim extra spaces for nicer output
 string(REGEX REPLACE " +" " " CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} " )

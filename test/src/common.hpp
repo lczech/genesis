@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 //     Common Headers
 // =================================================================================================
 
-#include "genesis/utils/core/logging.hpp"
+#include "genesis/util/core/logging.hpp"
 
 // =================================================================================================
 //     Compiler Details

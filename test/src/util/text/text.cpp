@@ -1,0 +1,151 @@
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2025 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lczech@carnegiescience.edu>
+    Department of Plant Biology, Carnegie Institution For Science
+    260 Panama Street, Stanford, CA 94305, USA
+*/
+
+/**
+ * @brief Testing string functions.
+ *
+ * @file
+ * @ingroup test
+ */
+
+#include "src/common.hpp"
+
+#include "genesis/util/text/string.hpp"
+#include "genesis/util/text/style.hpp"
+#include "genesis/util/text/table.hpp"
+
+#include <cctype>
+#include <limits>
+#include <sstream>
+#include <string>
+#include <vector>
+
+using namespace genesis::util;
+using namespace genesis::util::text;
+
+TEST(Text, Table)
+{
+    // Not sure yet how to test all this automatically...
+
+    auto t = Table();
+    t.add_column("TEST").justify(Table::Column::Justification::kRight);
+    t.add_column("ME").justify(Table::Column::Justification::kCentered);
+    t.add_column("MORE");
+
+    t << "hello" << "world" << "madness";
+    t << "my" << "goodness my" << "guinness!";
+    t << "time" << "again?" << "yes";
+    // t << "time" << Style("again?") << Style("yes", "blue");
+    t << "something" << "" << "end.";
+
+    // Disabled, because it spams the test output.
+    // std::cout << "no layout:\n";
+    // std::cout << t << "\n";
+    //
+    // std::cout << "minimal_layout:\n";
+    // std::cout << minimal_layout()(t) << "\n";
+    //
+    // std::cout << "simple_layout:\n";
+    // std::cout << simple_layout(true)(t) << "\n";
+    // std::cout << simple_layout(false)(t) << "\n";
+    //
+    // std::cout << "simple_grid:\n";
+    // std::cout << simple_grid(true)(t) << "\n";
+    // std::cout << simple_grid(false)(t) << "\n";
+    //
+    // std::cout << "simple_frame:\n";
+    // std::cout << simple_frame(true)(t) << "\n";
+    // std::cout << simple_frame(false)(t) << "\n";
+    //
+    // std::cout << "extended_grid:\n";
+    // std::cout << extended_grid(true)(t) << "\n";
+    // std::cout << extended_grid(false)(t) << "\n";
+    //
+    // std::cout << "extended_frame:\n";
+    // std::cout << extended_frame(true)(t) << "\n";
+    // std::cout << extended_frame(false)(t) << "\n";
+    //
+    // std::cout << "double_grid:\n";
+    // std::cout << double_grid(true)(t) << "\n";
+    // std::cout << double_grid(false)(t) << "\n";
+    //
+    // std::cout << "double_frame:\n";
+    // std::cout << double_frame(true)(t) << "\n";
+    // std::cout << double_frame(false)(t) << "\n";
+}
+
+TEST( Text, Style )
+{
+    Style blue( "blue" );
+    blue.bold( true );
+
+    // Basic
+    std::stringstream ss;
+    ss << blue( "text" );
+    EXPECT_EQ( "\x1B[1;34mtext\x1B[0m", ss.str() );
+
+    // Weird color names.
+    blue.foreground_color( "_R eD_ " );
+    blue.bold( false );
+    ss.str("");
+    ss << blue( "is now red!" );
+    EXPECT_EQ( "\x1B[31mis now red!\x1B[0m", ss.str() );
+
+    // Reset manually.
+    blue.foreground_color( "" );
+    ss.str("");
+    ss << blue( "empty" );
+    EXPECT_EQ( "empty", ss.str() );
+}
+
+// TEST( Text, Wrap )
+// {
+    // std::string const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec\n\n"
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec "
+    // "diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec\n"
+    // "consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas "
+    // "mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur!";
+    //
+    // LOG_DBG << wrap( text );
+    // LOG_DBG << wrap( text, 15 );
+    // LOG_DBG << wrap( text, 5 );
+// }
+
+TEST( Text, Join )
+{
+    auto vec_i = std::vector<int>{ 1, 2, 3 };
+    auto vec_c = std::vector<char>{ 'a', 'b', 'c' };
+    auto vec_u = std::vector<unsigned char>{ 1, 2, 3 };
+    auto vec_s = std::vector<signed char>{ 1, 2, 3 };
+    auto vec_t = std::vector<std::string>{ "a", "b", "c" };
+
+    EXPECT_EQ( "1, 2, 3", join( vec_i ));
+    EXPECT_EQ( "a, b, c", join( vec_c ));
+    EXPECT_EQ( "1, 2, 3", join( vec_u ));
+    EXPECT_EQ( "1, 2, 3", join( vec_s ));
+    EXPECT_EQ( "a, b, c", join( vec_t ));
+}

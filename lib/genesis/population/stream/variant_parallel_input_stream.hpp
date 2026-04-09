@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,17 +31,17 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/function/genome_locus.hpp"
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/utils/containers/optional.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/function/genome_locus.hpp>
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/stream/variant_input_stream.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
 
 #include <cassert>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -67,9 +67,8 @@ namespace population {
  * other ways to specify the loci to iterate over.
  *
  * At each visited locus, the stream yields the data of the underlying input sources as a vector
- * of @link genesis::utils::Optional Optional@endlink Variant%s, with one Variant per input source.
- * If a source does not have data at the current locus,
- * the @link genesis::utils::Optional Optional@endlink is empty.
+ * of optional Variant%s, with one Variant per input source. If a source does not have data at the
+ * current locus, the optional is empty.
  * Use the dereference `operator*()` and `operator->()` of the iterator or the access functions
  * variants() and variant_at() to get the set of variants at the current locus() of the iteration,
  * or use joined_variant() to get one Variant that has all sample SampleCounts joined into it.
@@ -122,7 +121,7 @@ namespace population {
  *     // or
  *
  *     for( auto const& opt_variant : parallel ) {
- *         // Work directly with the std::vector<utils::Optional<Variant>> opt_variant that is
+ *         // Work directly with the std::vector<std::optional<Variant>> opt_variant that is
  *         // returned by dereferencing the iterator. Note that this does not allow access to other
  *         // members of the iterator, such as its locus() and joined_variant() functions.
  *     }
@@ -186,7 +185,7 @@ public:
          * @brief For a given input, stop at all its positions.
          *
          * Other input sources that do not have data at these loci will then have the
-         * @link genesis::utils::Optional Optional@endlink be empty in the iterator at this locus.
+         * std::optional be empty in the iterator at this locus.
          */
         kCarrying,
 
@@ -195,8 +194,7 @@ public:
          *
          * In other words, this input does not contribute the loci that are unique to it
          * to the traversal, but contributes its data only at the loci that are visited by
-         * others (or has an empty @link genesis::utils::Optional Optional@endlink Variant,
-         * if it does not have data at a visited Locus).
+         * others (or has an empty optional Variant, if it does not have data at a visited Locus).
          */
         kFollowing
     };
@@ -265,7 +263,7 @@ public:
         // -------------------------------------------------------------------------
 
         using self_type         = VariantParallelInputStream::Iterator;
-        using value_type        = std::vector<utils::Optional<Variant>>;
+        using value_type        = std::vector<std::optional<Variant>>;
         using pointer           = value_type const*;
         using reference         = value_type const&;
         using iterator_category = std::input_iterator_tag;
@@ -294,22 +292,22 @@ public:
         //     Accessors
         // -------------------------------------------------------------------------
 
-        std::vector<utils::Optional<Variant>> const * operator->() const
+        std::vector<std::optional<Variant>> const * operator->() const
         {
             return &variants_;
         }
 
-        std::vector<utils::Optional<Variant>> * operator->()
+        std::vector<std::optional<Variant>> * operator->()
         {
             return &variants_;
         }
 
-        std::vector<utils::Optional<Variant>> const & operator*() const
+        std::vector<std::optional<Variant>> const & operator*() const
         {
             return variants_;
         }
 
-        std::vector<utils::Optional<Variant>> & operator*()
+        std::vector<std::optional<Variant>> & operator*()
         {
             return variants_;
         }
@@ -320,7 +318,7 @@ public:
          * Any input sources that do not have data at the current locus() have an empty
          * optional in the vector.
          */
-        std::vector<utils::Optional<Variant>> const& variants() const
+        std::vector<std::optional<Variant>> const& variants() const
         {
             return variants_;
         }
@@ -328,7 +326,7 @@ public:
         /**
          * @copydoc ::genesis::population::VariantParallelInputStream::Iterator::variants() const
          */
-        std::vector<utils::Optional<Variant>>& variants()
+        std::vector<std::optional<Variant>>& variants()
         {
             return variants_;
         }
@@ -368,7 +366,7 @@ public:
          *
          * An input source that do not have data at the current locus() has an empty optional.
          */
-        utils::Optional<Variant> const& variant_at( size_t index ) const
+        std::optional<Variant> const& variant_at( size_t index ) const
         {
             // Return with boundary check.
             return variants_.at( index );
@@ -377,7 +375,7 @@ public:
         /**
          * @copydoc ::genesis::population::VariantParallelInputStream::Iterator::variant_at( size_t ) const
          */
-        utils::Optional<Variant>& variant_at( size_t index )
+        std::optional<Variant>& variant_at( size_t index )
         {
             // Return with boundary check.
             return variants_.at( index );
@@ -528,7 +526,7 @@ public:
         // can simply iterator over and check if the optional is empty or not. Bit of copying,
         // but then again, each layer of abstraction comes at some cost...
         // At least, we move (not copy) data into here, for efficiency.
-        std::vector<utils::Optional<Variant>> variants_;
+        std::vector<std::optional<Variant>> variants_;
 
         // Store the current additional carrying locus that we are at (if those have been
         // added; if not, we just store the end iterator here).
@@ -640,10 +638,10 @@ public:
      *
      * This non-const version of the function can for exmple be used to bulk-add filters
      * and transformations to the iterators, using their functions
-     * @link utils::GenericInputStream::add_transform() add_transform()@endlink,
-     * @link utils::GenericInputStream::add_filter() add_filter()@endlink, and
-     * @link utils::GenericInputStream::add_transform_filter() add_transform_filter()@endlink;
-     * see utils::GenericInputStream for details.
+     * @link genesis::util::container::GenericInputStream::add_transform() add_transform()@endlink,
+     * @link genesis::util::container::GenericInputStream::add_filter() add_filter()@endlink, and
+     * @link genesis::util::container::GenericInputStream::add_transform_filter() add_transform_filter()@endlink;
+     * see genesis::util::container::GenericInputStream for details.
      */
     std::vector<VariantInputStream>& inputs()
     {

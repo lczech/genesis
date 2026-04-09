@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <array>
 #include <cassert>
@@ -127,7 +127,7 @@ struct KmerAlphabet
     {
         // Basic input checks. Checking upper and lower case in one condition is faster in our tests
         // than turning it into one case and doing fewer checks - likely due to branch prediction.
-        // c = utils::to_upper( c );
+        // c = genesis::util::text::to_upper( c );
         if(
             ( c != 'A' ) && ( c != 'C' ) && ( c != 'G' ) && ( c != 'T' ) &&
             ( c != 'a' ) && ( c != 'c' ) && ( c != 'g' ) && ( c != 't' )

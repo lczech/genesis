@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
 
 #include <functional>
 #include <iosfwd>
@@ -273,7 +273,7 @@ bool apply_sample_counts_filter_numerical(
  *
  * The function uses apply_sample_counts_filter_numerical(), modifying the samples, and tagging
  * whether the filtering determined that the samples should be kept. It can hence be used with
- * @link genesis::utils::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
+ * @link genesis::util::container::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
  * to mark filtered positions in the stream. alternative that instead excludes
  * the Variant::status from the stream.
  */

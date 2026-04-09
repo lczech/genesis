@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/bit/bitvector.hpp>
 
 #include <string>
 #include <unordered_map>
@@ -69,7 +69,7 @@ std::unordered_map<std::string, size_t> rf_taxon_name_map( Tree const& tree );
  * The Bitvector%s are normalized, that is, their first bit is always set to 0. This makes sure
  * that the two ways of representing each split result in the same Bitvector.
  */
-std::vector<utils::Bitvector> rf_get_bitvectors(
+std::vector<genesis::util::bit::Bitvector> rf_get_bitvectors(
     Tree const& tree,
     std::unordered_map<std::string, size_t> const& names
 );
@@ -87,7 +87,7 @@ std::vector<utils::Bitvector> rf_get_bitvectors(
  * the size of the key Bitvectors is the number of taxa in the trees;
  * and the size of the mapped value Bitvectors is the number of trees, that is TreeSet::size().
  */
-std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
+std::unordered_map<genesis::util::bit::Bitvector, genesis::util::bit::Bitvector> rf_get_occurrences(
     TreeSet const& trees
 );
 
@@ -101,7 +101,7 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
  * The function is meant as an accelaration for computing the distance from one Tree to several
  * other Tree%s, and is used by rf_distance_absolute( Tree const& lhs, TreeSet const& rhs ).
  */
-std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
+std::unordered_map<genesis::util::bit::Bitvector, genesis::util::bit::Bitvector> rf_get_occurrences(
     Tree const& lhs,
     TreeSet const& rhs
 );
@@ -112,7 +112,7 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
  * This is a special case of the more general rf_get_occurrences( TreeSet const& trees ) function,
  * which takes two Tree%s and computes their split occurences.
  */
-std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
+std::unordered_map<genesis::util::bit::Bitvector, genesis::util::bit::Bitvector> rf_get_occurrences(
     Tree const& lhs,
     Tree const& rhs
 );
@@ -126,7 +126,7 @@ std::unordered_map<utils::Bitvector, utils::Bitvector> rf_get_occurrences(
  *
  * The function computes the unweighted absolute RF distance.
  */
-utils::Matrix<size_t> rf_distance_absolute( TreeSet const& trees );
+genesis::util::container::Matrix<size_t> rf_distance_absolute( TreeSet const& trees );
 
 /**
  * @brief Compute the absolute RF (Robinson-Foulds) distance metric between a given @p lhs Tree
@@ -158,7 +158,7 @@ size_t rf_distance_absolute( Tree const& lhs, Tree const& rhs );
  * that normalization code (simply copy from this function), instead of computing the RF distance
  * twice, which is what happens if both rf_distance_relative() and rf_distance_absolute() are called.
  */
-utils::Matrix<double> rf_distance_relative( TreeSet const& trees );
+genesis::util::container::Matrix<double> rf_distance_relative( TreeSet const& trees );
 
 /**
  * @brief Compute the relative RF (Robinson-Foulds) distance metric between a given @p lhs Tree

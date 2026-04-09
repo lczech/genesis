@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -28,21 +28,20 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/kmeans.hpp"
+#include <genesis/tree/mass_tree/kmeans.hpp>
 
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
+#include <genesis/util/core/options.hpp>
 
 #include <cassert>
 #include <stdexcept>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -113,7 +112,6 @@ void MassTreeKmeans::update_centroids(
     auto const k = centroids.size();
 
     // Clear all centroid masses from previous iteration.
-    #pragma omp parallel for
     for( size_t c = 0; c < k; ++c ) {
         mass_tree_clear_masses( centroids[ c ] );
     }
@@ -122,12 +120,12 @@ void MassTreeKmeans::update_centroids(
     // checks this condition. So, simply assert it here, instead of throwing.
     assert( data.size() == assignments.size() );
 
-    #ifdef GENESIS_OPENMP
+    // We use a bit of a different scheme when parallelizing.
+    if( genesis::util::core::Options::get().has_global_thread_pool() ) {
 
         // Parallelize over centroids
-        #pragma omp parallel for
-        for( size_t c = 0; c < k; ++c ) {
-
+        genesis::util::threading::parallel_for( 0, k, [&]( size_t c )
+        {
             // Thread-local data.
             auto& centroid = centroids[ c ];
             size_t count = 0;
@@ -150,7 +148,7 @@ void MassTreeKmeans::update_centroids(
 
             // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
             // of the double equality check, but we have to live with it.
-            assert( utils::almost_equal_relative(
+            assert( genesis::util::math::almost_equal_relative(
                 count, mass_tree_sum_of_masses( centroid ), 0.00001
             ));
             (void) count;
@@ -162,9 +160,8 @@ void MassTreeKmeans::update_centroids(
                 mass_tree_binify_masses( centroid, accumulate_centroid_masses_ );
             }
             mass_tree_normalize_masses( centroid );
-        }
-
-    #else
+        });
+    } else {
 
         // In the serial case, we only want to traverse the data once.
 
@@ -187,7 +184,7 @@ void MassTreeKmeans::update_centroids(
 
             // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
             // of the double equality check, but we have to live with it.
-            assert( utils::almost_equal_relative(
+            assert( genesis::util::math::almost_equal_relative(
                 counts[ c ], mass_tree_sum_of_masses( centroids[ c ] ), 0.00001
             ));
 
@@ -199,8 +196,7 @@ void MassTreeKmeans::update_centroids(
             }
             mass_tree_normalize_masses( centroids[ c ] );
         }
-
-    #endif
+    }
 }
 
 double MassTreeKmeans::distance( Point const& lhs, Point const& rhs ) const

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lucas.czech@h-its.org>
-    Exelixis Lab, Heidelberg Institute for Theoretical Studies
-    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -28,12 +28,14 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/mass_tree/squash_clustering.hpp"
+#include <genesis/tree/mass_tree/squash_clustering.hpp>
 
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
 
-#include "genesis/utils/core/logging.hpp"
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -42,10 +44,6 @@
 #include <utility>
 #include <vector>
 #include <limits>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -79,11 +77,11 @@ void SquashClustering::init_( std::vector<MassTree>&& trees )
         clusters_[i].distances.resize( i );
 
         // Calculate the distances.
-        #pragma omp parallel for
-        for( size_t k = 0; k < i; ++k ) {
+        genesis::util::threading::parallel_for( 0, i, [&]( size_t k )
+        {
             auto const dist = earth_movers_distance( clusters_[i].tree, clusters_[k].tree, p_ );
             clusters_[i].distances[k] = dist;
-        }
+        });
 
         // Also, write out the trees for user output if needed.
         if( write_cluster_tree ) {
@@ -100,7 +98,6 @@ std::pair<size_t, size_t> SquashClustering::min_entry_() const
     double min_d = std::numeric_limits<double>::max();
 
     // Find min cell.
-    #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < clusters_.size(); ++i ) {
         if( ! clusters_[i].active ) {
             continue;
@@ -114,16 +111,10 @@ std::pair<size_t, size_t> SquashClustering::min_entry_() const
             }
 
             // Comparison.
-            #pragma omp flush( min_d )
             if( clusters_[i].distances[j] < min_d ) {
-                #pragma omp critical( GENESIS_TREE_MASS_TREE_SQUASH_CLUSTERING_MIN_ENTRY_UPDATE )
-                {
-                    if( clusters_[i].distances[j] < min_d ) {
-                        min_i = i;
-                        min_j = j;
-                        min_d = clusters_[i].distances[j];
-                    }
-                }
+                min_i = i;
+                min_j = j;
+                min_d = clusters_[i].distances[j];
             }
         }
     }
@@ -175,16 +166,23 @@ void SquashClustering::merge_clusters_( size_t i, size_t j )
 
     // Calculate distances to still active clusters, which also includes the two clusters that
     // we are about to merge. We will deactivate them after the loop. This way, we also compute
-    // their distances in parallel, maximizing OpenMP throughput!
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t k = 0; k < clusters_.size() - 1; ++k ) {
-        if( ! clusters_[k].active ) {
-            continue;
-        }
-
-        auto const dist = earth_movers_distance( new_cluster.tree, clusters_[k].tree, p_ );
-        new_cluster.distances[k] = dist;
-    }
+    // their distances in parallel, maximizing throughput!
+    genesis::util::threading::parallel_for(
+        0,
+        clusters_.size() - 1,
+        [&]( size_t k )
+        {
+            if( ! clusters_[k].active ) {
+                // continue;
+                return;
+            }
+            auto const dist = earth_movers_distance( new_cluster.tree, clusters_[k].tree, p_ );
+            new_cluster.distances[k] = dist;
+        },
+        nullptr,
+        // Use as many blocks as iterations, to achieve dynamic scheduling.
+        clusters_.size() - 1
+    );
 
     // Get the distance between the two clusters that we want to merge,
     // and make a new cluster merger.

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     Contact:
-    Lucas Czech <lczech@carnegiescience.edu>
-    Department of Plant Biology, Carnegie Institution For Science
-    260 Panama Street, Stanford, CA 94305, USA
+    Lucas Czech <lucas.czech@sund.ku.dk>
+    University of Copenhagen, Globe Institute, Section for GeoGenetics
+    Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 */
 
 /**
@@ -28,21 +28,23 @@
  * @ingroup tree
  */
 
- #include "genesis/tree/mass_tree/phylo_factor.hpp"
+ #include <genesis/tree/mass_tree/phylo_factor.hpp>
 
-#include "genesis/tree/drawing/functions.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/mass_tree/balances.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
+#include <genesis/tree/drawing/function.hpp>
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/mass_tree/balance.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
 
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/statistics.hpp"
-#include "genesis/utils/color/color.hpp"
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/statistic.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/threading/thread_pool.hpp>
+#include <genesis/util/threading/thread_function.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -50,10 +52,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace tree {
@@ -201,66 +199,79 @@ PhyloFactor phylo_factor_find_best_edge(
     auto const cand_vec = std::vector<size_t>( candidate_edges.begin(), candidate_edges.end() );
 
     // Try out all candidate edges.
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < cand_vec.size(); ++i ) {
-        auto const ce_idx = cand_vec[i];
-
-        assert( ce_idx < data.tree.edge_count() );
-        auto const& edge = data.tree.edge_at( ce_idx );
-        assert( edge.index() == ce_idx );
-
-        // The calling function already leaves out edges that lead to a leaf.
-        assert( ! is_leaf( edge ));
-
-        // Find the edges of the two subtrees induced by the split of the edge,
-        // leaving out subtrees that are not connected (that is, which are connected by an
-        // edge that is not in the candidates list).
-        // This might give empty sets, because previous factors can lead to a subtree being
-        // completely blocked.
-        // This could be optimized: an edge that yields an empty set here will also do so
-        // in all following phylo factors, so we can just completely remove it from lookup candidates.
-        // We can however not remove it from the candidates completely, as it is still part of the
-        // edges needed for calculating balances. So, we'd need another set of edges distinct from
-        // the candidates for storing which edges to use for the lookup... too complex for now!
-        auto const p_indices = phylo_factor_subtree_indices(
-            Subtree{ edge.primary_link() }, candidate_edges
-        );
-        if( p_indices.empty() ) {
-            continue;
-        }
-        auto const s_indices = phylo_factor_subtree_indices(
-            Subtree{ edge.secondary_link() }, candidate_edges
-        );
-        if( s_indices.empty() ) {
-            continue;
-        }
-
-        // We should not have added the actual candidate edge to either of the partitions.
-        assert( s_indices.count( edge.index() ) == 0 );
-        assert( p_indices.count( edge.index() ) == 0 );
-
-        // Calculate the balances of this edge for all trees.
-        auto const balances = mass_balance( data, s_indices, p_indices );
-
-        // Calculate the objective function, and store it in the result.
-        auto const ov = objective( iteration, ce_idx, balances );
-        result.all_objective_values[ ce_idx ] = ov;
-        if( ! std::isfinite( ov )) {
-            continue;
-        }
-
-        // Update our greedy best hit if needed.
-        #pragma omp critical( GENESIS_TREE_MASS_TREE_PHYLO_FACTOR_OBJECTIVE_UPDATE )
+    genesis::util::threading::parallel_for(
+        0, cand_vec.size(),
+        [&]( size_t i )
         {
-            if( ov > result.objective_value ) {
-                result.edge_index = ce_idx;
-                result.edge_indices_primary   = p_indices;
-                result.edge_indices_secondary = s_indices;
-                result.balances = balances;
-                result.objective_value = ov;
+            auto const ce_idx = cand_vec[i];
+
+            assert( ce_idx < data.tree.edge_count() );
+            auto const& edge = data.tree.edge_at( ce_idx );
+            assert( edge.index() == ce_idx );
+
+            // The calling function already leaves out edges that lead to a leaf.
+            assert( ! is_leaf( edge ));
+
+            // Find the edges of the two subtrees induced by the split of the edge,
+            // leaving out subtrees that are not connected (that is, which are connected by an
+            // edge that is not in the candidates list).
+            // This might give empty sets, because previous factors can lead to a subtree being
+            // completely blocked.
+            // This could be optimized: an edge that yields an empty set here will also do so
+            // in all following phylo factors, so we can just completely remove it from lookup
+            // candidates. We can however not remove it from the candidates completely, as it is
+            // still part of the edges needed for calculating balances. So, we'd need another set
+            // of edges distinct from the candidates for storing which edges to use for the
+            // lookup... too complex for now!
+            auto const p_indices = phylo_factor_subtree_indices(
+                Subtree{ edge.primary_link() }, candidate_edges
+            );
+            if( p_indices.empty() ) {
+                // continue;
+                return;
             }
-        }
-    }
+            auto const s_indices = phylo_factor_subtree_indices(
+                Subtree{ edge.secondary_link() }, candidate_edges
+            );
+            if( s_indices.empty() ) {
+                // continue;
+                return;
+            }
+
+            // We should not have added the actual candidate edge to either of the partitions.
+            assert( s_indices.count( edge.index() ) == 0 );
+            assert( p_indices.count( edge.index() ) == 0 );
+
+            // Calculate the balances of this edge for all trees.
+            auto const balances = mass_balance( data, s_indices, p_indices );
+
+            // Calculate the objective function, and store it in the result.
+            auto const ov = objective( iteration, ce_idx, balances );
+            result.all_objective_values[ ce_idx ] = ov;
+            if( ! std::isfinite( ov )) {
+                // continue;
+                return;
+            }
+
+            // Update our greedy best hit if needed.
+            {
+                GENESIS_THREAD_CRITICAL_SECTION(
+                    GENESIS_TREE_MASS_TREE_PHYLO_FACTOR_OBJECTIVE_UPDATE
+                )
+                if( ov > result.objective_value ) {
+                    result.edge_index = ce_idx;
+                    result.edge_indices_primary   = p_indices;
+                    result.edge_indices_secondary = s_indices;
+                    result.balances = balances;
+                    result.objective_value = ov;
+                }
+            }
+        },
+        nullptr,
+        // We provide the vector size as block size, so that we get dynamic scheduling.
+        // The interface here can probably be improved for intuition...
+        cand_vec.size()
+    );
 
     return result;
 }

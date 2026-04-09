@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/format/map_bim_reader.hpp"
+#include <genesis/population/format/map_bim_reader.hpp>
 
-#include "genesis/utils/io/parser.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/char.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/util/io/parser.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/char.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <limits>
@@ -48,7 +48,7 @@ namespace population {
 // =================================================================================================
 
 std::vector<MapBimReader::Feature> MapBimReader::read(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     std::vector<MapBimReader::Feature> result;
     read_( source, [&]( Feature&& feat ){
@@ -58,7 +58,7 @@ std::vector<MapBimReader::Feature> MapBimReader::read(
 }
 
 GenomeLocusSet MapBimReader::read_as_genome_locus_set(
-    std::shared_ptr< utils::BaseInputSource > source
+    std::shared_ptr< genesis::util::io::BaseInputSource > source
 ) const {
     GenomeLocusSet result;
     read_( source, [&]( Feature&& feat ){
@@ -68,7 +68,7 @@ GenomeLocusSet MapBimReader::read_as_genome_locus_set(
 }
 
 GenomeRegionList MapBimReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     bool merge
 ) const {
     GenomeRegionList result;
@@ -77,7 +77,7 @@ GenomeRegionList MapBimReader::read_as_genome_region_list(
 }
 
 void MapBimReader::read_as_genome_region_list(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     GenomeRegionList& target,
     bool merge
 ) const {
@@ -91,10 +91,10 @@ void MapBimReader::read_as_genome_region_list(
 // =================================================================================================
 
 void MapBimReader::read_(
-    std::shared_ptr< utils::BaseInputSource > source,
+    std::shared_ptr< genesis::util::io::BaseInputSource > source,
     std::function<void(Feature&&)> callback
 ) const {
-    utils::InputStream it( source );
+    genesis::util::io::InputStream it( source );
 
     // We use an internal reading function that takes care of checking that the number of columns
     // is constant throughout the input file. This avoids code duplication for these checkes
@@ -139,10 +139,13 @@ void MapBimReader::read_(
 }
 
 size_t MapBimReader::parse_line_(
-    utils::InputStream& input_stream,
+    genesis::util::io::InputStream& input_stream,
     MapBimReader::Feature& feature,
     std::vector<std::string>& buffer
 ) const {
+    using namespace genesis::util::io;
+    using namespace genesis::util::text;
+
     // Setup.
     size_t found_columns = 0;
     auto& it = input_stream;
@@ -163,7 +166,7 @@ size_t MapBimReader::parse_line_(
         }
 
         // Read into the buffer until the next tab or end of line.
-        buffer[found_columns] = utils::read_while( it, []( char c ){
+        buffer[found_columns] = read_while( it, []( char c ){
             return c != '\t' && c != '\n';
         });
         if( buffer[found_columns].empty() ) {
@@ -214,7 +217,7 @@ size_t MapBimReader::parse_line_(
     // Helper functions to avoid code repetition for the value parsing.
     auto get_position_ = [&]( std::string const& value ){
         double result;
-        if( ! utils::convert_to_double( value, result )) {
+        if( ! convert_to_double( value, result )) {
             throw std::runtime_error(
                 "Invalid map/bim input with (centi)morgan position that is not a numeric value (\"" +
                 value + "\") at " + it.at()
@@ -224,7 +227,7 @@ size_t MapBimReader::parse_line_(
     };
     auto get_coordinate_ = [&]( std::string const& value ){
         long long result;
-        if( ! utils::convert_to_signed_integer( value, result )) {
+        if( ! convert_to_signed_integer( value, result )) {
             throw std::runtime_error(
                 "Invalid map/bim input with base pair coordinate that is not a numeric value (\"" +
                 value + "\") at " + it.at()

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -317,7 +317,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorPostorder< true >>
+genesis::util::container::Range< IteratorPostorder< true >>
 postorder( ElementType const& element )
 {
     return {
@@ -327,7 +327,7 @@ postorder( ElementType const& element )
 }
 
 template<typename ElementType>
-utils::Range< IteratorPostorder< false >>
+genesis::util::container::Range< IteratorPostorder< false >>
 postorder( ElementType& element )
 {
     return {

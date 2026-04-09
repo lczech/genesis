@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
  * @ingroup population
  */
 
-#include "genesis/population/stream/variant_parallel_input_stream.hpp"
+#include <genesis/population/stream/variant_parallel_input_stream.hpp>
 
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/utils/core/logging.hpp"
-#include "genesis/utils/text/char.hpp"
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/util/core/logging.hpp>
+#include <genesis/util/text/char.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -184,16 +184,16 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
             // Set and check the ref and alt bases.
             // This is the first input that has data here. Use it to initialize the bases.
             if( ! bases_init ) {
-                res.reference_base   = utils::to_upper( variants_[i]->reference_base );
-                res.alternative_base = utils::to_upper( variants_[i]->alternative_base );
+                res.reference_base   = genesis::util::text::to_upper( variants_[i]->reference_base );
+                res.alternative_base = genesis::util::text::to_upper( variants_[i]->alternative_base );
                 bases_init = true;
             }
 
             // Now check that all inputs have the same bases. We however overwrite any input
             // that has an N with an input that does not have N, to get the best data.
-            if( res.reference_base != utils::to_upper( variants_[i]->reference_base )) {
+            if( res.reference_base != genesis::util::text::to_upper( variants_[i]->reference_base )) {
                 if( res.reference_base == 'N' ) {
-                    res.reference_base = utils::to_upper( variants_[i]->reference_base );
+                    res.reference_base = genesis::util::text::to_upper( variants_[i]->reference_base );
                 } else if( params.allow_ref_base_mismatches ) {
                     res.reference_base = 'N';
                 } else {
@@ -201,13 +201,13 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
                         "Mismatching reference bases while iterating input sources in parallel at " +
                         to_string( current_locus_ ) + ". Some sources have base '" +
                         std::string( 1, res.reference_base ) + "' while others have '" +
-                        std::string( 1, utils::to_upper( variants_[i]->reference_base )) + "'."
+                        std::string( 1, genesis::util::text::to_upper( variants_[i]->reference_base )) + "'."
                     );
                 }
             }
-            if( res.alternative_base != utils::to_upper( variants_[i]->alternative_base )) {
+            if( res.alternative_base != genesis::util::text::to_upper( variants_[i]->alternative_base )) {
                 if( res.alternative_base == 'N' ) {
-                    res.alternative_base = utils::to_upper( variants_[i]->alternative_base );
+                    res.alternative_base = genesis::util::text::to_upper( variants_[i]->alternative_base );
                 } else if( params.allow_alt_base_mismatches ) {
                     res.alternative_base = 'N';
                 } else {
@@ -215,7 +215,7 @@ Variant VariantParallelInputStream::Iterator::joined_variant(
                         "Mismatching alternative bases while iterating input sources in parallel at " +
                         to_string( current_locus_ ) + ". Some sources have base '" +
                         std::string( 1, res.alternative_base ) + "' while others have '" +
-                        std::string( 1, utils::to_upper( variants_[i]->alternative_base )) + "'."
+                        std::string( 1, genesis::util::text::to_upper( variants_[i]->alternative_base )) + "'."
                     );
                 }
             }
@@ -705,7 +705,7 @@ void VariantParallelInputStream::Iterator::update_variants_()
 
         // If the iterator is already finished, we store an empty optional variant.
         if( ! iterator ) {
-            variants_[i] = utils::nullopt;
+            variants_[i] = std::nullopt;
             continue;
         }
 
@@ -757,7 +757,7 @@ void VariantParallelInputStream::Iterator::update_variants_()
                 iterator->chromosome, iterator->position, current_locus_, parent_->sequence_dict_
             ));
 
-            variants_[i] = utils::nullopt;
+            variants_[i] = std::nullopt;
         }
     }
 }

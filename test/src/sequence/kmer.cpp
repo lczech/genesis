@@ -35,9 +35,9 @@
 #include "genesis/sequence/kmer/extractor.hpp"
 #include "genesis/sequence/kmer/function.hpp"
 #include "genesis/sequence/kmer/microvariant_scanner.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/math/random.hpp"
-#include "genesis/utils/tools/timer.hpp"
+#include "genesis/util/core/std.hpp"
+#include "genesis/util/math/random.hpp"
+#include "genesis/util/tool/timer.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -47,7 +47,9 @@
 
 using namespace genesis;
 using namespace genesis::sequence;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::math;
 
 // =================================================================================================
 //     Helper Functions
@@ -725,7 +727,7 @@ TEST( Kmer, CanonicalEncodingLarge )
 //
 //     // Start high-resolution timer
 //     // LOG_DBG << "start speed test";
-//     auto timer = utils::Timer( true );
+//     auto timer = genesis::util::Timer( true );
 //
 //     // Test that the encoding is the same for the kmer and its rc.
 //     // That's our speed test, hence encoding twice the number of kmers of the array.

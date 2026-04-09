@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,13 +31,13 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/formats/svg/svg.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/map.hpp"
-#include "genesis/utils/color/normalization.hpp"
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/drawing/layout_base.hpp>
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/format/svg/svg.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/map.hpp>
+#include <genesis/util/color/normalization.hpp>
 
 #include <string>
 #include <vector>
@@ -55,31 +55,31 @@ struct HeatTreeParameters
     CommonTree                  tree;
     LayoutType                  type      = LayoutType::kCladogram;
     bool                        ladderize = true;
-    std::vector<utils::Color>   color_per_branch;
-    utils::SvgStroke            stroke;
+    std::vector<genesis::util::color::Color>   color_per_branch;
+    genesis::util::format::SvgStroke            stroke;
 
     // Matrix parameters
-    utils::Matrix<utils::Color> matrix;
+    genesis::util::container::Matrix<genesis::util::color::Color> matrix;
     std::vector<std::string>    column_labels;
     bool                        matrix_as_bmp = false;
 };
 
-utils::SvgDocument heat_tree(
+genesis::util::format::SvgDocument heat_tree(
     HeatTreeParameters const&        params
 );
 
-utils::SvgDocument heat_tree(
+genesis::util::format::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm
+    genesis::util::color::ColorMap const&           matrix_color_map,
+    genesis::util::color::ColorNormalization const& matrix_color_norm
 );
 
-utils::SvgDocument heat_tree(
+genesis::util::format::SvgDocument heat_tree(
     HeatTreeParameters const&        params,
-    utils::ColorMap const&           matrix_color_map,
-    utils::ColorNormalization const& matrix_color_norm,
-    utils::ColorMap const&           tree_color_map,
-    utils::ColorNormalization const& tree_color_norm
+    genesis::util::color::ColorMap const&           matrix_color_map,
+    genesis::util::color::ColorNormalization const& matrix_color_norm,
+    genesis::util::color::ColorMap const&           tree_color_map,
+    genesis::util::color::ColorNormalization const& tree_color_norm
 );
 
 } // namespace tree

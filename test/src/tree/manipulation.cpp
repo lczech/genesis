@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,20 +37,23 @@
 
 #include "genesis/tree/function/manipulation.hpp"
 
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/newick_reader.hpp"
 #include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
-#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/format/newick/reader.hpp"
+#include "genesis/tree/function/function.hpp"
 #include "genesis/tree/iterator/levelorder.hpp"
 #include "genesis/tree/printer/compact.hpp"
 #include "genesis/tree/printer/detailed.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::tree;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 // =================================================================================================
 //     Reroot
@@ -85,7 +88,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     }
 
     // Check if the levelorder outcome is correct.
-    EXPECT_EQ( out_nodes, utils::trim( nodes )) << " with start node " << root_node_name;
+    EXPECT_EQ( out_nodes, genesis::util::text::trim( nodes )) << " with start node " << root_node_name;
 }
 
 TEST( TreeManipulation, Reroot )
@@ -508,7 +511,7 @@ TEST( TreeManipulation, DeleteEdges )
         //         //     std::string result;
         //         //     result += "[" + std::to_string( edge.index() ) + "] ";
         //         //     // if( edge.has_data() ) {
-        //         //     //     result += utils::to_string_nice( edge.data<CommonEdgeData>().branch_length );
+        //         //     //     result += genesis::util::io::to_string_nice( edge.data<CommonEdgeData>().branch_length );
         //         //     // }
         //         //     // if( edge.has_data() && node.has_data() && ! node.data<CommonNodeData>().name.empty() ) {
         //         //     //     result += ": ";

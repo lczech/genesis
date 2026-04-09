@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,25 +30,28 @@
 
 #include "src/common.hpp"
 
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/placement/function/operators.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
+#include "genesis/placement/function/operator.hpp"
 #include "genesis/placement/sample.hpp"
 
 #include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/mass_tree/balances.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
+#include "genesis/tree/function/operator.hpp"
+#include "genesis/tree/mass_tree/balance.hpp"
+#include "genesis/tree/mass_tree/function.hpp"
 #include "genesis/tree/mass_tree/phylo_ilr.hpp"
 
-#include "genesis/utils/containers/matrix/operators.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/container/matrix/operator.hpp"
+#include "genesis/util/math/common.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <vector>
 
 using namespace genesis;
 using namespace placement;
-using namespace tree;
+using namespace genesis::tree;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
+using namespace genesis::util::text;
 
 TEST( MassTree, Binify )
 {
@@ -78,7 +81,7 @@ TEST( MassTree, Binify )
         auto const pos = static_cast<double>( i ) / 5.0;
         auto const bin = get_bin_pos( pos, bl );
         auto const exp = bins[ i + 6 ];
-        EXPECT_TRUE( utils::almost_equal_relative( exp, bin ));
+        EXPECT_TRUE( almost_equal_relative( exp, bin ));
 
         // LOG_DBG << "i = " << i << "\tpos = " << pos << " \tbin = " << bin;
     }
@@ -91,7 +94,7 @@ TEST( MassTree, PhylogeneticILR )
 
     // Read sample
     std::string const infile = environment->data_dir + "placement/rooted.jplace";
-    auto const smp = JplaceReader().read( utils::from_file( infile ));
+    auto const smp = JplaceReader().read( from_file( infile ));
 
     // Prepare data. We deactivate taxon weighing.
     auto const tree = convert_sample_to_mass_tree( smp, false ).first;
@@ -130,7 +133,7 @@ TEST( MassTree, PhylogeneticILR )
 
         // We get slighly different results because of compiler floating point optimizations.
         // Let's say that 10 digits precision are good enough ;-)
-        EXPECT_TRUE( utils::almost_equal_relative( exp[i], bals( 0, i ), 1e-10 ));
+        EXPECT_TRUE( almost_equal_relative( exp[i], bals( 0, i ), 1e-10 ));
 
         std::cout << "exp " << exp[i] << " bals " << bals( 0, i ) << "\n";
     }

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,41 +33,41 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/sequence/counts.hpp"
-#include "genesis/sequence/formats/fai_input_stream.hpp"
-#include "genesis/sequence/formats/fasta_reader.hpp"
-#include "genesis/sequence/formats/fasta_writer.hpp"
-#include "genesis/sequence/formats/fastq_reader.hpp"
-#include "genesis/sequence/formats/fastq_writer.hpp"
-#include "genesis/sequence/formats/fastx_input_stream.hpp"
-#include "genesis/sequence/formats/fastx_input_view_stream.hpp"
-#include "genesis/sequence/formats/fastx_output_stream.hpp"
-#include "genesis/sequence/formats/phylip_reader.hpp"
-#include "genesis/sequence/formats/phylip_writer.hpp"
-#include "genesis/sequence/functions/codes.hpp"
-#include "genesis/sequence/functions/consensus.hpp"
-#include "genesis/sequence/functions/dict.hpp"
-#include "genesis/sequence/functions/entropy.hpp"
-#include "genesis/sequence/functions/functions.hpp"
-#include "genesis/sequence/functions/labels.hpp"
-#include "genesis/sequence/functions/quality.hpp"
-#include "genesis/sequence/functions/signatures.hpp"
-#include "genesis/sequence/functions/signature_specifications.hpp"
-#include "genesis/sequence/functions/stats.hpp"
-#include "genesis/sequence/kmer/alphabet.hpp"
-#include "genesis/sequence/kmer/bitfield.hpp"
-#include "genesis/sequence/kmer/canonical_encoding.hpp"
-#include "genesis/sequence/kmer/color_gamut_functions.hpp"
-#include "genesis/sequence/kmer/color_gamut.hpp"
-#include "genesis/sequence/kmer/extractor.hpp"
-#include "genesis/sequence/kmer/function.hpp"
-#include "genesis/sequence/kmer/kmer.hpp"
-#include "genesis/sequence/kmer/microvariant_scanner.hpp"
-#include "genesis/sequence/printers/bitmap.hpp"
-#include "genesis/sequence/printers/simple.hpp"
-#include "genesis/sequence/reference_genome.hpp"
-#include "genesis/sequence/sequence_dict.hpp"
-#include "genesis/sequence/sequence.hpp"
-#include "genesis/sequence/sequence_set.hpp"
+#include <genesis/sequence/format/fai_input_stream.hpp>
+#include <genesis/sequence/format/fasta_reader.hpp>
+#include <genesis/sequence/format/fasta_writer.hpp>
+#include <genesis/sequence/format/fastq_reader.hpp>
+#include <genesis/sequence/format/fastq_writer.hpp>
+#include <genesis/sequence/format/fastx_input_stream.hpp>
+#include <genesis/sequence/format/fastx_input_view_stream.hpp>
+#include <genesis/sequence/format/fastx_output_stream.hpp>
+#include <genesis/sequence/format/phylip_reader.hpp>
+#include <genesis/sequence/format/phylip_writer.hpp>
+#include <genesis/sequence/function/code.hpp>
+#include <genesis/sequence/function/consensus.hpp>
+#include <genesis/sequence/function/dict.hpp>
+#include <genesis/sequence/function/entropy.hpp>
+#include <genesis/sequence/function/function.hpp>
+#include <genesis/sequence/function/label.hpp>
+#include <genesis/sequence/function/quality.hpp>
+#include <genesis/sequence/function/signature.hpp>
+#include <genesis/sequence/function/signature_specifications.hpp>
+#include <genesis/sequence/function/statistic.hpp>
+#include <genesis/sequence/kmer/alphabet.hpp>
+#include <genesis/sequence/kmer/bitfield.hpp>
+#include <genesis/sequence/kmer/canonical_encoding.hpp>
+#include <genesis/sequence/kmer/color_gamut_function.hpp>
+#include <genesis/sequence/kmer/color_gamut.hpp>
+#include <genesis/sequence/kmer/extractor.hpp>
+#include <genesis/sequence/kmer/function.hpp>
+#include <genesis/sequence/kmer/kmer.hpp>
+#include <genesis/sequence/kmer/microvariant_scanner.hpp>
+#include <genesis/sequence/printer/bitmap.hpp>
+#include <genesis/sequence/printer/simple.hpp>
+#include <genesis/sequence/reference_genome.hpp>
+#include <genesis/sequence/sequence_dict.hpp>
+#include <genesis/sequence/sequence.hpp>
+#include <genesis/sequence/sequence_set.hpp>
+#include <genesis/sequence/site_counts.hpp>
 
 #endif // include guard

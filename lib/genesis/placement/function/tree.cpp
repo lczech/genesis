@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,15 +28,15 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/tree.hpp"
+#include <genesis/placement/function/tree.hpp>
 
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/tree/common_tree/operators.hpp"
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/manipulation.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/tree/common_tree/operator.hpp>
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/manipulation.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/tree.hpp>
 
 #include <algorithm>
 #include <cassert>

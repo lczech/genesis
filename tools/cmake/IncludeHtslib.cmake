@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Contact:
-# Lucas Czech <lczech@carnegiescience.edu>
-# Department of Plant Biology, Carnegie Institution For Science
-# 260 Panama Street, Stanford, CA 94305, USA
+# Lucas Czech <lucas.czech@sund.ku.dk>
+# University of Copenhagen, Globe Institute, Section for GeoGenetics
+# Oster Voldgade 5-7, 1350 Copenhagen K, Denmark
 
 # ==================================================================================================
 #   Init
@@ -25,10 +25,9 @@
 
 # This file is included from the main CMakeLists.txt in order to build htslib.
 message (STATUS "Looking for htslib")
-cmake_minimum_required( VERSION 3.8 )
-if(NOT DEFINED HTSLIB_DIR)
-  include(ExternalProject)
-endif()
+cmake_minimum_required( VERSION 3.14 )
+include(ExternalProject)
+include(FetchContent)
 
 # ==================================================================================================
 #   Check for autotools
@@ -163,8 +162,8 @@ ELSE()
     message (
         STATUS "${ColorYellow}You are trying to compile with htslib, which optionally needs "
         "libdeflate. This does not seem to work right now. Try installing `libdeflate-tools` "
-        "first, or the equivalent for your system. We are compiling without libdeflate support "
-        "for now.${ColorEnd}"
+        "and `libdeflate-dev` first, or the equivalent for your system. We are compiling without "
+        "libdeflate support for now.${ColorEnd}"
     )
     set( HTSLIB_Deflate "" )
     set( HTSLIB_Deflate_configure "--without-libdeflate" )
@@ -196,75 +195,132 @@ if( NOT ( CMAKE_VERSION VERSION_LESS 3.24 ))
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-# We download and built on our own, using the correct commit hash to get our exact desired
-# version, and install locally to the build directory.
-if(NOT DEFINED HTSLIB_DIR)
-  ExternalProject_Add(
+# Locate or fetch the htslib sources.
+# If we have a local submodule, we clone from there, which is a bit doubled effort,
+# but enables us to cleanly build out of source. Otherwise, cmake and/or htslib will start
+# polluting the submodule directory. Easiest that way for now; can be refined later.
+set(HTSLIB_GIT_SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/external/htslib")
+if (EXISTS "${HTSLIB_GIT_SUBMODULE_DIR}/configure.ac")
+    message(STATUS "Using htslib submodule")
+    set(HTSLIB_REPOSITORY "file://${HTSLIB_GIT_SUBMODULE_DIR}")
+else()
+    message(STATUS "htslib submodule not found")
+    message(STATUS "Will fetch htslib from GitHub")
+    set(HTSLIB_REPOSITORY "https://github.com/samtools/htslib.git")
+endif()
+
+# Now fetch the htslib code, either from the submodule, or fresh from GitHub
+FetchContent_Declare(
+    htslib
+    GIT_REPOSITORY ${HTSLIB_REPOSITORY}
+    GIT_TAG        ${htslib_GIT_TAG}
+    # SOURCE_DIR     ${CMAKE_BINARY_DIR}/htslib-source
+)
+FetchContent_GetProperties(htslib)
+if (NOT htslib_POPULATED)
+    FetchContent_Populate(htslib)
+endif()
+set(HTSLIB_SOURCE_DIR ${htslib_SOURCE_DIR})
+
+# Sanity check: by now ${HTSLIB_SOURCE_DIR} contains the full htslib tree
+if( EXISTS "${HTSLIB_SOURCE_DIR}/configure.ac")
+    message(STATUS "HTSLIB_SOURCE_DIR:    ${HTSLIB_SOURCE_DIR}")
+else()
+    message(FATAL_ERROR "htslib source not found in ${HTSLIB_SOURCE_DIR}")
+endif()
+
+# Set up htslib build and install directories
+# set(HTSLIB_SOURCE_DIR   ${CMAKE_BINARY_DIR}/htslib-source)
+set(HTSLIB_INSTALL_DIR  ${CMAKE_BINARY_DIR}/htslib-install)
+
+# Build and install via ExternalProject
+ExternalProject_Add(
     htslib
     PREFIX ""
+    GIT_REPOSITORY    ${HTSLIB_REPOSITORY}
+    GIT_TAG           ${htslib_GIT_TAG}
 
-    # Activate logging for better user debugging
-    LOG_DOWNLOAD  TRUE
-    LOG_CONFIGURE TRUE
-    LOG_BUILD     TRUE
-    LOG_INSTALL   TRUE
-    STAMP_DIR     ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-stamp
+    SOURCE_DIR   ${HTSLIB_SOURCE_DIR}
+    INSTALL_DIR  ${HTSLIB_INSTALL_DIR}
+    DOWNLOAD_COMMAND  ""
+    UPDATE_COMMAND   ""
 
-    # Download and Update Steps
-    # DOWNLOAD_COMMAND  ""
-    # GIT_REPOSITORY https://github.com/samtools/htslib.git
-    # GIT_TAG ${htslib_COMMIT_HASH}
-    URL https://github.com/samtools/htslib/releases/download/${GENESIS_HTSLIB_VERSION}/htslib-${GENESIS_HTSLIB_VERSION}.tar.bz2
-    DOWNLOAD_NO_PROGRESS TRUE
-    UPDATE_COMMAND    ""
-
-    # Configure Step. See htslib/INSTALL
-    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib-source
+    # building from git needs autoreconf → configure → make → install
+    # (release tarballs ship with generated configure scripts,
+    # but git clones require autoreconf)
     CONFIGURE_COMMAND
+        # ${CMAKE_COMMAND} -E chdir ${HTSLIB_SOURCE_DIR}
         autoreconf -i
-        # COMMAND
+        COMMAND
         # autoheader
         # COMMAND
         # autoconf
-        COMMAND
+        # COMMAND
         # We need to manually add -fPIC here, as somehow otherwise the local installation
         # won't link properly. Linking will always remain a mystery to me...
         # Need some special care to fix https://github.com/lczech/grenedalf/issues/12,
         # see https://stackoverflow.com/a/59536947 for the solution.
-        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib --libdir=${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib/lib --disable-multi-os-directory --disable-libcurl ${HTSLIB_Deflate_configure}
+        # ${CMAKE_COMMAND} -E chdir ${HTSLIB_SOURCE_DIR}
+        ./configure
+            CFLAGS=-fPIC CXXFLAGS=-fPIC
+            --prefix=${HTSLIB_INSTALL_DIR}
+            --libdir=${HTSLIB_INSTALL_DIR}/lib
+            --disable-multi-os-directory
+            --disable-ref-cache
+            --disable-libcurl
+            ${HTSLIB_Deflate_configure}
 
-    # Build Step
-    # BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib
+    # Didn't get these to work in the above configure... So we amend them here...
+    # I think it's because htslib does some internal flag stuff as well that is not
+    # cleanly implemented, see https://github.com/samtools/htslib/issues/1527
+    # $(MAKE) CFLAGS+=${HTSLIB_COMPILER_FLAGS} CXXFLAGS+=${HTSLIB_COMPILER_FLAGS}
+    # Nope... the above failes under clang?! Let's just deactivate for now.
     BUILD_IN_SOURCE true
-    BUILD_COMMAND
-        # Didn't get these to work in the above configure... So we amend them here...
-        # I think it's because htslib does some internal flag stuff as well that is not
-        # cleanly implemented, see https://github.com/samtools/htslib/issues/1527
-        # $(MAKE) CFLAGS+=${HTSLIB_COMPILER_FLAGS} CXXFLAGS+=${HTSLIB_COMPILER_FLAGS}
-        # Nope... the above failes under clang?! Let's just deactivate for now.
-        $(MAKE)
+    BUILD_COMMAND    $(MAKE) -j${CMAKE_BUILD_PARALLEL_LEVEL}
+    INSTALL_COMMAND  $(MAKE) install
 
-    # Install Step
-    INSTALL_COMMAND $(MAKE) install
-  )
-endif()
+    LOG_DOWNLOAD  ON
+    LOG_CONFIGURE ON
+    LOG_BUILD     ON
+    LOG_INSTALL   ON
+)
 
 # Set the paths so that those can be included by the targets.
 # We explicitly set the static library here, so that we link against that one.
-if(NOT DEFINED HTSLIB_DIR)
-  set( HTSLIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/genesis-htslib" )
-endif()
+set( HTSLIB_DIR         "${HTSLIB_INSTALL_DIR}" )
 set( HTSLIB_INCLUDE_DIR "${HTSLIB_DIR}/include" )
 set( HTSLIB_LINK_DIR    "${HTSLIB_DIR}/lib" )
 set( HTSLIB_LIBRARY     "${HTSLIB_DIR}/lib/libhts.a" )
 
-# Cannot test here for existing files, as those are not yet built when this is called...
-# IF(
-#     NOT EXISTS ${HTSLIB_INCLUDE_DIR}/htslib/hts.h OR
-#     NOT EXISTS ${HTSLIB_LIBRARY}/libhts.a
+# # We need to add a dummy IMPORTED_LIBRARY target with no validation,
+# # due to the CMake configure/build separation... otherwise, it will
+# # complain that the target is not existing, as it's not build yet.
+# add_library(htslib_imported STATIC IMPORTED GLOBAL)
+# set_target_properties(htslib_imported PROPERTIES
+#     IMPORTED_LOCATION             ${HTSLIB_INSTALL_DIR}/lib/libhts.a
+#     INTERFACE_INCLUDE_DIRECTORIES ${HTSLIB_INSTALL_DIR}/include
 # )
-#     message( FATAL_ERROR "Building htslib failed.")
-# ENDIF()
+# add_dependencies(htslib_imported htslib)
+
+# # Then, add a user-facing INTERFACE library, which we can actuall link against.
+# add_library(HTSlib::htslib ALIAS htslib_imported)
+# # add_library(HTSlib::htslib INTERFACE)
+# # target_link_libraries(HTSlib::htslib INTERFACE htslib_imported)
+# # target_include_directories(HTSlib::htslib INTERFACE
+# #     $<BUILD_INTERFACE:${_HTS_INSTALL}/include>
+# # )
+
+# # Previous test with a direct target
+# # # Expose an IMPORTED target you can link against
+# # add_library(HTSlib::htslib STATIC IMPORTED GLOBAL)
+# # set_target_properties(HTSlib::htslib PROPERTIES
+# #     IMPORTED_LOCATION             ${HTSLIB_INSTALL_DIR}/lib/libhts.a
+# #     INTERFACE_INCLUDE_DIRECTORIES ${HTSLIB_INSTALL_DIR}/include
+# # )
+# # add_dependencies(HTSlib::htslib htslib)
+
+# # Usage example
+# # target_link_libraries(my_lib PRIVATE HTSlib::htslib)
 
 # ==================================================================================================
 #   Finalize
@@ -290,11 +346,6 @@ IF(
 )
     message( FATAL_ERROR "Required package htslib (or some of its dependencies) not found.")
 ELSE()
-
-    # Technically, we cannot claim to have "found" the library here, as it won't yet be compiled...
-    # But let's stick to the user output that we used for the other dependencies,
-    # and assume that once we are here, the build process will work.
-    message( STATUS "Found htslib: ${HTSLIB_LIBRARY}" )
     message (STATUS "${ColorGreen}Using htslib${ColorEnd}")
 
     # Include the headers and directories, so that they are found by our source.

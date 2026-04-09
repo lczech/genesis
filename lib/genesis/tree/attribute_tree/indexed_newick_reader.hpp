@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/attribute_tree/tree.hpp"
-#include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/formats/newick/element.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
+#include <genesis/tree/attribute_tree/tree.hpp>
+#include <genesis/tree/common_tree/newick_reader.hpp>
+#include <genesis/tree/format/newick/element.hpp>
+#include <genesis/tree/format/newick/reader.hpp>
 
 #include <functional>
 #include <map>

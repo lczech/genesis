@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2023 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,12 +31,12 @@
  * @ingroup population
  */
 
-#include "genesis/utils/containers/matrix.hpp"
-#include "genesis/utils/formats/svg/group.hpp"
-#include "genesis/utils/formats/svg/matrix.hpp"
-#include "genesis/utils/io/output_target.hpp"
-#include "genesis/utils/color/color.hpp"
-#include "genesis/utils/color/map.hpp"
+#include <genesis/util/container/matrix.hpp>
+#include <genesis/util/format/svg/group.hpp>
+#include <genesis/util/format/svg/matrix.hpp>
+#include <genesis/util/io/output_target.hpp>
+#include <genesis/util/color/color.hpp>
+#include <genesis/util/color/map.hpp>
 
 #include <string>
 #include <vector>
@@ -78,7 +78,7 @@ public:
 
     HeatmapColorization() = default;
 
-    explicit HeatmapColorization( std::vector<utils::Color> const& palette )
+    explicit HeatmapColorization( std::vector<genesis::util::color::Color> const& palette )
     {
         color_map_.palette( palette );
     }
@@ -95,18 +95,18 @@ public:
     //     Heatmap Functions
     // -------------------------------------------------------------------------
 
-    std::pair<utils::Matrix<utils::Color>, double> spectrum_to_image(
+    std::pair<genesis::util::container::Matrix<genesis::util::color::Color>, double> spectrum_to_image(
         Spectrum const& spectrum
     ) const;
 
-    std::pair<utils::SvgGroup, double> spectrum_to_svg(
+    std::pair<genesis::util::format::SvgGroup, double> spectrum_to_svg(
         Spectrum const& spectrum,
-        utils::SvgMatrixSettings settings = {}
+        genesis::util::format::SvgMatrixSettings settings = {}
     ) const;
 
     double spectrum_to_bmp_file(
         Spectrum const& spectrum,
-        std::shared_ptr<utils::BaseOutputTarget> target
+        std::shared_ptr< genesis::util::io::BaseOutputTarget> target
     ) const;
 
     // -------------------------------------------------------------------------
@@ -157,12 +157,12 @@ public:
         return *this;
     }
 
-    utils::Color const& empty_window_color() const
+    genesis::util::color::Color const& empty_window_color() const
     {
         return color_map_.mask_color();
     }
 
-    self_type& empty_window_color( utils::Color const& value )
+    self_type& empty_window_color( genesis::util::color::Color const& value )
     {
         color_map_.mask_color( value );
         return *this;
@@ -179,13 +179,13 @@ public:
         return *this;
     }
 
-    self_type& palette( std::vector<utils::Color> const& value )
+    self_type& palette( std::vector<genesis::util::color::Color> const& value )
     {
         color_map_.palette( value );
         return *this;
     }
 
-    utils::ColorMap& color_map()
+    genesis::util::color::ColorMap& color_map()
     {
         return color_map_;
     }
@@ -202,7 +202,7 @@ private:
     bool max_per_column_ = false;
 
     bool use_empty_window_color_ = true;
-    utils::ColorMap color_map_;
+    genesis::util::color::ColorMap color_map_;
 
 };
 

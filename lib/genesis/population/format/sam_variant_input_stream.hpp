@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,13 +33,13 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/function/genome_locus.hpp"
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/population/variant.hpp"
-#include "genesis/utils/core/fs.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/function/genome_locus.hpp>
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/population/variant.hpp>
+#include <genesis/util/core/fs.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -378,7 +378,7 @@ public:
         // We check here, as input_file() allows to change the file after construction,
         // so we only do the check once we know that we are good to go.
         std::string err_str;
-        if( ! utils::file_is_readable( input_file_, err_str )) {
+        if( ! genesis::util::core::file_is_readable( input_file_, err_str )) {
             throw std::runtime_error(
                 "Cannot open input sam/bam/cram file '" + input_file_ + "': " + err_str
             );

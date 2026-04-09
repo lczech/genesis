@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,11 +33,11 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/placement.hpp"
-#include "genesis/population.hpp"
-#include "genesis/sequence.hpp"
-#include "genesis/taxonomy.hpp"
-#include "genesis/tree.hpp"
-#include "genesis/utils.hpp"
+#include <genesis/placement.hpp>
+#include <genesis/population.hpp>
+#include <genesis/sequence.hpp>
+#include <genesis/taxonomy.hpp>
+#include <genesis/tree.hpp>
+#include <genesis/util.hpp>
 
 #endif // include guard

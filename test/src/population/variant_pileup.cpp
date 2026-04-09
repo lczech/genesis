@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,11 +36,14 @@
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/utils/text/string.hpp"
+#include "genesis/population/function/function.hpp"
+#include "genesis/util/text/string.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 TEST( Pileup, VariantReader )
 {

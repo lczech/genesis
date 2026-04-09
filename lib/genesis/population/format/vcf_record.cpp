@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,10 +30,10 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_record.hpp"
+#include <genesis/population/format/vcf_record.hpp>
 
-#include "genesis/population/format/hts_file.hpp"
-#include "genesis/population/format/vcf_header.hpp"
+#include <genesis/population/format/hts_file.hpp>
+#include <genesis/population/format/vcf_header.hpp>
 
 extern "C" {
     #include <htslib/hts.h>
@@ -559,7 +559,7 @@ VcfFormatIteratorGenotype VcfRecord::end_format_genotype() const
     return VcfFormatIteratorGenotype();
 }
 
-genesis::utils::Range<VcfFormatIteratorGenotype> VcfRecord::get_format_genotype() const {
+genesis::util::container::Range<VcfFormatIteratorGenotype> VcfRecord::get_format_genotype() const {
     return {
         VcfFormatIteratorGenotype( header_->data(), record_, "GT", VcfValueType::kInteger ),
         VcfFormatIteratorGenotype()
@@ -576,7 +576,7 @@ VcfFormatIteratorString VcfRecord::end_format_string() const
     return VcfFormatIteratorString();
 }
 
-genesis::utils::Range<VcfFormatIteratorString> VcfRecord::get_format_string(
+genesis::util::container::Range<VcfFormatIteratorString> VcfRecord::get_format_string(
     std::string const& id
 ) const {
     return {
@@ -595,7 +595,7 @@ VcfFormatIteratorInt VcfRecord::end_format_int() const
     return VcfFormatIteratorInt();
 }
 
-genesis::utils::Range<VcfFormatIteratorInt> VcfRecord::get_format_int(
+genesis::util::container::Range<VcfFormatIteratorInt> VcfRecord::get_format_int(
     std::string const& id
 ) const {
     return {
@@ -614,7 +614,7 @@ VcfFormatIteratorFloat VcfRecord::end_format_float() const
     return VcfFormatIteratorFloat();
 }
 
-genesis::utils::Range<VcfFormatIteratorFloat> VcfRecord::get_format_float(
+genesis::util::container::Range<VcfFormatIteratorFloat> VcfRecord::get_format_float(
     std::string const& id
 ) const {
     return {

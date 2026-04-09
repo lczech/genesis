@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2020 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,24 +32,27 @@
 
 #include <string>
 
-#include "genesis/placement/formats/edge_color.hpp"
-#include "genesis/placement/formats/jplace_reader.hpp"
-#include "genesis/placement/formats/newick_writer.hpp"
-#include "genesis/tree/formats/phyloxml/writer.hpp"
+#include "genesis/placement/format/edge_color.hpp"
+#include "genesis/placement/format/jplace_reader.hpp"
+#include "genesis/placement/format/newick_writer.hpp"
+#include "genesis/tree/format/phyloxml/writer.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
+#include "genesis/tree/common_tree/function.hpp"
 #include "genesis/tree/common_tree/phyloxml_writer.hpp"
-#include "genesis/tree/formats/newick/color_writer_plugin.hpp"
-#include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
-#include "genesis/utils/formats/nexus/document.hpp"
-#include "genesis/utils/formats/nexus/taxa.hpp"
-#include "genesis/utils/formats/nexus/trees.hpp"
-#include "genesis/utils/formats/nexus/writer.hpp"
+#include "genesis/tree/format/newick/color_writer_plugin.hpp"
+#include "genesis/tree/format/phyloxml/color_writer_plugin.hpp"
+#include "genesis/util/format/nexus/document.hpp"
+#include "genesis/util/format/nexus/taxa.hpp"
+#include "genesis/util/format/nexus/trees.hpp"
+#include "genesis/util/format/nexus/writer.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
 using namespace genesis::tree;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::format;
+using namespace genesis::util::io;
 
 TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
 {
@@ -66,7 +69,7 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
 
     color_plugin.edge_colors( placement_color_count_gradient( map ));
     std::string out;
-    writer.write( map.tree(), utils::to_string( out ));
+    writer.write( map.tree(), genesis::util::io::to_string( out ));
 
     // At least one element in the output should have the color for the edge with most placements.
     EXPECT_TRUE( out.find("<red>255</red>")  != std::string::npos );
@@ -114,11 +117,11 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     auto doc = NexusDocument();
 
-    auto taxa = make_unique<NexusTaxa>();
+    auto taxa = genesis::util::core::make_unique<NexusTaxa>();
     taxa->add_taxa(node_names(map.tree()));
     doc.set_block( std::move(taxa) );
 
-    auto trees = make_unique<NexusTrees>();
+    auto trees = genesis::util::core::make_unique<NexusTrees>();
     trees->add_tree( "tree1", tree_out );
     doc.set_block( std::move(trees) );
 
@@ -128,7 +131,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
     std::ostringstream buffer;
 
     auto nexus_writer = NexusWriter();
-    nexus_writer.write( doc, utils::to_stream( buffer ));
+    nexus_writer.write( doc, genesis::util::io::to_stream( buffer ));
     auto nexus_out = buffer.str();
 
     EXPECT_TRUE( nexus_out.find("color=#ff0000") != std::string::npos );

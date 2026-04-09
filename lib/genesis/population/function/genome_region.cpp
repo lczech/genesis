@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,13 +28,13 @@
  * @ingroup population
  */
 
-#include "genesis/population/function/genome_region.hpp"
+#include <genesis/population/function/genome_region.hpp>
 
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/io/scanner.hpp"
-#include "genesis/utils/text/convert.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
+#include <genesis/util/io/scanner.hpp>
+#include <genesis/util/text/convert.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -106,6 +106,7 @@ std::string to_string( GenomeRegion const& region )
 
 GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bool end_exclusive )
 {
+    using namespace genesis::util::text;
     GenomeRegion result;
 
     // Helper function to throw on error without copies of the same error message each time.
@@ -117,7 +118,7 @@ GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bo
     auto convert_str_to_pos_ = [&]( std::string const& str ){
         size_t res = 0;
         try {
-            res = utils::convert_from_string<size_t>( str, true );
+            res = convert_from_string<size_t>( str, true );
         } catch( ... ) {
             throw_invalid_arg_();
         }
@@ -125,7 +126,7 @@ GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bo
     };
 
     // Split by chromosome delimitier and store the chrom. Every string at least yields one split.
-    auto const chr_split = utils::split( region, ":", false );
+    auto const chr_split = split( region, ":", false );
     assert( chr_split.size() > 0 );
     result.chromosome = chr_split[0];
 
@@ -138,9 +139,9 @@ GenomeRegion parse_genome_region( std::string const& region, bool zero_based, bo
     if( chr_split.size() == 2 ) {
 
         // Try to split by "-", or if that does not work, try ".." instead.
-        auto pos_split = utils::split( chr_split[1], "-", false );
+        auto pos_split = split( chr_split[1], "-", false );
         if( pos_split.size() == 1 ) {
-            pos_split = utils::split_at( chr_split[1], "..", false );
+            pos_split = split_at( chr_split[1], "..", false );
         }
 
         // If there is no delimiter, use the number for both start and end.
@@ -192,9 +193,9 @@ GenomeRegionList parse_genome_regions(
 ) {
     GenomeRegionList result;
 
-    auto const region_list = utils::split( regions, ",", false );
+    auto const region_list = genesis::util::text::split( regions, ",", false );
     for( auto const& region : region_list ) {
-        result.add( parse_genome_region( utils::trim( region ), zero_based, end_exclusive ));
+        result.add( parse_genome_region( genesis::util::text::trim( region ), zero_based, end_exclusive ));
     }
 
     return result;

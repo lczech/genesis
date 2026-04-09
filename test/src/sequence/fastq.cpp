@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,24 +30,28 @@
 
 #include "src/common.hpp"
 
-#include "genesis/sequence/formats/fastq_reader.hpp"
-#include "genesis/sequence/formats/fastq_writer.hpp"
-#include "genesis/sequence/formats/fastx_input_stream.hpp"
-#include "genesis/sequence/formats/fastx_input_view_stream.hpp"
-#include "genesis/sequence/formats/fastx_output_stream.hpp"
-#include "genesis/sequence/functions/quality.hpp"
+#include "genesis/sequence/format/fastq_reader.hpp"
+#include "genesis/sequence/format/fastq_writer.hpp"
+#include "genesis/sequence/format/fastx_input_stream.hpp"
+#include "genesis/sequence/format/fastx_input_view_stream.hpp"
+#include "genesis/sequence/format/fastx_output_stream.hpp"
+#include "genesis/sequence/function/quality.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 
-#include "genesis/utils/core/fs.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/string.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/util/core/fs.hpp"
+#include "genesis/util/core/std.hpp"
+#include "genesis/util/text/string.hpp"
+#include "genesis/util/io/input_stream.hpp"
 
 #include <fstream>
 #include <string>
 
 using namespace genesis;
 using namespace genesis::sequence;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::text;
 
 TEST( Sequence, FastqReader )
 {
@@ -63,7 +67,7 @@ TEST( Sequence, FastqReader )
         //         sequence.phred_scores( quality_decode_to_phred_score( quality_string ));
         //     }
         // )
-        .read( utils::from_file(infile), sset);
+        .read( from_file(infile), sset);
 
     // Check data.
     EXPECT_EQ( 2, sset.size() );
@@ -100,7 +104,7 @@ TEST( Sequence, FastqEncoding )
     // Load sequence file. We use a different file, to have more testing variety.
     std::string infile = environment->data_dir + "sequence/SP1.fq";
 
-    auto const enc = guess_fastq_quality_encoding( utils::from_file( infile ));
+    auto const enc = guess_fastq_quality_encoding( from_file( infile ));
     EXPECT_EQ( QualityEncoding::kSanger, enc );
 }
 
@@ -112,12 +116,12 @@ TEST( Sequence, FastqInputStream )
 
     size_t cnt = 0;
     size_t sum_labels = 0;
-    auto it = FastqInputStream( utils::from_file( infile ));
+    auto it = FastqInputStream( from_file( infile ));
     for( auto const& seq : it ) {
         // std::cout << "A " << cnt << " " << seq.length() << "\n";
         EXPECT_TRUE( seq.label().size() >= 21 || seq.label().size() <= 23 );
         EXPECT_EQ( 31, seq.sites().size() );
-        EXPECT_TRUE( utils::starts_with( seq.label(), "cluster_" ));
+        EXPECT_TRUE( starts_with( seq.label(), "cluster_" ));
         ++cnt;
         sum_labels += seq.label().size();
     }
@@ -131,7 +135,7 @@ TEST( Sequence, FastqInputStream )
 
     // Again, to test resetting
     cnt = 0;
-    for( auto const& s : FastqInputStream( utils::from_file( infile )) ) {
+    for( auto const& s : FastqInputStream( from_file( infile )) ) {
         (void) s;
         // std::cout << "B " << cnt << " " << s.length() << "\n";
         ++cnt;
@@ -149,11 +153,11 @@ TEST( Sequence, FastqInputViewStream )
 
     size_t cnt = 0;
     size_t sum_labels = 0;
-    auto it = FastxInputViewStream( utils::from_file( infile ));
+    auto it = FastxInputViewStream( from_file( infile ));
     for( auto const& seq : it ) {
         EXPECT_TRUE( seq.label().size() >= 21 || seq.label().size() <= 23 );
         EXPECT_EQ( 31, seq.sites().size() );
-        EXPECT_TRUE( utils::starts_with( std::string( seq.label() ), "cluster_" ));
+        EXPECT_TRUE( starts_with( std::string( seq.label() ), "cluster_" ));
         ++cnt;
         sum_labels += seq.label().size();
     }
@@ -170,14 +174,14 @@ TEST( Sequence, FastqWriter )
 
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/SP1.fq";
-    auto const sset = FastqReader().read( utils::from_file( infile ));
+    auto const sset = FastqReader().read( from_file( infile ));
 
     // Write back into a string.
     std::string written;
-    FastqWriter().write( sset, utils::to_string( written ));
+    FastqWriter().write( sset, genesis::util::io::to_string( written ));
 
     // Compare to raw file data.
-    auto const data = utils::file_read( infile );
+    auto const data = file_read( infile );
     EXPECT_EQ( data, written );
 }
 
@@ -188,18 +192,18 @@ TEST( Sequence, FastqOutputStream )
 
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/SP1.fq";
-    auto const sset = FastqReader().read( utils::from_file( infile ));
+    auto const sset = FastqReader().read( from_file( infile ));
 
     // Write to string. Need scope to actually do the writing.
     std::string target;
     {
-        auto out_it = FastqOutputStream( utils::to_string( target ));
+        auto out_it = FastqOutputStream( genesis::util::io::to_string( target ));
         for( auto const& seq : sset ) {
             out_it << seq;
         }
     }
 
     // Compare to raw file.
-    auto const data = utils::file_read( infile );
+    auto const data = file_read( infile );
     EXPECT_EQ( data, target );
 }

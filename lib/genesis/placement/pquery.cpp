@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,10 +28,10 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/pquery.hpp"
+#include <genesis/placement/pquery.hpp>
 
-#include "genesis/placement/placement_tree.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/placement/placement_tree.hpp>
+#include <genesis/util/core/std.hpp>
 
 namespace genesis {
 namespace placement {
@@ -70,12 +70,12 @@ Pquery::const_iterator_placements Pquery::end_placements() const
     return placements_.cend();
 }
 
-utils::Range<Pquery::iterator_placements> Pquery::placements()
+genesis::util::container::Range<Pquery::iterator_placements> Pquery::placements()
 {
     return { placements_ };
 }
 
-utils::Range<Pquery::const_iterator_placements> Pquery::placements() const
+genesis::util::container::Range<Pquery::const_iterator_placements> Pquery::placements() const
 {
     return { placements_ };
 }
@@ -159,12 +159,12 @@ Pquery::const_iterator_names Pquery::end_names() const
     return names_.cend();
 }
 
-utils::Range<Pquery::iterator_names> Pquery::names()
+genesis::util::container::Range<Pquery::iterator_names> Pquery::names()
 {
     return { names_ };
 }
 
-utils::Range<Pquery::const_iterator_names> Pquery::names() const
+genesis::util::container::Range<Pquery::const_iterator_names> Pquery::names() const
 {
     return { names_ };
 }

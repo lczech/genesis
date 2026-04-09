@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,19 +31,23 @@
 #include "src/common.hpp"
 
 #include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
 #include "genesis/population/window/position_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
+#include "genesis/util/math/random.hpp"
 
 #include <unordered_map>
 #include <unordered_set>
 
 using namespace genesis::population;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::container;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
 
 // =================================================================================================
 //     Empty
@@ -214,7 +218,7 @@ TEST( PositionWindowStream, RandomFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     size_t num_tests = 2000;
     for( size_t i = 0; i < num_tests; ++i ) {

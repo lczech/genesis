@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,72 +33,72 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/tree/attribute_tree/indexed_newick_reader.hpp"
-#include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
-#include "genesis/tree/attribute_tree/tree.hpp"
-#include "genesis/tree/bipartition/bipartition.hpp"
-#include "genesis/tree/bipartition/functions.hpp"
-#include "genesis/tree/bipartition/rf.hpp"
-#include "genesis/tree/common_tree/distances.hpp"
-#include "genesis/tree/common_tree/edge_color.hpp"
-#include "genesis/tree/common_tree/functions.hpp"
-#include "genesis/tree/common_tree/newick_reader.hpp"
-#include "genesis/tree/common_tree/newick_writer.hpp"
-#include "genesis/tree/common_tree/operators.hpp"
-#include "genesis/tree/common_tree/phyloxml_writer.hpp"
-#include "genesis/tree/common_tree/tree.hpp"
-#include "genesis/tree/drawing/circular_layout.hpp"
-#include "genesis/tree/drawing/functions.hpp"
-#include "genesis/tree/drawing/heat_tree.hpp"
-#include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/layout_tree.hpp"
-#include "genesis/tree/drawing/rectangular_layout.hpp"
-#include "genesis/tree/formats/color_writer_plugin.hpp"
-#include "genesis/tree/formats/newick/broker.hpp"
-#include "genesis/tree/formats/newick/color_writer_plugin.hpp"
-#include "genesis/tree/formats/newick/element.hpp"
-#include "genesis/tree/formats/newick/input_iterator.hpp"
-#include "genesis/tree/formats/newick/reader.hpp"
-#include "genesis/tree/formats/newick/simple_reader.hpp"
-#include "genesis/tree/formats/newick/simple_tree.hpp"
-#include "genesis/tree/formats/newick/simple_writer.hpp"
-#include "genesis/tree/formats/newick/writer.hpp"
-#include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"
-#include "genesis/tree/formats/phyloxml/writer.hpp"
-#include "genesis/tree/formats/table/reader.hpp"
-#include "genesis/tree/function/accumulate.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/lca_lookup.hpp"
-#include "genesis/tree/function/manipulation.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/function/tree_set.hpp"
-#include "genesis/tree/iterator/eulertour.hpp"
-#include "genesis/tree/iterator/levelorder.hpp"
-#include "genesis/tree/iterator/node_links.hpp"
-#include "genesis/tree/iterator/path.hpp"
-#include "genesis/tree/iterator/path_set.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/mass_tree/balances.hpp"
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/kmeans.hpp"
-#include "genesis/tree/mass_tree/phylo_factor_colors.hpp"
-#include "genesis/tree/mass_tree/phylo_factor.hpp"
-#include "genesis/tree/mass_tree/phylo_ilr.hpp"
-#include "genesis/tree/mass_tree/squash_clustering.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/printer/compact.hpp"
-#include "genesis/tree/printer/detailed.hpp"
-#include "genesis/tree/printer/table.hpp"
-#include "genesis/tree/tree/edge_data.hpp"
-#include "genesis/tree/tree/edge.hpp"
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/link.hpp"
-#include "genesis/tree/tree/node_data.hpp"
-#include "genesis/tree/tree/node.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/tree/tree/subtree.hpp"
+#include <genesis/tree/attribute_tree/indexed_newick_reader.hpp>
+#include <genesis/tree/attribute_tree/keyed_newick_reader.hpp>
+#include <genesis/tree/attribute_tree/tree.hpp>
+#include <genesis/tree/bipartition/bipartition.hpp>
+#include <genesis/tree/bipartition/function.hpp>
+#include <genesis/tree/bipartition/rf.hpp>
+#include <genesis/tree/common_tree/distance.hpp>
+#include <genesis/tree/common_tree/edge_color.hpp>
+#include <genesis/tree/common_tree/function.hpp>
+#include <genesis/tree/common_tree/newick_reader.hpp>
+#include <genesis/tree/common_tree/newick_writer.hpp>
+#include <genesis/tree/common_tree/operator.hpp>
+#include <genesis/tree/common_tree/phyloxml_writer.hpp>
+#include <genesis/tree/common_tree/tree.hpp>
+#include <genesis/tree/drawing/circular_layout.hpp>
+#include <genesis/tree/drawing/function.hpp>
+#include <genesis/tree/drawing/heat_tree.hpp>
+#include <genesis/tree/drawing/layout_base.hpp>
+#include <genesis/tree/drawing/layout_tree.hpp>
+#include <genesis/tree/drawing/rectangular_layout.hpp>
+#include <genesis/tree/format/color_writer_plugin.hpp>
+#include <genesis/tree/format/newick/broker.hpp>
+#include <genesis/tree/format/newick/color_writer_plugin.hpp>
+#include <genesis/tree/format/newick/element.hpp>
+#include <genesis/tree/format/newick/input_iterator.hpp>
+#include <genesis/tree/format/newick/reader.hpp>
+#include <genesis/tree/format/newick/simple_reader.hpp>
+#include <genesis/tree/format/newick/simple_tree.hpp>
+#include <genesis/tree/format/newick/simple_writer.hpp>
+#include <genesis/tree/format/newick/writer.hpp>
+#include <genesis/tree/format/phyloxml/color_writer_plugin.hpp>
+#include <genesis/tree/format/phyloxml/writer.hpp>
+#include <genesis/tree/format/table/reader.hpp>
+#include <genesis/tree/function/accumulate.hpp>
+#include <genesis/tree/function/distance.hpp>
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/lca_lookup.hpp>
+#include <genesis/tree/function/manipulation.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/tree/function/tree_set.hpp>
+#include <genesis/tree/iterator/eulertour.hpp>
+#include <genesis/tree/iterator/levelorder.hpp>
+#include <genesis/tree/iterator/node_links.hpp>
+#include <genesis/tree/iterator/path.hpp>
+#include <genesis/tree/iterator/path_set.hpp>
+#include <genesis/tree/iterator/postorder.hpp>
+#include <genesis/tree/iterator/preorder.hpp>
+#include <genesis/tree/mass_tree/balance.hpp>
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
+#include <genesis/tree/mass_tree/kmeans.hpp>
+#include <genesis/tree/mass_tree/phylo_factor_color.hpp>
+#include <genesis/tree/mass_tree/phylo_factor.hpp>
+#include <genesis/tree/mass_tree/phylo_ilr.hpp>
+#include <genesis/tree/mass_tree/squash_clustering.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/printer/compact.hpp>
+#include <genesis/tree/printer/detailed.hpp>
+#include <genesis/tree/printer/table.hpp>
+#include <genesis/tree/tree/edge_data.hpp>
+#include <genesis/tree/tree/edge.hpp>
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/link.hpp>
+#include <genesis/tree/tree/node_data.hpp>
+#include <genesis/tree/tree/node.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/tree/tree/subtree.hpp>
 
 #endif // include guard

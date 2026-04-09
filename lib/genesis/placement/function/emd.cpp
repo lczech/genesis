@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,30 +28,26 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/function/emd.hpp"
+#include <genesis/placement/function/emd.hpp>
 
-#include "genesis/placement/function/functions.hpp"
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/placement/function/masses.hpp"
-#include "genesis/placement/function/operators.hpp"
-#include "genesis/placement/sample_set.hpp"
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/function/function.hpp>
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/placement/function/mass.hpp>
+#include <genesis/placement/function/operator.hpp>
+#include <genesis/placement/sample_set.hpp>
+#include <genesis/placement/sample.hpp>
 
-#include "genesis/tree/common_tree/functions.hpp"
-#include "genesis/tree/function/tree_set.hpp"
-#include "genesis/tree/mass_tree/emd.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/tree_set.hpp"
-#include "genesis/tree/tree.hpp"
+#include <genesis/tree/common_tree/function.hpp>
+#include <genesis/tree/function/tree_set.hpp>
+#include <genesis/tree/mass_tree/emd.hpp>
+#include <genesis/tree/mass_tree/function.hpp>
+#include <genesis/tree/mass_tree/tree.hpp>
+#include <genesis/tree/tree_set.hpp>
+#include <genesis/tree/tree.hpp>
 
-#include "genesis/utils/containers/matrix.hpp"
+#include <genesis/util/container/matrix.hpp>
 
 #include <cassert>
-
-#ifdef GENESIS_OPENMP
-#   include <omp.h>
-#endif
 
 namespace genesis {
 namespace placement {
@@ -104,7 +100,7 @@ double earth_movers_distance (
 //     EMD matrix for a SampleSet
 // -------------------------------------------------------------------------
 
-utils::Matrix<double> earth_movers_distance(
+genesis::util::container::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
     double const     p,
     bool const       with_pendant_length

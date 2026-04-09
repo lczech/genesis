@@ -46,15 +46,14 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/kmer/kmer.hpp"
-#include "genesis/utils/math/common.hpp"
+#include <genesis/sequence/kmer/kmer.hpp>
+#include <genesis/util/math/common.hpp>
 
 #include <array>
 #include <cassert>
 #include <cctype>
 #include <cmath>
 #include <climits>
-#include <cstdbool>
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
@@ -243,8 +242,8 @@ private:
     {
         // We need two variants of powers of 4 depending on k, which we can pre-compute for speed,
         // as this is too expensive for the hot path.
-        four_to_the_k_half_plus_one_ = utils::int_pow( 4, k_ / 2 + 1 );
-        twice_four_to_the_k_half_ = 2 * utils::int_pow( 4, k_ / 2 );
+        four_to_the_k_half_plus_one_ = genesis::util::math::int_pow( 4, k_ / 2 + 1 );
+        twice_four_to_the_k_half_ = 2 * genesis::util::math::int_pow( 4, k_ / 2 );
 
         // After we have identified the specifying pair of characters, we need to extract
         // the remainder, see encode_prime_(). We here precompute a mask to do that.

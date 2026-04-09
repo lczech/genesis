@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,17 +33,20 @@
 #include "genesis/population/format/simple_pileup_input_stream.hpp"
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
-#include "genesis/population/window/functions.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
+#include "genesis/population/window/function.hpp"
 #include "genesis/population/window/chromosome_window_stream.hpp"
 #include "genesis/population/window/genome_window_stream.hpp"
 #include "genesis/population/window/window.hpp"
 #include "genesis/population/window/window_view.hpp"
-#include "genesis/utils/containers/generic_input_stream.hpp"
+#include "genesis/util/container/generic_input_stream.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::container;
+using namespace genesis::util::io;
 
 void test_window_stream_chromosome_stream_chromosome_empty_()
 {

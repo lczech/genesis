@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,9 +33,9 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/hts_file.hpp"
-#include "genesis/population/format/vcf_header.hpp"
-#include "genesis/population/format/vcf_record.hpp"
+#include <genesis/population/format/hts_file.hpp>
+#include <genesis/population/format/vcf_header.hpp>
+#include <genesis/population/format/vcf_record.hpp>
 
 #include <cassert>
 #include <memory>

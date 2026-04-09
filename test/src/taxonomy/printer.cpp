@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,18 +30,20 @@
 
 #include "src/common.hpp"
 
-#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/printers/nested.hpp"
+#include "genesis/taxonomy/format/taxonomy_reader.hpp"
+#include "genesis/taxonomy/function/taxonomy.hpp"
+#include "genesis/taxonomy/printer/nested.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
 
-#include "genesis/utils/text/string.hpp"
+#include "genesis/util/text/string.hpp"
 
 #include <stdexcept>
 
 using namespace genesis;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 using namespace genesis::taxonomy;
 
 TEST( Taxonomy, PrinterNested )
@@ -78,7 +80,7 @@ TEST( Taxonomy, PrinterNested )
         printer.line_limit( i );
         auto head = printer( tax );
 
-        EXPECT_EQ( utils::head( all, i ) + "\n...\n", head );
+        EXPECT_EQ( genesis::util::text::head( all, i ) + "\n...\n", head );
     }
 
     // printer.print_ranks( true );

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,10 +37,10 @@
 #include <limits>
 #include <stdexcept>
 
-#include "genesis/population/plotting/af_spectrum.hpp"
-#include "genesis/population/format/vcf_input_stream.hpp"
+#include <genesis/population/plotting/af_spectrum.hpp>
+#include <genesis/population/format/vcf_input_stream.hpp>
 
-#include "genesis/utils/formats/bmp/writer.hpp"
+#include <genesis/util/format/bmp/writer.hpp>
 
 namespace genesis {
 namespace population {

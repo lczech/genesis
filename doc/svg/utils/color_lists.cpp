@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2019 Lucas Czech and HITS gGmbH
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,10 +21,12 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "genesis/utils.hpp"
+#include "genesis/util.hpp"
 
 using namespace genesis;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::color;
+using namespace genesis::util::format;
 
 /**
  * @brief Tool to generate color lists in svg for all the lists that are available.
@@ -39,7 +41,7 @@ int main( int argc, char** argv )
     (void) argv;
 
     // Activate logging.
-    utils::Logging::log_to_stdout();
+    util::core::Logging::log_to_stdout();
     SvgDocument doc;
     size_t entry = 0;
 
@@ -54,22 +56,22 @@ int main( int argc, char** argv )
     //     Sequential
     // -------------------------------------------------------------------------
 
-    doc << SvgText( "Sequential", SvgPoint( 10, 30 * entry + 15 ));
+    doc.add( SvgText( "Sequential", SvgPoint( 10, 30 * entry + 15 )));
     ++entry;
 
-    for( auto const& listname : sequential_color_list_names() ) {
-        auto const& list = sequential_color_list( listname );
+    for( auto const& listname : color_list_sequential_names() ) {
+        auto const& list = color_list_sequential( listname );
         auto map = ColorMap( list );
         auto norm = ColorNormalizationLinear();
 
         // Palette
-        auto sp = make_svg_color_bar( svgpal, map, norm, listname );
+        auto sp = make_svg_color_bar( svgpal, map, norm, sanitize_svg_id( listname ));
         sp.second.transform.append( SvgTransform::Translate( 0, 30 * entry ) );
         doc.defs.push_back( sp.first );
         doc.add( sp.second );
 
         // Label
-        doc << SvgText( listname, SvgPoint( 220, 30 * entry + 15 ));
+        doc.add( SvgText( listname, SvgPoint( 220, 30 * entry + 15 )));
 
         ++entry;
     }
@@ -79,23 +81,23 @@ int main( int argc, char** argv )
     // -------------------------------------------------------------------------
 
     ++entry;
-    doc << SvgText( "Diverging", SvgPoint( 10, 30 * entry + 15 ));
+    doc.add( SvgText( "Diverging", SvgPoint( 10, 30 * entry + 15 )));
     ++entry;
 
     // svgpal.diverging_palette = true;
-    for( auto const& listname : diverging_color_list_names() ) {
-        auto const& list = diverging_color_list( listname );
+    for( auto const& listname : color_list_diverging_names() ) {
+        auto const& list = color_list_diverging( listname );
         auto map = ColorMap( list );
         auto norm = ColorNormalizationLinear();
 
         // Palette
-        auto sp = make_svg_color_bar( svgpal, map, norm, listname );
+        auto sp = make_svg_color_bar( svgpal, map, norm, sanitize_svg_id( listname ));
         sp.second.transform.append( SvgTransform::Translate( 0, 30 * entry ) );
         doc.defs.push_back( sp.first );
         doc.add( sp.second );
 
         // Label
-        doc << SvgText( listname, SvgPoint( 220, 30 * entry + 15 ));
+        doc.add( SvgText( listname, SvgPoint( 220, 30 * entry + 15 )));
 
         ++entry;
     }
@@ -105,30 +107,70 @@ int main( int argc, char** argv )
     // -------------------------------------------------------------------------
 
     ++entry;
-    doc << SvgText( "Qualitative", SvgPoint( 10, 30 * entry + 15 ));
+    doc.add( SvgText( "Qualitative", SvgPoint( 10, 30 * entry + 15 )));
     ++entry;
 
-    for( auto const& listname : qualitative_color_list_names() ) {
-        auto const& list = qualitative_color_list( listname );
+    for( auto const& listname : color_list_qualitative_names() ) {
+        auto const& list = color_list_qualitative( listname );
 
         // Single rects for each color.
         for( size_t i = 0; i < list.size(); ++i ) {
-            doc << SvgRect(
+            doc.add( SvgRect(
                 200.0 * static_cast<double>(i) / list.size(),
                 30 * entry,
                 200.0 / list.size(),
                 20,
                 SvgStroke( SvgStroke::Type::kNone ),
                 SvgFill( list[i] )
-            );
+            ));
         }
 
         // Box around and label
-        doc << SvgRect( 0.0, 30 * entry, 200, 20, SvgStroke(), SvgFill(genesis::utils::SvgFill::Type::kNone) );
-        doc << SvgText( listname, SvgPoint( 220, 30 * entry + 15 ));
+        doc.add( SvgRect(
+            0.0, 30 * entry, 200, 20,
+            SvgStroke(),
+            SvgFill(SvgFill::Type::kNone)
+        ));
+        doc.add( SvgText( listname, SvgPoint( 220, 30 * entry + 15 )));
 
         ++entry;
     }
+
+
+    // -------------------------------------------------------------------------
+    //     Miscellaneous
+    // -------------------------------------------------------------------------
+
+    ++entry;
+    doc.add( SvgText( "Miscellaneous", SvgPoint( 10, 30 * entry + 15 )));
+    ++entry;
+
+    for( auto const& listname : color_list_misc_names() ) {
+        auto const& list = color_list_misc( listname );
+
+        // Single rects for each color.
+        for( size_t i = 0; i < list.size(); ++i ) {
+            doc.add( SvgRect(
+                200.0 * static_cast<double>(i) / list.size(),
+                30 * entry,
+                200.0 / list.size() + ( i < list.size() - 1 ? 1.0 : 0.0 ) ,
+                20,
+                SvgStroke( SvgStroke::Type::kNone ),
+                SvgFill( list[i] )
+            ));
+        }
+
+        // Box around and label
+        doc.add( SvgRect(
+            0.0, 30 * entry, 200, 20,
+            SvgStroke(),
+            SvgFill(SvgFill::Type::kNone)
+        ));
+        doc.add( SvgText( listname, SvgPoint( 220, 30 * entry + 15 )));
+
+        ++entry;
+    }
+
     // -------------------------------------------------------------------------
     //     Write File
     // -------------------------------------------------------------------------
@@ -136,7 +178,7 @@ int main( int argc, char** argv )
     doc.margin = SvgMargin(10);
     std::ostringstream out;
     doc.write( out );
-    utils::file_write( out.str(), "color_lists.svg" );
+    util::core::file_write( out.str(), "color_lists.svg" );
 
     return 0;
 }

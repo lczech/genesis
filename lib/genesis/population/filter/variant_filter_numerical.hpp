@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@
  * @ingroup population
  */
 
-#include "genesis/population/sample_counts.hpp"
-#include "genesis/population/filter/sample_counts_filter_numerical.hpp"
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/variant.hpp"
+#include <genesis/population/sample_counts.hpp>
+#include <genesis/population/filter/sample_counts_filter_numerical.hpp>
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/variant.hpp>
 
 #include <functional>
 #include <iosfwd>
@@ -197,7 +197,7 @@ bool apply_variant_filter_numerical(
  *
  * The function uses apply_variant_filter_numerical(), which returns `true` or `false` depending
  * on whether the filtering determined that the Variant should be kept. It can hence be used with
- * @link genesis::utils::GenericInputStream::add_transform_filter() GenericInputStream::add_transform_filter()@endlink
+ * @link genesis::util::container::GenericInputStream::add_transform_filter() GenericInputStream::add_transform_filter()@endlink
  * to exclude positions fully from the stream.
  *
  * See make_variant_filter_numerical_tagging() for an alternative that instead simply sets
@@ -235,7 +235,7 @@ inline std::function<bool(Variant&)> make_variant_filter_numerical_excluding(
  *
  * The function uses apply_variant_filter_numerical(), tagging whether the filtering determined
  * that the Variant should be kept. It can hence be used with
- * @link genesis::utils::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
+ * @link genesis::util::container::GenericInputStream::add_transform() GenericInputStream::add_transform()@endlink
  * to mark filtered positions in the stream.
  *
  * See make_variant_filter_numerical_excluding() for an alternative that instead excludes

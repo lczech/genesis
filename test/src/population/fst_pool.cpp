@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,24 +35,28 @@
 #include "genesis/population/format/simple_pileup_reader.hpp"
 #include "genesis/population/format/sync_reader.hpp"
 #include "genesis/population/stream/variant_input_stream.hpp"
-#include "genesis/population/stream/variant_input_stream_sources.hpp"
-#include "genesis/population/stream/variant_input_stream_adapters.hpp"
+#include "genesis/population/stream/variant_input_stream_source.hpp"
+#include "genesis/population/stream/variant_input_stream_adapter.hpp"
 #include "genesis/population/filter/sample_counts_filter_numerical.hpp"
 #include "genesis/population/filter/sample_counts_filter.hpp"
 #include "genesis/population/filter/variant_filter_numerical.hpp"
 #include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/fst_pool_functions.hpp"
+#include "genesis/population/function/fst_pool_function.hpp"
 #include "genesis/population/function/fst_pool_processor.hpp"
-#include "genesis/population/function/functions.hpp"
+#include "genesis/population/function/function.hpp"
 #include "genesis/population/window/interval_window_stream.hpp"
 #include "genesis/population/window/sliding_window_generator.hpp"
 #include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/transform_iterator.hpp"
-#include "genesis/utils/core/options.hpp"
-#include "genesis/utils/math/random.hpp"
+#include "genesis/util/container/transform_iterator.hpp"
+#include "genesis/util/core/options.hpp"
+#include "genesis/util/math/random.hpp"
 
 using namespace genesis::population;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::container;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
+using namespace genesis::util::math;
 
 // =================================================================================================
 //     Generator (deprecated)
@@ -482,7 +486,7 @@ TEST( FST, RandomFuzzy )
 
     // For the duration of the test, we deactivate debug logging.
     // But if needed, comment this line out, and each test will report its input.
-    LOG_SCOPE_LEVEL( genesis::utils::Logging::kInfo );
+    LOG_SCOPE_LEVEL( genesis::util::core::Logging::kInfo );
 
     size_t num_tests = 5000;
     for( size_t i = 0; i < num_tests; ++i ) {

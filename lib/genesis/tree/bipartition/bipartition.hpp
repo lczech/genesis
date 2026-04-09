@@ -31,10 +31,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/tree.hpp"
-#include "genesis/tree/tree/subtree.hpp"
-#include "genesis/utils/bit/bitvector.hpp"
-#include "genesis/utils/bit/bitvector/functions.hpp"
+#include <genesis/tree/tree.hpp>
+#include <genesis/tree/tree/subtree.hpp>
+#include <genesis/util/bit/bitvector.hpp>
+#include <genesis/util/bit/bitvector/function.hpp>
 
 #include <stdexcept>
 
@@ -55,7 +55,7 @@ public:
 
     Bipartition() = default;
 
-    Bipartition( TreeLink const& link, utils::Bitvector const& leaf_nodes )
+    Bipartition( TreeLink const& link, genesis::util::bit::Bitvector const& leaf_nodes )
         : link_( &link )
         , leaf_nodes_( leaf_nodes )
     {}
@@ -85,12 +85,12 @@ public:
         return *link_;
     }
 
-    utils::Bitvector& bitvector()
+    genesis::util::bit::Bitvector& bitvector()
     {
         return leaf_nodes_;
     }
 
-    utils::Bitvector const& leaf_nodes() const
+    genesis::util::bit::Bitvector const& leaf_nodes() const
     {
         return leaf_nodes_;
     }
@@ -113,7 +113,7 @@ public:
 protected:
 
     TreeLink const*  link_ = nullptr;
-    utils::Bitvector leaf_nodes_;
+    genesis::util::bit::Bitvector leaf_nodes_;
 
 };
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,19 +31,19 @@
  * @ingroup population
  */
 
-#include "genesis/population/filter/filter_stats.hpp"
-#include "genesis/population/filter/filter_status.hpp"
-#include "genesis/population/filter/sample_counts_filter.hpp"
-#include "genesis/population/filter/variant_filter.hpp"
-#include "genesis/population/function/fst_pool_calculator.hpp"
-#include "genesis/population/function/functions.hpp"
-#include "genesis/population/function/window_average.hpp"
-#include "genesis/population/genome_locus_set.hpp"
-#include "genesis/population/window/base_window.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/math/common.hpp"
-#include "genesis/utils/math/compensated_sum.hpp"
-#include "genesis/utils/text/string.hpp"
+#include <genesis/population/filter/filter_stats.hpp>
+#include <genesis/population/filter/filter_status.hpp>
+#include <genesis/population/filter/sample_counts_filter.hpp>
+#include <genesis/population/filter/variant_filter.hpp>
+#include <genesis/population/function/fst_pool_calculator.hpp>
+#include <genesis/population/function/function.hpp>
+#include <genesis/population/function/window_average.hpp>
+#include <genesis/population/genome_locus_set.hpp>
+#include <genesis/population/window/base_window.hpp>
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/math/common.hpp>
+#include <genesis/util/math/compensated_sum.hpp>
+#include <genesis/util/text/string.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -144,6 +144,8 @@ private:
 
     void process_( SampleCounts const& smp1, SampleCounts const& smp2 ) override
     {
+        using namespace genesis::util::math;
+
         // Helper function for the two components of pi within
         auto pi_within_partial_ = [](
             double poolsize, double freq_a, double freq_c, double freq_g, double freq_t, double nt_cnt
@@ -151,10 +153,10 @@ private:
             assert( poolsize > 1.0 );
 
             double result = 1.0;
-            result -= utils::squared( freq_a );
-            result -= utils::squared( freq_c );
-            result -= utils::squared( freq_g );
-            result -= utils::squared( freq_t );
+            result -= squared( freq_a );
+            result -= squared( freq_c );
+            result -= squared( freq_g );
+            result -= squared( freq_t );
             result *= nt_cnt / ( nt_cnt - 1.0 );
             result *= poolsize / ( poolsize - 1.0 );
             return result;
@@ -433,9 +435,9 @@ private:
     SampleCountsFilterStats sample_filter_stats_b_;
 
     // Sums over the window of pi within for both pools, and pi between them.
-    utils::NeumaierSum pi_w_smp1_sum_ = 0.0;
-    utils::NeumaierSum pi_w_smp2_sum_ = 0.0;
-    utils::NeumaierSum pi_b_sum_    = 0.0;
+    genesis::util::math::NeumaierSum pi_w_smp1_sum_ = 0.0;
+    genesis::util::math::NeumaierSum pi_w_smp2_sum_ = 0.0;
+    genesis::util::math::NeumaierSum pi_b_sum_    = 0.0;
 
 };
 
@@ -462,7 +464,7 @@ inline std::string fst_pool_unbiased_estimator_to_string(
 inline FstPoolCalculatorUnbiased::Estimator fst_pool_unbiased_estimator_from_string(
     std::string const& str
 ) {
-    auto const low = genesis::utils::to_lower( str );
+    auto const low = genesis::util::text::to_lower( str );
     if( low == "nei" ) {
         return FstPoolCalculatorUnbiased::Estimator::kNei;
     }

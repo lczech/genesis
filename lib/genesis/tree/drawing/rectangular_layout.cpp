@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2022 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,10 +28,10 @@
  * @ingroup tree
  */
 
-#include "genesis/tree/drawing/rectangular_layout.hpp"
+#include <genesis/tree/drawing/rectangular_layout.hpp>
 
-#include "genesis/tree/function/functions.hpp"
-#include "genesis/tree/function/operators.hpp"
+#include <genesis/tree/function/function.hpp>
+#include <genesis/tree/function/operator.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -70,9 +70,9 @@ double RectangularLayout::height() const
 //     Virtual Functions
 // =================================================================================================
 
-utils::SvgDocument RectangularLayout::to_svg_document_() const
+genesis::util::format::SvgDocument RectangularLayout::to_svg_document_() const
 {
-    using namespace utils;
+    using namespace genesis::util::format;
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_lines;
@@ -117,24 +117,24 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             // Get line strokes
             auto spreading_stroke = edge_data.spreading_stroke;
             auto distance_stroke = edge_data.distance_stroke;
-            // spreading_stroke.line_cap = utils::SvgStroke::LineCap::kSquare;
-            // distance_stroke.line_cap = utils::SvgStroke::LineCap::kButt;
+            // spreading_stroke.line_cap = genesis::util::format::SvgStroke::LineCap::kSquare;
+            // distance_stroke.line_cap = genesis::util::format::SvgStroke::LineCap::kButt;
 
             // Calculate linear distance
             auto const dist_start_x = prnt_data.distance * width;
             auto const dist_start_y = node_y;
 
             // Draw lines
-            tree_lines << SvgLine(
+            tree_lines.add( SvgLine(
                 prnt_data.distance * width, prnt_data.spreading * height,
                 dist_start_x, dist_start_y,
                 spreading_stroke
-            );
-            tree_lines << SvgLine(
+            ));
+            tree_lines.add( SvgLine(
                 dist_start_x, dist_start_y,
                 node_x, node_y,
                 distance_stroke
-            );
+            ));
 
             // If there is an edge shape, draw it to the middle of the edge
             if( ! edge_data.shape.empty() ) {
@@ -143,7 +143,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 
                 auto es = edge_data.shape;
                 es.transform.append( SvgTransform::Translate( shape_x, shape_y ));
-                edge_shapes << std::move( es );
+                edge_shapes.add( std::move( es ));
             }
 
         } else {
@@ -172,12 +172,12 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             label_path.elements.push_back(
                 "L " + std::to_string( label_dist ) + " " + std::to_string( node_y )
             );
-            taxa_lines << label_path;
-            // taxa_lines << SvgLine(
+            taxa_lines.add( label_path );
+            // taxa_lines.add( SvgLine(
             //     node_x, node_y,
             //     label_dist, node_y,
             //     node_data.spacer_stroke
-            // );
+            // ));
         }
 
         // If the node has a name, print it.
@@ -194,7 +194,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 
             // Move label to tip node.
             label.transform.append( SvgTransform::Translate( label_dist + 5, node_y ));
-            taxa_names << std::move( label );
+            taxa_names.add( std::move( label ));
             // max_text_len = std::max( max_text_len, node_data.name.size() );
         }
 
@@ -202,7 +202,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         if( ! node_data.shape.empty() ) {
             auto ns = node_data.shape;
             ns.transform.append( SvgTransform::Translate( node_x, node_y ));
-            node_shapes << std::move( ns );
+            node_shapes.add( std::move( ns ));
         }
     }
 
@@ -216,18 +216,18 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
     // doc.margin = SvgMargin( marg_a, marg_r, marg_a, marg_a );
 
     // We are sure that we won't use the groups again, so let's move them!
-    doc << std::move( tree_lines );
+    doc.add( std::move( tree_lines ));
     if( ! taxa_lines.empty() ) {
-        doc << std::move( taxa_lines );
+        doc.add( std::move( taxa_lines ));
     }
     if( ! taxa_names.empty() ) {
-        doc << std::move( taxa_names );
+        doc.add( std::move( taxa_names ));
     }
     if( ! edge_shapes.empty() ) {
-        doc << std::move( edge_shapes );
+        doc.add( std::move( edge_shapes ));
     }
     if( ! node_shapes.empty() ) {
-        doc << std::move( node_shapes );
+        doc.add( std::move( node_shapes ));
     }
     return doc;
 }

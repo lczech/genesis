@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2021 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,11 +28,11 @@
  * @ingroup placement
  */
 
-#include "genesis/placement/sample.hpp"
+#include <genesis/placement/sample.hpp>
 
-#include "genesis/placement/function/helper.hpp"
-#include "genesis/tree/function/operators.hpp"
-#include "genesis/utils/core/std.hpp"
+#include <genesis/placement/function/helper.hpp>
+#include <genesis/tree/function/operator.hpp>
+#include <genesis/util/core/std.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -261,12 +261,12 @@ Sample::const_iterator_pqueries Sample::end() const
     return pqueries_.end();
 }
 
-utils::Range<Sample::iterator_pqueries> Sample::pqueries()
+genesis::util::container::Range<Sample::iterator_pqueries> Sample::pqueries()
 {
     return { pqueries_ };
 }
 
-utils::Range<Sample::const_iterator_pqueries> Sample::pqueries() const
+genesis::util::container::Range<Sample::const_iterator_pqueries> Sample::pqueries() const
 {
     return { pqueries_ };
 }

@@ -39,8 +39,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/containers/deref_iterator.hpp"
+#include <genesis/util/core/std.hpp>
+#include <genesis/util/container/deref_iterator.hpp>
 
 namespace genesis {
 namespace taxonomy {
@@ -108,8 +108,8 @@ public:
     // -------------------------------------------------------------------------
 
     using ContainerType  = std::vector<std::unique_ptr<Taxon>>;
-    using       iterator = utils::DereferenceIterator< ContainerType::iterator >;
-    using const_iterator = utils::DereferenceIterator< ContainerType::const_iterator >;
+    using       iterator = genesis::util::container::DereferenceIterator< ContainerType::iterator >;
+    using const_iterator = genesis::util::container::DereferenceIterator< ContainerType::const_iterator >;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five

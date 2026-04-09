@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,17 +30,19 @@
 
 #include "src/common.hpp"
 
-#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
+#include "genesis/taxonomy/format/taxonomy_reader.hpp"
 #include "genesis/taxonomy/taxon.hpp"
 #include "genesis/taxonomy/taxonomy.hpp"
-#include "genesis/taxonomy/functions/taxonomy.hpp"
-#include "genesis/taxonomy/formats/json_reader.hpp"
-#include "genesis/taxonomy/formats/json_writer.hpp"
+#include "genesis/taxonomy/function/taxonomy.hpp"
+#include "genesis/taxonomy/format/json_reader.hpp"
+#include "genesis/taxonomy/format/json_writer.hpp"
 
 #include <stdexcept>
 
 using namespace genesis::taxonomy;
-using namespace genesis::utils;
+using namespace genesis::util;
+using namespace genesis::util::core;
+using namespace genesis::util::io;
 
 TEST( Taxonomy, ReaderOrder )
 {

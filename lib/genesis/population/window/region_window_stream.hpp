@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,14 +31,14 @@
  * @ingroup population
  */
 
-#include "genesis/population/genome_locus.hpp"
-#include "genesis/population/genome_region_list.hpp"
-#include "genesis/population/genome_region.hpp"
-#include "genesis/population/window/base_window_stream.hpp"
-#include "genesis/population/window/window_view_stream.hpp"
-#include "genesis/population/window/window_view.hpp"
-#include "genesis/population/window/window.hpp"
-#include "genesis/utils/containers/range.hpp"
+#include <genesis/population/genome_locus.hpp>
+#include <genesis/population/genome_region_list.hpp>
+#include <genesis/population/genome_region.hpp>
+#include <genesis/population/window/base_window_stream.hpp>
+#include <genesis/population/window/window_view_stream.hpp>
+#include <genesis/population/window/window_view.hpp>
+#include <genesis/population/window/window.hpp>
+#include <genesis/util/container/range.hpp>
 
 #include <cassert>
 #include <deque>
@@ -780,14 +780,14 @@ protected:
         // Cannot use make_unique here, as the Iterator constructor is private,
         // and trying to make make_unique a friend does not seem to be working...
         return std::unique_ptr<DerivedIterator>( new DerivedIterator( this ));
-        // return utils::make_unique<DerivedIterator>( this );
+        // return genesis::util::core::make_unique<DerivedIterator>( this );
     }
 
     std::unique_ptr<typename BaseWindowStream<InputStreamIterator, DataType>::BaseIterator>
     get_end_iterator_() override final
     {
         return std::unique_ptr<DerivedIterator>( new DerivedIterator() );
-        // return utils::make_unique<DerivedIterator>( nullptr );
+        // return genesis::util::core::make_unique<DerivedIterator>( nullptr );
     }
 
     // -------------------------------------------------------------------------

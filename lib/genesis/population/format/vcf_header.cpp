@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@
 
 #ifdef GENESIS_HTSLIB
 
-#include "genesis/population/format/vcf_header.hpp"
+#include <genesis/population/format/vcf_header.hpp>
 
-#include "genesis/utils/text/string.hpp"
+#include <genesis/util/text/string.hpp>
 
 extern "C" {
     #include <htslib/hts.h>
@@ -501,7 +501,7 @@ VcfSpecification VcfHeader::get_specification_( int hl_type, std::string const& 
     if( descr_key >= 0 ) {
         // It seems that htslib leaves the quotes around the description.
         // That is ugly, let's remove!
-        res.description = utils::trim( std::string( hrec->vals[descr_key] ), "\"");
+        res.description = genesis::util::text::trim( std::string( hrec->vals[descr_key] ), "\"");
     }
     return res;
 }

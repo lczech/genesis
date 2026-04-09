@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2024 Lucas Czech
+    Copyright (C) 2014-2025 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@
  * @ingroup population
  */
 
-#include "genesis/population/variant.hpp"
-#include "genesis/sequence/functions/quality.hpp"
-#include "genesis/utils/io/input_source.hpp"
-#include "genesis/utils/io/input_stream.hpp"
+#include <genesis/population/variant.hpp>
+#include <genesis/sequence/function/quality.hpp>
+#include <genesis/util/io/input_source.hpp>
+#include <genesis/util/io/input_stream.hpp>
 
 #include <array>
 #include <string>
@@ -179,14 +179,14 @@ public:
     /**
      * @brief Read an (m)pileup file line by line, as pileup Record%s.
      */
-    std::vector<Record> read_records( std::shared_ptr< utils::BaseInputSource > source ) const;
+    std::vector<Record> read_records( std::shared_ptr< genesis::util::io::BaseInputSource > source ) const;
 
     // /* *
     //  * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
     //  * as pileup Record%s.
     //  */
     // std::vector<Record> read_records(
-    //     std::shared_ptr< utils::BaseInputSource > source,
+    //     std::shared_ptr< genesis::util::io::BaseInputSource > source,
     //     std::vector<size_t> const&                sample_indices
     // ) const;
 
@@ -197,7 +197,7 @@ public:
      * We expect this filter to contain the same number of values as the record has samples.
      */
     std::vector<Record> read_records(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter
     ) const;
 
@@ -208,14 +208,14 @@ public:
     /**
      * @brief Read an (m)pileup file line by line, as Variant%s.
      */
-    std::vector<Variant> read_variants( std::shared_ptr< utils::BaseInputSource > source ) const;
+    std::vector<Variant> read_variants( std::shared_ptr< genesis::util::io::BaseInputSource > source ) const;
 
     // /* *
     //  * @brief Read an (m)pileup file line by line, but only the samples at the given indices,
     //  * as Variant%s.
     //  */
     // std::vector<Variant> read_variants(
-    //     std::shared_ptr< utils::BaseInputSource > source,
+    //     std::shared_ptr< genesis::util::io::BaseInputSource > source,
     //     std::vector<size_t> const&                sample_indices
     // ) const;
 
@@ -226,7 +226,7 @@ public:
      * We expect this filter to contain the same number of values as the record has samples.
      */
     std::vector<Variant> read_variants(
-        std::shared_ptr< utils::BaseInputSource > source,
+        std::shared_ptr< genesis::util::io::BaseInputSource > source,
         std::vector<bool> const&                  sample_filter
     ) const;
 
@@ -243,7 +243,7 @@ public:
      * the SimplePileupInputStream for ways to read in (m)pileup data that have this check.
      */
     bool parse_line_record(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Record&             record
     ) const;
 
@@ -253,10 +253,10 @@ public:
      *
      * We expect this filter to contain the same number of values as the record has samples.
      *
-     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
+     * @copydetails SimplePileupReader::parse_line_record( genesis::util::io::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_record(
-        utils::InputStream&      input_stream,
+        genesis::util::io::InputStream&      input_stream,
         Record&                  record,
         std::vector<bool> const& sample_filter
     ) const;
@@ -268,10 +268,10 @@ public:
     /**
      * @brief Read an (m)pileup line, as a Variant.
      *
-     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
+     * @copydetails SimplePileupReader::parse_line_record( genesis::util::io::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_variant(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         Variant&            variant
     ) const;
 
@@ -281,10 +281,10 @@ public:
      *
      * We expect this filter to contain the same number of values as the record has samples.
      *
-     * @copydetails SimplePileupReader::parse_line_record( utils::InputStream&, SimplePileupReader::Record& ) const
+     * @copydetails SimplePileupReader::parse_line_record( genesis::util::io::InputStream&, SimplePileupReader::Record& ) const
      */
     bool parse_line_variant(
-        utils::InputStream&      input_stream,
+        genesis::util::io::InputStream&      input_stream,
         Variant&                 variant,
         std::vector<bool> const& sample_filter
     ) const;
@@ -443,7 +443,7 @@ private:
      */
     template<class T>
     bool parse_line_(
-        utils::InputStream&      input_stream,
+        genesis::util::io::InputStream&      input_stream,
         T&                       target,
         std::vector<bool> const& sample_filter,
         bool                     use_sample_filter
@@ -455,7 +455,7 @@ private:
      */
     template<class T, class S>
     void process_sample_(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         T const&            target,
         S&                  sample
     ) const;
@@ -472,12 +472,12 @@ private:
     ) const;
 
     bool process_sample_read_bases_buffer_(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         char reference_base
     ) const;
 
     void process_sample_read_bases_stream_(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         char reference_base
     ) const;
 
@@ -489,28 +489,28 @@ private:
 
     template<class S>
     void process_quality_string_(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         S& sample
     ) const;
 
     void tally_base_(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         SampleCounts& sample,
         char b
     ) const;
 
     template<class S>
     void process_ancestral_base_(
-        utils::InputStream& input_stream,
+        genesis::util::io::InputStream& input_stream,
         S& sample
     ) const;
 
     void skip_sample_(
-        utils::InputStream& input_stream
+        genesis::util::io::InputStream& input_stream
     ) const;
 
     void next_field_(
-        utils::InputStream& input_stream
+        genesis::util::io::InputStream& input_stream
     ) const;
 
     // -------------------------------------------------------------------------

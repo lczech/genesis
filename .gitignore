@@ -4,8 +4,6 @@
 
 bin/
 build/
-tools/googletest/
-tools/pybind11/
 
 # --------------------------------------------------------------------
 #   C++ Compiled Object files
@@ -65,7 +63,9 @@ __pycache__/
 *~
 *.swp
 TODO
-extern/
+TODO.md
+unused/
 apps/*.cpp
 apps/*.hpp
 apps/*/
+python/binder

@@ -1,0 +1,18 @@
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest.git
+[submodule "external/htslib"]
+	path = external/htslib
+	url = https://github.com/samtools/htslib.git
+[submodule "external/concurrentqueue"]
+	path = external/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git
+[submodule "external/parallel-hashmap"]
+	path = external/parallel-hashmap
+	url = https://github.com/greg7mdp/parallel-hashmap.git
+[submodule "external/CLI11"]
+	path = external/CLI11
+	url = https://github.com/CLIUtils/CLI11.git
+[submodule "external/pybind11"]
+	path = external/pybind11
+	url = https://github.com/RosettaCommons/pybind11.git
