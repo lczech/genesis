@@ -34,7 +34,6 @@
 #include <genesis/util/core/exception.hpp>
 #include <genesis/util/core/fs.hpp>
 #include <genesis/util/core/options.hpp>
-#include <genesis/util/io/file_handle.hpp>
 
 #include <cerrno>
 #include <cstdio>

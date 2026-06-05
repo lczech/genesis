@@ -57,7 +57,10 @@
 #include <genesis/util/color/norm_diverging.hpp>
 #include <genesis/util/color/norm_linear.hpp>
 #include <genesis/util/color/norm_logarithmic.hpp>
+#include <genesis/util/container/bitpacked_pair_vector.hpp>
+#include <genesis/util/container/bitpacked_pair_vector_io.hpp>
 #include <genesis/util/container/bitpacked_vector.hpp>
+#include <genesis/util/container/bitpacked_vector_io.hpp>
 #include <genesis/util/container/dataframe.hpp>
 #include <genesis/util/container/dataframe/operator.hpp>
 #include <genesis/util/container/dataframe/reader.hpp>

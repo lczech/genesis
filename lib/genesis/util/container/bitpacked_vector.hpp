@@ -118,6 +118,40 @@ public:
         mask_ = is_bit_aligned_ ? ~U{0} : ((U{1} << bit_width_) - 1);
     }
 
+    /**
+     * @brief Construct from pre-existing raw storage words, e.g. when deserializing from disk.
+     *
+     * @p raw_data must contain exactly `ceil(size * bit_width / STORAGE_BITS)` words.
+     * Throws if the sizes do not match or the bit width is out of range.
+     */
+    BitpackedVector( size_t size, size_t bit_width, std::vector<U>&& raw_data )
+        : size_( size )
+        , bit_width_( bit_width )
+        , data_( std::move( raw_data ))
+    {
+        // Validate bit width range (same checks as the regular constructor)
+        if( bit_width_ == 0 || bit_width_ > STORAGE_BITS ) {
+            throw std::invalid_argument("Bit width must be between 1 and the storage width.");
+        }
+        if( bit_width_ > VALUE_BITS ) {
+            throw std::invalid_argument("Bit width exceeds the value width of T.");
+        }
+
+        // Validate that the provided storage has exactly the right number of words
+        size_t const expected = ( bit_width_ * size_ + STORAGE_BITS - 1 ) / STORAGE_BITS;
+        if( data_.size() != expected ) {
+            throw std::invalid_argument(
+                "Raw storage has " + std::to_string( data_.size() ) + " words but expected " +
+                std::to_string( expected ) + " for size=" + std::to_string( size_ ) +
+                ", bit_width=" + std::to_string( bit_width_ )
+            );
+        }
+
+        // Set up efficiency caches (same as regular constructor)
+        is_bit_aligned_ = std::is_same<T, U>::value && bit_width_ == STORAGE_BITS;
+        mask_ = is_bit_aligned_ ? ~U{0} : ((U{1} << bit_width_) - 1);
+    }
+
     ~BitpackedVector() = default;
 
     BitpackedVector( BitpackedVector const& ) = default;

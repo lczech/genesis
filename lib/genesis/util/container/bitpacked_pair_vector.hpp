@@ -58,6 +58,8 @@ namespace container {
  *   - `sizeof(A) <= sizeof(U)` and `sizeof(B) <= sizeof(U)`.
  *   - `width_a + width_b <= digits(U)`.
  *   - `width_a <= digits(A)` and `width_b <= digits(B)`.
+ *
+ * That is, the bit widths of the two fields combined must fit within the storage type `U`.
  */
 template<typename U = std::uint64_t, typename A = std::uint32_t, typename B = std::uint32_t>
 class BitpackedPairVector
@@ -84,25 +86,29 @@ public:
         , mask_b_( 0 )
         , storage_()
     {
-        if( width_a_ == 0 || width_a_ > FIRST_BITS ) {
-            throw std::invalid_argument(
-                "First field width must be between 1 and the bit width of the first type."
-            );
-        }
-        if( width_b_ == 0 || width_b_ > SECOND_BITS ) {
-            throw std::invalid_argument(
-                "Second field width must be between 1 and the bit width of the second type."
-            );
-        }
-        if( total_width_ == 0 || total_width_ > STORAGE_BITS ) {
-            throw std::invalid_argument(
-                "Combined bit width must be between 1 and the bit width of the storage type."
-            );
-        }
-
-        mask_a_ = full_mask_( width_a_ );
-        mask_b_ = full_mask_( width_b_ );
+        init_masks_and_validate_();
         storage_ = BitpackedVector<U, U>( size_, total_width_ );
+    }
+
+    /**
+     * @brief Construct from pre-existing raw storage words, e.g. when deserializing from disk.
+     *
+     * The raw storage layout must match what a BitpackedPairVector with the given widths would
+     * produce via storage().data(). The BitpackedVector raw-storage constructor validates the
+     * size. Throws if widths are out of range or the storage size does not match.
+     */
+    BitpackedPairVector( size_t size, size_t width_a, size_t width_b, std::vector<U>&& raw_storage )
+        : size_( size )
+        , width_a_( width_a )
+        , width_b_( width_b )
+        , total_width_( width_a + width_b )
+        , mask_a_( 0 )
+        , mask_b_( 0 )
+        , storage_()
+    {
+        // Validate widths and set masks, then hand off storage (BV ctor validates the word count)
+        init_masks_and_validate_();
+        storage_ = BitpackedVector<U, U>( size_, total_width_, std::move( raw_storage ));
     }
 
     ~BitpackedPairVector() = default;
@@ -294,6 +300,27 @@ private:
     [[nodiscard]] inline B unpack_second_( U packed ) const noexcept
     {
         return static_cast<B>(( packed >> width_a_ ) & mask_b_ );
+    }
+
+    void init_masks_and_validate_()
+    {
+        if( width_a_ == 0 || width_a_ > FIRST_BITS ) {
+            throw std::invalid_argument(
+                "First field width must be between 1 and the bit width of the first type."
+            );
+        }
+        if( width_b_ == 0 || width_b_ > SECOND_BITS ) {
+            throw std::invalid_argument(
+                "Second field width must be between 1 and the bit width of the second type."
+            );
+        }
+        if( total_width_ == 0 || total_width_ > STORAGE_BITS ) {
+            throw std::invalid_argument(
+                "Combined bit width must be between 1 and the bit width of the storage type."
+            );
+        }
+        mask_a_ = full_mask_( width_a_ );
+        mask_b_ = full_mask_( width_b_ );
     }
 
     // -------------------------------------------------------------------------

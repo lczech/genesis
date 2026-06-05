@@ -31,8 +31,10 @@
 #include "src/common.hpp"
 
 #include "genesis/util/container/bitpacked_vector.hpp"
+#include "genesis/util/container/bitpacked_vector_io.hpp"
 
 #include <climits>
+#include <cstdio>
 #include <vector>
 #include <limits>
 #include <utility>
@@ -344,6 +346,108 @@ TEST( BitpackedVector, Boundaries )
         test_bitpacked_vector_copy_move_<uint8_t,  uint8_t>();
         test_bitpacked_vector_copy_move_<uint64_t, uint16_t>();
         test_bitpacked_vector_copy_move_<uint64_t, uint32_t>();
+    }
+}
+
+// =================================================================================================
+//     Raw-storage Constructor and File I/O Tests
+// =================================================================================================
+
+TEST( BitpackedVector, RawStorageConstructor )
+{
+    // Build normally, extract raw storage, reconstruct, verify values match.
+    {
+        size_t const n = 1000;
+        size_t const bit_width = 7;
+        BitpackedVector<uint64_t, uint8_t> original( n, bit_width );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked( i, static_cast<uint8_t>( i % 128 ));
+        }
+
+        // Take a copy of the raw storage and reconstruct.
+        std::vector<uint64_t> raw = original.data();
+        BitpackedVector<uint64_t, uint8_t> restored( n, bit_width, std::move( raw ));
+
+        EXPECT_EQ( restored.size(), n );
+        EXPECT_EQ( restored.bit_width(), bit_width );
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.at( i ), static_cast<uint8_t>( i % 128 ));
+        }
+    }
+
+    // Reconstruction with full-width (bit-aligned) storage.
+    {
+        size_t const n = 64;
+        BitpackedVector<uint64_t, uint64_t> original( n, 64 );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked( i, static_cast<uint64_t>( i * 1315423911u ));
+        }
+
+        std::vector<uint64_t> raw = original.data();
+        BitpackedVector<uint64_t, uint64_t> restored( n, 64, std::move( raw ));
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.at( i ), original.at( i ));
+        }
+    }
+
+    // Mismatched raw storage size must throw.
+    {
+        std::vector<uint64_t> wrong( 99 );
+        EXPECT_THROW(( BitpackedVector<uint64_t, uint8_t>( 1000, 7, std::move( wrong ))),
+                     std::invalid_argument );
+    }
+}
+
+TEST( BitpackedVector, FileIO )
+{
+    // Write then read back via a tmpfile and verify that all values are identical.
+    {
+        size_t const n = 5000;
+        size_t const bit_width = 11;
+        BitpackedVector<uint64_t, uint16_t> original( n, bit_width );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked( i, static_cast<uint16_t>(( i * 17u ) & 0x7FFu ));
+        }
+
+        std::FILE* fp = std::tmpfile();
+        ASSERT_NE( fp, nullptr );
+
+        // Write and verify returned byte count matches header + storage.
+        size_t const num_words = original.data().size();
+        size_t const expected_bytes = sizeof( uint64_t ) + num_words * sizeof( uint64_t );
+        size_t const written = genesis::util::container::write( original, fp );
+        EXPECT_EQ( written, expected_bytes );
+
+        // Read back and verify values.
+        std::rewind( fp );
+        auto restored = genesis::util::container::read<uint64_t, uint16_t>( fp, n );
+        std::fclose( fp );
+
+        EXPECT_EQ( restored.size(), n );
+        EXPECT_EQ( restored.bit_width(), bit_width );
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.at( i ), original.at( i ));
+        }
+    }
+
+    // Roundtrip with 8-bit aligned storage (bit_width == storage width).
+    {
+        size_t const n = 256;
+        BitpackedVector<uint8_t, uint8_t> original( n, 8 );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked( i, static_cast<uint8_t>( i ));
+        }
+
+        std::FILE* fp = std::tmpfile();
+        ASSERT_NE( fp, nullptr );
+        genesis::util::container::write( original, fp );
+        std::rewind( fp );
+        auto restored = genesis::util::container::read<uint8_t, uint8_t>( fp, n );
+        std::fclose( fp );
+
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.at( i ), static_cast<uint8_t>( i ));
+        }
     }
 }
 

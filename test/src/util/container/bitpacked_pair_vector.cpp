@@ -31,8 +31,10 @@
 #include "src/common.hpp"
 
 #include "genesis/util/container/bitpacked_pair_vector.hpp"
+#include "genesis/util/container/bitpacked_pair_vector_io.hpp"
 
 #include <climits>
+#include <cstdio>
 #include <vector>
 #include <limits>
 #include <utility>
@@ -293,6 +295,138 @@ TEST( BitpackedPairVector, FullRangeLargerWidths )
     test_bitpacked_pair_vector_range_<uint64_t, uint16_t, uint16_t>( 12, 12 );
     test_bitpacked_pair_vector_range_<uint64_t, uint32_t, uint32_t>( 21, 17 );
 }
+
+// =================================================================================================
+//     Raw-storage Constructor and File I/O Tests
+// =================================================================================================
+
+TEST( BitpackedPairVector, RawStorageConstructor )
+{
+    // Build normally, extract raw storage, reconstruct, verify values match.
+    {
+        size_t const n = 1000;
+        size_t const width_a = 7, width_b = 13;
+        BitpackedPairVector<uint64_t, uint8_t, uint16_t> original( n, width_a, width_b );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked(
+                i,
+                static_cast<uint8_t>(( i * 3u ) & 0x7Fu ),
+                static_cast<uint16_t>(( i * 5u ) & 0x1FFFu )
+            );
+        }
+
+        // Take a copy of the raw storage words and reconstruct via the raw-storage constructor.
+        std::vector<uint64_t> raw = original.storage().data();
+        BitpackedPairVector<uint64_t, uint8_t, uint16_t> restored(
+            n, width_a, width_b, std::move( raw )
+        );
+
+        EXPECT_EQ( restored.size(), n );
+        EXPECT_EQ( restored.first_bit_width(), width_a );
+        EXPECT_EQ( restored.second_bit_width(), width_b );
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.first_at( i ), original.first_at( i ));
+            EXPECT_EQ( restored.second_at( i ), original.second_at( i ));
+        }
+    }
+
+    // Full-width storage (32 + 32 = 64-bit total).
+    {
+        size_t const n = 200;
+        BitpackedPairVector<uint64_t, uint32_t, uint32_t> original( n, 32, 32 );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked(
+                i,
+                static_cast<uint32_t>( i * 1000u ),
+                static_cast<uint32_t>( i * 999u + 7u )
+            );
+        }
+
+        std::vector<uint64_t> raw = original.storage().data();
+        BitpackedPairVector<uint64_t, uint32_t, uint32_t> restored(
+            n, 32, 32, std::move( raw )
+        );
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.at( i ), original.at( i ));
+        }
+    }
+
+    // Mismatched raw storage size must throw.
+    {
+        std::vector<uint64_t> wrong( 99 );
+        EXPECT_THROW(
+            ( BitpackedPairVector<uint64_t, uint8_t, uint16_t>( 1000, 7, 13, std::move( wrong ))),
+            std::invalid_argument
+        );
+    }
+}
+
+TEST( BitpackedPairVector, FileIO )
+{
+    // Write then read back via a tmpfile and verify that all values are identical.
+    {
+        size_t const n = 5000;
+        size_t const width_a = 7, width_b = 13;
+        BitpackedPairVector<uint64_t, uint8_t, uint16_t> original( n, width_a, width_b );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked(
+                i,
+                static_cast<uint8_t>(( i * 3u ) & 0x7Fu ),
+                static_cast<uint16_t>(( i * 5u ) & 0x1FFFu )
+            );
+        }
+
+        std::FILE* fp = std::tmpfile();
+        ASSERT_NE( fp, nullptr );
+
+        // Write and verify returned byte count matches 2-word header + storage.
+        size_t const num_words = original.storage().data().size();
+        size_t const expected_bytes = 2 * sizeof( uint64_t ) + num_words * sizeof( uint64_t );
+        size_t const written = genesis::util::container::write( original, fp );
+        EXPECT_EQ( written, expected_bytes );
+
+        // Read back and verify all fields.
+        std::rewind( fp );
+        auto restored = genesis::util::container::read<uint64_t, uint8_t, uint16_t>( fp, n );
+        std::fclose( fp );
+
+        EXPECT_EQ( restored.size(), n );
+        EXPECT_EQ( restored.first_bit_width(), width_a );
+        EXPECT_EQ( restored.second_bit_width(), width_b );
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.first_at( i ), original.first_at( i ));
+            EXPECT_EQ( restored.second_at( i ), original.second_at( i ));
+        }
+    }
+
+    // Roundtrip with 64-bit storage (32+32 combined width).
+    {
+        size_t const n = 300;
+        BitpackedPairVector<uint64_t, uint32_t, uint32_t> original( n, 32, 32 );
+        for( size_t i = 0; i < n; ++i ) {
+            original.set_unchecked(
+                i,
+                static_cast<uint32_t>( i * 7u ),
+                static_cast<uint32_t>( i * 13u + 1u )
+            );
+        }
+
+        std::FILE* fp = std::tmpfile();
+        ASSERT_NE( fp, nullptr );
+        genesis::util::container::write( original, fp );
+        std::rewind( fp );
+        auto restored = genesis::util::container::read<uint64_t, uint32_t, uint32_t>( fp, n );
+        std::fclose( fp );
+
+        for( size_t i = 0; i < n; ++i ) {
+            EXPECT_EQ( restored.at( i ), original.at( i ));
+        }
+    }
+}
+
+// =================================================================================================
+//     Performance Tests
+// =================================================================================================
 
 TEST( BitpackedPairVector, PerformanceChecked )
 {
