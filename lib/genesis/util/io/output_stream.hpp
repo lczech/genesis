@@ -120,7 +120,7 @@ inline void file_output_stream(
  *
  * @see file_output_stream(), Options::allow_file_overwriting()
  */
-inline std::unique_ptr<FILE, decltype(&std::fclose)> file_output_file(
+inline std::unique_ptr<std::FILE, int(*)(std::FILE*)> file_output_file(
     std::string const& file_name,
     bool               create_dirs = true
 ) {
@@ -143,7 +143,7 @@ inline std::unique_ptr<FILE, decltype(&std::fclose)> file_output_file(
 
     // Now prepare the file and check that this worked.
     errno = 0;
-    FILE* fp = std::fopen( file_name.c_str(), "wb" );
+    std::FILE* fp = std::fopen( file_name.c_str(), "wb" );
     if( !fp ) {
         throw std::runtime_error(
             "Cannot open output file '" + file_name + "': " + std::string( std::strerror( errno ))
