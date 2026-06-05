@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include <genesis/util/core/exception.hpp>
 #include <genesis/util/core/fs.hpp>
 #include <genesis/util/core/options.hpp>
+#include <genesis/util/io/file_handle.hpp>
 
 #include <cerrno>
 #include <cstdio>
@@ -102,54 +103,6 @@ inline void file_output_stream(
             "Cannot open output file '" + file_name + "': " + std::string( strerror( errno ))
         );
     }
-}
-
-/**
- * @brief Helper function to obtain a binary output FILE handle with RAII lifetime management.
- *
- * Opens the file in binary write mode ("wb"). Performs the same safety checks as
- * file_output_stream(): refuses to overwrite existing files unless explicitly allowed,
- * and optionally creates parent directories.
- *
- * The returned unique_ptr calls fclose() automatically when it goes out of scope.
- * The underlying FILE* is accessible via .get() for use with C I/O functions.
- *
- * @param[in] file_name   Path to the file to write to.
- * @param[in] create_dirs Create parent directories if needed.
- * @return A unique_ptr<FILE> that closes the file on destruction.
- *
- * @see file_output_stream(), Options::allow_file_overwriting()
- */
-inline std::unique_ptr<std::FILE, int(*)(std::FILE*)> file_output_file(
-    std::string const& file_name,
-    bool               create_dirs = true
-) {
-    using namespace genesis::util::core;
-
-    // Make sure that we are only overwriting if we are allowed to.
-    if( !Options::get().allow_file_overwriting() && path_exists( file_name ) ) {
-        throw ExistingFileError(
-            "Output path '" + file_name + "' already exists. If you want to allow overwriting of "
-            "existing files, activate genesis::util::core::Options::get().allow_file_overwriting() first.",
-            file_name
-        );
-    }
-
-    // Create all parent dirs, if needed.
-    if( create_dirs ) {
-        auto const path = file_path( file_name );
-        dir_create( path );
-    }
-
-    // Now prepare the file and check that this worked.
-    errno = 0;
-    std::FILE* fp = std::fopen( file_name.c_str(), "wb" );
-    if( !fp ) {
-        throw std::runtime_error(
-            "Cannot open output file '" + file_name + "': " + std::string( std::strerror( errno ))
-        );
-    }
-    return { fp, std::fclose };
 }
 
 } // namespace io

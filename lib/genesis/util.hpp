@@ -124,6 +124,7 @@
 #include <genesis/util/io/base_input_source.hpp>
 #include <genesis/util/io/base_output_target.hpp>
 #include <genesis/util/io/deserializer.hpp>
+#include <genesis/util/io/file_handle.hpp>
 #include <genesis/util/io/file_input_source.hpp>
 #include <genesis/util/io/file_output_target.hpp>
 #include <genesis/util/io/function.hpp>
