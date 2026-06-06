@@ -27,9 +27,10 @@
 /**
  * @brief Binary file I/O helpers for BitpackedPairVector.
  *
- * Provides write() and read() free functions that serialise and deserialise a
- * BitpackedPairVector to/from a binary FILE stream. The element count (size) is not
- * written; callers must store and supply it separately (e.g. via a file footer).
+ * Provides write_bitpacked_pair_vector() and read_bitpacked_pair_vector() free functions
+ * that serialise and deserialise a BitpackedPairVector to/from a binary FILE stream.
+ * The element count (size) is not written; callers must store and supply it separately
+ * (e.g. via a file footer).
  *
  * On-disk layout (all values native-endian uint64):
  * @code
@@ -70,7 +71,7 @@ namespace container {
  * Throws std::runtime_error on any I/O error.
  */
 template<typename U, typename A, typename B>
-std::size_t write( BitpackedPairVector<U, A, B> const& bpv, FILE* fp )
+std::size_t write_bitpacked_pair_vector( BitpackedPairVector<U, A, B> const& bpv, FILE* fp )
 {
     auto checked_fwrite = [&]( void const* ptr, std::size_t bytes )
     {
@@ -81,9 +82,11 @@ std::size_t write( BitpackedPairVector<U, A, B> const& bpv, FILE* fp )
         }
     };
 
-    // Write field-width header words
+    // Write element count, then field-width header words
+    std::uint64_t const sz = static_cast<std::uint64_t>( bpv.size() );
     std::uint64_t const wa = static_cast<std::uint64_t>( bpv.first_bit_width() );
     std::uint64_t const wb = static_cast<std::uint64_t>( bpv.second_bit_width() );
+    checked_fwrite( &sz, sizeof( sz ));
     checked_fwrite( &wa, sizeof( wa ));
     checked_fwrite( &wb, sizeof( wb ));
 
@@ -93,18 +96,18 @@ std::size_t write( BitpackedPairVector<U, A, B> const& bpv, FILE* fp )
         checked_fwrite( data.data(), data.size() * sizeof( U ));
     }
 
-    return 2 * sizeof( std::uint64_t ) + data.size() * sizeof( U );
+    return 3 * sizeof( std::uint64_t ) + data.size() * sizeof( U );
 }
 
 /**
  * @brief Read a BitpackedPairVector from a binary FILE stream.
  *
  * Reads two uint64 header words (width_a, width_b), then the raw storage words.
- * The caller must supply @p num_elements (the number of logical entries to reconstruct).
+ * The element count is read from the stream (written by write_bitpacked_pair_vector()).
  * Throws std::runtime_error on any I/O error or if the data is inconsistent.
  */
 template<typename U, typename A, typename B>
-BitpackedPairVector<U, A, B> read( FILE* fp, std::size_t num_elements )
+BitpackedPairVector<U, A, B> read_bitpacked_pair_vector( FILE* fp )
 {
     auto checked_fread = [&]( void* ptr, std::size_t bytes )
     {
@@ -114,6 +117,11 @@ BitpackedPairVector<U, A, B> read( FILE* fp, std::size_t num_elements )
             );
         }
     };
+
+    // Read element count
+    std::uint64_t sz = 0;
+    checked_fread( &sz, sizeof( sz ));
+    std::size_t const num_elements = static_cast<std::size_t>( sz );
 
     // Read field-width header words
     std::uint64_t wa = 0, wb = 0;

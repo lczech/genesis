@@ -400,6 +400,8 @@ TEST( BitpackedVector, RawStorageConstructor )
 
 TEST( BitpackedVector, FileIO )
 {
+    using namespace genesis::util::container;
+
     // Write then read back via a tmpfile and verify that all values are identical.
     {
         size_t const n = 5000;
@@ -414,13 +416,13 @@ TEST( BitpackedVector, FileIO )
 
         // Write and verify returned byte count matches header + storage.
         size_t const num_words = original.data().size();
-        size_t const expected_bytes = sizeof( uint64_t ) + num_words * sizeof( uint64_t );
-        size_t const written = genesis::util::container::write( original, fp );
+        size_t const expected_bytes = 2 * sizeof( uint64_t ) + num_words * sizeof( uint64_t );
+        size_t const written = write_bitpacked_vector( original, fp );
         EXPECT_EQ( written, expected_bytes );
 
         // Read back and verify values.
         std::rewind( fp );
-        auto restored = genesis::util::container::read<uint64_t, uint16_t>( fp, n );
+        auto restored = read_bitpacked_vector<uint64_t, uint16_t>( fp );
         std::fclose( fp );
 
         EXPECT_EQ( restored.size(), n );
@@ -440,9 +442,9 @@ TEST( BitpackedVector, FileIO )
 
         std::FILE* fp = std::tmpfile();
         ASSERT_NE( fp, nullptr );
-        genesis::util::container::write( original, fp );
+        write_bitpacked_vector( original, fp );
         std::rewind( fp );
-        auto restored = genesis::util::container::read<uint8_t, uint8_t>( fp, n );
+        auto restored = read_bitpacked_vector<uint8_t, uint8_t>( fp );
         std::fclose( fp );
 
         for( size_t i = 0; i < n; ++i ) {

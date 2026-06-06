@@ -27,9 +27,9 @@
 /**
  * @brief Binary file I/O helpers for BitpackedVector.
  *
- * Provides write() and read() free functions that serialise and deserialise a
- * BitpackedVector to/from a binary FILE stream. The element count (size) is not
- * written; callers must store and supply it separately.
+ * Provides write_bitpacked_vector() and read_bitpacked_vector() free functions
+ * that serialise and deserialise a BitpackedVector to/from a binary FILE stream.
+ * The element count (size) is not written; callers must store and supply it separately.
  *
  * On-disk layout (all values native-endian uint64):
  * @code
@@ -69,7 +69,7 @@ namespace container {
  * Throws std::runtime_error on any I/O error.
  */
 template<typename U, typename T>
-std::size_t write( BitpackedVector<U, T> const& bv, FILE* fp )
+std::size_t write_bitpacked_vector( BitpackedVector<U, T> const& bv, FILE* fp )
 {
     auto checked_fwrite = [&]( void const* ptr, std::size_t bytes ) {
         if( std::fwrite( ptr, 1, bytes, fp ) != bytes ) {
@@ -79,9 +79,11 @@ std::size_t write( BitpackedVector<U, T> const& bv, FILE* fp )
         }
     };
 
-    // Write the bit width as a uint64 header word
-    std::uint64_t const bit_width = static_cast<std::uint64_t>( bv.bit_width() );
-    checked_fwrite( &bit_width, sizeof( bit_width ));
+    // Write element count, then bit width as uint64 header words
+    std::uint64_t const sz = static_cast<std::uint64_t>( bv.size() );
+    std::uint64_t const bw = static_cast<std::uint64_t>( bv.bit_width() );
+    checked_fwrite( &sz, sizeof( sz ));
+    checked_fwrite( &bw, sizeof( bw ));
 
     // Write the raw packed storage words
     auto const& data = bv.data();
@@ -89,18 +91,18 @@ std::size_t write( BitpackedVector<U, T> const& bv, FILE* fp )
         checked_fwrite( data.data(), data.size() * sizeof( U ));
     }
 
-    return sizeof( bit_width ) + data.size() * sizeof( U );
+    return 2 * sizeof( std::uint64_t ) + data.size() * sizeof( U );
 }
 
 /**
  * @brief Read a BitpackedVector from a binary FILE stream.
  *
  * Reads the uint64 header (bit_width) then the raw storage words.
- * The caller must supply @p num_elements (the number of logical entries to reconstruct).
+ * The element count is read from the stream (written by write_bitpacked_vector()).
  * Throws std::runtime_error on any I/O error or if the data is inconsistent.
  */
 template<typename U, typename T>
-BitpackedVector<U, T> read( FILE* fp, std::size_t num_elements )
+BitpackedVector<U, T> read_bitpacked_vector( FILE* fp )
 {
     auto checked_fread = [&]( void* ptr, std::size_t bytes ) {
         if( std::fread( ptr, 1, bytes, fp ) != bytes ) {
@@ -109,6 +111,11 @@ BitpackedVector<U, T> read( FILE* fp, std::size_t num_elements )
             );
         }
     };
+
+    // Read element count
+    std::uint64_t sz = 0;
+    checked_fread( &sz, sizeof( sz ));
+    std::size_t const num_elements = static_cast<std::size_t>( sz );
 
     // Read the bit width header word
     std::uint64_t bit_width_raw = 0;
