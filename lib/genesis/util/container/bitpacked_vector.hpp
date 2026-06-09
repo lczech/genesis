@@ -214,6 +214,23 @@ public:
         return data_;
     }
 
+    /**
+     * @brief Issue a non-blocking prefetch hint for the storage word(s) holding @p index.
+     *
+     * No-op on compilers that do not support __builtin_prefetch (non-GCC/Clang).
+     * The entry is brought into L2; use locality hint 1 since the offset table is reused
+     * across terms in the same query but not across queries.
+     */
+    inline void prefetch( size_t index ) const noexcept
+    {
+        assert( index < size_ );
+        size_t const bit_index  = index * bit_width_;
+        size_t const data_index = bit_index / STORAGE_BITS;
+        #if defined(__GNUC__) || defined(__clang__)
+            __builtin_prefetch( &data_[ data_index ], 0, 1 );
+        #endif
+    }
+
     // -------------------------------------------------------------------------
     //     Internal Functions
     // -------------------------------------------------------------------------

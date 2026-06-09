@@ -251,6 +251,16 @@ public:
         return storage_;
     }
 
+    /**
+     * @brief Issue a non-blocking prefetch hint for the storage word(s) holding @p index.
+     *
+     * Delegates to BitpackedVector::prefetch(). No-op on non-GCC/Clang compilers.
+     */
+    inline void prefetch( size_t index ) const noexcept
+    {
+        storage_.prefetch( index );
+    }
+
     // -------------------------------------------------------------------------
     //     Private Helpers
     // -------------------------------------------------------------------------
