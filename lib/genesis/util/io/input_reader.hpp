@@ -162,7 +162,22 @@ public:
     AsynchronousReader& operator= ( AsynchronousReader const& ) = delete;
     AsynchronousReader& operator= ( AsynchronousReader&& )      = delete;
 
-    ~AsynchronousReader() = default;
+    ~AsynchronousReader()
+    {
+        // If start_reading() was called without a matching finish_reading() (e.g., when the
+        // owning stream is abandoned mid-iteration, such as when a coroutine generator is
+        // destroyed early), we must wait for the background task to complete before our
+        // input_source_ and the caller's target buffer are released. Without this wait, the
+        // task would keep a raw pointer into the caller's already-freed buffer and run it
+        // later (e.g., in the global thread pool destructor), causing a use-after-free crash.
+        if( future_.valid() ) {
+            try {
+                future_.wait();
+            } catch( ... ) {
+                // Cannot propagate from a destructor; discard the exception.
+            }
+        }
+    }
 
     // -------------------------------------------------------------
     //     Init and General Members

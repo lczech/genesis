@@ -128,6 +128,10 @@ public:
 
     ~InputStream()
     {
+        // Drain any in-flight async read before freeing the buffer it writes into.
+        // The reader holds a raw (non-owning) pointer into buffer_+2*BlockLength; freeing
+        // buffer_ first would leave a pending task with a dangling pointer.
+        input_reader_.reset();
         delete[] buffer_;
         buffer_ = nullptr;
     }
