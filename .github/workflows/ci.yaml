@@ -196,16 +196,17 @@ jobs:
           #     MacOS 14
           # -------------------------------
 
-          - os: macos-14
-            compiler: gcc-11
-          - os: macos-14
-            compiler: gcc-12
-          - os: macos-14
-            compiler: gcc-13
-          - os: macos-14
-            compiler: gcc-14
-          - os: macos-14
-            compiler: gcc-15
+          # Outdated and probably not needed
+          # - os: macos-14
+          #   compiler: gcc-11
+          # - os: macos-14
+          #   compiler: gcc-12
+          # - os: macos-14
+          #   compiler: gcc-13
+          # - os: macos-14
+          #   compiler: gcc-14
+          # - os: macos-14
+          #   compiler: gcc-15
           # Compiler does not support C++17 ?!
           # - os: macos-14
           #   compiler: llvm-9
