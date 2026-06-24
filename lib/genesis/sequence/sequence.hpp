@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -71,8 +72,10 @@ public:
     void swap( Sequence& other )
     {
         using std::swap;
-        swap( label_,    other.label_ );
-        swap( sites_,    other.sites_ );
+        swap( label_,        other.label_ );
+        swap( sites_,        other.sites_ );
+        swap( phred_scores_, other.phred_scores_ );
+        swap( abundance_,    other.abundance_ );
     }
 
     void clear()
@@ -127,22 +130,22 @@ public:
         sites_ = std::move( value );
     }
 
-    std::vector<unsigned char>& phred_scores()
+    std::vector<uint8_t>& phred_scores()
     {
         return phred_scores_;
     }
 
-    std::vector<unsigned char> const& phred_scores() const
+    std::vector<uint8_t> const& phred_scores() const
     {
         return phred_scores_;
     }
 
-    void phred_scores( std::vector<unsigned char> const& value )
+    void phred_scores( std::vector<uint8_t> const& value )
     {
         phred_scores_ = value;
     }
 
-    void phred_scores( std::vector<unsigned char>&& value )
+    void phred_scores( std::vector<uint8_t>&& value )
     {
         phred_scores_ = std::move( value );
     }
@@ -240,8 +243,8 @@ private:
     std::string label_;
     std::string sites_;
 
-    std::vector<unsigned char> phred_scores_;
-    size_t      abundance_ = 1;
+    std::vector<uint8_t> phred_scores_;
+    size_t abundance_ = 1;
 
 };
 
