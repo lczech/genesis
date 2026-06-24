@@ -68,9 +68,11 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.9.0")
 endif()
 
 # Add htslib as a dependency, so that CMake realizes that it has to be built.
+# We also propagate its include path publicly, so that consumers of genesis_lib_static
+# automatically get htslib headers without any path tinkering on their side.
 IF(GENESIS_USE_HTSLIB)
     add_dependencies( genesis_lib_obj htslib )
-    # target_link_libraries(genesis_lib_obj PRIVATE HTSlib::htslib)
+    target_include_directories( genesis_lib_obj SYSTEM PUBLIC ${HTSLIB_INCLUDE_DIR} )
 ENDIF()
 
 # Same for samtools. Not used at the moment though.
