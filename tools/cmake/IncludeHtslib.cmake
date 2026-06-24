@@ -203,17 +203,28 @@ set(HTSLIB_GIT_SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/external/htslib")
 if (EXISTS "${HTSLIB_GIT_SUBMODULE_DIR}/configure.ac")
     message(STATUS "Using htslib submodule")
     set(HTSLIB_REPOSITORY "file://${HTSLIB_GIT_SUBMODULE_DIR}")
+    # Use the exact pinned commit hash rather than the version tag: shallow CI clones
+    # don't fetch tags, so a tag name like "1.22" would fail as "invalid reference".
+    # The commit hash is always present since the submodule is checked out there.
+    execute_process(
+        COMMAND git -C "${HTSLIB_GIT_SUBMODULE_DIR}" rev-parse HEAD
+        OUTPUT_VARIABLE HTSLIB_SUBMODULE_COMMIT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(HTSLIB_EFFECTIVE_GIT_TAG "${HTSLIB_SUBMODULE_COMMIT}")
+    message(STATUS "htslib submodule commit: ${HTSLIB_SUBMODULE_COMMIT}")
 else()
     message(STATUS "htslib submodule not found")
     message(STATUS "Will fetch htslib from GitHub")
     set(HTSLIB_REPOSITORY "https://github.com/samtools/htslib.git")
+    set(HTSLIB_EFFECTIVE_GIT_TAG "${htslib_GIT_TAG}")
 endif()
 
 # Now fetch the htslib code, either from the submodule, or fresh from GitHub
 FetchContent_Declare(
     htslib
     GIT_REPOSITORY ${HTSLIB_REPOSITORY}
-    GIT_TAG        ${htslib_GIT_TAG}
+    GIT_TAG        ${HTSLIB_EFFECTIVE_GIT_TAG}
     # SOURCE_DIR     ${CMAKE_BINARY_DIR}/htslib-source
 )
 FetchContent_GetProperties(htslib)
