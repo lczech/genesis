@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,11 +30,13 @@
 
 #include <genesis/sequence/function/dict.hpp>
 
+#include <genesis/util/core/fs.hpp>
 #include <genesis/util/io/input_stream.hpp>
 #include <genesis/util/text/char.hpp>
 #include <genesis/util/text/convert.hpp>
 #include <genesis/util/text/string.hpp>
 
+#include <array>
 #include <cassert>
 #include <stdexcept>
 #include <string>
@@ -43,6 +45,72 @@
 
 namespace genesis {
 namespace sequence {
+
+// =================================================================================================
+//     Sequence Index File Finders
+// =================================================================================================
+
+// Search for a sidecar file (e.g. ".fai" or ".dict") alongside a FASTA file by probing
+// candidate base paths in most-specific-first order. Candidates are derived by iteratively
+// stripping recognised FASTA and .gz extensions (longest first to avoid prefix ambiguity
+// between e.g. ".fa" and ".fas"). Example: "ref.fa.gz" probes "ref.fa.gz", "ref.fa", "ref".
+// Returns the first existing candidate path with index_ext appended, or empty string.
+std::string find_fasta_index_file_(
+    std::string const& fasta_path, std::string const& index_ext
+) {
+    using genesis::util::text::ends_with;
+
+    // Known FASTA extensions ordered longest-first to avoid prefix matches (e.g. ".fa" < ".fas").
+    static std::array<std::string, 5> fasta_exts = {
+        ".fasta", ".fastq", ".fas", ".fna", ".fa"
+    };
+
+    // Lambda to probe one candidate and return it if it exists.
+    auto try_candidate_ = [&]( std::string const& base ) -> std::string {
+        auto const candidate = base + index_ext;
+        return genesis::util::core::file_exists( candidate ) ? candidate : std::string{};
+    };
+
+    // Try the original path first.
+    auto hit = try_candidate_( fasta_path );
+    if( !hit.empty() ) {
+        return hit;
+    }
+
+    // Strip .gz if present, try again.
+    std::string cur = fasta_path;
+    if( ends_with( cur, ".gz" ) ) {
+        cur = cur.substr( 0, cur.size() - 3 );
+        hit = try_candidate_( cur );
+        if( !hit.empty() ) {
+            return hit;
+        }
+    }
+
+    // Strip one recognised FASTA extension, try the bare base.
+    for( auto const& ext : fasta_exts ) {
+        if( ends_with( cur, ext ) ) {
+            cur = cur.substr( 0, cur.size() - ext.size() );
+            hit = try_candidate_( cur );
+            if( !hit.empty() ) {
+                return hit;
+            }
+            break;
+        }
+    }
+
+    return {};
+}
+
+std::string find_sequence_fai( std::string const& fasta_path )
+{
+    return find_fasta_index_file_( fasta_path, ".fai" );
+}
+
+std::string find_sequence_dict( std::string const& fasta_path )
+{
+    return find_fasta_index_file_( fasta_path, ".dict" );
+}
 
 // =================================================================================================
 //     Sequence Dict

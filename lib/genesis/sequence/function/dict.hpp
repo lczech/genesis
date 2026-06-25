@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,39 @@
 
 namespace genesis {
 namespace sequence {
+
+// =================================================================================================
+//     Sequence Index File Finders
+// =================================================================================================
+
+/**
+ * @brief Find the FAI index file for a given FASTA file, if one exists.
+ *
+ * Given a FASTA path (plain or gzip-compressed), searches for an accompanying `.fai` index file
+ * as produced by `samtools faidx`. Candidates are probed in most-specific-first order by
+ * progressively stripping recognised FASTA extensions (`.fasta`, `.fas`, `.fna`, `.fa`, `.gz`):
+ *
+ *   - `ref.fa.gz`  → tries `ref.fa.gz.fai`, `ref.fa.fai`, `ref.fai`
+ *   - `ref.fasta`  → tries `ref.fasta.fai`, `ref.fai`
+ *
+ * Returns the path of the first existing candidate, or an empty string if none is found.
+ */
+std::string find_sequence_fai( std::string const& fasta_path );
+
+/**
+ * @brief Find the sequence dictionary file for a given FASTA file, if one exists.
+ *
+ * Given a FASTA path (plain or gzip-compressed), searches for an accompanying `.dict` file
+ * as produced by `samtools dict` or GATK/Picard `CreateSequenceDictionary`. Candidates are
+ * probed in most-specific-first order by progressively stripping recognised FASTA extensions
+ * (`.fasta`, `.fas`, `.fna`, `.fa`, `.gz`):
+ *
+ *   - `ref.fa.gz`  → tries `ref.fa.gz.dict`, `ref.fa.dict`, `ref.dict`
+ *   - `ref.fasta`  → tries `ref.fasta.dict`, `ref.dict`
+ *
+ * Returns the path of the first existing candidate, or an empty string if none is found.
+ */
+std::string find_sequence_dict( std::string const& fasta_path );
 
 // =================================================================================================
 //     Sequence Dict
