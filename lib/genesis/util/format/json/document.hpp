@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2025 Lucas Czech
+    Copyright (C) 2014-2026 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -76,6 +76,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -703,30 +704,144 @@ public:
 
 public:
 
+    /**
+     * @brief Return the stored array value. Throws `std::domain_error` if not an array.
+     */
     ArrayType& get_array();
+
+    /** @copydoc get_array() */
     ArrayType const& get_array() const;
 
+    /**
+     * @brief Return the stored object value. Throws `std::domain_error` if not an object.
+     */
     ObjectType& get_object();
+
+    /** @copydoc get_object() */
     ObjectType const& get_object() const;
 
+    /**
+     * @brief Return the stored string value. Throws `std::domain_error` if not a string.
+     */
     StringType& get_string();
+
+    /** @copydoc get_string() */
     StringType const& get_string() const;
 
+    /**
+     * @brief Return the stored boolean value. Throws `std::domain_error` if not a boolean.
+     */
     BooleanType& get_boolean();
+
+    /** @copydoc get_boolean() */
     BooleanType get_boolean() const;
 
+    /**
+     * @brief Return the stored floating point number. Throws `std::domain_error` if not a float.
+     */
     NumberFloatType& get_number_float();
+
+    /** @copydoc get_number_float() */
     NumberFloatType get_number_float() const;
 
+    /**
+     * @brief Return the stored floating point number cast to @p T.
+     *
+     * Throws `std::domain_error` if not a float. @p T must be a floating point type.
+     */
+    template<typename T>
+    T& get_number_float_t()
+    {
+        static_assert( std::is_floating_point<T>::value, "T must be a floating point type" );
+        return static_cast<T&>( get_number_float() );
+    }
+
+    /** @copydoc get_number_float_t() */
+    template<typename T>
+    T get_number_float_t() const
+    {
+        static_assert( std::is_floating_point<T>::value, "T must be a floating point type" );
+        return static_cast<T>( get_number_float() );
+    }
+
+    /**
+     * @brief Return the stored signed integer number. Throws `std::domain_error` if not a signed integer.
+     */
     NumberSignedType& get_number_signed();
+
+    /** @copydoc get_number_signed() */
     NumberSignedType get_number_signed() const;
 
+    /**
+     * @brief Return the stored signed integer number cast to @p T.
+     *
+     * Throws `std::domain_error` if not a signed integer. @p T must be a signed integral type.
+     */
+    template<typename T>
+    T& get_number_signed_t()
+    {
+        static_assert(
+            std::is_integral<T>::value && std::is_signed<T>::value,
+            "T must be a signed integral type"
+        );
+        return static_cast<T&>( get_number_signed() );
+    }
+
+    /** @copydoc get_number_signed_t() */
+    template<typename T>
+    T get_number_signed_t() const
+    {
+        static_assert(
+            std::is_integral<T>::value && std::is_signed<T>::value,
+            "T must be a signed integral type"
+        );
+        return static_cast<T>( get_number_signed() );
+    }
+
+    /**
+     * @brief Return the stored unsigned integer number. Throws `std::domain_error` if not an unsigned integer.
+     */
     NumberUnsignedType& get_number_unsigned();
+
+    /** @copydoc get_number_unsigned() */
     NumberUnsignedType get_number_unsigned() const;
 
+    /**
+     * @brief Return the stored unsigned integer number cast to @p T.
+     *
+     * Throws `std::domain_error` if not an unsigned integer. @p T must be an unsigned integral type.
+     */
+    template<typename T>
+    T& get_number_unsigned_t()
+    {
+        static_assert(
+            std::is_integral<T>::value && std::is_unsigned<T>::value,
+            "T must be an unsigned integral type"
+        );
+        return static_cast<T&>( get_number_unsigned() );
+    }
+
+    /** @copydoc get_number_unsigned_t() */
+    template<typename T>
+    T get_number_unsigned_t() const
+    {
+        static_assert(
+            std::is_integral<T>::value && std::is_unsigned<T>::value,
+            "T must be an unsigned integral type"
+        );
+        return static_cast<T>( get_number_unsigned() );
+    }
+
+    /**
+     * @brief Return the stored numeric value converted to @p T.
+     *
+     * Works for float, signed, and unsigned storage — converts to @p T regardless of the stored
+     * type. @p T must be an arithmetic type. Throws `std::domain_error` if not a number.
+     */
     template<typename T>
     T get_number() const
     {
+        static_assert( std::is_arithmetic<T>::value, "T must be an arithmetic type" );
         if( is_number_float() ) {
             return value_.number_float;
         } else if( is_number_signed() ) {
