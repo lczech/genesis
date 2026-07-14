@@ -23,7 +23,12 @@
 #   Build Options
 # ------------------------------------------------------------------------------
 
-set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    # Only applies when genesis is the top-level project (standalone build); when included as
+    # a subdirectory dependency, let the including project's own build directory own the output
+    # location instead.
+    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+endif()
 include_directories (${PROJECT_SOURCE_DIR}/lib)
 
 # ------------------------------------------------------------------------------

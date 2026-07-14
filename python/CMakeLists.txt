@@ -136,10 +136,12 @@ target_link_libraries( genesis_python_module PRIVATE pybind11::module )
 #   Output
 # ------------------------------------------------------------------------------
 
-# Path to store the Python module.
-set_target_properties(genesis_python_module PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/python"
-)
+# Path to store the Python module. Only when genesis is the top-level project.
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    set_target_properties(genesis_python_module PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/python"
+    )
+endif()
 # set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/python)
 
 # Make sure that the module file is named according to Python standards

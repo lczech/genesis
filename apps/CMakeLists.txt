@@ -23,7 +23,10 @@
 #   Build Options
 # ------------------------------------------------------------------------------
 
-set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/apps )
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    # Only when genesis is the top-level project.
+    set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/apps )
+endif()
 
 # Set rpath for all targets, so that they work out of the box (libgenesis.so in parent directory),
 # as well as when relocating with the lib being in the same directory.

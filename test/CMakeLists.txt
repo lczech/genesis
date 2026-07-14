@@ -155,7 +155,10 @@ include_directories (${PROJECT_SOURCE_DIR}/test)
 #   Build Tests
 # ------------------------------------------------------------------------------
 
-set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/test)
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    # Only when genesis is the top-level project.
+    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/test)
+endif()
 
 add_executable        (genesis_tests ${genesis_test_sources})
 set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
