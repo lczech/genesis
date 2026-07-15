@@ -33,8 +33,10 @@
 
 #include <genesis/util/color/color.hpp>
 
+#include <cstddef>
 #include <map>
 #include <string>
+#include <string_view>
 
 // =================================================================================================
 //     Codes
@@ -154,16 +156,50 @@ char normalize_nucleic_acid_code( char code, bool accept_degenerated = true );
 char normalize_amino_acid_code( char code, bool accept_degenerated = true );
 
 /**
+ * @brief Get the reverse complement of a nucleic acid sequence, in place.
+ *
+ * That is, reverse the string and flip `A` with `T` and `C` with `G`. Case is preserved, so that
+ * soft-masked (lower case) input stays soft-masked. Undetermined codes (see
+ * nucleic_acid_codes_undetermined(), that is `NOX.-?`) are left unchanged, as they have no
+ * strand-specific meaning, and are hence not affected by @p accept_degenerated either.
+ *
+ * If @p accept_degenerated is `true` (default), degenerated codes (see
+ * nucleic_acid_codes_degenerated(), that is `WSMKRYBDHV`) are also flipped. For example
+ * `M == AC` becomes `K == TG`, `W == AT` stays the same, and `B == CGT` becomes `V == GCA`.
+ * If set to `false`, degenerated codes are instead treated like any other invalid code, see below.
+ *
+ * All remaining chars, that is, everything that is not part of nucleic_acid_codes_all(), as well
+ * as degenerated codes if @p accept_degenerated is `false`, are considered invalid. What happens
+ * to them is controlled by @p throw_on_invalid: If `true` (default), an `std::invalid_argument`
+ * exception is thrown, naming the number of invalid codes that were encountered. If `false`, no
+ * exception is thrown, and instead, each invalid code is replaced by an `N` (or `n`, for lower
+ * case input), meaning "any base", which is the closest approximation we have for "this was
+ * some kind of base, we just do not know its complement".
+ *
+ * As this function operates in place, if an exception is thrown, @p sequence is left in a
+ * partially modified state (containing the till-then computed reverse complement, with invalid
+ * positions already replaced by `N`/`n`), and should not be used any further. See
+ * reverse_complement() for a copying version of this function that does not have this caveat.
+ *
+ * The return value is the number of invalid codes that were encountered (`0` if the sequence
+ * only contained valid codes). This is useful in combination with @p throw_on_invalid `false`,
+ * to detect whether any replacements happened, without having to re-scan the sequence.
+ */
+size_t reverse_complement_inplace(
+    std::string& sequence, bool accept_degenerated = true, bool throw_on_invalid = true
+);
+
+/**
  * @brief Get the reverse complement of a nucleic acid sequence.
  *
- * That is, reverse the string and flip `A` with `T` and `C` with `G`.
- * Gap characters are normalized to `-`, and an exception is thrown for invalid characters.
- *
- * If furthermore @p accept_degenerated is `true` (default), degenerated codes are also flipped.
- * For example `M == AC` becomes `K == TG`, `W == AT` stays the same, and `B == CGT` becomes
- * `V = GCA`. If set to `false`, an exception is thrown when degenerated chars are found.
+ * This is a convenience wrapper around reverse_complement_inplace() that copies @p sequence
+ * first, and hence, unlike that function, guarantees that @p sequence itself is never modified
+ * even if an exception is thrown. See there for the meaning of @p accept_degenerated and
+ * @p throw_on_invalid, and for details on the reverse complement itself.
  */
-std::string reverse_complement( std::string const& sequence, bool accept_degenerated = true );
+std::string reverse_complement(
+    std::string_view sequence, bool accept_degenerated = true, bool throw_on_invalid = true
+);
 
 /**
  * @brief Return the transition base for the given base.

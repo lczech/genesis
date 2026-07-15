@@ -35,6 +35,7 @@
 #include <genesis/util/color/color.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cctype>
 #include <stdexcept>
@@ -498,74 +499,138 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
     }
 }
 
-std::string reverse_complement( std::string const& sequence, bool accept_degenerated )
+// ---------------------------------------------------------------------
+//     Reverse Complement Tables
+// ---------------------------------------------------------------------
+
+namespace {
+
+// Per-byte lookup tables driving reverse_complement_inplace(): comp[c] is the char to write for
+// input byte c, and invalid[c] tells whether c was not an accepted nucleic acid code (in which
+// case comp[c] is the case-matched 'N'/'n' sentinel instead of a real complement).
+struct ReverseComplementTable
 {
-    // Dummy result string.
-    auto result = std::string( sequence.size(), '-' );
+    std::array<char, 256> complement;
+    std::array<bool, 256> invalid;
+};
 
-    // Get rev comp char. We only need to check upper case as we normalized before.
-    auto rev_comp = []( char c ){
-        switch( c ) {
-            case 'A':
-                return 'T';
-            case 'C':
-                return 'G';
-            case 'G':
-                return 'C';
-            case 'T':
-                return 'A';
+ReverseComplementTable make_reverse_complement_table( bool accept_degenerated )
+{
+    ReverseComplementTable table;
 
-            case 'W':
-                return 'W';
-            case 'S':
-                return 'S';
-            case 'M':
-                return 'K';
-            case 'K':
-                return 'M';
-            case 'R':
-                return 'Y';
-            case 'Y':
-                return 'R';
+    // Default fill: every byte is invalid, substituted by a case-matched 'N'/'n'.
+    for( size_t i = 0; i < table.complement.size(); ++i ) {
+        bool const is_lower = ( i >= 'a' && i <= 'z' );
+        table.complement[i]    = is_lower ? 'n' : 'N';
+        table.invalid[i] = true;
+    }
 
-            case 'B':
-                return 'V';
-            case 'D':
-                return 'H';
-            case 'H':
-                return 'D';
-            case 'V':
-                return 'B';
-
-            default:
-                // We already checked for invalid chars in the normalize function.
-                // Just do this to be safe.
-                assert( false );
-                throw std::invalid_argument( "Not a nucleic acid code: " + std::string( 1, c ) );
-        }
+    // Mark a single byte as a valid, accepted code with the given complement.
+    auto set = [&]( char from, char to ) {
+        table.complement[ static_cast<unsigned char>( from ) ] = to;
+        table.invalid[ static_cast<unsigned char>( from ) ] = false;
     };
 
-    // Stupid and simple.
-    for( size_t i = 0; i < sequence.size(); ++i ) {
-        char c = sequence[i];
+    // Mark an upper/lower case pair of bytes as valid, accepted codes.
+    auto set_case = [&]( char from_upper, char to_upper, char from_lower, char to_lower ) {
+        set( from_upper, to_upper );
+        set( from_lower, to_lower );
+    };
 
-        // Slighly hacky: the normalize function turns 'N' into '-'.
-        // We don't want that here, so we have to treat that special case.
-        if( c == 'n' || c == 'N' ) {
-            if( accept_degenerated ) {
-                result[ sequence.size() - i - 1 ] = 'N';
-                continue;
-            } else {
-                throw std::invalid_argument(
-                    "Degenerated nucleic acid code not accepted: " + std::string( 1, c )
-                );
-            }
-        }
+    // Plain bases. 'U' (RNA) behaves exactly like 'T' for complementing purposes.
+    set_case( 'A', 'T', 'a', 't' );
+    set_case( 'C', 'G', 'c', 'g' );
+    set_case( 'G', 'C', 'g', 'c' );
+    set_case( 'T', 'A', 't', 'a' );
+    set_case( 'U', 'A', 'u', 'a' );
 
-        // First normalize, then reverse. Slighly inefficition, but saves code duplication.
-        c = normalize_nucleic_acid_code( c, accept_degenerated );
-        result[ sequence.size() - i - 1 ] = rev_comp( c );
+    // Undetermined codes have no strand-specific meaning, and so are always self-complementary,
+    // independent of accept_degenerated.
+    set_case( 'N', 'N', 'n', 'n' );
+    set_case( 'O', 'O', 'o', 'o' );
+    set_case( 'X', 'X', 'x', 'x' );
+    set( '.', '.' );
+    set( '-', '-' );
+    set( '?', '?' );
+
+    // Degenerated codes. If not accepted, leave them at the default invalid/sentinel entry.
+    if( accept_degenerated ) {
+        set_case( 'W', 'W', 'w', 'w' );
+        set_case( 'S', 'S', 's', 's' );
+        set_case( 'M', 'K', 'm', 'k' );
+        set_case( 'K', 'M', 'k', 'm' );
+        set_case( 'R', 'Y', 'r', 'y' );
+        set_case( 'Y', 'R', 'y', 'r' );
+        set_case( 'B', 'V', 'b', 'v' );
+        set_case( 'D', 'H', 'd', 'h' );
+        set_case( 'H', 'D', 'h', 'd' );
+        set_case( 'V', 'B', 'v', 'b' );
     }
+
+    return table;
+}
+
+ReverseComplementTable const& reverse_complement_table( bool accept_degenerated )
+{
+    static ReverseComplementTable const permissive = make_reverse_complement_table( true );
+    static ReverseComplementTable const strict     = make_reverse_complement_table( false );
+    return accept_degenerated ? permissive : strict;
+}
+
+} // anonymous namespace
+
+// ---------------------------------------------------------------------
+//     Reverse Complement
+// ---------------------------------------------------------------------
+
+size_t reverse_complement_inplace(
+    std::string& sequence,
+    bool accept_degenerated,
+    bool throw_on_invalid
+) {
+    auto const& table = reverse_complement_table( accept_degenerated );
+    size_t invalid_count = 0;
+
+    // Two-pointer in-place swap. No branches in the hot loop: both the complement and the
+    // invalid-count contribution come from unconditional table lookups.
+    size_t const n = sequence.size();
+    size_t i = 0;
+    size_t j = ( n > 0 ) ? n - 1 : 0;
+    while( i < j ) {
+        auto const ci = static_cast<unsigned char>( sequence[i] );
+        auto const cj = static_cast<unsigned char>( sequence[j] );
+
+        invalid_count += table.invalid[ci];
+        invalid_count += table.invalid[cj];
+
+        sequence[i] = table.complement[cj];
+        sequence[j] = table.complement[ci];
+
+        ++i;
+        --j;
+    }
+    if( n > 0 && i == j ) {
+        auto const c = static_cast<unsigned char>( sequence[i] );
+        invalid_count += table.invalid[c];
+        sequence[i] = table.complement[c];
+    }
+
+    if( invalid_count > 0 && throw_on_invalid ) {
+        throw std::invalid_argument(
+            "Sequence contains " + std::to_string( invalid_count ) +
+            " invalid or rejected nucleic acid code(s)"
+        );
+    }
+    return invalid_count;
+}
+
+std::string reverse_complement(
+    std::string_view sequence,
+    bool accept_degenerated,
+    bool throw_on_invalid
+) {
+    auto result = std::string( sequence );
+    reverse_complement_inplace( result, accept_degenerated, throw_on_invalid );
     return result;
 }
 
