@@ -29,6 +29,28 @@
 message (STATUS "Looking for zlib")
 find_package(ZLIB)
 
+# Some HPC module systems (e.g. EasyBuild) only expose a library via PKG_CONFIG_PATH
+# and not via CMAKE_PREFIX_PATH/<Pkg>_ROOT, which is what find_package(ZLIB) relies on.
+# Fall back to pkg-config in that case, so we still find it.
+if(NOT ZLIB_FOUND)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(PC_ZLIB QUIET zlib)
+        if(PC_ZLIB_FOUND)
+            find_library(
+                ZLIB_LIBRARIES
+                NAMES ${PC_ZLIB_LIBRARIES}
+                HINTS ${PC_ZLIB_LIBRARY_DIRS}
+            )
+            if(ZLIB_LIBRARIES)
+                set(ZLIB_FOUND TRUE)
+                set(ZLIB_INCLUDE_DIRS ${PC_ZLIB_INCLUDE_DIRS})
+                set(ZLIB_VERSION_STRING ${PC_ZLIB_VERSION})
+            endif()
+        endif()
+    endif()
+endif()
+
 # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
 if(ZLIB_FOUND)
     message( STATUS "Found zlib: ${ZLIB_INCLUDE_DIRS} ${ZLIB_VERSION_STRING}" )

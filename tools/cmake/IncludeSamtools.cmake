@@ -53,7 +53,15 @@ ExternalProject_Add(
         COMMAND
         autoconf -Wno-syntax
         COMMAND
-        ./configure CFLAGS=-fPIC CXXFLAGS=-fPIC --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-samtools --with-htslib=${HTSLIB_DIR}
+        # samtools links against the same zlib/bzip2/lzma/deflate as htslib does, and has the
+        # same problem of its ./configure not seeing what our find_package()/pkg-config calls
+        # in IncludeHtslib.cmake already found. Reuse the flags computed there.
+        ./configure
+            CFLAGS=-fPIC CXXFLAGS=-fPIC
+            "CPPFLAGS=${HTSLIB_EXTRA_CPPFLAGS}"
+            "LDFLAGS=${HTSLIB_EXTRA_LDFLAGS}"
+            --prefix=${CMAKE_CURRENT_BINARY_DIR}/genesis-samtools
+            --with-htslib=${HTSLIB_DIR}
         #--without-curses
 
     # Build Step
@@ -101,5 +109,5 @@ add_definitions( "-DGENESIS_SAMTOOLS" )
 set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_SAMTOOLS" )
 set(
     GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-    ${SAMTOOLS_LIBRARY} z -lz
+    ${SAMTOOLS_LIBRARY} ${ZLIB_LIBRARIES}
 )

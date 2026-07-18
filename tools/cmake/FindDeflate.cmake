@@ -42,8 +42,18 @@ This module defines the following variables:
 set(Deflate_NAMES deflate deflatestatic)
 set(Deflate_NAMES_DEBUG deflated deflatestaticd)
 
+# Some HPC module systems (e.g. EasyBuild) only expose a library via PKG_CONFIG_PATH
+# and not via CMAKE_PREFIX_PATH/Deflate_ROOT, which is what find_path/find_library rely
+# on by default. Feed pkg-config's result in as an extra HINTS source below, so we still
+# find it in that case, while keeping the existing version-parsing logic below unchanged.
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(PC_DEFLATE QUIET libdeflate)
+endif()
+
 find_path(Deflate_INCLUDE_DIR
           NAMES libdeflate.h
+          HINTS ${PC_DEFLATE_INCLUDE_DIRS}
           PATH_SUFFIXES include)
 
 set(Deflate_OLD_FIND_LIBRARY_PREFIXES "${CMAKE_FIND_LIBRARY_PREFIXES}")
@@ -54,9 +64,11 @@ set(CMAKE_FIND_LIBRARY_PREFIXES "lib" "")
 if(NOT Deflate_LIBRARY)
   find_library(Deflate_LIBRARY_RELEASE
                NAMES ${Deflate_NAMES}
+               HINTS ${PC_DEFLATE_LIBRARY_DIRS}
                PATH_SUFFIXES lib)
   find_library(Deflate_LIBRARY_DEBUG
                NAMES ${Deflate_NAMES_DEBUG}
+               HINTS ${PC_DEFLATE_LIBRARY_DIRS}
                PATH_SUFFIXES lib)
 
   include(SelectLibraryConfigurations)

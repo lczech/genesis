@@ -112,9 +112,28 @@ endif()
 # find_library(HTSLIB_LZMA     NAMES lzma)
 message( STATUS "Looking for LibLZMA" )
 find_package(LibLZMA)
+
+# Some HPC module systems (e.g. EasyBuild) only expose a library via PKG_CONFIG_PATH
+# and not via CMAKE_PREFIX_PATH/<Pkg>_ROOT, which is what find_package() relies on.
+# Fall back to pkg-config in that case, so we still find it.
+IF(NOT LIBLZMA_FOUND)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(PC_LIBLZMA QUIET liblzma)
+        if(PC_LIBLZMA_FOUND)
+            find_library(LIBLZMA_LIBRARIES NAMES ${PC_LIBLZMA_LIBRARIES} HINTS ${PC_LIBLZMA_LIBRARY_DIRS})
+            if(LIBLZMA_LIBRARIES)
+                set(LIBLZMA_FOUND TRUE)
+                set(LIBLZMA_INCLUDE_DIRS ${PC_LIBLZMA_INCLUDE_DIRS})
+            endif()
+        endif()
+    endif()
+ENDIF()
+
 IF(LIBLZMA_FOUND)
     message( STATUS "Found LibLZMA: ${LIBLZMA_LIBRARIES}" )
     set( HTSLIB_LZMA ${LIBLZMA_LIBRARIES} )
+    set( HTSLIB_LZMA_INCLUDE_DIR ${LIBLZMA_INCLUDE_DIRS} )
 ELSE()
     message( STATUS "${ColorRed}LibLZMA not found${ColorEnd}" )
     message (
@@ -124,6 +143,7 @@ ELSE()
         "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
     )
     set( HTSLIB_LZMA "NOTFOUND" )
+    set( HTSLIB_LZMA_INCLUDE_DIR "" )
 ENDIF()
 
 # ----------------------------------------------------
@@ -133,9 +153,29 @@ ENDIF()
 # find_library(HTSLIB_BZ2      NAMES bz2)
 message( STATUS "Looking for BZip2" )
 find_package(BZip2)
+
+# Some HPC module systems (e.g. EasyBuild) only expose a library via PKG_CONFIG_PATH
+# and not via CMAKE_PREFIX_PATH/<Pkg>_ROOT, which is what find_package() relies on.
+# Fall back to pkg-config in that case, so we still find it. Note that upstream bzip2
+# does not ship a .pc file, so this is unlikely to ever trigger, but costs us nothing.
+IF(NOT BZIP2_FOUND)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(PC_BZIP2 QUIET bzip2)
+        if(PC_BZIP2_FOUND)
+            find_library(BZIP2_LIBRARIES NAMES ${PC_BZIP2_LIBRARIES} HINTS ${PC_BZIP2_LIBRARY_DIRS})
+            if(BZIP2_LIBRARIES)
+                set(BZIP2_FOUND TRUE)
+                set(BZIP2_INCLUDE_DIRS ${PC_BZIP2_INCLUDE_DIRS})
+            endif()
+        endif()
+    endif()
+ENDIF()
+
 IF(BZIP2_FOUND)
     message( STATUS "Found BZip2: ${BZIP2_LIBRARIES}" )
     set( HTSLIB_BZ2 ${BZIP2_LIBRARIES} )
+    set( HTSLIB_BZ2_INCLUDE_DIR ${BZIP2_INCLUDE_DIRS} )
 ELSE()
     message( STATUS "${ColorRed}BZip2 not found${ColorEnd}" )
     message (
@@ -145,6 +185,7 @@ ELSE()
         "call CMake with `-DGENESIS_USE_HTSLIB=OFF`.${ColorEnd}"
     )
     set( HTSLIB_BZ2 "NOTFOUND" )
+    set( HTSLIB_BZ2_INCLUDE_DIR "" )
 ENDIF()
 
 # ----------------------------------------------------
@@ -168,6 +209,40 @@ ELSE()
     set( HTSLIB_Deflate "" )
     set( HTSLIB_Deflate_configure "--without-libdeflate" )
 ENDIF()
+
+# ----------------------------------------------------
+#   Forward found dependency paths to htslib's own configure
+# ----------------------------------------------------
+
+# htslib is not built via our CMake compiler settings, but via its own autotools
+# `./configure` script below, which does its own independent dependency detection and
+# does not see what find_package()/pkg-config above already found. On systems where
+# these libraries live in non-standard locations (e.g. HPC module trees), CMake can
+# locate them via CMAKE_PREFIX_PATH or pkg-config while a bare `./configure` subprocess
+# cannot. So we explicitly forward what we found via CPPFLAGS/LDFLAGS, to make sure
+# htslib's build picks up the exact same libraries that the rest of our build uses.
+macro( HTSLIB_FORWARD_DEPENDENCY_FLAGS include_dirs_var libraries_var )
+    foreach( _htslib_dep_include_dir IN LISTS ${include_dirs_var} )
+        set( HTSLIB_EXTRA_CPPFLAGS "${HTSLIB_EXTRA_CPPFLAGS} -I${_htslib_dep_include_dir}" )
+    endforeach()
+    foreach( _htslib_dep_library IN LISTS ${libraries_var} )
+        get_filename_component( _htslib_dep_library_dir "${_htslib_dep_library}" DIRECTORY )
+        if( _htslib_dep_library_dir )
+            set( HTSLIB_EXTRA_LDFLAGS "${HTSLIB_EXTRA_LDFLAGS} -L${_htslib_dep_library_dir}" )
+        endif()
+    endforeach()
+endmacro()
+
+set( HTSLIB_EXTRA_CPPFLAGS "" )
+set( HTSLIB_EXTRA_LDFLAGS "" )
+HTSLIB_FORWARD_DEPENDENCY_FLAGS( ZLIB_INCLUDE_DIRS ZLIB_LIBRARIES )
+HTSLIB_FORWARD_DEPENDENCY_FLAGS( HTSLIB_LZMA_INCLUDE_DIR HTSLIB_LZMA )
+HTSLIB_FORWARD_DEPENDENCY_FLAGS( HTSLIB_BZ2_INCLUDE_DIR HTSLIB_BZ2 )
+HTSLIB_FORWARD_DEPENDENCY_FLAGS( Deflate_INCLUDE_DIRS HTSLIB_Deflate )
+string( STRIP "${HTSLIB_EXTRA_CPPFLAGS}" HTSLIB_EXTRA_CPPFLAGS )
+string( STRIP "${HTSLIB_EXTRA_LDFLAGS}" HTSLIB_EXTRA_LDFLAGS )
+message( STATUS "HTSLIB_EXTRA_CPPFLAGS: ${HTSLIB_EXTRA_CPPFLAGS}" )
+message( STATUS "HTSLIB_EXTRA_LDFLAGS:  ${HTSLIB_EXTRA_LDFLAGS}" )
 
 # ==================================================================================================
 #   Add htslib
@@ -274,6 +349,8 @@ ExternalProject_Add(
         # ${CMAKE_COMMAND} -E chdir ${HTSLIB_SOURCE_DIR}
         ./configure
             CFLAGS=-fPIC CXXFLAGS=-fPIC
+            "CPPFLAGS=${HTSLIB_EXTRA_CPPFLAGS}"
+            "LDFLAGS=${HTSLIB_EXTRA_LDFLAGS}"
             --prefix=${HTSLIB_INSTALL_DIR}
             --libdir=${HTSLIB_INSTALL_DIR}/lib
             --disable-multi-os-directory
@@ -375,7 +452,7 @@ ELSE()
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_HTSLIB" )
     set(
         GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
-        ${HTSLIB_LIBRARY} z -lz ${HTSLIB_LZMA} ${HTSLIB_BZ2} ${HTSLIB_Deflate}
+        ${HTSLIB_LIBRARY} ${ZLIB_LIBRARIES} ${HTSLIB_LZMA} ${HTSLIB_BZ2} ${HTSLIB_Deflate}
     )
     # set(
     #     GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES}
