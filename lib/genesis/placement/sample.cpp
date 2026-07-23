@@ -166,7 +166,11 @@ Pquery& Sample::add( Pquery const& other )
         auto const& old_edge_data  = place.edge().data<PlacementEdgeData>();
         auto const edge_index      = place.edge().index();
         auto const old_edge_num    = old_edge_data.edge_num();
-        auto const rel_pos         = place.proximal_length / old_edge_data.branch_length;
+        double rel_pos = 0.0;
+        // Avoid NaN placement coordinates on zero-length branches
+        if( old_edge_data.branch_length > 0.0 ) {
+            rel_pos = place.proximal_length / old_edge_data.branch_length;
+        }
         place.reset_edge( tree().edge_at( edge_index ));
 
         // Now the placement points to the new edge. We can thus check if this one still has the
